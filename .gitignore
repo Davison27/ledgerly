@@ -25,6 +25,9 @@ pnpm-debug.log*
 # Coverage
 coverage/
 
+# Claude / skills
+.claude/
+
 # Editor / OS
 .DS_Store
 .idea/

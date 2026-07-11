@@ -1,0 +1,14 @@
+{
+  "common": {
+    "appName": "Ledgerly ERP",
+    "language": "Idioma"
+  },
+  "login": {
+    "subtitle": "Plataforma de gestión",
+    "signIn": "Iniciar sesión"
+  },
+  "enterprises": {
+    "placeholderTitle": "Empresas",
+    "placeholderBody": "Pantalla en construcción"
+  }
+}
