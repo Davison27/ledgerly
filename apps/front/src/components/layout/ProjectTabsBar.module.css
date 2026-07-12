@@ -1,0 +1,25 @@
+.bar {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 52px;
+  flex: none;
+  padding: 0 12px;
+  overflow: hidden;
+}
+
+/* Usar antd Tabs como barra: ocupar el ancho y pegar las pestañas abajo. */
+.bar :global(.ant-tabs) {
+  width: 100%;
+}
+.bar :global(.ant-tabs-nav) {
+  margin: 0;
+}
+/* La línea inferior la pone el propio contenedor (border-bottom). */
+.bar :global(.ant-tabs-nav::before) {
+  border-bottom: none;
+}
+/* No usamos paneles de contenido: el contenido real es el Outlet de la ruta. */
+.bar :global(.ant-tabs-content-holder) {
+  display: none;
+}

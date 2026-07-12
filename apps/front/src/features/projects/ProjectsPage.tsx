@@ -5,6 +5,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { getEnterprise } from '../../data/enterprises';
 import type { Project } from '../../data/enterprises';
+import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { ProjectCard } from './components/ProjectCard';
 
 const { Title, Text } = Typography;
@@ -15,11 +16,13 @@ export function ProjectsPage() {
   };
   const { t } = useTranslation();
   const { message, modal } = App.useApp();
+  const { openProject, isOpen, closeProject } = useOpenProjects();
   const enterprise = enterpriseId ? getEnterprise(enterpriseId) : undefined;
   const [projects, setProjects] = useState(enterprise?.projects ?? []);
 
   const handleOpen = (project: Project) => {
-    void message.info(`${project.name}: ${t('common.comingSoon')}`);
+    if (!enterprise) return;
+    openProject(enterprise.id, project.id);
   };
 
   const handleEdit = (project: Project) => {
@@ -35,6 +38,7 @@ export function ProjectsPage() {
       okButtonProps: { danger: true },
       onOk: () => {
         setProjects((prev) => prev.filter((p) => p.id !== project.id));
+        if (enterprise) closeProject(enterprise.id, project.id);
       },
     });
   };
@@ -69,6 +73,7 @@ export function ProjectsPage() {
             key={project.id}
             project={project}
             color={enterprise?.color ?? '#1c5d97'}
+            isOpen={enterprise ? isOpen(enterprise.id, project.id) : false}
             onOpen={handleOpen}
             onEdit={handleEdit}
             onDelete={handleDelete}
