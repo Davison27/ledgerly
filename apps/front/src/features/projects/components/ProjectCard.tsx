@@ -1,4 +1,4 @@
-import { Avatar, Card, Tooltip, theme, type CardProps } from 'antd';
+import { Avatar, Badge, Card, Tooltip, theme, type CardProps } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -13,8 +13,8 @@ const { useToken } = theme;
 
 export interface ProjectCardProps {
   project: Project;
-  /** Color de la empresa, para el avatar. */
   color: string;
+  isOpen?: boolean;
   onOpen: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
@@ -23,6 +23,7 @@ export interface ProjectCardProps {
 export function ProjectCard({
   project,
   color,
+  isOpen,
   onOpen,
   onEdit,
   onDelete,
@@ -71,12 +72,14 @@ export function ProjectCard({
     <Card styles={styles} actions={actions}>
       <Meta
         avatar={
-          <Avatar
-            shape="square"
-            size={48}
-            style={{ backgroundColor: color }}
-            icon={<ProjectOutlined />}
-          />
+          <Badge dot={isOpen} color={token.colorSuccess} offset={[-4, 4]}>
+            <Avatar
+              shape="square"
+              size={48}
+              style={{ backgroundColor: color }}
+              icon={<ProjectOutlined />}
+            />
+          </Badge>
         }
         title={project.name}
         description={
