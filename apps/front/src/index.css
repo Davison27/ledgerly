@@ -1,81 +1,11 @@
-@import 'tailwindcss';
-
-/* ------------------------------------------------------------------ *
- * Design tokens (Ledgerly ERP)
- * Derivados del prototipo de Claude Design. Ampliar a medida que se
- * implementen nuevas pantallas.
- * ------------------------------------------------------------------ */
-@theme {
-  --font-sans:
-    'Inter Variable', 'Inter', system-ui, -apple-system, sans-serif;
-
-  /* Marca */
-  --color-brand: #1c5d97;
-  --color-brand-hover: #123f6b;
-  --color-brand-alt: #3a6d99;
-  --color-brand-muted: #5a7286;
-  --color-topbar: #123048;
-
-  /* Superficies */
-  --color-canvas: #eef1f4;
-  --color-surface: #ffffff;
-
-  /* Texto */
-  --color-ink: #1a2430;
-  --color-ink-strong: #152435;
-  --color-ink-soft: #33414d;
-  --color-muted: #7d8791;
-  --color-muted-2: #8a949c;
-  --color-muted-3: #a3adb5;
-  --color-muted-4: #b5bec6;
-
-  /* Estados */
-  --color-status-paid: #1f8a5c;
-  --color-status-paid-bg: #e4f5ec;
-  --color-status-pending: #9a7208;
-  --color-status-pending-bg: #faf1de;
-  --color-status-overdue: #c0392b;
-  --color-status-overdue-bg: #fbe9e7;
-
-  /* Animaciones */
-  --animate-fade-in: fade-in 0.4s ease;
-
-  @keyframes fade-in {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
-    }
-    to {
-      opacity: 1;
-      transform: none;
-    }
-  }
-}
 
 html,
 body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  font-family: var(--font-sans);
-  -webkit-font-smoothing: antialiased;
 }
 
 #root {
   min-height: 100vh;
-}
-
-::selection {
-  background: rgba(28, 93, 151, 0.2);
-}
-
-::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(20, 30, 40, 0.18);
-  border-radius: 5px;
 }

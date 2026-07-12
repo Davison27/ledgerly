@@ -1,14 +1,22 @@
 {
   "common": {
     "appName": "Ledgerly ERP",
-    "language": "Language"
+    "language": "Language",
+    "signOut": "Sign out"
   },
   "login": {
     "subtitle": "Management platform",
     "signIn": "Sign in"
   },
+  "topbar": {
+    "newTab": "New tab"
+  },
   "enterprises": {
-    "placeholderTitle": "Companies",
-    "placeholderBody": "Screen under construction"
+    "title": "Select a company",
+    "subtitle": "Choose the client company you want to work with"
+  },
+  "projects": {
+    "subtitle": "Select a project to continue",
+    "unknown": "Unknown company"
   }
 }
