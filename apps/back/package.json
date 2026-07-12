@@ -5,6 +5,7 @@
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
+    "dev:local": "nest start --watch",
     "start": "node dist/main",
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,test}/**/*.ts\" --fix",
