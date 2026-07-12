@@ -13,6 +13,7 @@
     "clean": "rm -rf dist .turbo node_modules/.vite"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.2",
     "@tanstack/react-router": "^1.170.17",
     "antd": "^6.5.0",
     "i18next": "^26.3.6",

@@ -2,7 +2,16 @@
   "common": {
     "appName": "Ledgerly ERP",
     "language": "Idioma",
-    "signOut": "Salir"
+    "signOut": "Salir",
+    "profile": "Perfil",
+    "settings": "Ajustes",
+    "actions": "Acciones",
+    "add": "Añadir",
+    "edit": "Modificar",
+    "delete": "Eliminar",
+    "cancel": "Cancelar",
+    "open": "Abrir",
+    "comingSoon": "Esta función estará disponible próximamente"
   },
   "login": {
     "subtitle": "Plataforma de gestión",
@@ -13,7 +22,14 @@
   },
   "enterprises": {
     "title": "Selecciona una empresa",
-    "subtitle": "Elige la empresa cliente con la que quieres trabajar"
+    "subtitle": "Elige la empresa cliente con la que quieres trabajar",
+    "projectCountSingular": "{{count}} proyecto",
+    "projectCountPlural": "{{count}} proyectos",
+    "deleteConfirm": {
+      "title": "Eliminar empresa",
+      "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "ok": "Eliminar"
+    }
   },
   "projects": {
     "subtitle": "Selecciona un proyecto para continuar",

@@ -1,19 +1,29 @@
 import { useNavigate, useParams } from '@tanstack/react-router';
-import { Badge, Button, Flex, Layout, theme } from 'antd';
+import {
+  App,
+  Button,
+  Dropdown,
+  Flex,
+  Layout,
+  Typography,
+  theme,
+  type MenuProps,
+} from 'antd';
+import {
+  IdcardOutlined,
+  PoweroffOutlined,
+  SettingOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { getEnterprise } from '../../data/enterprises';
 import logoIconUrl from '../../assets/ledgerly-icon.svg';
 
 const { useToken } = theme;
+const { Text } = Typography;
 
-/**
- * Barra de navegación superior de la aplicación (estilo antd por defecto).
- * Siempre visible dentro del layout `_app`. La empresa activa se deriva del
- * parámetro de ruta `enterpriseId` (presente en las rutas de proyectos).
- * Las pestañas de proyectos abiertos se añadirán con la pantalla de workspace.
- */
 export function TopBar() {
   const { token } = useToken();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const params = useParams({ strict: false }) as { enterpriseId?: string };
@@ -21,9 +31,25 @@ export function TopBar() {
     ? getEnterprise(params.enterpriseId)
     : undefined;
 
+  const settingsMenu: MenuProps['items'] = [
+    {
+      key: 'profile',
+      label: t('common.profile'),
+      icon: <IdcardOutlined style={{ fontSize: 18 }} />,
+      onClick: () => void message.info(t('common.comingSoon')),
+    },
+    {
+      key: 'signout',
+      label: t('common.signOut'),
+      icon: <PoweroffOutlined style={{ fontSize: 18 }} />,
+      onClick: () => void navigate({ to: '/' }),
+    },
+  ];
+
   return (
     <Layout.Header
       style={{
+        position: 'relative',
         height: 52,
         lineHeight: 'normal',
         padding: '0 16px',
@@ -31,7 +57,7 @@ export function TopBar() {
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
       }}
     >
-      <Flex align="center" gap={4} style={{ height: '100%' }}>
+      <Flex align="center" justify="space-between" style={{ height: '100%' }}>
         <Button
           type="text"
           aria-label={t('common.appName')}
@@ -46,26 +72,35 @@ export function TopBar() {
         </Button>
 
         {enterprise && (
-          <Button
-            type="text"
-            onClick={() => void navigate({ to: '/enterprises' })}
+          <Text
+            strong
+            style={{
+              maxWidth: '50%',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
           >
-            <Badge color={enterprise.color} text={enterprise.name} />
-          </Button>
+            {enterprise.name}
+          </Text>
         )}
-
-        <div style={{ flex: 1 }} />
-
-        <Button
-          type="text"
-          aria-label={t('topbar.newTab')}
-          onClick={() => void navigate({ to: '/enterprises' })}
-        >
-          +
-        </Button>
-        <Button type="text" onClick={() => void navigate({ to: '/' })}>
-          {t('common.signOut')}
-        </Button>
+          <Dropdown
+            menu={{ items: settingsMenu, style: { minWidth: 150, padding: 10 } }}
+            trigger={['click']}
+          >
+            <Button
+              type="text"
+              style={{
+                height: 40,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <SettingOutlined style={{ fontSize: 20 }} />
+              {t('common.settings')}
+            </Button>
+          </Dropdown>
       </Flex>
     </Layout.Header>
   );

@@ -13,7 +13,7 @@ export function ProjectsPage() {
   const enterprise = enterpriseId ? getEnterprise(enterpriseId) : undefined;
 
   return (
-    <div style={{ margin: '0 auto', width: '100%', maxWidth: 1080, padding: '44px 64px' }}>
+    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
       <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
         {enterprise?.name ?? t('projects.unknown')}
       </Title>
