@@ -33,6 +33,12 @@
   },
   "projects": {
     "subtitle": "Selecciona un proyecto para continuar",
-    "unknown": "Empresa desconocida"
+    "unknown": "Empresa desconocida",
+    "docSummary": "{{docs}} documentos · {{pending}} pendientes",
+    "deleteConfirm": {
+      "title": "Eliminar proyecto",
+      "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "ok": "Eliminar"
+    }
   }
 }
