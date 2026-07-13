@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ledgerly-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER:-ledgerly}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-ledgerly}
+      POSTGRES_DB: ${DB_NAME:-ledgerly}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - ledgerly-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ledgerly} -d ${DB_NAME:-ledgerly}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  ledgerly-pgdata:
