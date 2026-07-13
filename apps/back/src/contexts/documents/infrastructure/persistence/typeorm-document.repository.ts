@@ -52,7 +52,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
 
     const orms = await queryBuilder.getMany();
 
-    return orms.map(DocumentMapper.toDomain);
+    return orms.map((orm) => DocumentMapper.toDomain(orm));
   }
 
   async findById(id: string): Promise<Document | null> {

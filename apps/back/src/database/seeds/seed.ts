@@ -79,10 +79,14 @@ function generateDocuments(seed: number): DocumentSeed[] {
 async function run(): Promise<void> {
   await dataSource.initialize();
 
-  const existing = await dataSource.query(
+  const existing: unknown = await dataSource.query(
     `SELECT COUNT(*)::int AS count FROM companies`,
   );
-  if (existing[0].count > 0) {
+  const alreadySeeded =
+    Array.isArray(existing) &&
+    existing.length > 0 &&
+    Number((existing[0] as { count: number }).count) > 0;
+  if (alreadySeeded) {
     console.log('Seed omitido: la base de datos ya contiene datos.');
     await dataSource.destroy();
     return;

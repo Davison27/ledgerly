@@ -34,7 +34,7 @@ export class DocumentsController {
       },
     });
 
-    return documents.map(DocumentResponse.fromDomain);
+    return documents.map((document) => DocumentResponse.fromDomain(document));
   }
 
   @Post()
