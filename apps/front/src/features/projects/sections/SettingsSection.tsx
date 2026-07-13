@@ -1,6 +1,8 @@
 import type { ProjectSectionProps } from './types';
 import { DetailsCard } from './settings/DetailsCard';
 import { TeamCard } from './settings/TeamCard';
+import { NotificationsCard } from './settings/NotificationsCard';
+import { IntegrationsCard } from './settings/IntegrationsCard';
 
 // Sección de Configuración: detalles, equipo, notificaciones e integraciones.
 export function SettingsSection({ project }: ProjectSectionProps) {
@@ -16,6 +18,8 @@ export function SettingsSection({ project }: ProjectSectionProps) {
     >
       <DetailsCard project={project} />
       <TeamCard />
+      <NotificationsCard />
+      <IntegrationsCard />
     </div>
   );
 }
