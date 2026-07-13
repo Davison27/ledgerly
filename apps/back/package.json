@@ -12,6 +12,12 @@
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
+    "seed": "ts-node src/database/seeds/seed.ts",
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
@@ -36,6 +42,7 @@
     "@types/jest": "^29.5.14",
     "@types/node": "^22.10.5",
     "@types/supertest": "^6.0.2",
+    "dotenv": "^17.4.2",
     "eslint": "^9.18.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
