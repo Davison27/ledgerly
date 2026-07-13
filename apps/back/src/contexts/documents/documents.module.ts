@@ -1,0 +1,26 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { DocumentOrmEntity } from './infrastructure/persistence/document.orm-entity';
+import { TypeOrmDocumentRepository } from './infrastructure/persistence/typeorm-document.repository';
+import { TypeOrmProjectExistenceChecker } from './infrastructure/persistence/typeorm-project-existence-checker';
+import { DOCUMENT_REPOSITORY } from './domain/document.repository';
+import { PROJECT_EXISTENCE_CHECKER } from './domain/project-existence-checker.port';
+import { DocumentsController } from './infrastructure/http/documents.controller';
+import { ListDocumentsUseCase } from './application/list-documents/list-documents.use-case';
+import { GetDocumentUseCase } from './application/get-document/get-document.use-case';
+import { CreateDocumentUseCase } from './application/create-document/create-document.use-case';
+import { DeleteDocumentUseCase } from './application/delete-document/delete-document.use-case';
+
+@Module({
+  imports: [TypeOrmModule.forFeature([DocumentOrmEntity])],
+  controllers: [DocumentsController],
+  providers: [
+    ListDocumentsUseCase,
+    GetDocumentUseCase,
+    CreateDocumentUseCase,
+    DeleteDocumentUseCase,
+    { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
+    { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
+  ],
+})
+export class DocumentsModule {}

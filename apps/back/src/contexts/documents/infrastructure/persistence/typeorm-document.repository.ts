@@ -1,0 +1,71 @@
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Document } from '../../domain/document';
+import { DocumentFilters } from '../../domain/document-filters';
+import { DocumentRepository } from '../../domain/document.repository';
+import { DocumentOrmEntity } from './document.orm-entity';
+import { DocumentMapper } from './document.mapper';
+
+@Injectable()
+export class TypeOrmDocumentRepository implements DocumentRepository {
+  constructor(
+    @InjectRepository(DocumentOrmEntity) private readonly repository: Repository<DocumentOrmEntity>,
+  ) {}
+
+  async findByProject(projectId: string, filters: DocumentFilters): Promise<Document[]> {
+    const queryBuilder = this.repository
+      .createQueryBuilder('document')
+      .where('document.project_id = :projectId', { projectId });
+
+    if (filters.search) {
+      queryBuilder.andWhere('LOWER(document.name) LIKE :search', {
+        search: `%${filters.search.toLowerCase()}%`,
+      });
+    }
+
+    if (filters.type) {
+      queryBuilder.andWhere('document.type = :type', { type: filters.type });
+    }
+
+    if (filters.status) {
+      queryBuilder.andWhere('document.status = :status', { status: filters.status });
+    }
+
+    if (filters.dateFrom) {
+      queryBuilder.andWhere('document.date >= :dateFrom', { dateFrom: filters.dateFrom });
+    }
+
+    if (filters.dateTo) {
+      queryBuilder.andWhere('document.date <= :dateTo', { dateTo: filters.dateTo });
+    }
+
+    if (filters.amountMin !== undefined) {
+      queryBuilder.andWhere('document.amount >= :amountMin', { amountMin: filters.amountMin });
+    }
+
+    if (filters.amountMax !== undefined) {
+      queryBuilder.andWhere('document.amount <= :amountMax', { amountMax: filters.amountMax });
+    }
+
+    queryBuilder.orderBy('document.date', 'DESC');
+
+    const orms = await queryBuilder.getMany();
+
+    return orms.map(DocumentMapper.toDomain);
+  }
+
+  async findById(id: string): Promise<Document | null> {
+    const orm = await this.repository.findOne({ where: { id } });
+
+    return orm ? DocumentMapper.toDomain(orm) : null;
+  }
+
+  async save(document: Document): Promise<void> {
+    await this.repository.save(DocumentMapper.toOrm(document));
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.repository.delete({ id });
+  }
+}
