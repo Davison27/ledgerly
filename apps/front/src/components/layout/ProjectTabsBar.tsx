@@ -39,7 +39,13 @@ export function ProjectTabsBar() {
           type="editable-card"
           activeKey={getActive(enterprise.id)}
           items={items}
-          onChange={(key) => setActive(enterprise.id, key)}
+          onChange={(key) => {
+            setActive(enterprise.id, key);
+            void navigate({
+              to: '/projects/$enterpriseId/$projectId',
+              params: { enterpriseId: enterprise.id, projectId: key },
+            });
+          }}
           onEdit={(targetKey, action) => {
             if (action === 'remove') {
               closeProject(enterprise.id, targetKey as string);

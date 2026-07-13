@@ -34,11 +34,99 @@
   "projects": {
     "subtitle": "Select a project to continue",
     "unknown": "Unknown company",
+    "notFound": "Project not found",
     "docSummary": "{{docs}} documents · {{pending}} pending",
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "ok": "Delete"
+    },
+    "sections": {
+      "documents": "Documents",
+      "dashboard": "Dashboard",
+      "settings": "Settings"
+    },
+    "documents": {
+      "search": "Search by name...",
+      "countOne": "{{count}} document",
+      "countOther": "{{count}} documents",
+      "filters": {
+        "allTypes": "All types",
+        "allStatuses": "All statuses",
+        "dateFrom": "From",
+        "dateTo": "To",
+        "amountMin": "Min amount",
+        "amountMax": "Max amount"
+      },
+      "layout": {
+        "list": "List",
+        "cards": "Cards"
+      },
+      "columns": {
+        "document": "Document",
+        "type": "Type",
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "empty": "No documents match the filters.",
+      "preview": {
+        "empty": "Select a document to see its preview",
+        "placeholder": "preview · pdf",
+        "download": "Download",
+        "print": "Print"
+      },
+      "types": {
+        "factura": "Invoice",
+        "nomina": "Payroll",
+        "impuesto": "Tax"
+      },
+      "statuses": {
+        "pagado": "Paid",
+        "pendiente": "Pending",
+        "vencido": "Overdue"
+      }
+    },
+    "dashboard": {
+      "kpi": {
+        "income": "Total income",
+        "expenses": "Total expenses",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "totalDocs": "{{count}} docs",
+      "monthly": "Monthly evolution (income vs expenses)",
+      "monthsShort": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec",
+      "legend": {
+        "income": "Income",
+        "expenses": "Expenses"
+      },
+      "category": "Distribution by category",
+      "statusBreakdown": "Pending vs paid vs overdue",
+      "documentsCount": "{{count}} documents"
+    },
+    "settings": {
+      "details": "Project details",
+      "fieldName": "Name",
+      "fieldCode": "Project code",
+      "fieldFiscalYear": "Fiscal year",
+      "team": "Team",
+      "notifications": "Notifications",
+      "integrations": "Integrations",
+      "connected": "Connected",
+      "disconnected": "Disconnected",
+      "roles": {
+        "accountant": "Accountant",
+        "projectManager": "Project manager",
+        "auditor": "Auditor",
+        "admin": "Administrator"
+      },
+      "notif": {
+        "news": "New invoices",
+        "overdue": "Overdue documents",
+        "weekly": "Weekly summary",
+        "team": "Team changes"
+      }
     }
   }
 }

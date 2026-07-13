@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { App, Button, Flex, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +15,7 @@ export function ProjectsPage() {
     enterpriseId?: string;
   };
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { message, modal } = App.useApp();
   const { openProject, isOpen, closeProject } = useOpenProjects();
   const enterprise = enterpriseId ? getEnterprise(enterpriseId) : undefined;
@@ -23,6 +24,10 @@ export function ProjectsPage() {
   const handleOpen = (project: Project) => {
     if (!enterprise) return;
     openProject(enterprise.id, project.id);
+    void navigate({
+      to: '/projects/$enterpriseId/$projectId',
+      params: { enterpriseId: enterprise.id, projectId: project.id },
+    });
   };
 
   const handleEdit = (project: Project) => {
