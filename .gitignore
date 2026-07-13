@@ -38,3 +38,6 @@ coverage/
 *.ntvs*
 *.njsproj
 *.sln
+
+# Skills lockfile (local)
+skills-lock.json

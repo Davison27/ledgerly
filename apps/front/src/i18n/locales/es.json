@@ -34,11 +34,99 @@
   "projects": {
     "subtitle": "Selecciona un proyecto para continuar",
     "unknown": "Empresa desconocida",
+    "notFound": "Proyecto no encontrado",
     "docSummary": "{{docs}} documentos · {{pending}} pendientes",
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
       "ok": "Eliminar"
+    },
+    "sections": {
+      "documents": "Documentos",
+      "dashboard": "Panel",
+      "settings": "Configuración"
+    },
+    "documents": {
+      "search": "Buscar por nombre...",
+      "countOne": "{{count}} documento",
+      "countOther": "{{count}} documentos",
+      "filters": {
+        "allTypes": "Todos los tipos",
+        "allStatuses": "Todos los estados",
+        "dateFrom": "Desde",
+        "dateTo": "Hasta",
+        "amountMin": "Importe mín.",
+        "amountMax": "Importe máx."
+      },
+      "layout": {
+        "list": "Lista",
+        "cards": "Tarjetas"
+      },
+      "columns": {
+        "document": "Documento",
+        "type": "Tipo",
+        "date": "Fecha",
+        "amount": "Importe",
+        "status": "Estado"
+      },
+      "empty": "No hay documentos que coincidan con los filtros.",
+      "preview": {
+        "empty": "Selecciona un documento para ver su vista previa",
+        "placeholder": "vista previa · pdf",
+        "download": "Descargar",
+        "print": "Imprimir"
+      },
+      "types": {
+        "factura": "Factura",
+        "nomina": "Nómina",
+        "impuesto": "Impuesto"
+      },
+      "statuses": {
+        "pagado": "Pagado",
+        "pendiente": "Pendiente",
+        "vencido": "Vencido"
+      }
+    },
+    "dashboard": {
+      "kpi": {
+        "income": "Ingresos totales",
+        "expenses": "Gastos totales",
+        "pending": "Pendientes",
+        "overdue": "Vencidos"
+      },
+      "totalDocs": "{{count}} docs",
+      "monthly": "Evolución mensual (ingresos vs gastos)",
+      "monthsShort": "Ene,Feb,Mar,Abr,May,Jun,Jul,Ago,Sep,Oct,Nov,Dic",
+      "legend": {
+        "income": "Ingresos",
+        "expenses": "Gastos"
+      },
+      "category": "Distribución por categoría",
+      "statusBreakdown": "Pendiente vs pagado vs vencido",
+      "documentsCount": "{{count}} documentos"
+    },
+    "settings": {
+      "details": "Detalles del proyecto",
+      "fieldName": "Nombre",
+      "fieldCode": "Código de proyecto",
+      "fieldFiscalYear": "Ejercicio fiscal",
+      "team": "Equipo",
+      "notifications": "Notificaciones",
+      "integrations": "Integraciones",
+      "connected": "Conectado",
+      "disconnected": "Desconectado",
+      "roles": {
+        "accountant": "Contable",
+        "projectManager": "Gestor de proyecto",
+        "auditor": "Auditora",
+        "admin": "Administrador"
+      },
+      "notif": {
+        "news": "Nuevas facturas",
+        "overdue": "Documentos vencidos",
+        "weekly": "Resumen semanal",
+        "team": "Cambios en el equipo"
+      }
     }
   }
 }
