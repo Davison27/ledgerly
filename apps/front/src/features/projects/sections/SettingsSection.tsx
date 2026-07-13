@@ -1,12 +1,19 @@
-import { Empty } from 'antd';
 import type { ProjectSectionProps } from './types';
+import { DetailsCard } from './settings/DetailsCard';
 
-// Sección de Configuración. Contenido implementado por su agente.
+// Sección de Configuración: detalles, equipo, notificaciones e integraciones.
 export function SettingsSection({ project }: ProjectSectionProps) {
-  void project;
   return (
-    <div style={{ padding: 24 }}>
-      <Empty description="Configuración" />
+    <div
+      style={{
+        padding: 28,
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
+        gap: 20,
+        alignItems: 'start',
+      }}
+    >
+      <DetailsCard project={project} />
     </div>
   );
 }
