@@ -36,7 +36,7 @@ export function LoginPage() {
               type="primary"
               size="large"
               block
-              onClick={() => void navigate({ to: '/enterprises' })}
+              onClick={() => void navigate({ to: '/projects' })}
             >
               {t('login.signIn')}
             </Button>

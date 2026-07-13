@@ -1,6 +1,6 @@
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { ConfigProvider, Tabs, theme } from 'antd';
-import { getEnterprise } from '../../data/enterprises';
+import { useCompany } from '../../app/providers/CompanyProvider';
 import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import styles from './ProjectTabsBar.module.css';
 
@@ -9,19 +9,15 @@ const { useToken } = theme;
 export function ProjectTabsBar() {
   const { token } = useToken();
   const navigate = useNavigate();
-  const params = useParams({ strict: false }) as { enterpriseId?: string };
-  const enterprise = params.enterpriseId
-    ? getEnterprise(params.enterpriseId)
-    : undefined;
+  const { projects } = useCompany();
   const { getOpen, getActive, setActive, closeProject } = useOpenProjects();
 
-  if (!enterprise) return null;
-  const openIds = getOpen(enterprise.id);
+  const openIds = getOpen();
   if (openIds.length === 0) return null;
 
   const items = openIds.map((id) => ({
     key: id,
-    label: enterprise.projects.find((p) => p.id === id)?.name ?? id,
+    label: projects.find((p) => p.id === id)?.name ?? id,
   }));
 
   return (
@@ -37,23 +33,20 @@ export function ProjectTabsBar() {
       >
         <Tabs
           type="editable-card"
-          activeKey={getActive(enterprise.id)}
+          activeKey={getActive()}
           items={items}
           onChange={(key) => {
-            setActive(enterprise.id, key);
+            setActive(key);
             void navigate({
-              to: '/projects/$enterpriseId/$projectId',
-              params: { enterpriseId: enterprise.id, projectId: key },
+              to: '/projects/$projectId',
+              params: { projectId: key },
             });
           }}
           onEdit={(targetKey, action) => {
             if (action === 'remove') {
-              closeProject(enterprise.id, targetKey as string);
+              closeProject(targetKey as string);
             } else {
-              void navigate({
-                to: '/projects/$enterpriseId',
-                params: { enterpriseId: enterprise.id },
-              });
+              void navigate({ to: '/projects' });
             }
           }}
         />

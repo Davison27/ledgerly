@@ -1,24 +1,17 @@
 import type { ProjectDocument, DocumentType } from '../../../../data/documents';
 
-/** Datos del panel derivados de los documentos del proyecto. */
 export interface DashboardData {
-  /** Suma de importes de facturas. */
   income: number;
-  /** Suma de importes de nóminas + impuestos. */
   expenses: number;
   paid: number;
   pending: number;
   overdue: number;
-  /** Ingresos por mes (índice 0 = enero … 11 = diciembre). */
   monthlyIncome: number[];
-  /** Gastos por mes (índice 0 = enero … 11 = diciembre). */
   monthlyExpenses: number[];
-  /** Importe total por categoría/tipo de documento. */
   categoryTotals: Record<DocumentType, number>;
   totalDocs: number;
 }
 
-/** Deriva todas las métricas del panel a partir de los documentos. */
 export function deriveDashboardData(docs: ProjectDocument[]): DashboardData {
   const monthlyIncome = Array<number>(12).fill(0);
   const monthlyExpenses = Array<number>(12).fill(0);
@@ -66,7 +59,6 @@ export function deriveDashboardData(docs: ProjectDocument[]): DashboardData {
   };
 }
 
-/** Formatea un importe como euros sin decimales (locale es-ES). */
 export function formatEur(n: number): string {
   return n.toLocaleString('es-ES', {
     style: 'currency',

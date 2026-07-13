@@ -7,7 +7,6 @@ import {
 import { AppLayout } from '../components/layout/AppLayout';
 import { RootLayout } from '../components/layout/RootLayout';
 import { LoginPage } from '../features/auth/LoginPage';
-import { EnterprisesPage } from '../features/enterprises/EnterprisesPage';
 import { ProjectsPage } from '../features/projects/ProjectsPage';
 import { ProjectDetailPage } from '../features/projects/ProjectDetailPage';
 
@@ -25,31 +24,21 @@ const appLayoutRoute = createRoute({
   component: AppLayout,
 });
 
-const enterprisesRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
-  path: '/enterprises',
-  component: EnterprisesPage,
-});
-
 const projectsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/projects/$enterpriseId',
+  path: '/projects',
   component: ProjectsPage,
 });
 
 const projectDetailRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/projects/$enterpriseId/$projectId',
+  path: '/projects/$projectId',
   component: ProjectDetailPage,
 });
 
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  appLayoutRoute.addChildren([
-    enterprisesRoute,
-    projectsRoute,
-    projectDetailRoute,
-  ]),
+  appLayoutRoute.addChildren([projectsRoute, projectDetailRoute]),
 ]);
 
 export const router = createRouter({ routeTree });

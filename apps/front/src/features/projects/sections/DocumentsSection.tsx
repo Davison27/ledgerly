@@ -30,16 +30,12 @@ type TypeFilter = DocumentType | 'all';
 type StatusFilter = DocumentStatus | 'all';
 type LayoutMode = 'list' | 'cards';
 
-// Sección de Documentos: panel izquierdo con filtros, contador y vista
-// conmutable (lista / tarjetas). El documento seleccionado se conserva en
-// estado para alimentar la vista previa (panel derecho).
 export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const { t } = useTranslation();
   const { token } = useToken();
 
   const documents = useMemo(() => getProjectDocuments(project.id), [project.id]);
 
-  // Estado de filtros (todo local).
   const [search, setSearch] = useState('');
   const [type, setType] = useState<TypeFilter>('all');
   const [status, setStatus] = useState<StatusFilter>('all');
@@ -87,9 +83,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
 
   return (
     <Flex style={{ height: '100%' }}>
-      {/* Panel izquierdo: filtros + contador + vista de documentos */}
       <Flex vertical gap={12} style={{ flex: 1, minWidth: 0, height: '100%', padding: 20 }}>
-        {/* Barra de filtros */}
         <Flex wrap gap={8} align="center" style={{ flex: 'none' }}>
           <Input
             allowClear
@@ -146,14 +140,12 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
           />
         </Flex>
 
-        {/* Contador de resultados */}
         <Text type="secondary" style={{ flex: 'none' }}>
           {t(count === 1 ? 'projects.documents.countOne' : 'projects.documents.countOther', {
             count,
           })}
         </Text>
 
-        {/* Vista de documentos */}
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           {count === 0 ? (
             <Empty description={t('projects.documents.empty')} />
@@ -175,7 +167,6 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
         </div>
       </Flex>
 
-      {/* Panel derecho: vista previa del documento seleccionado */}
       <div
         style={{
           flex: 'none',

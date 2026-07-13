@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { Flex, Segmented, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { getEnterprise } from '../../data/enterprises';
+import { useCompany } from '../../app/providers/CompanyProvider';
 import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { DocumentsSection } from './sections/DocumentsSection';
 import { DashboardSection } from './sections/DashboardSection';
@@ -16,23 +16,18 @@ type Section = 'documents' | 'dashboard' | 'settings';
 export function ProjectDetailPage() {
   const { token } = useToken();
   const { t } = useTranslation();
-  const { enterpriseId, projectId } = useParams({ strict: false }) as {
-    enterpriseId?: string;
-    projectId?: string;
-  };
+  const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const { company, projects } = useCompany();
   const { openProject } = useOpenProjects();
-  const enterprise = enterpriseId ? getEnterprise(enterpriseId) : undefined;
-  const project = enterprise?.projects.find((p) => p.id === projectId);
+  const project = projects.find((p) => p.id === projectId);
 
-  // Documentos es siempre la sección inicial al acceder.
   const [section, setSection] = useState<Section>('documents');
 
-  // Al entrar, asegurar que el proyecto está abierto (pestaña) y activo.
   useEffect(() => {
-    if (enterprise && project) openProject(enterprise.id, project.id);
-  }, [enterprise, project, openProject]);
+    if (project) openProject(project.id);
+  }, [project, openProject]);
 
-  if (!enterprise || !project) {
+  if (!project) {
     return (
       <div style={{ padding: '56px 64px' }}>
         <Text type="secondary">{t('projects.notFound')}</Text>
@@ -48,7 +43,6 @@ export function ProjectDetailPage() {
 
   return (
     <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-      {/* Sub-barra del proyecto: nombre + código + secciones */}
       <div
         style={{
           display: 'flex',
@@ -76,16 +70,15 @@ export function ProjectDetailPage() {
         />
       </div>
 
-      {/* Contenido de la sección activa */}
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {section === 'documents' && (
-          <DocumentsSection project={project} color={enterprise.color} />
+          <DocumentsSection project={project} color={company.color} />
         )}
         {section === 'dashboard' && (
-          <DashboardSection project={project} color={enterprise.color} />
+          <DashboardSection project={project} color={company.color} />
         )}
         {section === 'settings' && (
-          <SettingsSection project={project} color={enterprise.color} />
+          <SettingsSection project={project} color={company.color} />
         )}
       </div>
     </Flex>

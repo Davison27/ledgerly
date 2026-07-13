@@ -14,7 +14,6 @@ const DEFAULTS: Record<NotificationKey, boolean> = {
   team: true,
 };
 
-/** Tarjeta de notificaciones: un interruptor por tipo de aviso (estado local). */
 export function NotificationsCard() {
   const { t } = useTranslation();
   const [enabled, setEnabled] = useState<Record<NotificationKey, boolean>>(DEFAULTS);

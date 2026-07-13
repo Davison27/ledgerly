@@ -2,7 +2,6 @@ import { Avatar, Card, List } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { getProjectTeam } from '../../../../data/projectSettings';
 
-/** Tarjeta de equipo: miembros del proyecto con avatar, nombre y rol. */
 export function TeamCard() {
   const { t } = useTranslation();
   const team = getProjectTeam();

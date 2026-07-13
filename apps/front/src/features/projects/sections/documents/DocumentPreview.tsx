@@ -51,7 +51,6 @@ export function DocumentPreview({ document }: DocumentPreviewProps) {
         </Text>
       </div>
 
-      {/* Caja de vista previa (placeholder) */}
       <Flex
         align="center"
         justify="center"
@@ -66,7 +65,6 @@ export function DocumentPreview({ document }: DocumentPreviewProps) {
         <Text type="secondary">{t('projects.documents.preview.placeholder')}</Text>
       </Flex>
 
-      {/* Detalles */}
       <Flex vertical gap={8}>
         {rows.map((row) => (
           <Flex key={row.label} align="center" justify="space-between" gap={12}>
@@ -76,7 +74,6 @@ export function DocumentPreview({ document }: DocumentPreviewProps) {
         ))}
       </Flex>
 
-      {/* Acciones */}
       <Flex gap={8} style={{ marginTop: 'auto' }}>
         <Button type="primary" icon={<DownloadOutlined />} block>
           {t('projects.documents.preview.download')}

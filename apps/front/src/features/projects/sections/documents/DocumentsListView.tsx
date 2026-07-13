@@ -10,7 +10,6 @@ interface DocumentsListViewProps {
   documents: ProjectDocument[];
   selectedId: string | null;
   onSelect: (doc: ProjectDocument) => void;
-  /** Color de la empresa, para resaltar la fila seleccionada. */
   color: string;
 }
 

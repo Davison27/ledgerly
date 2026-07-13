@@ -5,7 +5,6 @@ import { getProjectIntegrations } from '../../../../data/projectSettings';
 
 const { Text } = Typography;
 
-/** Tarjeta de integraciones: estado y conmutador de conexión (estado local). */
 export function IntegrationsCard() {
   const { t } = useTranslation();
   const [integrations, setIntegrations] = useState(() => getProjectIntegrations());

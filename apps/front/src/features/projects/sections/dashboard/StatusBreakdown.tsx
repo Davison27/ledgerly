@@ -11,7 +11,6 @@ export interface StatusBreakdownProps {
   overdue: number;
 }
 
-/** Barras horizontales con el desglose de estados de los documentos. */
 export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps) {
   const { t } = useTranslation();
   const { token } = useToken();

@@ -8,7 +8,6 @@ import { MonthlyChart } from './dashboard/MonthlyChart';
 import { CategoryDonut } from './dashboard/CategoryDonut';
 import { StatusBreakdown } from './dashboard/StatusBreakdown';
 
-/** Sección de Panel (dashboard) del detalle de proyecto. */
 export function DashboardSection({ project, color }: ProjectSectionProps) {
   const data = useMemo(
     () => deriveDashboardData(getProjectDocuments(project.id)),

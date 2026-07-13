@@ -9,7 +9,6 @@ interface DocumentsCardsViewProps {
   documents: ProjectDocument[];
   selectedId: string | null;
   onSelect: (doc: ProjectDocument) => void;
-  /** Color de la empresa, para resaltar la tarjeta seleccionada. */
   color: string;
 }
 
