@@ -1,0 +1,105 @@
+import { Card, Flex, Typography, theme } from 'antd';
+import { useTranslation } from 'react-i18next';
+import type { DocumentType } from '../../../../data/documents';
+
+const { Text } = Typography;
+const { useToken } = theme;
+
+export interface CategoryDonutProps {
+  categoryTotals: Record<DocumentType, number>;
+  totalDocs: number;
+  /** Color de acento de la empresa para la categoría principal (facturas). */
+  color: string;
+}
+
+const ORDER: DocumentType[] = ['factura', 'nomina', 'impuesto'];
+
+/** Donut (conic-gradient) con la distribución de importe por categoría. */
+export function CategoryDonut({
+  categoryTotals,
+  totalDocs,
+  color,
+}: CategoryDonutProps) {
+  const { t } = useTranslation();
+  const { token } = useToken();
+
+  const palette: Record<DocumentType, string> = {
+    factura: color,
+    nomina: token.colorTextSecondary,
+    impuesto: token.colorTextQuaternary,
+  };
+
+  const total = ORDER.reduce((acc, key) => acc + categoryTotals[key], 0);
+
+  let acc = 0;
+  const stops = ORDER.map((key) => {
+    const start = total > 0 ? (acc / total) * 360 : 0;
+    acc += categoryTotals[key];
+    const end = total > 0 ? (acc / total) * 360 : 0;
+    return `${palette[key]} ${start}deg ${end}deg`;
+  });
+
+  const background =
+    total > 0
+      ? `conic-gradient(${stops.join(', ')})`
+      : token.colorFillSecondary;
+
+  return (
+    <Card
+      title={t('projects.dashboard.category')}
+      style={{ flex: '1 1 320px', minWidth: 300 }}
+    >
+      <Flex align="center" gap={28} wrap>
+        <div
+          style={{
+            position: 'relative',
+            width: 160,
+            height: 160,
+            borderRadius: '50%',
+            background,
+            flex: 'none',
+          }}
+        >
+          <div
+            style={{
+              position: 'absolute',
+              inset: 28,
+              borderRadius: '50%',
+              background: token.colorBgContainer,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text strong style={{ fontSize: 15 }}>
+              {t('projects.dashboard.totalDocs', { count: totalDocs })}
+            </Text>
+          </div>
+        </div>
+
+        <Flex vertical gap={10} style={{ flex: '1 1 auto', minWidth: 120 }}>
+          {ORDER.map((key) => {
+            const pct = total > 0 ? Math.round((categoryTotals[key] / total) * 100) : 0;
+            return (
+              <Flex key={key} align="center" gap={8}>
+                <span
+                  style={{
+                    width: 12,
+                    height: 12,
+                    borderRadius: 3,
+                    background: palette[key],
+                    flex: 'none',
+                  }}
+                />
+                <Text style={{ flex: '1 1 auto' }}>
+                  {t(`projects.documents.types.${key}`)}
+                </Text>
+                <Text type="secondary">{pct}%</Text>
+              </Flex>
+            );
+          })}
+        </Flex>
+      </Flex>
+    </Card>
+  );
+}
