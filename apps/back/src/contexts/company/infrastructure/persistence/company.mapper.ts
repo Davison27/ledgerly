@@ -1,5 +1,4 @@
 import { Company } from '../../domain/company';
-import { HexColor } from '../../domain/value-objects/hex-color';
 import { CompanyOrmEntity } from './company.orm-entity';
 
 export class CompanyMapper {

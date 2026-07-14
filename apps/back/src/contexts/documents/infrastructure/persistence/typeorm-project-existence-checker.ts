@@ -8,10 +8,11 @@ export class TypeOrmProjectExistenceChecker implements ProjectExistenceChecker {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
   async exists(projectId: string): Promise<boolean> {
-    const rows = await this.dataSource.query('SELECT 1 FROM projects WHERE id = $1 LIMIT 1', [
-      projectId,
-    ]);
+    const rows: unknown = await this.dataSource.query(
+      'SELECT 1 FROM projects WHERE id = $1 LIMIT 1',
+      [projectId],
+    );
 
-    return rows.length > 0;
+    return Array.isArray(rows) && rows.length > 0;
   }
 }
