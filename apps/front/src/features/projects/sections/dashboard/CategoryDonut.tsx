@@ -8,13 +8,11 @@ const { useToken } = theme;
 export interface CategoryDonutProps {
   categoryTotals: Record<DocumentType, number>;
   totalDocs: number;
-  /** Color de acento de la empresa para la categoría principal (facturas). */
   color: string;
 }
 
 const ORDER: DocumentType[] = ['factura', 'nomina', 'impuesto'];
 
-/** Donut (conic-gradient) con la distribución de importe por categoría. */
 export function CategoryDonut({
   categoryTotals,
   totalDocs,

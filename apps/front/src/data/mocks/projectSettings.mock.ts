@@ -1,11 +1,6 @@
-// Datos mock de configuración de proyecto (equipo e integraciones).
-// Solo se cargan en modo local (ver src/data/projectSettings.ts y src/config.ts).
-// Derivados del prototipo de diseño de Ledgerly ERP.
-
 export interface TeamMember {
   id: string;
   name: string;
-  /** Clave i18n del rol: project.settings.roles.<roleKey> */
   roleKey: 'accountant' | 'projectManager' | 'auditor' | 'admin';
   color: string;
   initials: string;

@@ -1,32 +1,26 @@
-import { useState } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { useNavigate } from '@tanstack/react-router';
 import { App, Button, Flex, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { getEnterprise } from '../../data/enterprises';
-import type { Project } from '../../data/enterprises';
+import type { Project } from '../../data/company';
+import { useCompany } from '../../app/providers/CompanyProvider';
 import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { ProjectCard } from './components/ProjectCard';
 
 const { Title, Text } = Typography;
 
 export function ProjectsPage() {
-  const { enterpriseId } = useParams({ strict: false }) as {
-    enterpriseId?: string;
-  };
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
+  const { company, projects, removeProject } = useCompany();
   const { openProject, isOpen, closeProject } = useOpenProjects();
-  const enterprise = enterpriseId ? getEnterprise(enterpriseId) : undefined;
-  const [projects, setProjects] = useState(enterprise?.projects ?? []);
 
   const handleOpen = (project: Project) => {
-    if (!enterprise) return;
-    openProject(enterprise.id, project.id);
+    openProject(project.id);
     void navigate({
-      to: '/projects/$enterpriseId/$projectId',
-      params: { enterpriseId: enterprise.id, projectId: project.id },
+      to: '/projects/$projectId',
+      params: { projectId: project.id },
     });
   };
 
@@ -42,8 +36,8 @@ export function ProjectsPage() {
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
       onOk: () => {
-        setProjects((prev) => prev.filter((p) => p.id !== project.id));
-        if (enterprise) closeProject(enterprise.id, project.id);
+        removeProject(project.id);
+        closeProject(project.id);
       },
     });
   };
@@ -52,7 +46,7 @@ export function ProjectsPage() {
     <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
       <Flex align="center" justify="space-between">
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-          {enterprise?.name ?? t('projects.unknown')}
+          {t('projects.title')}
         </Title>
         <Button
           type="primary"
@@ -77,8 +71,8 @@ export function ProjectsPage() {
           <ProjectCard
             key={project.id}
             project={project}
-            color={enterprise?.color ?? '#1c5d97'}
-            isOpen={enterprise ? isOpen(enterprise.id, project.id) : false}
+            color={company.color}
+            isOpen={isOpen(project.id)}
             onOpen={handleOpen}
             onEdit={handleEdit}
             onDelete={handleDelete}

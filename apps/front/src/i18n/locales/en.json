@@ -11,6 +11,7 @@
     "delete": "Delete",
     "cancel": "Cancel",
     "open": "Open",
+    "save": "Save",
     "comingSoon": "This feature will be available soon"
   },
   "login": {
@@ -20,20 +21,18 @@
   "topbar": {
     "newTab": "New tab"
   },
-  "enterprises": {
-    "title": "Select a company",
-    "subtitle": "Choose the client company you want to work with",
-    "projectCountSingular": "{{count}} project",
-    "projectCountPlural": "{{count}} projects",
-    "deleteConfirm": {
-      "title": "Delete company",
-      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
-      "ok": "Delete"
+  "company": {
+    "settings": {
+      "title": "Company settings",
+      "name": "Name",
+      "sector": "Sector",
+      "color": "Color",
+      "saved": "Company updated"
     }
   },
   "projects": {
+    "title": "Projects",
     "subtitle": "Select a project to continue",
-    "unknown": "Unknown company",
     "notFound": "Project not found",
     "docSummary": "{{docs}} documents · {{pending}} pending",
     "deleteConfirm": {

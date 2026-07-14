@@ -11,6 +11,7 @@
     "delete": "Eliminar",
     "cancel": "Cancelar",
     "open": "Abrir",
+    "save": "Guardar",
     "comingSoon": "Esta función estará disponible próximamente"
   },
   "login": {
@@ -20,20 +21,18 @@
   "topbar": {
     "newTab": "Nueva pestaña"
   },
-  "enterprises": {
-    "title": "Selecciona una empresa",
-    "subtitle": "Elige la empresa cliente con la que quieres trabajar",
-    "projectCountSingular": "{{count}} proyecto",
-    "projectCountPlural": "{{count}} proyectos",
-    "deleteConfirm": {
-      "title": "Eliminar empresa",
-      "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
-      "ok": "Eliminar"
+  "company": {
+    "settings": {
+      "title": "Ajustes de empresa",
+      "name": "Nombre",
+      "sector": "Sector",
+      "color": "Color",
+      "saved": "Empresa actualizada"
     }
   },
   "projects": {
+    "title": "Proyectos",
     "subtitle": "Selecciona un proyecto para continuar",
-    "unknown": "Empresa desconocida",
     "notFound": "Proyecto no encontrado",
     "docSummary": "{{docs}} documentos · {{pending}} pendientes",
     "deleteConfirm": {

@@ -12,7 +12,6 @@ export interface KpiRowProps {
   overdue: number;
 }
 
-/** Fila de 4 KPIs: ingresos, gastos, pendientes y vencidos. */
 export function KpiRow({ income, expenses, pending, overdue }: KpiRowProps) {
   const { t } = useTranslation();
   const { token } = useToken();

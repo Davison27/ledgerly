@@ -1,7 +1,3 @@
-// Datos mock de documentos por proyecto.
-// Solo se cargan en modo local (ver src/data/documents.ts y src/config.ts).
-// Portado del generador determinista del prototipo de diseño de Ledgerly ERP.
-
 export type DocumentType = 'factura' | 'nomina' | 'impuesto';
 export type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
 
@@ -9,11 +5,8 @@ export interface ProjectDocument {
   id: string;
   name: string;
   type: DocumentType;
-  /** 1-12 */
   month: number;
-  /** ISO date yyyy-mm-dd */
   date: string;
-  /** Importe en euros */
   amount: number;
   status: DocumentStatus;
 }
@@ -48,11 +41,6 @@ const NAMES: Record<DocumentType, string[]> = {
 const TYPES: DocumentType[] = ['factura', 'nomina', 'impuesto'];
 const STATUSES: DocumentStatus[] = ['pagado', 'pendiente', 'vencido'];
 
-/**
- * Genera de forma determinista los documentos de un proyecto a partir de su id.
- * Mismo algoritmo que el prototipo de diseño, para que Documentos y Panel
- * compartan la misma fuente de datos.
- */
 export function generateProjectDocuments(projectId: string): ProjectDocument[] {
   const seed = projectId.charCodeAt(projectId.length - 1);
   const docs: ProjectDocument[] = [];

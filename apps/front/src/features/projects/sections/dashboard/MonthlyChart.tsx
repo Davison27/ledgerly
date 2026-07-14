@@ -5,11 +5,8 @@ const { Text } = Typography;
 const { useToken } = theme;
 
 export interface MonthlyChartProps {
-  /** Ingresos por mes (12 valores, enero → diciembre). */
   income: number[];
-  /** Gastos por mes (12 valores, enero → diciembre). */
   expenses: number[];
-  /** Color de acento de la empresa para la serie de ingresos. */
   color: string;
 }
 
@@ -22,7 +19,6 @@ const PAD_B = 30;
 const PLOT_W = W - PAD_L - PAD_R;
 const PLOT_H = H - PAD_T - PAD_B;
 
-/** Gráfico de líneas SVG: ingresos vs gastos a lo largo de 12 meses. */
 export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
@@ -55,7 +51,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         role="img"
         style={{ display: 'block', maxWidth: '100%' }}
       >
-        {/* Eje base */}
         <line
           x1={PAD_L}
           y1={PAD_T + PLOT_H}
@@ -65,7 +60,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           strokeWidth={1}
         />
 
-        {/* Serie de gastos */}
         <polyline
           points={toPoints(expenses)}
           fill="none"
@@ -74,7 +68,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-        {/* Serie de ingresos */}
         <polyline
           points={toPoints(income)}
           fill="none"
@@ -88,7 +81,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           <circle key={`in-${i}`} cx={x(i)} cy={y(v)} r={2.5} fill={color} />
         ))}
 
-        {/* Etiquetas de mes */}
         {months.map((m, i) => (
           <text
             key={`m-${i}`}

@@ -1,6 +1,6 @@
 import { Card, Form, Input, Select } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { Project } from '../../../../data/enterprises';
+import type { Project } from '../../../../data/company';
 
 interface DetailsCardProps {
   project: Project;
@@ -8,7 +8,6 @@ interface DetailsCardProps {
 
 const FISCAL_YEARS = ['2024', '2025', '2026'] as const;
 
-/** Tarjeta de detalles del proyecto: nombre, código (solo lectura) y ejercicio fiscal. */
 export function DetailsCard({ project }: DetailsCardProps) {
   const { t } = useTranslation();
 
