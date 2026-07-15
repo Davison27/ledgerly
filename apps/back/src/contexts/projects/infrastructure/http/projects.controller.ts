@@ -41,6 +41,21 @@ export class ProjectsController {
     const project = await this.createProjectUseCase.execute({
       name: dto.name,
       code: dto.code,
+      type: dto.type,
+      status: dto.status,
+      description: dto.description,
+      clientCompany: dto.clientCompany,
+      clientTaxId: dto.clientTaxId,
+      contactName: dto.contactName,
+      contactEmail: dto.contactEmail,
+      contactPhone: dto.contactPhone,
+      address: dto.address,
+      startDate: dto.startDate,
+      endDate: dto.endDate,
+      budget: dto.budget,
+      currency: dto.currency,
+      fiscalYear: dto.fiscalYear,
+      manager: dto.manager,
     });
 
     return ProjectResponse.fromDomain(project);
@@ -62,6 +77,21 @@ export class ProjectsController {
       id,
       name: dto.name,
       code: dto.code,
+      type: dto.type,
+      status: dto.status,
+      description: dto.description,
+      clientCompany: dto.clientCompany,
+      clientTaxId: dto.clientTaxId,
+      contactName: dto.contactName,
+      contactEmail: dto.contactEmail,
+      contactPhone: dto.contactPhone,
+      address: dto.address,
+      startDate: dto.startDate,
+      endDate: dto.endDate,
+      budget: dto.budget,
+      currency: dto.currency,
+      fiscalYear: dto.fiscalYear,
+      manager: dto.manager,
     });
 
     return ProjectResponse.fromDomain(project);

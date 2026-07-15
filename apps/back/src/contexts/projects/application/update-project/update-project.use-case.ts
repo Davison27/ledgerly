@@ -38,6 +38,66 @@ export class UpdateProjectUseCase {
       project.changeCode(command.code);
     }
 
+    if (command.type !== undefined) {
+      project.changeType(command.type);
+    }
+
+    if (command.status !== undefined) {
+      project.changeStatus(command.status);
+    }
+
+    if (command.description !== undefined) {
+      project.changeDescription(command.description);
+    }
+
+    if (command.clientCompany !== undefined) {
+      project.changeClientCompany(command.clientCompany);
+    }
+
+    if (command.clientTaxId !== undefined) {
+      project.changeClientTaxId(command.clientTaxId);
+    }
+
+    if (command.contactName !== undefined) {
+      project.changeContactName(command.contactName);
+    }
+
+    if (command.contactEmail !== undefined) {
+      project.changeContactEmail(command.contactEmail);
+    }
+
+    if (command.contactPhone !== undefined) {
+      project.changeContactPhone(command.contactPhone);
+    }
+
+    if (command.address !== undefined) {
+      project.changeAddress(command.address);
+    }
+
+    if (command.startDate !== undefined) {
+      project.changeStartDate(command.startDate);
+    }
+
+    if (command.endDate !== undefined) {
+      project.changeEndDate(command.endDate);
+    }
+
+    if (command.budget !== undefined) {
+      project.changeBudget(command.budget);
+    }
+
+    if (command.currency !== undefined) {
+      project.changeCurrency(command.currency);
+    }
+
+    if (command.fiscalYear !== undefined) {
+      project.changeFiscalYear(command.fiscalYear);
+    }
+
+    if (command.manager !== undefined) {
+      project.changeManager(command.manager);
+    }
+
     await this.projectRepository.save(project);
 
     return project;
