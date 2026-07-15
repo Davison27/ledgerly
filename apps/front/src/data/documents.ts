@@ -30,5 +30,9 @@ export function mapDocumentDto(dto: DocumentDto): ProjectDocument {
     taxRate: dto.taxRate ?? undefined,
     taxAmount: dto.taxAmount ?? undefined,
     currency: dto.currency ?? undefined,
+    hasFile: dto.hasFile ?? false,
+    fileName: dto.fileName ?? undefined,
+    fileSize: dto.fileSize ?? undefined,
+    mimeType: dto.mimeType ?? undefined,
   };
 }

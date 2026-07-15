@@ -112,8 +112,13 @@
       "preview": {
         "empty": "Selecciona un documento para ver su vista previa",
         "placeholder": "vista previa · pdf",
+        "noFile": "Sin documento adjunto",
         "download": "Descargar",
-        "print": "Imprimir"
+        "print": "Imprimir",
+        "viewer": {
+          "loading": "Cargando el PDF...",
+          "error": "No se ha podido cargar el PDF."
+        }
       },
       "types": {
         "factura": "Factura",

@@ -207,7 +207,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
           borderInlineStart: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
-        <DocumentPreview document={selectedDoc} />
+        <DocumentPreview projectId={project.id} document={selectedDoc} />
       </div>
 
       <DocumentUploadModal

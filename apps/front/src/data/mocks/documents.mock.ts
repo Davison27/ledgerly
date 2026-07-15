@@ -17,6 +17,10 @@ export interface ProjectDocument {
   taxRate?: number;
   taxAmount?: number;
   currency?: string;
+  hasFile?: boolean;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
 }
 
 const NAMES: Record<DocumentType, string[]> = {

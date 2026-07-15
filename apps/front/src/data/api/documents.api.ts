@@ -1,4 +1,4 @@
-import { API_URL, ApiError, buildQueryString, get, post } from './httpClient';
+import { API_URL, ApiError, buildQueryString, get } from './httpClient';
 import type {
   CreateDocumentPayload,
   DocumentDto,
@@ -22,11 +22,46 @@ export function listDocuments(
   return get<DocumentDto[]>(`/projects/${projectId}/documents${qs}`);
 }
 
-export function createDocument(
+export async function createDocument(
   projectId: string,
   payload: CreateDocumentPayload,
+  file?: File,
 ): Promise<DocumentDto> {
-  return post<DocumentDto>(`/projects/${projectId}/documents`, payload);
+  const formData = new FormData();
+  formData.append('payload', JSON.stringify(payload));
+  if (file) {
+    formData.append('file', file);
+  }
+
+  // Multipart upload: let the browser set the Content-Type header (with boundary),
+  // so we bypass the shared JSON `post` helper and use `fetch` directly here.
+  const response = await fetch(`${API_URL}/projects/${projectId}/documents`, {
+    method: 'POST',
+    headers: { Accept: 'application/json' },
+    body: formData,
+  });
+
+  const text = await response.text();
+  let body: unknown;
+  try {
+    body = text ? JSON.parse(text) : undefined;
+  } catch {
+    body = text;
+  }
+
+  if (!response.ok) {
+    const message =
+      body && typeof body === 'object' && 'message' in body
+        ? String((body as { message?: unknown }).message)
+        : undefined;
+    throw new ApiError(response.status, body, message);
+  }
+
+  return body as DocumentDto;
+}
+
+export function documentFileUrl(projectId: string, documentId: string): string {
+  return `${API_URL}/projects/${projectId}/documents/${documentId}/file`;
 }
 
 export function extractInvoice(

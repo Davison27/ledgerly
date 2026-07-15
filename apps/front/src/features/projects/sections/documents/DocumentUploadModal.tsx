@@ -125,6 +125,7 @@ export function DocumentUploadModal({
   const [form] = Form.useForm<DocumentFormFields>();
 
   const [fileName, setFileName] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [step, setStep] = useState<FlowStep>('idle');
   const [progress, setProgress] = useState(0);
   const [extractResult, setExtractResult] = useState<ExtractInvoiceResult | null>(null);
@@ -136,6 +137,7 @@ export function DocumentUploadModal({
     if (open) {
       form.resetFields();
       setFileName(null);
+      setSelectedFile(null);
       setStep('idle');
       setProgress(0);
       setExtractResult(null);
@@ -153,6 +155,7 @@ export function DocumentUploadModal({
   const handleFileSelected = (selected: RcFile): boolean => {
     const token = ++extractionTokenRef.current;
     setFileName(selected.name);
+    setSelectedFile(selected);
     setExtractResult(null);
     setScannedPdfError(false);
     setStep('uploading');
@@ -217,7 +220,7 @@ export function DocumentUploadModal({
         setSubmitting(true);
         const createPromise = USE_MOCKS
           ? simulateCreateDocument()
-          : createDocument(projectId, payload).then(() => undefined);
+          : createDocument(projectId, payload, selectedFile ?? undefined).then(() => undefined);
 
         createPromise
           .then(() => {
