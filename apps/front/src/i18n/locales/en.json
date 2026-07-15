@@ -112,8 +112,13 @@
       "preview": {
         "empty": "Select a document to see its preview",
         "placeholder": "preview · pdf",
+        "noFile": "No attached document",
         "download": "Download",
-        "print": "Print"
+        "print": "Print",
+        "viewer": {
+          "loading": "Loading the PDF...",
+          "error": "The PDF could not be loaded."
+        }
       },
       "types": {
         "factura": "Invoice",

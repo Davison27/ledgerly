@@ -25,6 +25,10 @@ export interface DocumentDto {
   taxRate?: number | null;
   taxAmount?: number | null;
   currency?: string | null;
+  hasFile?: boolean;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
 }
 
 export interface DocumentFiltersDto {
