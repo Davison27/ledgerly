@@ -16,12 +16,20 @@ ledgerly-erp/
 
 - Node.js >= 20
 - pnpm >= 11
+- Docker (para la base de datos Postgres)
 
 ## Puesta en marcha
 
+Con Docker y Node instalados, un único comando levanta todo (instala
+dependencias, crea `apps/back/.env`, levanta Postgres, ejecuta las
+migraciones y arranca front + back):
+
 ```bash
-pnpm install
+make up
 ```
+
+`make help` lista el resto de comandos disponibles (`db-up`, `migrate`,
+`seed`, `reset-db`, `test`, `clean`, ...).
 
 ## Scripts (desde la raíz)
 
