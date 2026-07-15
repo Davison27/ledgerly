@@ -20,22 +20,22 @@ export class ProjectOrmEntity {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ name: 'client_company', length: 160, nullable: true })
+  @Column({ name: 'client_company', type: 'varchar', length: 160, nullable: true })
   clientCompany: string | null;
 
-  @Column({ name: 'client_tax_id', length: 40, nullable: true })
+  @Column({ name: 'client_tax_id', type: 'varchar', length: 40, nullable: true })
   clientTaxId: string | null;
 
-  @Column({ name: 'contact_name', length: 160, nullable: true })
+  @Column({ name: 'contact_name', type: 'varchar', length: 160, nullable: true })
   contactName: string | null;
 
-  @Column({ name: 'contact_email', length: 160, nullable: true })
+  @Column({ name: 'contact_email', type: 'varchar', length: 160, nullable: true })
   contactEmail: string | null;
 
-  @Column({ name: 'contact_phone', length: 40, nullable: true })
+  @Column({ name: 'contact_phone', type: 'varchar', length: 40, nullable: true })
   contactPhone: string | null;
 
-  @Column({ length: 255, nullable: true })
+  @Column({ type: 'varchar', length: 255, nullable: true })
   address: string | null;
 
   @Column({ name: 'start_date', type: 'date', nullable: true })
@@ -50,9 +50,9 @@ export class ProjectOrmEntity {
   @Column({ length: 3, default: 'EUR' })
   currency: string;
 
-  @Column({ name: 'fiscal_year', length: 10, nullable: true })
+  @Column({ name: 'fiscal_year', type: 'varchar', length: 10, nullable: true })
   fiscalYear: string | null;
 
-  @Column({ length: 160, nullable: true })
+  @Column({ type: 'varchar', length: 160, nullable: true })
   manager: string | null;
 }
