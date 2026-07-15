@@ -1,12 +1,96 @@
 export type DocumentTypeDto = 'factura' | 'nomina' | 'impuesto';
 export type DocumentStatusDto = 'pagado' | 'pendiente' | 'vencido';
 
+export type ProjectTypeDto =
+  | 'client'
+  | 'internal'
+  | 'audiovisual'
+  | 'construction'
+  | 'consulting'
+  | 'other';
+
+export type ProjectStatusDto = 'active' | 'on_hold' | 'completed' | 'archived';
+
+export type ProjectCurrencyDto = 'EUR' | 'USD' | 'GBP';
+
 export interface ProjectSummaryDto {
   id: string;
   name: string;
   code: string;
   documentCount: number;
   pendingCount: number;
+}
+
+export interface ProjectDto {
+  id: string;
+  name: string;
+  code: string;
+  type: ProjectTypeDto;
+  status: ProjectStatusDto;
+  description?: string | null;
+  clientCompany?: string | null;
+  clientTaxId?: string | null;
+  contactName?: string | null;
+  contactEmail?: string | null;
+  contactPhone?: string | null;
+  address?: string | null;
+  startDate?: string | null;
+  endDate?: string | null;
+  budget?: number | null;
+  currency?: ProjectCurrencyDto | null;
+  fiscalYear?: string | null;
+  manager?: string | null;
+}
+
+export interface CreateProjectPayload {
+  name: string;
+  code: string;
+  type: ProjectTypeDto;
+  status?: ProjectStatusDto;
+  description?: string;
+  clientCompany?: string;
+  clientTaxId?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  startDate?: string;
+  endDate?: string;
+  budget?: number;
+  currency?: ProjectCurrencyDto;
+  fiscalYear?: string;
+  manager?: string;
+}
+
+export interface CompanyDto {
+  id: string;
+  name: string;
+  legalName?: string | null;
+  taxId?: string | null;
+  sector?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  address?: string | null;
+  city?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  logo?: string | null;
+}
+
+export interface UpdateCompanyPayload {
+  name?: string;
+  legalName?: string;
+  taxId?: string;
+  sector?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  logo?: string;
 }
 
 export interface DocumentDto {

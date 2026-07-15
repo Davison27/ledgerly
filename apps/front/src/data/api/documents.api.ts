@@ -1,4 +1,5 @@
 import { API_URL, ApiError, buildQueryString, get } from './httpClient';
+import { stripEmpty } from './sanitize';
 import type {
   CreateDocumentPayload,
   DocumentDto,
@@ -28,7 +29,7 @@ export async function createDocument(
   file?: File,
 ): Promise<DocumentDto> {
   const formData = new FormData();
-  formData.append('payload', JSON.stringify(payload));
+  formData.append('payload', JSON.stringify(stripEmpty(payload)));
   if (file) {
     formData.append('file', file);
   }

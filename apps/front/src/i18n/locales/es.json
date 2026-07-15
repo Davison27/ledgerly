@@ -65,7 +65,8 @@
         "nameRequired": "El nombre es obligatorio",
         "emailInvalid": "Introduce un email válido",
         "urlInvalid": "Introduce una URL válida"
-      }
+      },
+      "error": "No se ha podido actualizar la empresa. Inténtalo de nuevo."
     }
   },
   "projects": {
@@ -76,7 +77,8 @@
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
-      "ok": "Eliminar"
+      "ok": "Eliminar",
+      "error": "No se ha podido eliminar el proyecto. Inténtalo de nuevo."
     },
     "sections": {
       "documents": "Documentos",
@@ -239,6 +241,7 @@
       "title": "Añadir proyecto",
       "submit": "Crear proyecto",
       "created": "Proyecto creado correctamente",
+      "createError": "No se ha podido crear el proyecto. Inténtalo de nuevo.",
       "sections": {
         "general": "General",
         "client": "Cliente / Contacto",

@@ -22,7 +22,6 @@ import { InboxOutlined } from '@ant-design/icons';
 import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { USE_MOCKS } from '../../../../config';
 import { createDocument, extractInvoice } from '../../../../data/api/documents.api';
 import { ApiError } from '../../../../data/api/httpClient';
 import type {
@@ -70,49 +69,6 @@ const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
   partial: 'warning',
   low: 'error',
 };
-
-// USE_MOCKS runs the UI without a backend. There is no real PDF parser to call in that
-// mode, so we fake a short upload/processing animation and return a plausible fake result.
-function simulateExtraction(onProgress: (percent: number) => void): Promise<ExtractInvoiceResult> {
-  const uploadTicks = [25, 55, 80, 100];
-  return new Promise((resolve) => {
-    const runUpload = (index: number) => {
-      onProgress(uploadTicks[index]);
-      if (index < uploadTicks.length - 1) {
-        setTimeout(() => runUpload(index + 1), 180);
-        return;
-      }
-      setTimeout(() => {
-        resolve({
-          source: 'heuristic',
-          confidence: 'partial',
-          fields: {
-            name: 'Factura Suministros Norte',
-            type: 'factura',
-            date: dayjs().format('YYYY-MM-DD'),
-            dueDate: dayjs().add(30, 'day').format('YYYY-MM-DD'),
-            amount: 1240.5,
-            taxBase: 1025.21,
-            taxRate: 21,
-            taxAmount: 215.29,
-            currency: 'EUR',
-            invoiceNumber: 'F-2026-0342',
-            issuerName: 'Suministros Norte SL',
-            issuerTaxId: 'B12345678',
-          },
-          warnings: ['Datos simulados en modo demo (sin conexión al backend).'],
-        });
-      }, 500);
-    };
-    runUpload(0);
-  });
-}
-
-// Mock mode has no persistent document list backing it, so "creating" a document
-// just resolves after a short delay; the caller closes the modal and reloads the (mock) list.
-function simulateCreateDocument(): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, 300));
-}
 
 export function DocumentUploadModal({
   open,
@@ -167,11 +123,7 @@ export function DocumentUploadModal({
       if (percent >= 100) setStep('processing');
     };
 
-    const extractPromise = USE_MOCKS
-      ? simulateExtraction(onProgress)
-      : extractInvoice(projectId, selected, onProgress);
-
-    extractPromise
+    extractInvoice(projectId, selected, onProgress)
       .then((result) => {
         if (extractionTokenRef.current !== token) return;
         setExtractResult(result);
@@ -218,11 +170,8 @@ export function DocumentUploadModal({
         };
 
         setSubmitting(true);
-        const createPromise = USE_MOCKS
-          ? simulateCreateDocument()
-          : createDocument(projectId, payload, selectedFile ?? undefined).then(() => undefined);
 
-        createPromise
+        createDocument(projectId, payload, selectedFile ?? undefined)
           .then(() => {
             void message.success(t('projects.documents.upload.created'));
             form.resetFields();

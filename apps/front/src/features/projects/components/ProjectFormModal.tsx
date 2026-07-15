@@ -26,7 +26,7 @@ const { Text } = Typography;
 interface ProjectFormModalProps {
   open: boolean;
   onCancel: () => void;
-  onSubmit: (values: ProjectFormValues) => void;
+  onSubmit: (values: ProjectFormValues) => void | Promise<void>;
 }
 
 interface ProjectFormFields {
@@ -88,7 +88,7 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
           endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
         };
         form.resetFields();
-        onSubmit(payload);
+        void onSubmit(payload);
       })
       .catch(() => {
         // validation errors are shown inline by antd

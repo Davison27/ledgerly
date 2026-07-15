@@ -1,16 +1,28 @@
-import { USE_MOCKS } from '../config';
 import type { DocumentDto } from './api/types';
-import { generateProjectDocuments } from './mocks/documents.mock';
-import type { ProjectDocument } from './mocks/documents.mock';
 
-export type {
-  ProjectDocument,
-  DocumentType,
-  DocumentStatus,
-} from './mocks/documents.mock';
+export type DocumentType = 'factura' | 'nomina' | 'impuesto';
+export type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
 
-export function getProjectDocuments(projectId: string): ProjectDocument[] {
-  return USE_MOCKS ? generateProjectDocuments(projectId) : [];
+export interface ProjectDocument {
+  id: string;
+  name: string;
+  type: DocumentType;
+  month: number;
+  date: string;
+  amount: number;
+  status: DocumentStatus;
+  issuerName?: string;
+  issuerTaxId?: string;
+  invoiceNumber?: string;
+  dueDate?: string;
+  taxBase?: number;
+  taxRate?: number;
+  taxAmount?: number;
+  currency?: string;
+  hasFile?: boolean;
+  fileName?: string | null;
+  fileSize?: number | null;
+  mimeType?: string | null;
 }
 
 export function mapDocumentDto(dto: DocumentDto): ProjectDocument {
