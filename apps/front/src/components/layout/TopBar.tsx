@@ -72,9 +72,9 @@ export function TopBar() {
           onClick={() => void navigate({ to: '/projects' })}
         >
           <img
-            src={logoIconUrl}
+            src={company.logo || logoIconUrl}
             alt={t('common.appName')}
-            style={{ height: 28, display: 'block' }}
+            style={{ height: 28, display: 'block', objectFit: 'contain' }}
           />
         </Button>
 

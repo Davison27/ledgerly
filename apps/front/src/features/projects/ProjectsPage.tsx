@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { App, Button, Flex, Typography } from 'antd';
+import { App, Button, Flex, Typography, theme } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Project, ProjectFormValues } from '../../data/company';
@@ -15,7 +15,8 @@ export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
-  const { company, projects, addProject, removeProject } = useCompany();
+  const { token } = theme.useToken();
+  const { projects, addProject, removeProject } = useCompany();
   const { openProject, isOpen, closeProject } = useOpenProjects();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -76,7 +77,7 @@ export function ProjectsPage() {
           <ProjectCard
             key={project.id}
             project={project}
-            color={company.color}
+            color={token.colorPrimary}
             isOpen={isOpen(project.id)}
             onOpen={handleOpen}
             onEdit={handleEdit}
