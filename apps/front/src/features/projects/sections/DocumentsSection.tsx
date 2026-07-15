@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
+  App,
+  Button,
   DatePicker,
   Empty,
   Flex,
@@ -7,21 +9,19 @@ import {
   InputNumber,
   Segmented,
   Select,
+  Spin,
   Typography,
   theme,
 } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import {
-  getProjectDocuments,
-  type DocumentStatus,
-  type DocumentType,
-  type ProjectDocument,
-} from '../../../data/documents';
+import type { DocumentStatus, DocumentType, ProjectDocument } from '../../../data/documents';
 import type { ProjectSectionProps } from './types';
 import { DocumentsListView } from './documents/DocumentsListView';
 import { DocumentsCardsView } from './documents/DocumentsCardsView';
 import { DocumentPreview } from './documents/DocumentPreview';
+import { DocumentUploadModal } from './documents/DocumentUploadModal';
+import { useProjectDocuments } from './documents/useProjectDocuments';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -33,8 +33,20 @@ type LayoutMode = 'list' | 'cards';
 export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const { message } = App.useApp();
 
-  const documents = useMemo(() => getProjectDocuments(project.id), [project.id]);
+  const {
+    documents,
+    loading: documentsLoading,
+    error: documentsError,
+    reload: reloadDocuments,
+  } = useProjectDocuments(project.id);
+
+  useEffect(() => {
+    if (documentsError) {
+      void message.error(t('projects.documents.loadError'));
+    }
+  }, [documentsError, message, t]);
 
   const [search, setSearch] = useState('');
   const [type, setType] = useState<TypeFilter>('all');
@@ -45,6 +57,12 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const [amountMax, setAmountMax] = useState<number | null>(null);
   const [layout, setLayout] = useState<LayoutMode>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [uploadOpen, setUploadOpen] = useState(false);
+
+  const handleDocumentCreated = () => {
+    setUploadOpen(false);
+    reloadDocuments();
+  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -138,16 +156,28 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
             ]}
             style={{ marginInlineStart: 'auto' }}
           />
+          <Button type="primary" icon={<PlusOutlined />} onClick={() => setUploadOpen(true)}>
+            {t('projects.documents.upload.button')}
+          </Button>
         </Flex>
 
-        <Text type="secondary" style={{ flex: 'none' }}>
-          {t(count === 1 ? 'projects.documents.countOne' : 'projects.documents.countOther', {
-            count,
-          })}
-        </Text>
+        {!documentsLoading && (
+          <Text type="secondary" style={{ flex: 'none' }}>
+            {t(count === 1 ? 'projects.documents.countOne' : 'projects.documents.countOther', {
+              count,
+            })}
+          </Text>
+        )}
 
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-          {count === 0 ? (
+          {documentsLoading ? (
+            <Flex vertical align="center" justify="center" gap={8} style={{ height: '100%' }}>
+              <Spin />
+              <Text type="secondary">{t('projects.documents.loading')}</Text>
+            </Flex>
+          ) : documentsError ? (
+            <Empty description={t('projects.documents.loadError')} />
+          ) : count === 0 ? (
             <Empty description={t('projects.documents.empty')} />
           ) : layout === 'list' ? (
             <DocumentsListView
@@ -179,6 +209,13 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
       >
         <DocumentPreview document={selectedDoc} />
       </div>
+
+      <DocumentUploadModal
+        open={uploadOpen}
+        projectId={project.id}
+        onCancel={() => setUploadOpen(false)}
+        onCreated={handleDocumentCreated}
+      />
     </Flex>
   );
 }

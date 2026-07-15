@@ -107,6 +107,8 @@
         "status": "Estado"
       },
       "empty": "No hay documentos que coincidan con los filtros.",
+      "loading": "Cargando documentos...",
+      "loadError": "No se han podido cargar los documentos.",
       "preview": {
         "empty": "Selecciona un documento para ver su vista previa",
         "placeholder": "vista previa · pdf",
@@ -122,6 +124,69 @@
         "pagado": "Pagado",
         "pendiente": "Pendiente",
         "vencido": "Vencido"
+      },
+      "upload": {
+        "button": "Añadir documento",
+        "title": "Añadir documento",
+        "submit": "Crear documento",
+        "created": "Documento creado correctamente",
+        "extractError": "No se ha podido procesar el documento. Inténtalo de nuevo.",
+        "scannedPdfAlert": "No pudimos leer el PDF automáticamente (parece una imagen escaneada). Rellena los campos manualmente.",
+        "dropzone": {
+          "title": "Sube el PDF de la factura",
+          "hint": "Arrastra el archivo aquí o haz clic para seleccionarlo. Rellenamos el formulario por ti.",
+          "selectedFile": "Archivo seleccionado: {{name}}"
+        },
+        "steps": {
+          "uploading": "Subiendo",
+          "processing": "Procesando PDF",
+          "done": "Listo"
+        },
+        "extraction": {
+          "source": {
+            "facturae": "Facturae",
+            "facturx": "Factur-X",
+            "heuristic": "Detección heurística"
+          },
+          "confidence": {
+            "high": "Confianza alta",
+            "partial": "Confianza parcial",
+            "low": "Confianza baja"
+          },
+          "reviewNote": "Revisa los datos extraídos antes de guardar, la confianza es limitada.",
+          "warningsTitle": "Avisos de la extracción"
+        },
+        "sections": {
+          "document": "Documento",
+          "amounts": "Importes"
+        },
+        "fields": {
+          "name": "Nombre",
+          "type": "Tipo",
+          "status": "Estado",
+          "date": "Fecha",
+          "dueDate": "Fecha de vencimiento",
+          "amount": "Importe",
+          "taxBase": "Base imponible",
+          "taxRate": "% IVA",
+          "taxAmount": "Cuota IVA",
+          "currency": "Moneda",
+          "invoiceNumber": "Nº de factura",
+          "issuerName": "Emisor",
+          "issuerTaxId": "CIF/NIF emisor"
+        },
+        "placeholders": {
+          "name": "Ej. Factura suministros marzo",
+          "invoiceNumber": "Ej. F-2024-001",
+          "issuerName": "Ej. Suministros Norte SL",
+          "issuerTaxId": "Ej. B12345678"
+        },
+        "validation": {
+          "nameRequired": "El nombre es obligatorio",
+          "dateRequired": "La fecha es obligatoria",
+          "amountRequired": "El importe es obligatorio",
+          "amountMin": "El importe no puede ser negativo"
+        }
       }
     },
     "dashboard": {

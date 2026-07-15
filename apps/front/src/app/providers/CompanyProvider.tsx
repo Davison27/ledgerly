@@ -2,12 +2,15 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useState,
   type ReactNode,
 } from 'react';
+import { USE_MOCKS } from '../../config';
 import {
   company as initialCompany,
+  fetchProjects,
   initialProjects,
   type Company,
   type Project,
@@ -17,6 +20,7 @@ import {
 interface CompanyContextValue {
   company: Company;
   projects: Project[];
+  projectsLoading: boolean;
   updateCompany: (patch: Partial<Omit<Company, 'id'>>) => void;
   addProject: (values: ProjectFormValues) => void;
   removeProject: (projectId: string) => void;
@@ -36,6 +40,29 @@ export function useCompany(): CompanyContextValue {
 export function CompanyProvider({ children }: { children: ReactNode }) {
   const [company, setCompany] = useState<Company>(initialCompany);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
+  const [projectsLoading, setProjectsLoading] = useState(!USE_MOCKS);
+
+  useEffect(() => {
+    if (USE_MOCKS) return;
+
+    let cancelled = false;
+    setProjectsLoading(true);
+
+    fetchProjects()
+      .then((loaded) => {
+        if (!cancelled) setProjects(loaded);
+      })
+      .catch(() => {
+        if (!cancelled) setProjects([]);
+      })
+      .finally(() => {
+        if (!cancelled) setProjectsLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const updateCompany = useCallback((patch: Partial<Omit<Company, 'id'>>) => {
     setCompany((prev) => ({ ...prev, ...patch }));
@@ -56,8 +83,15 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<CompanyContextValue>(
-    () => ({ company, projects, updateCompany, addProject, removeProject }),
-    [company, projects, updateCompany, addProject, removeProject],
+    () => ({
+      company,
+      projects,
+      projectsLoading,
+      updateCompany,
+      addProject,
+      removeProject,
+    }),
+    [company, projects, projectsLoading, updateCompany, addProject, removeProject],
   );
 
   return (

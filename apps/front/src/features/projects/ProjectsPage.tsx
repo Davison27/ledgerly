@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { App, Button, Flex, Typography, theme } from 'antd';
+import { App, Button, Flex, Spin, Typography, theme } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Project, ProjectFormValues } from '../../data/company';
@@ -16,7 +16,7 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
   const { token } = theme.useToken();
-  const { projects, addProject, removeProject } = useCompany();
+  const { projects, projectsLoading, addProject, removeProject } = useCompany();
   const { openProject, isOpen, closeProject } = useOpenProjects();
   const [isFormOpen, setIsFormOpen] = useState(false);
 
@@ -66,25 +66,31 @@ export function ProjectsPage() {
         {t('projects.subtitle')}
       </Text>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: 20,
-        }}
-      >
-        {projects.map((project) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            color={token.colorPrimary}
-            isOpen={isOpen(project.id)}
-            onOpen={handleOpen}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        ))}
-      </div>
+      {projectsLoading ? (
+        <Flex justify="center" style={{ padding: '48px 0' }}>
+          <Spin />
+        </Flex>
+      ) : (
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+            gap: 20,
+          }}
+        >
+          {projects.map((project) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              color={token.colorPrimary}
+              isOpen={isOpen(project.id)}
+              onOpen={handleOpen}
+              onEdit={handleEdit}
+              onDelete={handleDelete}
+            />
+          ))}
+        </div>
+      )}
 
       <ProjectFormModal
         open={isFormOpen}
