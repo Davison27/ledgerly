@@ -126,6 +126,76 @@
         "weekly": "Weekly summary",
         "team": "Team changes"
       }
+    },
+    "form": {
+      "title": "Add project",
+      "submit": "Create project",
+      "created": "Project created successfully",
+      "sections": {
+        "general": "General",
+        "client": "Client / Contact",
+        "planning": "Planning"
+      },
+      "fields": {
+        "name": "Name",
+        "code": "Code",
+        "type": "Type",
+        "status": "Status",
+        "description": "Description",
+        "clientCompany": "Company / Client",
+        "clientTaxId": "Tax ID",
+        "contactName": "Contact person",
+        "contactEmail": "Contact email",
+        "contactPhone": "Contact phone",
+        "address": "Address",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "budget": "Budget",
+        "currency": "Currency",
+        "fiscalYear": "Fiscal year",
+        "manager": "Manager"
+      },
+      "placeholders": {
+        "name": "E.g. La que se avecina",
+        "code": "E.g. GA-ZGZ-24",
+        "type": "Select a type",
+        "description": "Add a project description...",
+        "clientCompany": "E.g. Mediaset España",
+        "clientTaxId": "E.g. B12345678",
+        "contactName": "E.g. María López",
+        "contactEmail": "E.g. maria.lopez@company.com",
+        "contactPhone": "E.g. +34 600 123 456",
+        "address": "Street, number, city",
+        "budget": "0.00",
+        "fiscalYear": "E.g. 2025",
+        "manager": "E.g. Juan Pérez"
+      },
+      "types": {
+        "client": "Client",
+        "internal": "Internal",
+        "audiovisual": "Audiovisual",
+        "construction": "Construction",
+        "consulting": "Consulting",
+        "other": "Other"
+      },
+      "statuses": {
+        "active": "Active",
+        "on_hold": "On hold",
+        "completed": "Completed",
+        "archived": "Archived"
+      },
+      "currencies": {
+        "EUR": "Euro (EUR)",
+        "USD": "US Dollar (USD)",
+        "GBP": "British Pound (GBP)"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "codeRequired": "Code is required",
+        "typeRequired": "Type is required",
+        "emailInvalid": "Enter a valid email",
+        "budgetMin": "Budget cannot be negative"
+      }
     }
   }
 }

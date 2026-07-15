@@ -126,6 +126,76 @@
         "weekly": "Resumen semanal",
         "team": "Cambios en el equipo"
       }
+    },
+    "form": {
+      "title": "Añadir proyecto",
+      "submit": "Crear proyecto",
+      "created": "Proyecto creado correctamente",
+      "sections": {
+        "general": "General",
+        "client": "Cliente / Contacto",
+        "planning": "Planificación"
+      },
+      "fields": {
+        "name": "Nombre",
+        "code": "Código",
+        "type": "Tipo",
+        "status": "Estado",
+        "description": "Descripción",
+        "clientCompany": "Empresa / Cliente",
+        "clientTaxId": "CIF / NIF",
+        "contactName": "Persona de contacto",
+        "contactEmail": "Email de contacto",
+        "contactPhone": "Teléfono de contacto",
+        "address": "Dirección",
+        "startDate": "Fecha de inicio",
+        "endDate": "Fecha de fin",
+        "budget": "Presupuesto",
+        "currency": "Moneda",
+        "fiscalYear": "Ejercicio fiscal",
+        "manager": "Responsable"
+      },
+      "placeholders": {
+        "name": "Ej. La que se avecina",
+        "code": "Ej. GA-ZGZ-24",
+        "type": "Selecciona un tipo",
+        "description": "Añade una descripción del proyecto...",
+        "clientCompany": "Ej. Mediaset España",
+        "clientTaxId": "Ej. B12345678",
+        "contactName": "Ej. María López",
+        "contactEmail": "Ej. maria.lopez@empresa.com",
+        "contactPhone": "Ej. +34 600 123 456",
+        "address": "Calle, número, ciudad",
+        "budget": "0,00",
+        "fiscalYear": "Ej. 2025",
+        "manager": "Ej. Juan Pérez"
+      },
+      "types": {
+        "client": "Cliente",
+        "internal": "Interno",
+        "audiovisual": "Audiovisual",
+        "construction": "Construcción",
+        "consulting": "Consultoría",
+        "other": "Otro"
+      },
+      "statuses": {
+        "active": "Activo",
+        "on_hold": "En pausa",
+        "completed": "Completado",
+        "archived": "Archivado"
+      },
+      "currencies": {
+        "EUR": "Euro (EUR)",
+        "USD": "Dólar estadounidense (USD)",
+        "GBP": "Libra esterlina (GBP)"
+      },
+      "validation": {
+        "nameRequired": "El nombre es obligatorio",
+        "codeRequired": "El código es obligatorio",
+        "typeRequired": "El tipo es obligatorio",
+        "emailInvalid": "Introduce un email válido",
+        "budgetMin": "El presupuesto no puede ser negativo"
+      }
     }
   }
 }

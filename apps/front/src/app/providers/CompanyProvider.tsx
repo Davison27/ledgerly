@@ -11,12 +11,14 @@ import {
   initialProjects,
   type Company,
   type Project,
+  type ProjectFormValues,
 } from '../../data/company';
 
 interface CompanyContextValue {
   company: Company;
   projects: Project[];
   updateCompany: (patch: Partial<Omit<Company, 'id'>>) => void;
+  addProject: (values: ProjectFormValues) => void;
   removeProject: (projectId: string) => void;
 }
 
@@ -39,13 +41,23 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     setCompany((prev) => ({ ...prev, ...patch }));
   }, []);
 
+  const addProject = useCallback((values: ProjectFormValues) => {
+    const newProject: Project = {
+      id: crypto.randomUUID(),
+      documentCount: 0,
+      pendingCount: 0,
+      ...values,
+    };
+    setProjects((prev) => [newProject, ...prev]);
+  }, []);
+
   const removeProject = useCallback((projectId: string) => {
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
   }, []);
 
   const value = useMemo<CompanyContextValue>(
-    () => ({ company, projects, updateCompany, removeProject }),
-    [company, projects, updateCompany, removeProject],
+    () => ({ company, projects, updateCompany, addProject, removeProject }),
+    [company, projects, updateCompany, addProject, removeProject],
   );
 
   return (
