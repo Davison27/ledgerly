@@ -232,6 +232,14 @@ const NAMES: Record<DocumentType, string[]> = {
 
 const TYPES: DocumentType[] = ['factura', 'nomina', 'impuesto'];
 const STATUSES: DocumentStatus[] = ['pagado', 'pendiente', 'vencido'];
+const ISSUER_TAX_IDS: Record<string, string> = {
+  'Suministros Norte': 'B10203040',
+  'Transporte Rápido SL': 'B20304050',
+  'Materiales García': 'B30405060',
+  'Servicios Cloud SA': 'B40506070',
+  'Oficina Total': 'B50607080',
+  'Distribuciones Ebro': 'B60708090',
+};
 
 interface DocumentSeed {
   name: string;
@@ -240,6 +248,20 @@ interface DocumentSeed {
   date: string;
   amount: number;
   status: DocumentStatus;
+  issuerName: string | null;
+  issuerTaxId: string | null;
+  invoiceNumber: string | null;
+  dueDate: string | null;
+  taxBase: number | null;
+  taxRate: number | null;
+  taxAmount: number | null;
+  currency: 'EUR' | 'USD' | 'GBP';
+}
+
+function addDays(date: string, days: number): string {
+  const parsed = new Date(`${date}T00:00:00Z`);
+  parsed.setUTCDate(parsed.getUTCDate() + days);
+  return parsed.toISOString().slice(0, 10);
 }
 
 function generateDocuments(seed: number): DocumentSeed[] {
@@ -253,7 +275,45 @@ function generateDocuments(seed: number): DocumentSeed[] {
     const date = `2024-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const amount = 180 + ((i * 137 + seed * 53) % 9600);
     const status = STATUSES[(i + seed * 2) % 3];
-    docs.push({ name, type, month, date, amount, status });
+
+    if (type === 'factura') {
+      const taxRate = 21;
+      const taxBase = Math.round((amount / (1 + taxRate / 100)) * 100) / 100;
+      const taxAmount = Math.round((amount - taxBase) * 100) / 100;
+      docs.push({
+        name,
+        type,
+        month,
+        date,
+        amount,
+        status,
+        issuerName: name,
+        issuerTaxId: ISSUER_TAX_IDS[name] ?? 'B00000000',
+        invoiceNumber: `FRA-${date.slice(0, 4)}-${String(i + seed * 20).padStart(4, '0')}`,
+        dueDate: addDays(date, 30),
+        taxBase,
+        taxRate,
+        taxAmount,
+        currency: 'EUR',
+      });
+    } else {
+      docs.push({
+        name,
+        type,
+        month,
+        date,
+        amount,
+        status,
+        issuerName: null,
+        issuerTaxId: null,
+        invoiceNumber: null,
+        dueDate: null,
+        taxBase: null,
+        taxRate: null,
+        taxAmount: null,
+        currency: 'EUR',
+      });
+    }
   }
   return docs;
 }
@@ -335,8 +395,12 @@ async function run(): Promise<void> {
       const documents = generateDocuments(p + 1);
       for (const document of documents) {
         await manager.query(
-          `INSERT INTO documents (id, project_id, name, type, month, date, amount, status)
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          `INSERT INTO documents (
+             id, project_id, name, type, month, date, amount, status,
+             issuer_name, issuer_tax_id, invoice_number, due_date,
+             tax_base, tax_rate, tax_amount, currency
+           )
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
           [
             randomUUID(),
             projectId,
@@ -346,6 +410,14 @@ async function run(): Promise<void> {
             document.date,
             document.amount,
             document.status,
+            document.issuerName,
+            document.issuerTaxId,
+            document.invoiceNumber,
+            document.dueDate,
+            document.taxBase,
+            document.taxRate,
+            document.taxAmount,
+            document.currency,
           ],
         );
       }

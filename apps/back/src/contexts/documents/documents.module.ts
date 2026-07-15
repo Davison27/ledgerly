@@ -5,11 +5,14 @@ import { TypeOrmDocumentRepository } from './infrastructure/persistence/typeorm-
 import { TypeOrmProjectExistenceChecker } from './infrastructure/persistence/typeorm-project-existence-checker';
 import { DOCUMENT_REPOSITORY } from './domain/document.repository';
 import { PROJECT_EXISTENCE_CHECKER } from './domain/project-existence-checker.port';
+import { PDF_READER } from './domain/extraction/pdf-reader.port';
 import { DocumentsController } from './infrastructure/http/documents.controller';
+import { PdfjsPdfReader } from './infrastructure/pdf/pdfjs-pdf-reader';
 import { ListDocumentsUseCase } from './application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from './application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from './application/create-document/create-document.use-case';
 import { DeleteDocumentUseCase } from './application/delete-document/delete-document.use-case';
+import { ExtractInvoiceUseCase } from './application/extract-invoice/extract-invoice.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DocumentOrmEntity])],
@@ -19,8 +22,10 @@ import { DeleteDocumentUseCase } from './application/delete-document/delete-docu
     GetDocumentUseCase,
     CreateDocumentUseCase,
     DeleteDocumentUseCase,
+    ExtractInvoiceUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
+    { provide: PDF_READER, useClass: PdfjsPdfReader },
   ],
 })
 export class DocumentsModule {}
