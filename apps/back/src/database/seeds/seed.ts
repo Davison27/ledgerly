@@ -6,8 +6,16 @@ type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
 
 const COMPANY = {
   name: 'Ledgerly',
+  legalName: 'Ledgerly Gestión S.L.',
+  taxId: 'B99887766',
   sector: 'Gestión y administración',
-  color: '#1c5d97',
+  email: 'info@ledgerly.es',
+  phone: '+34 976 000 111',
+  website: 'https://www.ledgerly.es',
+  address: 'Calle Coso 45',
+  city: 'Zaragoza',
+  postalCode: '50001',
+  country: 'España',
 };
 
 type ProjectType =
@@ -269,8 +277,26 @@ async function run(): Promise<void> {
   await dataSource.transaction(async (manager) => {
     const companyId = randomUUID();
     await manager.query(
-      `INSERT INTO companies (id, name, sector, color) VALUES ($1, $2, $3, $4)`,
-      [companyId, COMPANY.name, COMPANY.sector, COMPANY.color],
+      `INSERT INTO companies (
+         id, name, legal_name, tax_id, sector, email, phone, website,
+         address, city, postal_code, country
+       ) VALUES (
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+       )`,
+      [
+        companyId,
+        COMPANY.name,
+        COMPANY.legalName,
+        COMPANY.taxId,
+        COMPANY.sector,
+        COMPANY.email,
+        COMPANY.phone,
+        COMPANY.website,
+        COMPANY.address,
+        COMPANY.city,
+        COMPANY.postalCode,
+        COMPANY.country,
+      ],
     );
 
     for (let p = 0; p < PROJECTS.length; p++) {

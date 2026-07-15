@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
 
 export class UpdateCompanyDto {
   @IsOptional()
@@ -8,10 +8,45 @@ export class UpdateCompanyDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty()
-  sector?: string;
+  legalName?: string | null;
 
   @IsOptional()
-  @Matches(/^#[0-9a-fA-F]{6}$/)
-  color?: string;
+  @IsString()
+  taxId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  sector?: string | null;
+
+  @IsOptional()
+  @IsEmail()
+  email?: string | null;
+
+  @IsOptional()
+  @IsString()
+  phone?: string | null;
+
+  @IsOptional()
+  @IsUrl()
+  website?: string | null;
+
+  @IsOptional()
+  @IsString()
+  address?: string | null;
+
+  @IsOptional()
+  @IsString()
+  city?: string | null;
+
+  @IsOptional()
+  @IsString()
+  postalCode?: string | null;
+
+  @IsOptional()
+  @IsString()
+  country?: string | null;
+
+  @IsOptional()
+  @IsString()
+  logo?: string | null;
 }
