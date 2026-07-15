@@ -23,6 +23,9 @@ export class DocumentMapper {
       taxRate: orm.taxRate != null ? Number(orm.taxRate) : null,
       taxAmount: orm.taxAmount != null ? Number(orm.taxAmount) : null,
       currency: orm.currency as DocumentCurrency,
+      fileName: orm.fileName,
+      mimeType: orm.mimeType,
+      fileSize: orm.fileSize,
     });
   }
 
@@ -46,6 +49,9 @@ export class DocumentMapper {
     orm.taxRate = primitives.taxRate != null ? primitives.taxRate.toString() : null;
     orm.taxAmount = primitives.taxAmount != null ? primitives.taxAmount.toString() : null;
     orm.currency = primitives.currency;
+    orm.fileName = primitives.fileName;
+    orm.mimeType = primitives.mimeType;
+    orm.fileSize = primitives.fileSize;
 
     return orm;
   }

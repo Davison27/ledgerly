@@ -8,4 +8,6 @@ export interface DocumentRepository {
   findById(id: string): Promise<Document | null>;
   save(document: Document): Promise<void>;
   delete(id: string): Promise<void>;
+  saveContent(documentId: string, content: Buffer): Promise<void>;
+  findContent(documentId: string): Promise<Buffer | null>;
 }

@@ -18,4 +18,10 @@ export interface CreateDocumentCommand {
   taxRate?: number | null;
   taxAmount?: number | null;
   currency?: DocumentCurrency;
+  file?: {
+    buffer: Buffer;
+    originalName: string;
+    mimeType: string;
+    size: number;
+  };
 }

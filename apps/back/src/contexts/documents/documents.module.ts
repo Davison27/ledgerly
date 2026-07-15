@@ -13,6 +13,7 @@ import { GetDocumentUseCase } from './application/get-document/get-document.use-
 import { CreateDocumentUseCase } from './application/create-document/create-document.use-case';
 import { DeleteDocumentUseCase } from './application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from './application/extract-invoice/extract-invoice.use-case';
+import { GetDocumentFileUseCase } from './application/get-document-file/get-document-file.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DocumentOrmEntity])],
@@ -23,6 +24,7 @@ import { ExtractInvoiceUseCase } from './application/extract-invoice/extract-inv
     CreateDocumentUseCase,
     DeleteDocumentUseCase,
     ExtractInvoiceUseCase,
+    GetDocumentFileUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: PDF_READER, useClass: PdfjsPdfReader },
