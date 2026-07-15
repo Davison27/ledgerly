@@ -1,10 +1,39 @@
+export type ProjectType =
+  | 'client'
+  | 'internal'
+  | 'audiovisual'
+  | 'construction'
+  | 'consulting'
+  | 'other';
+
+export type ProjectStatus = 'active' | 'on_hold' | 'completed' | 'archived';
+
+export type ProjectCurrency = 'EUR' | 'USD' | 'GBP';
+
 export interface Project {
   id: string;
   name: string;
   code: string;
   documentCount: number;
   pendingCount: number;
+  type?: ProjectType;
+  status?: ProjectStatus;
+  description?: string;
+  clientCompany?: string;
+  clientTaxId?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  startDate?: string;
+  endDate?: string;
+  budget?: number;
+  currency?: ProjectCurrency;
+  fiscalYear?: string;
+  manager?: string;
 }
+
+export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingCount'>;
 
 export interface Company {
   id: string;

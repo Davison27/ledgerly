@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { App, Button, Flex, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { Project } from '../../data/company';
+import type { Project, ProjectFormValues } from '../../data/company';
 import { useCompany } from '../../app/providers/CompanyProvider';
 import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { ProjectCard } from './components/ProjectCard';
+import { ProjectFormModal } from './components/ProjectFormModal';
 
 const { Title, Text } = Typography;
 
@@ -13,8 +15,9 @@ export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
-  const { company, projects, removeProject } = useCompany();
+  const { company, projects, addProject, removeProject } = useCompany();
   const { openProject, isOpen, closeProject } = useOpenProjects();
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const handleOpen = (project: Project) => {
     openProject(project.id);
@@ -42,17 +45,19 @@ export function ProjectsPage() {
     });
   };
 
+  const handleCreate = (values: ProjectFormValues) => {
+    addProject(values);
+    setIsFormOpen(false);
+    void message.success(t('projects.form.created'));
+  };
+
   return (
     <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
       <Flex align="center" justify="space-between">
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
           {t('projects.title')}
         </Title>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => void message.info(t('common.comingSoon'))}
-        >
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsFormOpen(true)}>
           {t('common.add')}
         </Button>
       </Flex>
@@ -79,6 +84,12 @@ export function ProjectsPage() {
           />
         ))}
       </div>
+
+      <ProjectFormModal
+        open={isFormOpen}
+        onCancel={() => setIsFormOpen(false)}
+        onSubmit={handleCreate}
+      />
     </div>
   );
 }
