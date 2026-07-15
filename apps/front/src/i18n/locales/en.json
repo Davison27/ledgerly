@@ -107,6 +107,8 @@
         "status": "Status"
       },
       "empty": "No documents match the filters.",
+      "loading": "Loading documents...",
+      "loadError": "Documents could not be loaded.",
       "preview": {
         "empty": "Select a document to see its preview",
         "placeholder": "preview · pdf",
@@ -122,6 +124,69 @@
         "pagado": "Paid",
         "pendiente": "Pending",
         "vencido": "Overdue"
+      },
+      "upload": {
+        "button": "Add document",
+        "title": "Add document",
+        "submit": "Create document",
+        "created": "Document created successfully",
+        "extractError": "The document could not be processed. Please try again.",
+        "scannedPdfAlert": "We couldn't read the PDF automatically (it looks like a scanned image). Fill in the fields manually.",
+        "dropzone": {
+          "title": "Upload the invoice PDF",
+          "hint": "Drag the file here or click to select it. We'll fill in the form for you.",
+          "selectedFile": "Selected file: {{name}}"
+        },
+        "steps": {
+          "uploading": "Uploading",
+          "processing": "Processing PDF",
+          "done": "Done"
+        },
+        "extraction": {
+          "source": {
+            "facturae": "Facturae",
+            "facturx": "Factur-X",
+            "heuristic": "Heuristic detection"
+          },
+          "confidence": {
+            "high": "High confidence",
+            "partial": "Partial confidence",
+            "low": "Low confidence"
+          },
+          "reviewNote": "Review the extracted data before saving, confidence is limited.",
+          "warningsTitle": "Extraction warnings"
+        },
+        "sections": {
+          "document": "Document",
+          "amounts": "Amounts"
+        },
+        "fields": {
+          "name": "Name",
+          "type": "Type",
+          "status": "Status",
+          "date": "Date",
+          "dueDate": "Due date",
+          "amount": "Amount",
+          "taxBase": "Tax base",
+          "taxRate": "VAT %",
+          "taxAmount": "VAT amount",
+          "currency": "Currency",
+          "invoiceNumber": "Invoice number",
+          "issuerName": "Issuer",
+          "issuerTaxId": "Issuer tax ID"
+        },
+        "placeholders": {
+          "name": "E.g. March supplies invoice",
+          "invoiceNumber": "E.g. F-2024-001",
+          "issuerName": "E.g. Suministros Norte SL",
+          "issuerTaxId": "E.g. B12345678"
+        },
+        "validation": {
+          "nameRequired": "Name is required",
+          "dateRequired": "Date is required",
+          "amountRequired": "Amount is required",
+          "amountMin": "Amount cannot be negative"
+        }
       }
     },
     "dashboard": {

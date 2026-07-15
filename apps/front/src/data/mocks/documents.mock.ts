@@ -9,6 +9,14 @@ export interface ProjectDocument {
   date: string;
   amount: number;
   status: DocumentStatus;
+  issuerName?: string;
+  issuerTaxId?: string;
+  invoiceNumber?: string;
+  dueDate?: string;
+  taxBase?: number;
+  taxRate?: number;
+  taxAmount?: number;
+  currency?: string;
 }
 
 const NAMES: Record<DocumentType, string[]> = {
