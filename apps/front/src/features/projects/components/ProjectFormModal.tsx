@@ -104,7 +104,9 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
       onOk={handleOk}
       onCancel={handleCancel}
       destroyOnHidden
-      width={720}
+      centered
+      width="min(1080px, 95vw)"
+      styles={{ body: { maxHeight: '80vh', overflowY: 'auto', paddingTop: 4 } }}
     >
       <Form<ProjectFormFields>
         form={form}
@@ -113,32 +115,33 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
         initialValues={{ status: 'active', currency: 'EUR' }}
       >
         <Text strong>{t('projects.form.sections.general')}</Text>
-        <Divider style={{ marginTop: 8, marginBottom: 16 }} />
+        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
         <Row gutter={16}>
-          <Col xs={24} md={12}>
+          <Col xs={24} sm={12} md={6}>
             <Form.Item
               name="name"
               label={t('projects.form.fields.name')}
+              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('projects.form.validation.nameRequired') }]}
             >
               <Input placeholder={t('projects.form.placeholders.name')} />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
+          <Col xs={24} sm={12} md={6}>
             <Form.Item
               name="code"
               label={t('projects.form.fields.code')}
+              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('projects.form.validation.codeRequired') }]}
             >
               <Input placeholder={t('projects.form.placeholders.code')} />
             </Form.Item>
           </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
+          <Col xs={24} sm={12} md={6}>
             <Form.Item
               name="type"
               label={t('projects.form.fields.type')}
+              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('projects.form.validation.typeRequired') }]}
             >
               <Select
@@ -150,8 +153,12 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
               />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
-            <Form.Item name="status" label={t('projects.form.fields.status')}>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              name="status"
+              label={t('projects.form.fields.status')}
+              style={{ marginBottom: 12 }}
+            >
               <Select
                 options={PROJECT_STATUSES.map((status) => ({
                   value: status,
@@ -161,34 +168,51 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
             </Form.Item>
           </Col>
         </Row>
-        <Form.Item name="description" label={t('projects.form.fields.description')}>
-          <TextArea rows={3} placeholder={t('projects.form.placeholders.description')} />
+        <Form.Item
+          name="description"
+          label={t('projects.form.fields.description')}
+          style={{ marginBottom: 12 }}
+        >
+          <TextArea rows={2} placeholder={t('projects.form.placeholders.description')} />
         </Form.Item>
 
         <Text strong>{t('projects.form.sections.client')}</Text>
-        <Divider style={{ marginTop: 8, marginBottom: 16 }} />
+        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
         <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item name="clientCompany" label={t('projects.form.fields.clientCompany')}>
+          <Col xs={24} sm={12} md={8}>
+            <Form.Item
+              name="clientCompany"
+              label={t('projects.form.fields.clientCompany')}
+              style={{ marginBottom: 12 }}
+            >
               <Input placeholder={t('projects.form.placeholders.clientCompany')} />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
-            <Form.Item name="clientTaxId" label={t('projects.form.fields.clientTaxId')}>
+          <Col xs={24} sm={12} md={8}>
+            <Form.Item
+              name="clientTaxId"
+              label={t('projects.form.fields.clientTaxId')}
+              style={{ marginBottom: 12 }}
+            >
               <Input placeholder={t('projects.form.placeholders.clientTaxId')} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Form.Item
+              name="contactName"
+              label={t('projects.form.fields.contactName')}
+              style={{ marginBottom: 12 }}
+            >
+              <Input placeholder={t('projects.form.placeholders.contactName')} />
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item name="contactName" label={t('projects.form.fields.contactName')}>
-              <Input placeholder={t('projects.form.placeholders.contactName')} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
+          <Col xs={24} sm={12} md={8}>
             <Form.Item
               name="contactEmail"
               label={t('projects.form.fields.contactEmail')}
+              style={{ marginBottom: 12 }}
               rules={[
                 { type: 'email', message: t('projects.form.validation.emailInvalid') },
               ]}
@@ -199,39 +223,52 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
               />
             </Form.Item>
           </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item name="contactPhone" label={t('projects.form.fields.contactPhone')}>
+          <Col xs={24} sm={12} md={8}>
+            <Form.Item
+              name="contactPhone"
+              label={t('projects.form.fields.contactPhone')}
+              style={{ marginBottom: 12 }}
+            >
               <Input placeholder={t('projects.form.placeholders.contactPhone')} />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
-            <Form.Item name="address" label={t('projects.form.fields.address')}>
+          <Col xs={24} sm={12} md={8}>
+            <Form.Item
+              name="address"
+              label={t('projects.form.fields.address')}
+              style={{ marginBottom: 12 }}
+            >
               <Input placeholder={t('projects.form.placeholders.address')} />
             </Form.Item>
           </Col>
         </Row>
 
         <Text strong>{t('projects.form.sections.planning')}</Text>
-        <Divider style={{ marginTop: 8, marginBottom: 16 }} />
+        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
         <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item name="startDate" label={t('projects.form.fields.startDate')}>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              name="startDate"
+              label={t('projects.form.fields.startDate')}
+              style={{ marginBottom: 12 }}
+            >
               <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
-            <Form.Item name="endDate" label={t('projects.form.fields.endDate')}>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              name="endDate"
+              label={t('projects.form.fields.endDate')}
+              style={{ marginBottom: 12 }}
+            >
               <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
+          <Col xs={24} sm={12} md={6}>
             <Form.Item
               name="budget"
               label={t('projects.form.fields.budget')}
+              style={{ marginBottom: 12 }}
               rules={[
                 { type: 'number', min: 0, message: t('projects.form.validation.budgetMin') },
               ]}
@@ -243,8 +280,12 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
               />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
-            <Form.Item name="currency" label={t('projects.form.fields.currency')}>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              name="currency"
+              label={t('projects.form.fields.currency')}
+              style={{ marginBottom: 12 }}
+            >
               <Select
                 options={PROJECT_CURRENCIES.map((currency) => ({
                   value: currency,
@@ -255,12 +296,16 @@ export function ProjectFormModal({ open, onCancel, onSubmit }: ProjectFormModalP
           </Col>
         </Row>
         <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item name="fiscalYear" label={t('projects.form.fields.fiscalYear')}>
+          <Col xs={24} sm={12} md={6}>
+            <Form.Item
+              name="fiscalYear"
+              label={t('projects.form.fields.fiscalYear')}
+              style={{ marginBottom: 0 }}
+            >
               <Input placeholder={t('projects.form.placeholders.fiscalYear')} />
             </Form.Item>
           </Col>
-          <Col xs={24} md={12}>
+          <Col xs={24} sm={12} md={6}>
             <Form.Item
               name="manager"
               label={t('projects.form.fields.manager')}
