@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Flex, Spin, Typography, theme } from 'antd';
 import { DownloadOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { USE_MOCKS } from '../../../../config';
 import { documentFileUrl } from '../../../../data/api/documents.api';
 import type { ProjectDocument } from '../../../../data/documents';
 import { formatEUR, useTypeLabel } from './documentFormat';
@@ -22,7 +21,7 @@ function usePdfObjectUrl(projectId: string, document: ProjectDocument | null) {
   const [state, setState] = useState<ViewerState>('idle');
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
-  const shouldLoad = !USE_MOCKS && !!document?.hasFile;
+  const shouldLoad = !!document?.hasFile;
 
   useEffect(() => {
     if (!shouldLoad || !document) {
@@ -93,7 +92,7 @@ export function DocumentPreview({ projectId, document }: DocumentPreviewProps) {
     },
   ];
 
-  const showRealViewer = !USE_MOCKS && document.hasFile;
+  const showRealViewer = !!document.hasFile;
 
   const handleDownload = () => {
     if (!objectUrl) return;
@@ -173,11 +172,7 @@ export function DocumentPreview({ projectId, document }: DocumentPreviewProps) {
             background: token.colorFillQuaternary,
           }}
         >
-          <Text type="secondary">
-            {!USE_MOCKS && !document.hasFile
-              ? t('projects.documents.preview.noFile')
-              : t('projects.documents.preview.placeholder')}
-          </Text>
+          <Text type="secondary">{t('projects.documents.preview.noFile')}</Text>
         </Flex>
       )}
 

@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Flex } from 'antd';
 import type { ProjectSectionProps } from './types';
-import { getProjectDocuments } from '../../../data/documents';
+import { useProjectDocuments } from './documents/useProjectDocuments';
 import { deriveDashboardData } from './dashboard/data';
 import { KpiRow } from './dashboard/KpiRow';
 import { MonthlyChart } from './dashboard/MonthlyChart';
@@ -9,10 +9,8 @@ import { CategoryDonut } from './dashboard/CategoryDonut';
 import { StatusBreakdown } from './dashboard/StatusBreakdown';
 
 export function DashboardSection({ project, color }: ProjectSectionProps) {
-  const data = useMemo(
-    () => deriveDashboardData(getProjectDocuments(project.id)),
-    [project.id],
-  );
+  const { documents } = useProjectDocuments(project.id);
+  const data = useMemo(() => deriveDashboardData(documents), [documents]);
 
   return (
     <Flex vertical gap={20} style={{ padding: 28 }}>

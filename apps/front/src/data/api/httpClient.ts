@@ -61,6 +61,18 @@ export function post<T>(path: string, payload?: unknown): Promise<T> {
   });
 }
 
+export function patch<T>(path: string, payload?: unknown): Promise<T> {
+  return request<T>(path, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload === undefined ? undefined : JSON.stringify(payload),
+  });
+}
+
+export function del<T>(path: string): Promise<T> {
+  return request<T>(path, { method: 'DELETE' });
+}
+
 export function buildQueryString(
   params: Record<string, string | number | undefined | null>,
 ): string {

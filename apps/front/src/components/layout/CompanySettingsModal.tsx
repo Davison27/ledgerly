@@ -56,10 +56,14 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
   const handleOk = () => {
     form
       .validateFields()
-      .then((values) => {
-        updateCompany({ ...values, logo });
-        void message.success(t('company.settings.saved'));
-        onClose();
+      .then(async (values) => {
+        try {
+          await updateCompany({ ...values, logo });
+          void message.success(t('company.settings.saved'));
+          onClose();
+        } catch {
+          void message.error(t('company.settings.error'));
+        }
       })
       .catch(() => {
         // validation errors are shown inline by antd

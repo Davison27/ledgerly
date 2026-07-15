@@ -39,17 +39,25 @@ export function ProjectsPage() {
       okText: t('projects.deleteConfirm.ok'),
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
-      onOk: () => {
-        removeProject(project.id);
-        closeProject(project.id);
+      onOk: async () => {
+        try {
+          await removeProject(project.id);
+          closeProject(project.id);
+        } catch {
+          void message.error(t('projects.deleteConfirm.error'));
+        }
       },
     });
   };
 
-  const handleCreate = (values: ProjectFormValues) => {
-    addProject(values);
-    setIsFormOpen(false);
-    void message.success(t('projects.form.created'));
+  const handleCreate = async (values: ProjectFormValues) => {
+    try {
+      await addProject(values);
+      setIsFormOpen(false);
+      void message.success(t('projects.form.created'));
+    } catch {
+      void message.error(t('projects.form.createError'));
+    }
   };
 
   return (

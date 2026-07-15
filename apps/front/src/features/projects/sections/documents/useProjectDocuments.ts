@@ -1,11 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { USE_MOCKS } from '../../../../config';
 import { listDocuments } from '../../../../data/api/documents.api';
-import {
-  getProjectDocuments,
-  mapDocumentDto,
-  type ProjectDocument,
-} from '../../../../data/documents';
+import { mapDocumentDto, type ProjectDocument } from '../../../../data/documents';
 
 interface UseProjectDocumentsResult {
   documents: ProjectDocument[];
@@ -15,10 +10,8 @@ interface UseProjectDocumentsResult {
 }
 
 export function useProjectDocuments(projectId: string): UseProjectDocumentsResult {
-  const [documents, setDocuments] = useState<ProjectDocument[]>(() =>
-    USE_MOCKS ? getProjectDocuments(projectId) : [],
-  );
-  const [loading, setLoading] = useState(!USE_MOCKS);
+  const [documents, setDocuments] = useState<ProjectDocument[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [reloadToken, setReloadToken] = useState(0);
 
@@ -27,13 +20,6 @@ export function useProjectDocuments(projectId: string): UseProjectDocumentsResul
   }, []);
 
   useEffect(() => {
-    if (USE_MOCKS) {
-      setDocuments(getProjectDocuments(projectId));
-      setLoading(false);
-      setError(false);
-      return;
-    }
-
     let cancelled = false;
     setLoading(true);
     setError(false);

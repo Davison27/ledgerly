@@ -65,7 +65,8 @@
         "nameRequired": "Name is required",
         "emailInvalid": "Enter a valid email",
         "urlInvalid": "Enter a valid URL"
-      }
+      },
+      "error": "The company could not be updated. Please try again."
     }
   },
   "projects": {
@@ -76,7 +77,8 @@
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
-      "ok": "Delete"
+      "ok": "Delete",
+      "error": "The project could not be deleted. Please try again."
     },
     "sections": {
       "documents": "Documents",
@@ -239,6 +241,7 @@
       "title": "Add project",
       "submit": "Create project",
       "created": "Project created successfully",
+      "createError": "The project could not be created. Please try again.",
       "sections": {
         "general": "General",
         "client": "Client / Contact",
