@@ -33,6 +33,14 @@ export class CreateDocumentUseCase {
       date: command.date,
       amount: command.amount,
       status: command.status,
+      issuerName: command.issuerName ?? null,
+      issuerTaxId: command.issuerTaxId ?? null,
+      invoiceNumber: command.invoiceNumber ?? null,
+      dueDate: command.dueDate ?? null,
+      taxBase: command.taxBase ?? null,
+      taxRate: command.taxRate ?? null,
+      taxAmount: command.taxAmount ?? null,
+      currency: command.currency ?? 'EUR',
     });
 
     await this.repository.save(document);

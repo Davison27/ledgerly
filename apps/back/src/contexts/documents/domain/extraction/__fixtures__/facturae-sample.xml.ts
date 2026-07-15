@@ -1,0 +1,57 @@
+export const FACTURAE_SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<fe:Facturae xmlns:fe="http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml">
+  <FileHeader>
+    <SchemaVersion>3.2.2</SchemaVersion>
+  </FileHeader>
+  <Parties>
+    <SellerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <TaxIdentificationNumber>B87654321</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>Consultoria Iberica de Sistemas SA</CorporateName>
+      </LegalEntity>
+    </SellerParty>
+    <BuyerParty>
+      <TaxIdentification>
+        <TaxIdentificationNumber>B99999999</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>Ledgerly ERP SL</CorporateName>
+      </LegalEntity>
+    </BuyerParty>
+  </Parties>
+  <Invoices>
+    <Invoice>
+      <InvoiceHeader>
+        <InvoiceNumber>2026-045</InvoiceNumber>
+        <InvoiceSeriesCode>A</InvoiceSeriesCode>
+      </InvoiceHeader>
+      <InvoiceIssueData>
+        <IssueDate>2026-02-10</IssueDate>
+        <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+      </InvoiceIssueData>
+      <TaxesOutputs>
+        <Tax>
+          <TaxTypeCode>01</TaxTypeCode>
+          <TaxRate>21.00</TaxRate>
+          <TaxableBase>
+            <TotalAmount>500.00</TotalAmount>
+          </TaxableBase>
+          <TaxAmount>
+            <TotalAmount>105.00</TotalAmount>
+          </TaxAmount>
+        </Tax>
+      </TaxesOutputs>
+      <InvoiceTotals>
+        <TotalGrossAmount>500.00</TotalGrossAmount>
+        <TotalGeneralDiscounts>0.00</TotalGeneralDiscounts>
+        <TotalGeneralSurcharges>0.00</TotalGeneralSurcharges>
+        <TotalTaxOutputs>105.00</TotalTaxOutputs>
+        <TotalTaxesWithheld>0.00</TotalTaxesWithheld>
+        <InvoiceTotal>605.00</InvoiceTotal>
+      </InvoiceTotals>
+    </Invoice>
+  </Invoices>
+</fe:Facturae>`;

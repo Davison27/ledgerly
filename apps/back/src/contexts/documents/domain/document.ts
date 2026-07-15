@@ -1,6 +1,7 @@
 import { InvalidValueException } from '../../../shared/domain/invalid-value.exception';
 import { DocumentType } from './document-type';
 import { DocumentStatus } from './document-status';
+import { DOCUMENT_CURRENCIES, DocumentCurrency } from './document-currency';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -13,6 +14,14 @@ interface DocumentProps {
   date: string;
   amount: number;
   status: DocumentStatus;
+  issuerName?: string | null;
+  issuerTaxId?: string | null;
+  invoiceNumber?: string | null;
+  dueDate?: string | null;
+  taxBase?: number | null;
+  taxRate?: number | null;
+  taxAmount?: number | null;
+  currency?: DocumentCurrency;
 }
 
 export class Document {
@@ -24,6 +33,14 @@ export class Document {
   private date: string;
   private amount: number;
   private status: DocumentStatus;
+  private issuerName: string | null;
+  private issuerTaxId: string | null;
+  private invoiceNumber: string | null;
+  private dueDate: string | null;
+  private taxBase: number | null;
+  private taxRate: number | null;
+  private taxAmount: number | null;
+  private currency: DocumentCurrency;
 
   private constructor(props: DocumentProps) {
     this.id = props.id;
@@ -34,6 +51,14 @@ export class Document {
     this.date = props.date;
     this.amount = props.amount;
     this.status = props.status;
+    this.issuerName = props.issuerName ?? null;
+    this.issuerTaxId = props.issuerTaxId ?? null;
+    this.invoiceNumber = props.invoiceNumber ?? null;
+    this.dueDate = props.dueDate ?? null;
+    this.taxBase = props.taxBase ?? null;
+    this.taxRate = props.taxRate ?? null;
+    this.taxAmount = props.taxAmount ?? null;
+    this.currency = props.currency ?? 'EUR';
   }
 
   static create(props: DocumentProps): Document {
@@ -47,6 +72,26 @@ export class Document {
 
     if (!DATE_PATTERN.test(props.date)) {
       throw new InvalidValueException('date must match the format YYYY-MM-DD');
+    }
+
+    if (props.dueDate != null && !DATE_PATTERN.test(props.dueDate)) {
+      throw new InvalidValueException('dueDate must match the format YYYY-MM-DD');
+    }
+
+    if (props.taxBase != null && props.taxBase < 0) {
+      throw new InvalidValueException('taxBase must be greater than or equal to 0');
+    }
+
+    if (props.taxRate != null && props.taxRate < 0) {
+      throw new InvalidValueException('taxRate must be greater than or equal to 0');
+    }
+
+    if (props.taxAmount != null && props.taxAmount < 0) {
+      throw new InvalidValueException('taxAmount must be greater than or equal to 0');
+    }
+
+    if (props.currency != null && !DOCUMENT_CURRENCIES.includes(props.currency)) {
+      throw new InvalidValueException('currency must be one of EUR, USD, GBP');
     }
 
     return new Document(props);
@@ -88,7 +133,39 @@ export class Document {
     return this.status;
   }
 
-  toPrimitives(): DocumentProps {
+  getIssuerName(): string | null {
+    return this.issuerName;
+  }
+
+  getIssuerTaxId(): string | null {
+    return this.issuerTaxId;
+  }
+
+  getInvoiceNumber(): string | null {
+    return this.invoiceNumber;
+  }
+
+  getDueDate(): string | null {
+    return this.dueDate;
+  }
+
+  getTaxBase(): number | null {
+    return this.taxBase;
+  }
+
+  getTaxRate(): number | null {
+    return this.taxRate;
+  }
+
+  getTaxAmount(): number | null {
+    return this.taxAmount;
+  }
+
+  getCurrency(): DocumentCurrency {
+    return this.currency;
+  }
+
+  toPrimitives(): Required<DocumentProps> {
     return {
       id: this.id,
       projectId: this.projectId,
@@ -98,6 +175,14 @@ export class Document {
       date: this.date,
       amount: this.amount,
       status: this.status,
+      issuerName: this.issuerName,
+      issuerTaxId: this.issuerTaxId,
+      invoiceNumber: this.invoiceNumber,
+      dueDate: this.dueDate,
+      taxBase: this.taxBase,
+      taxRate: this.taxRate,
+      taxAmount: this.taxAmount,
+      currency: this.currency,
     };
   }
 }

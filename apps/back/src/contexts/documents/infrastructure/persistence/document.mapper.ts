@@ -1,6 +1,7 @@
 import { Document } from '../../domain/document';
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
+import { DocumentCurrency } from '../../domain/document-currency';
 import { DocumentOrmEntity } from './document.orm-entity';
 
 export class DocumentMapper {
@@ -14,6 +15,14 @@ export class DocumentMapper {
       date: orm.date,
       amount: Number(orm.amount),
       status: orm.status as DocumentStatus,
+      issuerName: orm.issuerName,
+      issuerTaxId: orm.issuerTaxId,
+      invoiceNumber: orm.invoiceNumber,
+      dueDate: orm.dueDate,
+      taxBase: orm.taxBase != null ? Number(orm.taxBase) : null,
+      taxRate: orm.taxRate != null ? Number(orm.taxRate) : null,
+      taxAmount: orm.taxAmount != null ? Number(orm.taxAmount) : null,
+      currency: orm.currency as DocumentCurrency,
     });
   }
 
@@ -29,6 +38,14 @@ export class DocumentMapper {
     orm.date = primitives.date;
     orm.amount = primitives.amount.toString();
     orm.status = primitives.status;
+    orm.issuerName = primitives.issuerName;
+    orm.issuerTaxId = primitives.issuerTaxId;
+    orm.invoiceNumber = primitives.invoiceNumber;
+    orm.dueDate = primitives.dueDate;
+    orm.taxBase = primitives.taxBase != null ? primitives.taxBase.toString() : null;
+    orm.taxRate = primitives.taxRate != null ? primitives.taxRate.toString() : null;
+    orm.taxAmount = primitives.taxAmount != null ? primitives.taxAmount.toString() : null;
+    orm.currency = primitives.currency;
 
     return orm;
   }

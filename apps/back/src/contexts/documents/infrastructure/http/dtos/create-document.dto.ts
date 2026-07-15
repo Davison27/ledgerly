@@ -1,6 +1,17 @@
-import { IsIn, IsInt, IsNotEmpty, IsNumber, IsString, Matches, Max, Min } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Matches,
+  Max,
+  Min,
+} from 'class-validator';
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
+import { DOCUMENT_CURRENCIES, DocumentCurrency } from '../../../domain/document-currency';
 
 export class CreateDocumentDto {
   @IsString()
@@ -24,4 +35,42 @@ export class CreateDocumentDto {
 
   @IsIn(DOCUMENT_STATUSES)
   status: DocumentStatus;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  issuerName?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  issuerTaxId?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  invoiceNumber?: string;
+
+  @IsOptional()
+  @Matches(/^\d{4}-\d{2}-\d{2}$/)
+  dueDate?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  taxBase?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  taxRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  taxAmount?: number;
+
+  @IsOptional()
+  @IsIn(DOCUMENT_CURRENCIES)
+  currency?: DocumentCurrency;
 }
