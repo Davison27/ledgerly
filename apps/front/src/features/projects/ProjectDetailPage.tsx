@@ -17,7 +17,7 @@ export function ProjectDetailPage() {
   const { token } = useToken();
   const { t } = useTranslation();
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
-  const { company, projects } = useCompany();
+  const { projects } = useCompany();
   const { openProject } = useOpenProjects();
   const project = projects.find((p) => p.id === projectId);
 
@@ -72,13 +72,13 @@ export function ProjectDetailPage() {
 
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {section === 'documents' && (
-          <DocumentsSection project={project} color={company.color} />
+          <DocumentsSection project={project} color={token.colorPrimary} />
         )}
         {section === 'dashboard' && (
-          <DashboardSection project={project} color={company.color} />
+          <DashboardSection project={project} color={token.colorPrimary} />
         )}
         {section === 'settings' && (
-          <SettingsSection project={project} color={company.color} />
+          <SettingsSection project={project} color={token.colorPrimary} />
         )}
       </div>
     </Flex>

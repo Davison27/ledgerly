@@ -23,11 +23,49 @@
   },
   "company": {
     "settings": {
-      "title": "Company settings",
-      "name": "Name",
-      "sector": "Sector",
-      "color": "Color",
-      "saved": "Company updated"
+      "title": "Company profile",
+      "saved": "Company updated",
+      "sections": {
+        "general": "General",
+        "contact": "Contact",
+        "address": "Address"
+      },
+      "fields": {
+        "name": "Commercial name",
+        "legalName": "Legal name",
+        "taxId": "Tax ID",
+        "sector": "Sector",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "address": "Address",
+        "city": "City",
+        "postalCode": "Postal code",
+        "country": "Country",
+        "logo": "Logo"
+      },
+      "placeholders": {
+        "name": "E.g. Ledgerly",
+        "legalName": "E.g. Ledgerly Gestión S.L.",
+        "taxId": "E.g. B12345678",
+        "sector": "E.g. Management and administration",
+        "email": "E.g. info@company.com",
+        "phone": "E.g. +34 600 123 456",
+        "website": "E.g. https://company.com",
+        "address": "Street, number",
+        "city": "E.g. Zaragoza",
+        "postalCode": "E.g. 50001",
+        "country": "E.g. Spain"
+      },
+      "logo": {
+        "upload": "Upload logo",
+        "hint": "PNG or JPG, recommended size 256x256 px"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "emailInvalid": "Enter a valid email",
+        "urlInvalid": "Enter a valid URL"
+      }
     }
   },
   "projects": {

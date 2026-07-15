@@ -23,11 +23,49 @@
   },
   "company": {
     "settings": {
-      "title": "Ajustes de empresa",
-      "name": "Nombre",
-      "sector": "Sector",
-      "color": "Color",
-      "saved": "Empresa actualizada"
+      "title": "Perfil de empresa",
+      "saved": "Empresa actualizada",
+      "sections": {
+        "general": "General",
+        "contact": "Contacto",
+        "address": "Dirección"
+      },
+      "fields": {
+        "name": "Nombre comercial",
+        "legalName": "Razón social",
+        "taxId": "CIF / NIF",
+        "sector": "Sector",
+        "email": "Email",
+        "phone": "Teléfono",
+        "website": "Sitio web",
+        "address": "Dirección",
+        "city": "Ciudad",
+        "postalCode": "Código postal",
+        "country": "País",
+        "logo": "Logotipo"
+      },
+      "placeholders": {
+        "name": "Ej. Ledgerly",
+        "legalName": "Ej. Ledgerly Gestión S.L.",
+        "taxId": "Ej. B12345678",
+        "sector": "Ej. Gestión y administración",
+        "email": "Ej. info@empresa.com",
+        "phone": "Ej. +34 600 123 456",
+        "website": "Ej. https://empresa.com",
+        "address": "Calle, número",
+        "city": "Ej. Zaragoza",
+        "postalCode": "Ej. 50001",
+        "country": "Ej. España"
+      },
+      "logo": {
+        "upload": "Subir logotipo",
+        "hint": "PNG o JPG, tamaño recomendado 256x256 px"
+      },
+      "validation": {
+        "nameRequired": "El nombre es obligatorio",
+        "emailInvalid": "Introduce un email válido",
+        "urlInvalid": "Introduce una URL válida"
+      }
     }
   },
   "projects": {

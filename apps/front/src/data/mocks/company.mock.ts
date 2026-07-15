@@ -38,15 +38,32 @@ export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingC
 export interface Company {
   id: string;
   name: string;
-  sector: string;
-  color: string;
+  legalName?: string;
+  taxId?: string;
+  sector?: string;
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  city?: string;
+  postalCode?: string;
+  country?: string;
+  logo?: string;
 }
 
 export const mockCompany: Company = {
   id: 'ledgerly',
   name: 'Ledgerly',
+  legalName: 'Ledgerly Gestión S.L.',
+  taxId: 'B12345678',
   sector: 'Gestión y administración',
-  color: '#1c5d97',
+  email: 'info@ledgerly.example',
+  phone: '+34 976 123 456',
+  website: 'https://ledgerly.example',
+  address: 'Calle Coso, 45',
+  city: 'Zaragoza',
+  postalCode: '50001',
+  country: 'España',
 };
 
 export const mockProjects: Project[] = [
