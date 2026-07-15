@@ -68,4 +68,19 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
   async delete(id: string): Promise<void> {
     await this.repository.delete({ id });
   }
+
+  async saveContent(documentId: string, content: Buffer): Promise<void> {
+    await this.repository.update({ id: documentId }, { content });
+  }
+
+  async findContent(documentId: string): Promise<Buffer | null> {
+    const orm = await this.repository
+      .createQueryBuilder('document')
+      .select(['document.id'])
+      .addSelect('document.content')
+      .where('document.id = :documentId', { documentId })
+      .getOne();
+
+    return orm?.content ?? null;
+  }
 }

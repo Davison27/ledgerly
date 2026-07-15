@@ -19,6 +19,10 @@ export class DocumentResponse {
   taxRate: number | null;
   taxAmount: number | null;
   currency: DocumentCurrency;
+  hasFile: boolean;
+  fileName: string | null;
+  fileSize: number | null;
+  mimeType: string | null;
 
   static fromDomain(document: Document): DocumentResponse {
     const response = new DocumentResponse();
@@ -38,6 +42,10 @@ export class DocumentResponse {
     response.taxRate = document.getTaxRate();
     response.taxAmount = document.getTaxAmount();
     response.currency = document.getCurrency();
+    response.hasFile = document.hasFile();
+    response.fileName = document.getFileName();
+    response.fileSize = document.getFileSize();
+    response.mimeType = document.getMimeType();
 
     return response;
   }

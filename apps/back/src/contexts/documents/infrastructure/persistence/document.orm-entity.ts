@@ -49,4 +49,16 @@ export class DocumentOrmEntity {
 
   @Column({ length: 3 })
   currency: string;
+
+  @Column({ name: 'file_name', length: 255, nullable: true, type: 'varchar' })
+  fileName: string | null;
+
+  @Column({ name: 'mime_type', length: 100, nullable: true, type: 'varchar' })
+  mimeType: string | null;
+
+  @Column({ name: 'file_size', type: 'integer', nullable: true })
+  fileSize: number | null;
+
+  @Column({ type: 'bytea', nullable: true, select: false })
+  content: Buffer | null;
 }

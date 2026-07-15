@@ -11,6 +11,7 @@ import { CreateDocumentUseCase } from '../../application/create-document/create-
 import { DeleteDocumentUseCase } from '../../application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
+import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
 import { PDF_READER } from '../../domain/extraction/pdf-reader.port';
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
@@ -32,6 +33,7 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
         { provide: GetDocumentUseCase, useValue: {} },
         { provide: CreateDocumentUseCase, useValue: {} },
         { provide: DeleteDocumentUseCase, useValue: {} },
+        { provide: GetDocumentFileUseCase, useValue: {} },
         ExtractInvoiceUseCase,
         { provide: PDF_READER, useClass: PdfjsPdfReader },
       ],

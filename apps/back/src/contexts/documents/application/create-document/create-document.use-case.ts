@@ -41,9 +41,16 @@ export class CreateDocumentUseCase {
       taxRate: command.taxRate ?? null,
       taxAmount: command.taxAmount ?? null,
       currency: command.currency ?? 'EUR',
+      fileName: command.file?.originalName ?? null,
+      mimeType: command.file?.mimeType ?? null,
+      fileSize: command.file?.size ?? null,
     });
 
     await this.repository.save(document);
+
+    if (command.file) {
+      await this.repository.saveContent(document.getId(), command.file.buffer);
+    }
 
     return document;
   }
