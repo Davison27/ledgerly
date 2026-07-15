@@ -212,7 +212,32 @@
       },
       "category": "Distribución por categoría",
       "statusBreakdown": "Pendiente vs pagado vs vencido",
-      "documentsCount": "{{count}} documentos"
+      "documentsCount": "{{count}} documentos",
+      "profit": {
+        "headline": "Rentabilidad",
+        "profitable": "El proyecto es rentable",
+        "unprofitable": "El proyecto no es rentable",
+        "net": "Beneficio neto",
+        "margin": "Margen"
+      },
+      "monthlyProfit": {
+        "title": "Beneficio neto mensual"
+      },
+      "cumulativeProfit": {
+        "title": "Beneficio acumulado"
+      },
+      "marginTrend": {
+        "title": "Margen mensual"
+      },
+      "cashflowByStatus": {
+        "title": "Importe por estado"
+      },
+      "topIssuers": {
+        "title": "Emisores por importe",
+        "unknown": "Sin emisor",
+        "other": "Otros",
+        "empty": "No hay emisores registrados."
+      }
     },
     "settings": {
       "details": "Detalles del proyecto",

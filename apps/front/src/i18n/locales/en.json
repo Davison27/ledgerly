@@ -212,7 +212,32 @@
       },
       "category": "Distribution by category",
       "statusBreakdown": "Pending vs paid vs overdue",
-      "documentsCount": "{{count}} documents"
+      "documentsCount": "{{count}} documents",
+      "profit": {
+        "headline": "Profitability",
+        "profitable": "The project is profitable",
+        "unprofitable": "The project is not profitable",
+        "net": "Net profit",
+        "margin": "Margin"
+      },
+      "monthlyProfit": {
+        "title": "Monthly net profit"
+      },
+      "cumulativeProfit": {
+        "title": "Cumulative profit"
+      },
+      "marginTrend": {
+        "title": "Monthly margin"
+      },
+      "cashflowByStatus": {
+        "title": "Amount by status"
+      },
+      "topIssuers": {
+        "title": "Issuers by amount",
+        "unknown": "No issuer",
+        "other": "Other",
+        "empty": "No issuers on record."
+      }
     },
     "settings": {
       "details": "Project details",
