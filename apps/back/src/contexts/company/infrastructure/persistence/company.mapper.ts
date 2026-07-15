@@ -6,8 +6,17 @@ export class CompanyMapper {
     return Company.fromPrimitives({
       id: orm.id,
       name: orm.name,
+      legalName: orm.legalName,
+      taxId: orm.taxId,
       sector: orm.sector,
-      color: orm.color,
+      email: orm.email,
+      phone: orm.phone,
+      website: orm.website,
+      address: orm.address,
+      city: orm.city,
+      postalCode: orm.postalCode,
+      country: orm.country,
+      logo: orm.logo,
     });
   }
 
@@ -17,8 +26,17 @@ export class CompanyMapper {
 
     orm.id = primitives.id;
     orm.name = primitives.name;
+    orm.legalName = primitives.legalName;
+    orm.taxId = primitives.taxId;
     orm.sector = primitives.sector;
-    orm.color = primitives.color;
+    orm.email = primitives.email;
+    orm.phone = primitives.phone;
+    orm.website = primitives.website;
+    orm.address = primitives.address;
+    orm.city = primitives.city;
+    orm.postalCode = primitives.postalCode;
+    orm.country = primitives.country;
+    orm.logo = primitives.logo;
 
     return orm;
   }
