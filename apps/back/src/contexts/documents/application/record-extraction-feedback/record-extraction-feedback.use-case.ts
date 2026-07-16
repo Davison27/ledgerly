@@ -6,6 +6,7 @@ import { applyHints, deriveHint } from '../../domain/extraction/hints/hint-ancho
 import { LEARNABLE_FIELDS, LearnableField } from '../../domain/extraction/hints/invoice-hint';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
 import { normaliseTaxId } from '../../domain/extraction/tax-id';
+import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { RecordExtractionFeedbackCommand } from './record-extraction-feedback.command';
 
 function valuesMatch(field: LearnableField, submitted: string | number, shown: string | number | undefined): boolean {
@@ -51,11 +52,11 @@ export class RecordExtractionFeedbackUseCase {
 
     const { fields: base } = extractInvoiceHeuristics(text);
 
-    const issuerTaxId = command.submitted.issuerTaxId ?? base.issuerTaxId;
-    if (!issuerTaxId) {
+    const issuerName = command.submitted.issuerName ?? base.issuerName;
+    if (!issuerName || issuerName.trim().length === 0) {
       return;
     }
-    const key = normaliseTaxId(issuerTaxId);
+    const key = normaliseIssuerName(issuerName);
 
     const existingHints = await this.hintRepository.findByIssuer(key);
     const shown = applyHints(base, existingHints, text);
@@ -75,7 +76,7 @@ export class RecordExtractionFeedbackUseCase {
       }
 
       await this.hintRepository.upsert({
-        issuerTaxId: key,
+        issuerName: key,
         field,
         anchorKind: derived.anchorKind,
         anchorLabel: derived.anchorLabel,

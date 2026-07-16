@@ -119,13 +119,13 @@ describe('ExtractInvoiceUseCase', () => {
 
   it('applies a learned hint for the issuer to override a heuristically-extracted field', async () => {
     class SingleHintRepository implements InvoiceHintRepository {
-      findByIssuer = (issuerTaxId: string) =>
+      findByIssuer = (issuerName: string) =>
         Promise.resolve(
-          issuerTaxId === 'B12345678'
+          issuerName === 'MI EMPRESA SL'
             ? [
                 {
                   id: 'hint-1',
-                  issuerTaxId: 'B12345678',
+                  issuerName: 'MI EMPRESA SL',
                   field: 'invoiceNumber' as const,
                   anchorKind: 'inline' as const,
                   anchorLabel: 'Ref interna',

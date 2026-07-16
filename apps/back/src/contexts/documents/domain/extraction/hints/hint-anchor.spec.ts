@@ -4,7 +4,7 @@ import { InvoiceHint } from './invoice-hint';
 function hint(overrides: Partial<InvoiceHint>): InvoiceHint {
   return {
     id: 'hint-1',
-    issuerTaxId: 'B12345678',
+    issuerName: 'MI EMPRESA SL',
     field: 'date',
     anchorKind: 'inline',
     anchorLabel: 'Fecha',

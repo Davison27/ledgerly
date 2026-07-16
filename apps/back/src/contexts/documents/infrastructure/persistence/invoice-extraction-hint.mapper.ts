@@ -5,7 +5,7 @@ export class InvoiceExtractionHintMapper {
   static toDomain(orm: InvoiceExtractionHintOrmEntity): InvoiceHint {
     return {
       id: orm.id,
-      issuerTaxId: orm.issuerTaxId,
+      issuerName: orm.issuerName,
       field: orm.field as LearnableField,
       anchorKind: orm.anchorKind as HintAnchorKind,
       anchorLabel: orm.anchorLabel,

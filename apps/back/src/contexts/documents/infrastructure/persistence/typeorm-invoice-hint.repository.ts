@@ -15,21 +15,21 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
   ) {}
 
-  async findByIssuer(issuerTaxId: string): Promise<InvoiceHint[]> {
-    const orms = await this.repository.find({ where: { issuerTaxId } });
+  async findByIssuer(issuerName: string): Promise<InvoiceHint[]> {
+    const orms = await this.repository.find({ where: { issuerName } });
 
     return orms.map((orm) => InvoiceExtractionHintMapper.toDomain(orm));
   }
 
   async findAll(): Promise<InvoiceHint[]> {
-    const orms = await this.repository.find({ order: { issuerTaxId: 'ASC', field: 'ASC' } });
+    const orms = await this.repository.find({ order: { issuerName: 'ASC', field: 'ASC' } });
 
     return orms.map((orm) => InvoiceExtractionHintMapper.toDomain(orm));
   }
 
   async upsert(hint: NewInvoiceHint): Promise<void> {
     const existing = await this.repository.findOne({
-      where: { issuerTaxId: hint.issuerTaxId, field: hint.field },
+      where: { issuerName: hint.issuerName, field: hint.field },
     });
 
     const now = new Date();
@@ -53,7 +53,7 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
 
     const orm = new InvoiceExtractionHintOrmEntity();
     orm.id = this.idGenerator.generate();
-    orm.issuerTaxId = hint.issuerTaxId;
+    orm.issuerName = hint.issuerName;
     orm.field = hint.field;
     orm.anchorKind = hint.anchorKind;
     orm.anchorLabel = hint.anchorLabel;

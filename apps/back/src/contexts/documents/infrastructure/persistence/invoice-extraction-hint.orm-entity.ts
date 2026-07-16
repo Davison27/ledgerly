@@ -5,8 +5,8 @@ export class InvoiceExtractionHintOrmEntity {
   @PrimaryColumn('uuid')
   id: string;
 
-  @Column({ name: 'issuer_tax_id', length: 40 })
-  issuerTaxId: string;
+  @Column({ name: 'issuer_name', length: 200 })
+  issuerName: string;
 
   @Column({ length: 32 })
   field: string;

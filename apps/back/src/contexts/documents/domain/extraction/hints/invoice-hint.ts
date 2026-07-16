@@ -33,10 +33,15 @@ export type HintAnchorKind = 'inline' | 'preceding-line';
  * the same issuer. The anchor is always a textual position (a label and an
  * offset), never the corrected value itself, so it generalises across
  * invoices whose amounts/dates/numbers differ but whose layout repeats.
+ *
+ * Keyed by the issuer's (normalised) printed name rather than their tax id:
+ * the heuristic extraction routinely picks up the *client*'s CIF/NIF (the
+ * ERP tenant, identical across every invoice) instead of the supplier's,
+ * which would collapse every issuer's hints under a single key.
  */
 export interface InvoiceHint {
   id: string;
-  issuerTaxId: string;
+  issuerName: string;
   field: LearnableField;
   anchorKind: HintAnchorKind;
   anchorLabel: string;
