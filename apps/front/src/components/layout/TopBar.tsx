@@ -11,6 +11,7 @@ import {
   type MenuProps,
 } from 'antd';
 import {
+  BulbOutlined,
   IdcardOutlined,
   PoweroffOutlined,
   SettingOutlined,
@@ -38,6 +39,12 @@ export function TopBar() {
       label: t('company.settings.title'),
       icon: <ShopOutlined style={{ fontSize: 18 }} />,
       onClick: () => setCompanyModalOpen(true),
+    },
+    {
+      key: 'extraction-hints',
+      label: t('extractionHints.navLabel'),
+      icon: <BulbOutlined style={{ fontSize: 18 }} />,
+      onClick: () => void navigate({ to: '/extraction-hints' }),
     },
     {
       key: 'profile',

@@ -333,5 +333,33 @@
         "budgetMin": "Budget cannot be negative"
       }
     }
+  },
+  "extractionHints": {
+    "navLabel": "Learned hints",
+    "title": "Learned extraction hints",
+    "subtitle": "Patterns the system has learned from your invoices, grouped by issuer. Delete a hint to undo an incorrect learning.",
+    "empty": "No extraction hints have been learned yet.",
+    "loadError": "Extraction hints could not be loaded.",
+    "hintCountOne": "{{count}} hint",
+    "hintCountOther": "{{count}} hints",
+    "columns": {
+      "field": "Field",
+      "anchorLabel": "Anchor",
+      "anchorKind": "Type",
+      "occurrences": "Occurrences",
+      "sampleValue": "Sample value",
+      "actions": "Actions"
+    },
+    "anchorKinds": {
+      "inline": "Inline",
+      "preceding-line": "Preceding line"
+    },
+    "deleteConfirm": {
+      "title": "Delete hint",
+      "content": "Are you sure you want to delete this learned hint? The system will stop applying it to future invoices from this issuer.",
+      "ok": "Delete"
+    },
+    "deleted": "Hint deleted",
+    "deleteError": "The hint could not be deleted. Please try again."
   }
 }

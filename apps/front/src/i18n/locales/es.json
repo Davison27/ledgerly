@@ -333,5 +333,33 @@
         "budgetMin": "El presupuesto no puede ser negativo"
       }
     }
+  },
+  "extractionHints": {
+    "navLabel": "Pistas aprendidas",
+    "title": "Pistas de extracción aprendidas",
+    "subtitle": "Patrones que el sistema ha aprendido de tus facturas, agrupados por emisor. Elimina una pista para deshacer un aprendizaje incorrecto.",
+    "empty": "Todavía no se ha aprendido ninguna pista de extracción.",
+    "loadError": "No se han podido cargar las pistas de extracción.",
+    "hintCountOne": "{{count}} pista",
+    "hintCountOther": "{{count}} pistas",
+    "columns": {
+      "field": "Campo",
+      "anchorLabel": "Referencia",
+      "anchorKind": "Tipo",
+      "occurrences": "Repeticiones",
+      "sampleValue": "Valor de ejemplo",
+      "actions": "Acciones"
+    },
+    "anchorKinds": {
+      "inline": "En línea",
+      "preceding-line": "Línea anterior"
+    },
+    "deleteConfirm": {
+      "title": "Eliminar pista",
+      "content": "¿Seguro que quieres eliminar esta pista aprendida? El sistema dejará de aplicarla a futuras facturas de este emisor.",
+      "ok": "Eliminar"
+    },
+    "deleted": "Pista eliminada",
+    "deleteError": "No se ha podido eliminar la pista. Inténtalo de nuevo."
   }
 }
