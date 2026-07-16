@@ -166,3 +166,27 @@ export interface ExtractInvoiceResult {
   fields: ExtractInvoiceFields;
   warnings: string[];
 }
+
+export type ExtractionHintField =
+  | 'issuerName'
+  | 'issuerTaxId'
+  | 'invoiceNumber'
+  | 'date'
+  | 'dueDate'
+  | 'amount'
+  | 'taxBase'
+  | 'taxRate'
+  | 'taxAmount';
+
+export type ExtractionHintAnchorKind = 'inline' | 'preceding-line';
+
+export interface ExtractionHintDto {
+  id: string;
+  issuerTaxId: string;
+  field: ExtractionHintField;
+  anchorKind: ExtractionHintAnchorKind;
+  anchorLabel: string;
+  lineOffset: number;
+  sampleValue: string;
+  occurrences: number;
+}
