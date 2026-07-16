@@ -10,6 +10,7 @@ import { PROJECT_EXISTENCE_CHECKER } from './domain/project-existence-checker.po
 import { PDF_READER } from './domain/extraction/pdf-reader.port';
 import { INVOICE_HINT_REPOSITORY } from './domain/extraction/hints/invoice-hint.repository';
 import { DocumentsController } from './infrastructure/http/documents.controller';
+import { ExtractionHintsController } from './infrastructure/http/extraction-hints.controller';
 import { PdfjsPdfReader } from './infrastructure/pdf/pdfjs-pdf-reader';
 import { ListDocumentsUseCase } from './application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from './application/get-document/get-document.use-case';
@@ -18,10 +19,12 @@ import { DeleteDocumentUseCase } from './application/delete-document/delete-docu
 import { ExtractInvoiceUseCase } from './application/extract-invoice/extract-invoice.use-case';
 import { GetDocumentFileUseCase } from './application/get-document-file/get-document-file.use-case';
 import { RecordExtractionFeedbackUseCase } from './application/record-extraction-feedback/record-extraction-feedback.use-case';
+import { ListHintsUseCase } from './application/list-hints/list-hints.use-case';
+import { DeleteHintUseCase } from './application/delete-hint/delete-hint.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([DocumentOrmEntity, InvoiceExtractionHintOrmEntity])],
-  controllers: [DocumentsController],
+  controllers: [DocumentsController, ExtractionHintsController],
   providers: [
     ListDocumentsUseCase,
     GetDocumentUseCase,
@@ -30,6 +33,8 @@ import { RecordExtractionFeedbackUseCase } from './application/record-extraction
     ExtractInvoiceUseCase,
     GetDocumentFileUseCase,
     RecordExtractionFeedbackUseCase,
+    ListHintsUseCase,
+    DeleteHintUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: PDF_READER, useClass: PdfjsPdfReader },
