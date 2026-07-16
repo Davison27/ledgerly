@@ -20,8 +20,8 @@ class InMemoryHintRepository implements InvoiceHintRepository {
     this.hints = hints;
   }
 
-  findByIssuer(issuerTaxId: string): Promise<InvoiceHint[]> {
-    return Promise.resolve(this.hints.filter((hint) => hint.issuerTaxId === issuerTaxId));
+  findByIssuer(issuerName: string): Promise<InvoiceHint[]> {
+    return Promise.resolve(this.hints.filter((hint) => hint.issuerName === issuerName));
   }
 
   findAll(): Promise<InvoiceHint[]> {
@@ -30,7 +30,7 @@ class InMemoryHintRepository implements InvoiceHintRepository {
 
   upsert(hint: NewInvoiceHint): Promise<void> {
     const existingIndex = this.hints.findIndex(
-      (h) => h.issuerTaxId === hint.issuerTaxId && h.field === hint.field,
+      (h) => h.issuerName === hint.issuerName && h.field === hint.field,
     );
 
     if (existingIndex === -1) {
@@ -67,10 +67,10 @@ describe('RecordExtractionFeedbackUseCase', () => {
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
-      submitted: { issuerTaxId: 'B12345678', invoiceNumber: 'REF-9' },
+      submitted: { issuerName: 'Mi Empresa SL', invoiceNumber: 'REF-9' },
     });
 
-    const hints = await hintRepository.findByIssuer('B12345678');
+    const hints = await hintRepository.findByIssuer('MI EMPRESA SL');
     expect(hints).toHaveLength(1);
     expect(hints[0]).toMatchObject({
       field: 'invoiceNumber',
@@ -86,7 +86,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
     hintRepository.seed([
       {
         id: 'hint-1',
-        issuerTaxId: 'B12345678',
+        issuerName: 'MI EMPRESA SL',
         field: 'invoiceNumber',
         anchorKind: 'inline',
         anchorLabel: 'Ref interna',
@@ -105,10 +105,10 @@ describe('RecordExtractionFeedbackUseCase', () => {
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
-      submitted: { issuerTaxId: 'B12345678', invoiceNumber: 'REF-20' },
+      submitted: { issuerName: 'Mi Empresa SL', invoiceNumber: 'REF-20' },
     });
 
-    const hints = await hintRepository.findByIssuer('B12345678');
+    const hints = await hintRepository.findByIssuer('MI EMPRESA SL');
     expect(hints).toHaveLength(1);
     expect(hints[0]).toMatchObject({
       anchorLabel: 'Codigo interno',
@@ -124,7 +124,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
     hintRepository.seed([
       {
         id: 'hint-1',
-        issuerTaxId: 'B12345678',
+        issuerName: 'MI EMPRESA SL',
         field: 'invoiceNumber',
         anchorKind: 'inline',
         anchorLabel: 'Ref interna',
@@ -137,10 +137,10 @@ describe('RecordExtractionFeedbackUseCase', () => {
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
-      submitted: { issuerTaxId: 'B12345678', invoiceNumber: 'REF-9' },
+      submitted: { issuerName: 'Mi Empresa SL', invoiceNumber: 'REF-9' },
     });
 
-    const hints = await hintRepository.findByIssuer('B12345678');
+    const hints = await hintRepository.findByIssuer('MI EMPRESA SL');
     expect(hints[0].occurrences).toBe(5);
   });
 
@@ -154,13 +154,13 @@ describe('RecordExtractionFeedbackUseCase', () => {
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
-      submitted: { issuerTaxId: 'B87654321', invoiceNumber: 'CORRECTED-NUMBER' },
+      submitted: { issuerName: 'Otra Empresa SA', invoiceNumber: 'CORRECTED-NUMBER' },
     });
 
     expect(await hintRepository.findAll()).toEqual([]);
   });
 
-  it('does nothing when there is no issuer tax id to key the memory by', async () => {
+  it('does nothing when there is no issuer name to key the memory by', async () => {
     const pdfReader = new FakePdfReader({ text: 'Unrelated text with no CIF at all.', attachments: [] });
     const hintRepository = new InMemoryHintRepository();
     const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
@@ -176,7 +176,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
     const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
 
     await expect(
-      useCase.execute({ fileBuffer: Buffer.from('fake-pdf'), submitted: { issuerTaxId: 'B12345678' } }),
+      useCase.execute({ fileBuffer: Buffer.from('fake-pdf'), submitted: { issuerName: 'Mi Empresa SL' } }),
     ).resolves.toBeUndefined();
   });
 });

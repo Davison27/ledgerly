@@ -5,7 +5,7 @@ import { tryParseStructuredInvoice } from '../../domain/extraction/structured-in
 import { extractInvoiceHeuristics } from '../../domain/extraction/invoice-heuristics';
 import { applyHints } from '../../domain/extraction/hints/hint-anchor';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
-import { normaliseTaxId } from '../../domain/extraction/tax-id';
+import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
 import { ExtractedInvoiceResult, ExtractionConfidence, ExtractionSource } from './extracted-invoice';
 
@@ -71,11 +71,11 @@ export class ExtractInvoiceUseCase {
   // Structured (Facturae/Factur-X) extractions never go through here: the
   // per-issuer memory only ever augments the label-driven heuristic path.
   private async applyLearnedHints(fields: InvoiceFields, text: string): Promise<InvoiceFields> {
-    if (!fields.issuerTaxId) {
+    if (!fields.issuerName || fields.issuerName.trim().length === 0) {
       return fields;
     }
 
-    const hints = await this.hintRepository.findByIssuer(normaliseTaxId(fields.issuerTaxId));
+    const hints = await this.hintRepository.findByIssuer(normaliseIssuerName(fields.issuerName));
     if (hints.length === 0) {
       return fields;
     }

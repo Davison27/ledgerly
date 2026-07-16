@@ -10,7 +10,7 @@ import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/do
 
 const SAMPLE_HINT: InvoiceHint = {
   id: 'hint-1',
-  issuerTaxId: 'B12345678',
+  issuerName: 'MI EMPRESA SL',
   field: 'invoiceNumber',
   anchorKind: 'inline',
   anchorLabel: 'Ref interna',
@@ -61,7 +61,7 @@ describe('ExtractionHintsController (HTTP, no DB)', () => {
       expect(response.body).toEqual([
         {
           id: 'hint-1',
-          issuerTaxId: 'B12345678',
+          issuerName: 'MI EMPRESA SL',
           field: 'invoiceNumber',
           anchorKind: 'inline',
           anchorLabel: 'Ref interna',

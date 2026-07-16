@@ -2,7 +2,7 @@ import { HintAnchorKind, InvoiceHint, LearnableField } from '../../domain/extrac
 
 export class ExtractionHintResponse {
   id: string;
-  issuerTaxId: string;
+  issuerName: string;
   field: LearnableField;
   anchorKind: HintAnchorKind;
   anchorLabel: string;
@@ -14,7 +14,7 @@ export class ExtractionHintResponse {
     const response = new ExtractionHintResponse();
 
     response.id = hint.id;
-    response.issuerTaxId = hint.issuerTaxId;
+    response.issuerName = hint.issuerName;
     response.field = hint.field;
     response.anchorKind = hint.anchorKind;
     response.anchorLabel = hint.anchorLabel;
