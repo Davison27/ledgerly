@@ -26,6 +26,7 @@ export class DocumentMapper {
       fileName: orm.fileName,
       mimeType: orm.mimeType,
       fileSize: orm.fileSize,
+      supplierId: orm.supplierId,
     });
   }
 
@@ -52,6 +53,7 @@ export class DocumentMapper {
     orm.fileName = primitives.fileName;
     orm.mimeType = primitives.mimeType;
     orm.fileSize = primitives.fileSize;
+    orm.supplierId = primitives.supplierId;
 
     return orm;
   }

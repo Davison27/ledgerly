@@ -23,6 +23,7 @@ export class DocumentResponse {
   fileName: string | null;
   fileSize: number | null;
   mimeType: string | null;
+  supplierId: string | null;
 
   static fromDomain(document: Document): DocumentResponse {
     const response = new DocumentResponse();
@@ -46,6 +47,7 @@ export class DocumentResponse {
     response.fileName = document.getFileName();
     response.fileSize = document.getFileSize();
     response.mimeType = document.getMimeType();
+    response.supplierId = document.getSupplierId();
 
     return response;
   }

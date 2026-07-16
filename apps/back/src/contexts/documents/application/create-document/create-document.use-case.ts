@@ -5,7 +5,12 @@ import {
   PROJECT_EXISTENCE_CHECKER,
   ProjectExistenceChecker,
 } from '../../domain/project-existence-checker.port';
+import {
+  SUPPLIER_EXISTENCE_CHECKER,
+  SupplierExistenceChecker,
+} from '../../domain/supplier-existence-checker.port';
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
+import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { CreateDocumentCommand } from './create-document.command';
 
@@ -14,6 +19,7 @@ export class CreateDocumentUseCase {
   constructor(
     @Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository,
     @Inject(PROJECT_EXISTENCE_CHECKER) private readonly projectExistenceChecker: ProjectExistenceChecker,
+    @Inject(SUPPLIER_EXISTENCE_CHECKER) private readonly supplierExistenceChecker: SupplierExistenceChecker,
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
   ) {}
 
@@ -22,6 +28,16 @@ export class CreateDocumentUseCase {
 
     if (!projectExists) {
       throw new DocumentProjectNotFoundException(command.projectId);
+    }
+
+    const supplierId = command.supplierId ?? null;
+
+    if (supplierId !== null) {
+      const supplierExists = await this.supplierExistenceChecker.exists(supplierId);
+
+      if (!supplierExists) {
+        throw new DocumentSupplierNotFoundException(supplierId);
+      }
     }
 
     const document = Document.create({
@@ -44,6 +60,7 @@ export class CreateDocumentUseCase {
       fileName: command.file?.originalName ?? null,
       mimeType: command.file?.mimeType ?? null,
       fileSize: command.file?.size ?? null,
+      supplierId,
     });
 
     await this.repository.save(document);
