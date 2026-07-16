@@ -106,6 +106,7 @@ export class DocumentsController {
       taxRate: dto.taxRate,
       taxAmount: dto.taxAmount,
       currency: dto.currency,
+      supplierId: dto.supplierId,
       file: file
         ? {
             buffer: file.buffer,

@@ -25,6 +25,7 @@ interface DocumentProps {
   fileName?: string | null;
   mimeType?: string | null;
   fileSize?: number | null;
+  supplierId?: string | null;
 }
 
 export class Document {
@@ -47,6 +48,7 @@ export class Document {
   private fileName: string | null;
   private mimeType: string | null;
   private fileSize: number | null;
+  private supplierId: string | null;
 
   private constructor(props: DocumentProps) {
     this.id = props.id;
@@ -68,6 +70,7 @@ export class Document {
     this.fileName = props.fileName ?? null;
     this.mimeType = props.mimeType ?? null;
     this.fileSize = props.fileSize ?? null;
+    this.supplierId = props.supplierId ?? null;
   }
 
   static create(props: DocumentProps): Document {
@@ -190,6 +193,10 @@ export class Document {
     return this.fileSize;
   }
 
+  getSupplierId(): string | null {
+    return this.supplierId;
+  }
+
   hasFile(): boolean {
     return this.fileName !== null;
   }
@@ -215,6 +222,7 @@ export class Document {
       fileName: this.fileName,
       mimeType: this.mimeType,
       fileSize: this.fileSize,
+      supplierId: this.supplierId,
     };
   }
 }

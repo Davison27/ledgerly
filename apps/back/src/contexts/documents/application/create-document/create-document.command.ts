@@ -18,6 +18,7 @@ export interface CreateDocumentCommand {
   taxRate?: number | null;
   taxAmount?: number | null;
   currency?: DocumentCurrency;
+  supplierId?: string | null;
   file?: {
     buffer: Buffer;
     originalName: string;

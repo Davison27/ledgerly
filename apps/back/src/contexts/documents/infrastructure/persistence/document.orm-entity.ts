@@ -61,4 +61,7 @@ export class DocumentOrmEntity {
 
   @Column({ type: 'bytea', nullable: true, select: false })
   content: Buffer | null;
+
+  @Column({ name: 'supplier_id', type: 'uuid', nullable: true })
+  supplierId: string | null;
 }

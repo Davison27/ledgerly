@@ -15,6 +15,7 @@ import { RecordExtractionFeedbackUseCase } from '../../application/record-extrac
 import { RecordExtractionFeedbackCommand } from '../../application/record-extraction-feedback/record-extraction-feedback.command';
 import { CreateDocumentCommand } from '../../application/create-document/create-document.command';
 import { Document } from '../../domain/document';
+import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 
 function loadFixture(name: string): Buffer {
@@ -60,6 +61,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
           fileName: command.file?.originalName ?? null,
           mimeType: command.file?.mimeType ?? null,
           fileSize: command.file?.size ?? null,
+          supplierId: command.supplierId ?? null,
         }),
       ),
     );
@@ -141,6 +143,55 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       const command = createExecute.mock.calls[0][0];
       expect(command.file).toBeUndefined();
       expect(recordFeedbackExecute).not.toHaveBeenCalled();
+    });
+
+    it('forwards supplierId to the use-case and echoes it in the response', async () => {
+      const supplierId = '11111111-1111-4111-8111-111111111111';
+
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify({ ...BASE_PAYLOAD, supplierId }));
+
+      expect(response.status).toBe(201);
+      const body = response.body as { supplierId: string | null };
+      expect(body.supplierId).toBe(supplierId);
+
+      const command = createExecute.mock.calls[0][0];
+      expect(command.supplierId).toBe(supplierId);
+    });
+
+    it('creates a document without a supplier and reports supplierId: null', async () => {
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify(BASE_PAYLOAD));
+
+      expect(response.status).toBe(201);
+      const body = response.body as { supplierId: string | null };
+      expect(body.supplierId).toBeNull();
+    });
+
+    it('returns 400 when supplierId is not a valid UUID', async () => {
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify({ ...BASE_PAYLOAD, supplierId: 'not-a-uuid' }));
+
+      expect(response.status).toBe(400);
+      expect(createExecute).not.toHaveBeenCalled();
+    });
+
+    it('returns 404 when the use-case reports the supplier does not exist', async () => {
+      createExecute.mockRejectedValueOnce(
+        new DocumentSupplierNotFoundException('11111111-1111-4111-8111-111111111111'),
+      );
+
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field(
+          'payload',
+          JSON.stringify({ ...BASE_PAYLOAD, supplierId: '11111111-1111-4111-8111-111111111111' }),
+        );
+
+      expect(response.status).toBe(404);
     });
 
     it('still returns 201 when recording extraction feedback fails', async () => {

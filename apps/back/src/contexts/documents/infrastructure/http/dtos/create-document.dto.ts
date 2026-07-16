@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   Max,
   Min,
@@ -73,4 +74,8 @@ export class CreateDocumentDto {
   @IsOptional()
   @IsIn(DOCUMENT_CURRENCIES)
   currency?: DocumentCurrency;
+
+  @IsOptional()
+  @IsUUID()
+  supplierId?: string;
 }
