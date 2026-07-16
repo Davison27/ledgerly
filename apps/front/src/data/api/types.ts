@@ -113,6 +113,7 @@ export interface DocumentDto {
   fileName?: string | null;
   fileSize?: number | null;
   mimeType?: string | null;
+  supplierId?: string | null;
 }
 
 export interface DocumentFiltersDto {
@@ -140,6 +141,7 @@ export interface CreateDocumentPayload {
   taxRate?: number;
   taxAmount?: number;
   currency?: string;
+  supplierId?: string;
 }
 
 export interface SupplierDto {

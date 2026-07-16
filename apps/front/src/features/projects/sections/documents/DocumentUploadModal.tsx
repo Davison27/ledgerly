@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Alert,
   App,
+  Button,
   Col,
   DatePicker,
   Divider,
@@ -18,19 +19,42 @@ import {
   Typography,
   Upload,
 } from 'antd';
-import { InboxOutlined } from '@ant-design/icons';
+import { InboxOutlined, PlusOutlined } from '@ant-design/icons';
 import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { createDocument, extractInvoice } from '../../../../data/api/documents.api';
 import { ApiError } from '../../../../data/api/httpClient';
+import { createSupplier, listSuppliers } from '../../../../data/api/suppliers.api';
 import type {
   CreateDocumentPayload,
   DocumentStatusDto,
   DocumentTypeDto,
   ExtractInvoiceConfidence,
   ExtractInvoiceResult,
+  SupplierDto,
 } from '../../../../data/api/types';
+
+function normalize(value: string | null | undefined): string {
+  return (value ?? '').trim().toLowerCase();
+}
+
+function findMatchingSupplier(
+  suppliers: SupplierDto[],
+  taxId: string | null | undefined,
+  name: string | null | undefined,
+): SupplierDto | undefined {
+  const normalizedTaxId = normalize(taxId);
+  if (normalizedTaxId) {
+    const byTaxId = suppliers.find((supplier) => normalize(supplier.taxId) === normalizedTaxId);
+    if (byTaxId) return byTaxId;
+  }
+  const normalizedName = normalize(name);
+  if (normalizedName) {
+    return suppliers.find((supplier) => normalize(supplier.name) === normalizedName);
+  }
+  return undefined;
+}
 
 const { Dragger } = Upload;
 const { Text } = Typography;
@@ -89,6 +113,15 @@ export function DocumentUploadModal({
   const [submitting, setSubmitting] = useState(false);
   const extractionTokenRef = useRef(0);
 
+  const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
+  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  const [supplierId, setSupplierId] = useState<string | null>(null);
+  const [autoMatchAttempted, setAutoMatchAttempted] = useState(false);
+  const [creatingSupplier, setCreatingSupplier] = useState(false);
+  const [newSupplierName, setNewSupplierName] = useState('');
+  const [newSupplierTaxId, setNewSupplierTaxId] = useState('');
+  const [creatingSupplierSubmitting, setCreatingSupplierSubmitting] = useState(false);
+
   useEffect(() => {
     if (open) {
       form.resetFields();
@@ -100,8 +133,36 @@ export function DocumentUploadModal({
       setScannedPdfError(false);
       setSubmitting(false);
       extractionTokenRef.current += 1;
+
+      setSuppliers([]);
+      setSuppliersLoaded(false);
+      setSupplierId(null);
+      setAutoMatchAttempted(false);
+      setCreatingSupplier(false);
+      setNewSupplierName('');
+      setNewSupplierTaxId('');
+
+      listSuppliers()
+        .then(setSuppliers)
+        .catch(() => setSuppliers([]))
+        .finally(() => setSuppliersLoaded(true));
     }
   }, [open, form]);
+
+  // Once both the extraction result and the supplier list are available, try to
+  // preselect a supplier matching the extracted issuer (by tax ID, then by name).
+  useEffect(() => {
+    if (!extractResult || autoMatchAttempted || !suppliersLoaded) return;
+    const match = findMatchingSupplier(
+      suppliers,
+      extractResult.fields.issuerTaxId,
+      extractResult.fields.issuerName,
+    );
+    if (match) {
+      setSupplierId(match.id);
+    }
+    setAutoMatchAttempted(true);
+  }, [extractResult, suppliers, suppliersLoaded, autoMatchAttempted]);
 
   const handleCancel = () => {
     form.resetFields();
@@ -116,6 +177,7 @@ export function DocumentUploadModal({
     setScannedPdfError(false);
     setStep('uploading');
     setProgress(0);
+    setAutoMatchAttempted(false);
 
     const onProgress = (percent: number) => {
       if (extractionTokenRef.current !== token) return;
@@ -157,6 +219,62 @@ export function DocumentUploadModal({
     return false;
   };
 
+  const handleSelectSupplier = (value: string | undefined) => {
+    setSupplierId(value ?? null);
+    if (!value) return;
+    const supplier = suppliers.find((candidate) => candidate.id === value);
+    if (supplier) {
+      form.setFieldsValue({
+        issuerName: supplier.name,
+        issuerTaxId: supplier.taxId ?? undefined,
+      });
+    }
+  };
+
+  const handleOpenCreateSupplier = () => {
+    setNewSupplierName(form.getFieldValue('issuerName') ?? '');
+    setNewSupplierTaxId(form.getFieldValue('issuerTaxId') ?? '');
+    setCreatingSupplier(true);
+  };
+
+  const handleCancelCreateSupplier = () => {
+    setCreatingSupplier(false);
+    setNewSupplierName('');
+    setNewSupplierTaxId('');
+  };
+
+  const handleCreateSupplier = async () => {
+    const name = newSupplierName.trim();
+    if (!name) {
+      void message.warning(t('projects.documents.upload.supplier.createNameRequired'));
+      return;
+    }
+
+    setCreatingSupplierSubmitting(true);
+    try {
+      const created = await createSupplier({
+        name,
+        taxId: newSupplierTaxId.trim() || undefined,
+      });
+      setSuppliers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      setSupplierId(created.id);
+      form.setFieldsValue({
+        issuerName: created.name,
+        issuerTaxId: created.taxId ?? undefined,
+      });
+      handleCancelCreateSupplier();
+      void message.success(t('projects.documents.upload.supplier.created'));
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        void message.error(t('projects.documents.upload.supplier.duplicateTaxId'));
+      } else {
+        void message.error(t('projects.documents.upload.supplier.createError'));
+      }
+    } finally {
+      setCreatingSupplierSubmitting(false);
+    }
+  };
+
   const handleOk = () => {
     form
       .validateFields()
@@ -167,6 +285,7 @@ export function DocumentUploadModal({
           date: date.format('YYYY-MM-DD'),
           dueDate: dueDate ? dueDate.format('YYYY-MM-DD') : undefined,
           month: date.month() + 1,
+          supplierId: supplierId ?? undefined,
         };
 
         setSubmitting(true);
@@ -344,7 +463,7 @@ export function DocumentUploadModal({
           </Col>
         </Row>
         <Row gutter={16}>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12}>
             <Form.Item
               name="dueDate"
               label={t('projects.documents.upload.fields.dueDate')}
@@ -353,7 +472,7 @@ export function DocumentUploadModal({
               <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={6}>
+          <Col xs={24} sm={12}>
             <Form.Item
               name="invoiceNumber"
               label={t('projects.documents.upload.fields.invoiceNumber')}
@@ -362,23 +481,98 @@ export function DocumentUploadModal({
               <Input placeholder={t('projects.documents.upload.placeholders.invoiceNumber')} />
             </Form.Item>
           </Col>
-          <Col xs={24} sm={12} md={6}>
+        </Row>
+
+        <Text strong>{t('projects.documents.upload.sections.supplier')}</Text>
+        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+        <Row gutter={16}>
+          <Col xs={24} md={12}>
             <Form.Item
-              name="issuerName"
-              label={t('projects.documents.upload.fields.issuerName')}
-              style={{ marginBottom: 12 }}
+              label={t('projects.documents.upload.supplier.label')}
+              style={{ marginBottom: creatingSupplier ? 8 : 12 }}
             >
-              <Input placeholder={t('projects.documents.upload.placeholders.issuerName')} />
+              <Select
+                showSearch
+                allowClear
+                value={supplierId ?? undefined}
+                onChange={handleSelectSupplier}
+                onClear={() => handleSelectSupplier(undefined)}
+                placeholder={t('projects.documents.upload.supplier.placeholder')}
+                filterOption={(input, option) =>
+                  (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                }
+                options={suppliers.map((supplier) => ({
+                  value: supplier.id,
+                  label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
+                }))}
+              />
             </Form.Item>
+            {creatingSupplier ? (
+              <Flex gap={8} wrap style={{ marginBottom: 12 }}>
+                <Input
+                  style={{ flex: '1 1 160px' }}
+                  placeholder={t('projects.documents.upload.supplier.createNamePlaceholder')}
+                  value={newSupplierName}
+                  onChange={(event) => setNewSupplierName(event.target.value)}
+                />
+                <Input
+                  style={{ flex: '1 1 140px' }}
+                  placeholder={t('projects.documents.upload.supplier.createTaxIdPlaceholder')}
+                  value={newSupplierTaxId}
+                  onChange={(event) => setNewSupplierTaxId(event.target.value)}
+                />
+                <Button
+                  type="primary"
+                  loading={creatingSupplierSubmitting}
+                  onClick={() => void handleCreateSupplier()}
+                >
+                  {t('projects.documents.upload.supplier.createSubmit')}
+                </Button>
+                <Button onClick={handleCancelCreateSupplier}>{t('common.cancel')}</Button>
+              </Flex>
+            ) : (
+              <Button
+                type="link"
+                icon={<PlusOutlined />}
+                style={{ paddingInlineStart: 0, marginBottom: 12 }}
+                onClick={handleOpenCreateSupplier}
+              >
+                {t('projects.documents.upload.supplier.createNew')}
+              </Button>
+            )}
           </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="issuerTaxId"
-              label={t('projects.documents.upload.fields.issuerTaxId')}
-              style={{ marginBottom: 12 }}
-            >
-              <Input placeholder={t('projects.documents.upload.placeholders.issuerTaxId')} />
-            </Form.Item>
+          <Col xs={24} md={12}>
+            <Row gutter={8}>
+              <Col span={12}>
+                <Form.Item
+                  name="issuerName"
+                  label={t('projects.documents.upload.fields.issuerName')}
+                  style={{ marginBottom: 4 }}
+                >
+                  <Input
+                    disabled={Boolean(supplierId)}
+                    placeholder={t('projects.documents.upload.placeholders.issuerName')}
+                  />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  name="issuerTaxId"
+                  label={t('projects.documents.upload.fields.issuerTaxId')}
+                  style={{ marginBottom: 4 }}
+                >
+                  <Input
+                    disabled={Boolean(supplierId)}
+                    placeholder={t('projects.documents.upload.placeholders.issuerTaxId')}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            {supplierId && (
+              <Text type="secondary" style={{ fontSize: 12 }}>
+                {t('projects.documents.upload.supplier.autofillNote')}
+              </Text>
+            )}
           </Col>
         </Row>
 

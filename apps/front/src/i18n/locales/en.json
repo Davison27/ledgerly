@@ -164,8 +164,22 @@
           "warningsTitle": "Extraction warnings"
         },
         "sections": {
+          "supplier": "Supplier",
           "document": "Document",
           "amounts": "Amounts"
+        },
+        "supplier": {
+          "label": "Supplier",
+          "placeholder": "Search a supplier by name or tax ID...",
+          "createNew": "+ Create supplier",
+          "createNamePlaceholder": "Supplier name",
+          "createTaxIdPlaceholder": "Tax ID (optional)",
+          "createSubmit": "Create",
+          "createNameRequired": "The supplier name is required",
+          "created": "Supplier created and selected",
+          "createError": "The supplier could not be created. Please try again.",
+          "duplicateTaxId": "A supplier with that tax ID already exists.",
+          "autofillNote": "The issuer is auto-filled from the selected supplier."
         },
         "fields": {
           "name": "Name",
