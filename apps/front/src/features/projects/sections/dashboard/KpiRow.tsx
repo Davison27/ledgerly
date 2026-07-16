@@ -53,7 +53,7 @@ export function KpiRow({ income, expenses, pending, overdue }: KpiRowProps) {
           <div
             style={{
               marginTop: 6,
-              fontSize: 26,
+              fontSize: 22,
               fontWeight: 600,
               lineHeight: 1.2,
               color: item.color,

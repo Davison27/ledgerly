@@ -47,6 +47,7 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
 
   return (
     <Card
+      size="small"
       title={t('projects.dashboard.topIssuers.title')}
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
@@ -56,7 +57,7 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
           image={Empty.PRESENTED_IMAGE_SIMPLE}
         />
       ) : (
-        <Flex vertical gap={14}>
+        <Flex vertical gap={8}>
           {rows.map((row) => (
             <Flex key={row.key} align="center" gap={12}>
               <span

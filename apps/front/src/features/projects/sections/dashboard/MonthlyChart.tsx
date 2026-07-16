@@ -11,7 +11,7 @@ export interface MonthlyChartProps {
 }
 
 const W = 640;
-const H = 220;
+const H = 150;
 const PAD_L = 10;
 const PAD_R = 10;
 const PAD_T = 14;
@@ -49,7 +49,14 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         viewBox={`0 0 ${W} ${H}`}
         width="100%"
         role="img"
-        style={{ display: 'block', maxWidth: '100%' }}
+        style={{
+          display: 'block',
+          width: '100%',
+          height: 'auto',
+          maxWidth: '100%',
+          minWidth: 0,
+          maxHeight: 170,
+        }}
       >
         <line
           x1={PAD_L}
@@ -95,7 +102,7 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         ))}
       </svg>
 
-      <Flex gap={20} style={{ marginTop: 12 }}>
+      <Flex gap={20} style={{ marginTop: 8 }}>
         {legend.map((item) => (
           <Flex key={item.key} align="center" gap={8}>
             <span
@@ -107,7 +114,7 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
                 display: 'inline-block',
               }}
             />
-            <Text type="secondary" style={{ fontSize: 13 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>
               {item.label}
             </Text>
           </Flex>
