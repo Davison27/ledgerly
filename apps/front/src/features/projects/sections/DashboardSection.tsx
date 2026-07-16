@@ -4,7 +4,6 @@ import type { ProjectSectionProps } from './types';
 import { useProjectDocuments } from './documents/useProjectDocuments';
 import { deriveDashboardData } from './dashboard/data';
 import { KpiRow } from './dashboard/KpiRow';
-import { ProfitSummary } from './dashboard/ProfitSummary';
 import { MonthlyChart } from './dashboard/MonthlyChart';
 import { MonthlyProfitChart } from './dashboard/MonthlyProfitChart';
 import { CumulativeProfitChart } from './dashboard/CumulativeProfitChart';
@@ -25,9 +24,9 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
         expenses={data.expenses}
         pending={data.pending}
         overdue={data.overdue}
+        profit={data.profit}
+        margin={data.margin}
       />
-
-      <ProfitSummary profit={data.profit} margin={data.margin} />
 
       <MonthlyChart
         income={data.monthlyIncome}
