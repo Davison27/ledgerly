@@ -10,8 +10,8 @@ export interface MonthlyChartProps {
   color: string;
 }
 
-const W = 640;
-const H = 150;
+const W = 1000;
+const H = 160;
 const PAD_L = 10;
 const PAD_R = 10;
 const PAD_T = 14;
@@ -55,7 +55,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           height: 'auto',
           maxWidth: '100%',
           minWidth: 0,
-          maxHeight: 170,
         }}
       >
         <line
