@@ -362,5 +362,60 @@
     },
     "deleted": "Pista eliminada",
     "deleteError": "No se ha podido eliminar la pista. Inténtalo de nuevo."
+  },
+  "suppliers": {
+    "navLabel": "Proveedores",
+    "title": "Proveedores",
+    "subtitle": "Gestiona los proveedores compartidos por todos los proyectos.",
+    "add": "Añadir proveedor",
+    "empty": "Todavía no hay proveedores.",
+    "loadError": "No se han podido cargar los proveedores.",
+    "deleted": "Proveedor eliminado",
+    "fields": {
+      "name": "Nombre",
+      "taxId": "CIF / NIF",
+      "email": "Email",
+      "phone": "Teléfono",
+      "address": "Dirección",
+      "iban": "IBAN",
+      "notes": "Notas"
+    },
+    "columns": {
+      "name": "Nombre",
+      "taxId": "CIF / NIF",
+      "email": "Email",
+      "phone": "Teléfono",
+      "actions": "Acciones"
+    },
+    "form": {
+      "createTitle": "Añadir proveedor",
+      "editTitle": "Editar proveedor",
+      "submit": "Guardar",
+      "createSubmit": "Crear proveedor",
+      "created": "Proveedor creado correctamente",
+      "updated": "Proveedor actualizado correctamente",
+      "createError": "No se ha podido crear el proveedor. Inténtalo de nuevo.",
+      "updateError": "No se ha podido actualizar el proveedor. Inténtalo de nuevo.",
+      "duplicateTaxId": "Ya existe un proveedor con ese CIF/NIF.",
+      "placeholders": {
+        "name": "Ej. Suministros Norte SL",
+        "taxId": "Ej. B12345678",
+        "email": "Ej. contacto@proveedor.com",
+        "phone": "Ej. +34 600 123 456",
+        "address": "Calle, número, ciudad",
+        "iban": "Ej. ES91 2100 0418 4502 0005 1332",
+        "notes": "Notas internas sobre el proveedor..."
+      },
+      "validation": {
+        "nameRequired": "El nombre es obligatorio",
+        "emailInvalid": "Introduce un email válido"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Eliminar proveedor",
+      "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "ok": "Eliminar",
+      "error": "No se ha podido eliminar el proveedor. Inténtalo de nuevo."
+    }
   }
 }

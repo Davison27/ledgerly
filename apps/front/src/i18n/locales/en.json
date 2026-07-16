@@ -362,5 +362,60 @@
     },
     "deleted": "Hint deleted",
     "deleteError": "The hint could not be deleted. Please try again."
+  },
+  "suppliers": {
+    "navLabel": "Suppliers",
+    "title": "Suppliers",
+    "subtitle": "Manage the suppliers shared across all projects.",
+    "add": "Add supplier",
+    "empty": "There are no suppliers yet.",
+    "loadError": "Suppliers could not be loaded.",
+    "deleted": "Supplier deleted",
+    "fields": {
+      "name": "Name",
+      "taxId": "Tax ID",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "iban": "IBAN",
+      "notes": "Notes"
+    },
+    "columns": {
+      "name": "Name",
+      "taxId": "Tax ID",
+      "email": "Email",
+      "phone": "Phone",
+      "actions": "Actions"
+    },
+    "form": {
+      "createTitle": "Add supplier",
+      "editTitle": "Edit supplier",
+      "submit": "Save",
+      "createSubmit": "Create supplier",
+      "created": "Supplier created successfully",
+      "updated": "Supplier updated successfully",
+      "createError": "The supplier could not be created. Please try again.",
+      "updateError": "The supplier could not be updated. Please try again.",
+      "duplicateTaxId": "A supplier with that tax ID already exists.",
+      "placeholders": {
+        "name": "E.g. Suministros Norte SL",
+        "taxId": "E.g. B12345678",
+        "email": "E.g. contact@supplier.com",
+        "phone": "E.g. +34 600 123 456",
+        "address": "Street, number, city",
+        "iban": "E.g. ES91 2100 0418 4502 0005 1332",
+        "notes": "Internal notes about the supplier..."
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "emailInvalid": "Enter a valid email"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Delete supplier",
+      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The supplier could not be deleted. Please try again."
+    }
   }
 }
