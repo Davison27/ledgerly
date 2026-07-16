@@ -164,8 +164,22 @@
           "warningsTitle": "Avisos de la extracción"
         },
         "sections": {
+          "supplier": "Proveedor",
           "document": "Documento",
           "amounts": "Importes"
+        },
+        "supplier": {
+          "label": "Proveedor",
+          "placeholder": "Busca un proveedor por nombre o CIF/NIF...",
+          "createNew": "+ Crear proveedor",
+          "createNamePlaceholder": "Nombre del proveedor",
+          "createTaxIdPlaceholder": "CIF/NIF (opcional)",
+          "createSubmit": "Crear",
+          "createNameRequired": "El nombre del proveedor es obligatorio",
+          "created": "Proveedor creado y seleccionado",
+          "createError": "No se ha podido crear el proveedor. Inténtalo de nuevo.",
+          "duplicateTaxId": "Ya existe un proveedor con ese CIF/NIF.",
+          "autofillNote": "El emisor se rellena automáticamente desde el proveedor seleccionado."
         },
         "fields": {
           "name": "Nombre",
