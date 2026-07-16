@@ -11,7 +11,7 @@ export interface MonthlyChartProps {
 }
 
 const W = 1000;
-const H = 160;
+const H = 150;
 const PAD_L = 10;
 const PAD_R = 10;
 const PAD_T = 14;
@@ -47,12 +47,12 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
     <Card title={t('projects.dashboard.monthly')}>
       <svg
         viewBox={`0 0 ${W} ${H}`}
-        width="100%"
         role="img"
+        preserveAspectRatio="none"
         style={{
           display: 'block',
           width: '100%',
-          height: 'auto',
+          height: 140,
           maxWidth: '100%',
           minWidth: 0,
         }}
@@ -64,6 +64,7 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           y2={PAD_T + PLOT_H}
           stroke={token.colorBorderSecondary}
           strokeWidth={1}
+          vectorEffect="non-scaling-stroke"
         />
 
         <polyline
@@ -73,6 +74,7 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
         />
         <polyline
           points={toPoints(income)}
@@ -81,6 +83,7 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
+          vectorEffect="non-scaling-stroke"
         />
 
         {income.map((v, i) => (
