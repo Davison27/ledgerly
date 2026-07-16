@@ -10,6 +10,7 @@ import { LoginPage } from '../features/auth/LoginPage';
 import { ProjectsPage } from '../features/projects/ProjectsPage';
 import { ProjectDetailPage } from '../features/projects/ProjectDetailPage';
 import { ExtractionHintsPage } from '../features/extraction-hints/ExtractionHintsPage';
+import { SuppliersPage } from '../features/suppliers/SuppliersPage';
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -43,12 +44,19 @@ const extractionHintsRoute = createRoute({
   component: ExtractionHintsPage,
 });
 
+const suppliersRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/suppliers',
+  component: SuppliersPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   appLayoutRoute.addChildren([
     projectsRoute,
     projectDetailRoute,
     extractionHintsRoute,
+    suppliersRoute,
   ]),
 ]);
 

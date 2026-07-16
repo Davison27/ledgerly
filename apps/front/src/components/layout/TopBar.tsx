@@ -16,6 +16,7 @@ import {
   PoweroffOutlined,
   SettingOutlined,
   ShopOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
@@ -72,18 +73,33 @@ export function TopBar() {
       }}
     >
       <Flex align="center" justify="space-between" style={{ height: '100%' }}>
-        <Button
-          type="text"
-          aria-label={t('common.appName')}
-          style={{ height: 40, padding: '0 8px' }}
-          onClick={() => void navigate({ to: '/projects' })}
-        >
-          <img
-            src={company.logo || logoIconUrl}
-            alt={t('common.appName')}
-            style={{ height: 28, display: 'block', objectFit: 'contain' }}
-          />
-        </Button>
+        <Flex align="center" gap={4}>
+          <Button
+            type="text"
+            aria-label={t('common.appName')}
+            style={{ height: 40, padding: '0 8px' }}
+            onClick={() => void navigate({ to: '/projects' })}
+          >
+            <img
+              src={company.logo || logoIconUrl}
+              alt={t('common.appName')}
+              style={{ height: 28, display: 'block', objectFit: 'contain' }}
+            />
+          </Button>
+          <Button
+            type="text"
+            style={{
+              height: 40,
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 8,
+            }}
+            onClick={() => void navigate({ to: '/suppliers' })}
+          >
+            <TeamOutlined style={{ fontSize: 18 }} />
+            {t('suppliers.navLabel')}
+          </Button>
+        </Flex>
 
         <Text
           strong
