@@ -30,10 +30,11 @@ export function CashflowByStatus({
 
   return (
     <Card
+      size="small"
       title={t('projects.dashboard.cashflowByStatus.title')}
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
-      <Flex vertical gap={16}>
+      <Flex vertical gap={8}>
         {rows.map((row) => (
           <Flex key={row.key} align="center" gap={12}>
             <Text style={{ flex: 'none', width: 90 }}>

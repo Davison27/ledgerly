@@ -44,6 +44,7 @@ export function CategoryDonut({
 
   return (
     <Card
+      size="small"
       title={t('projects.dashboard.category')}
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
@@ -51,8 +52,8 @@ export function CategoryDonut({
         <div
           style={{
             position: 'relative',
-            width: 160,
-            height: 160,
+            width: 120,
+            height: 120,
             borderRadius: '50%',
             background,
             flex: 'none',
@@ -61,7 +62,7 @@ export function CategoryDonut({
           <div
             style={{
               position: 'absolute',
-              inset: 28,
+              inset: 21,
               borderRadius: '50%',
               background: token.colorBgContainer,
               display: 'flex',
@@ -75,7 +76,7 @@ export function CategoryDonut({
           </div>
         </div>
 
-        <Flex vertical gap={10} style={{ flex: '1 1 auto', minWidth: 120 }}>
+        <Flex vertical gap={8} style={{ flex: '1 1 auto', minWidth: 120 }}>
           {ORDER.map((key) => {
             const pct = total > 0 ? Math.round((categoryTotals[key] / total) * 100) : 0;
             return (

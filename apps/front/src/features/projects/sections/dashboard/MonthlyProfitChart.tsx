@@ -8,7 +8,7 @@ export interface MonthlyProfitChartProps {
 }
 
 const W = 640;
-const H = 220;
+const H = 150;
 const PAD_L = 10;
 const PAD_R = 10;
 const PAD_T = 14;
@@ -45,7 +45,14 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
           width="100%"
           role="img"
           aria-label={t('projects.dashboard.monthlyProfit.title')}
-          style={{ display: 'block', maxWidth: '100%', minWidth: 480 }}
+          style={{
+            display: 'block',
+            width: '100%',
+            height: 'auto',
+            maxWidth: '100%',
+            minWidth: 0,
+            maxHeight: 170,
+          }}
         >
           <line
             x1={PAD_L}

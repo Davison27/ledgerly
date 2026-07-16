@@ -21,6 +21,7 @@ export function ProfitSummary({ profit, margin }: ProfitSummaryProps) {
 
   return (
     <Card
+      size="small"
       style={{
         borderColor: tone,
         background: isProfitable ? token.colorSuccessBg : token.colorErrorBg,
@@ -39,7 +40,7 @@ export function ProfitSummary({ profit, margin }: ProfitSummaryProps) {
               flex: 'none',
             }}
           >
-            <Icon style={{ color: token.colorWhite, fontSize: 20 }} />
+            <Icon style={{ color: token.colorWhite, fontSize: 18 }} />
           </Flex>
           <div>
             <Text type="secondary" style={{ fontSize: 13 }}>
@@ -61,7 +62,7 @@ export function ProfitSummary({ profit, margin }: ProfitSummaryProps) {
             <div
               style={{
                 marginTop: 4,
-                fontSize: 30,
+                fontSize: 22,
                 fontWeight: 600,
                 lineHeight: 1.2,
                 color: tone,
@@ -78,7 +79,7 @@ export function ProfitSummary({ profit, margin }: ProfitSummaryProps) {
             <div
               style={{
                 marginTop: 4,
-                fontSize: 30,
+                fontSize: 22,
                 fontWeight: 600,
                 lineHeight: 1.2,
                 color: tone,

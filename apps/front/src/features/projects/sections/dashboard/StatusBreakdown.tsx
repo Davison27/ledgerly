@@ -26,14 +26,15 @@ export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps
 
   return (
     <Card
+      size="small"
       title={t('projects.dashboard.statusBreakdown')}
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
-      <Text type="secondary" style={{ display: 'block', marginBottom: 16, fontSize: 13 }}>
+      <Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>
         {t('projects.dashboard.documentsCount', { count: total })}
       </Text>
 
-      <Flex vertical gap={16}>
+      <Flex vertical gap={8}>
         {rows.map((row) => (
           <Flex key={row.key} align="center" gap={12}>
             <Text style={{ flex: 'none', width: 90 }}>

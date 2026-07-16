@@ -19,7 +19,7 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
   const data = useMemo(() => deriveDashboardData(documents), [documents]);
 
   return (
-    <Flex vertical gap={20} style={{ padding: 28 }}>
+    <Flex vertical gap={12} style={{ padding: 16 }}>
       <KpiRow
         income={data.income}
         expenses={data.expenses}
@@ -35,13 +35,13 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
         color={color}
       />
 
-      <Flex gap={20} wrap align="stretch">
+      <Flex gap={12} wrap align="stretch">
         <MonthlyProfitChart profit={data.monthlyProfit} />
         <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
         <MarginTrendChart monthlyMargin={data.monthlyMargin} color={color} />
       </Flex>
 
-      <Flex gap={20} wrap align="stretch">
+      <Flex gap={12} wrap align="stretch">
         <CategoryDonut
           categoryTotals={data.categoryTotals}
           totalDocs={data.totalDocs}
