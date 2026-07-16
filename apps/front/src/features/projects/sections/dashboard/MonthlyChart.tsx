@@ -10,7 +10,7 @@ export interface MonthlyChartProps {
   color: string;
 }
 
-const W = 1000;
+const W = 640;
 const H = 150;
 const PAD_L = 10;
 const PAD_R = 10;
@@ -44,17 +44,22 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
   ];
 
   return (
-    <Card title={t('projects.dashboard.monthly')}>
+    <Card
+      size="small"
+      title={t('projects.dashboard.monthly')}
+      style={{ flex: '1 1 320px', minWidth: 300 }}
+    >
       <svg
         viewBox={`0 0 ${W} ${H}`}
+        width="100%"
         role="img"
-        preserveAspectRatio="none"
         style={{
           display: 'block',
           width: '100%',
-          height: 140,
+          height: 'auto',
           maxWidth: '100%',
           minWidth: 0,
+          maxHeight: 170,
         }}
       >
         <line
@@ -64,7 +69,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           y2={PAD_T + PLOT_H}
           stroke={token.colorBorderSecondary}
           strokeWidth={1}
-          vectorEffect="non-scaling-stroke"
         />
 
         <polyline
@@ -74,7 +78,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
         />
         <polyline
           points={toPoints(income)}
@@ -83,7 +86,6 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
-          vectorEffect="non-scaling-stroke"
         />
 
         {income.map((v, i) => (

@@ -28,19 +28,15 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
         margin={data.margin}
       />
 
-      <MonthlyChart
-        income={data.monthlyIncome}
-        expenses={data.monthlyExpenses}
-        color={color}
-      />
-
       <Flex gap={12} wrap align="stretch">
+        <MonthlyChart
+          income={data.monthlyIncome}
+          expenses={data.monthlyExpenses}
+          color={color}
+        />
         <MonthlyProfitChart profit={data.monthlyProfit} />
         <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
         <MarginTrendChart monthlyMargin={data.monthlyMargin} color={color} />
-      </Flex>
-
-      <Flex gap={12} wrap align="stretch">
         <CategoryDonut
           categoryTotals={data.categoryTotals}
           totalDocs={data.totalDocs}
