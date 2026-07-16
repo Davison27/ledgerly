@@ -9,6 +9,7 @@ import { RootLayout } from '../components/layout/RootLayout';
 import { LoginPage } from '../features/auth/LoginPage';
 import { ProjectsPage } from '../features/projects/ProjectsPage';
 import { ProjectDetailPage } from '../features/projects/ProjectDetailPage';
+import { ExtractionHintsPage } from '../features/extraction-hints/ExtractionHintsPage';
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -36,9 +37,19 @@ const projectDetailRoute = createRoute({
   component: ProjectDetailPage,
 });
 
+const extractionHintsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/extraction-hints',
+  component: ExtractionHintsPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
-  appLayoutRoute.addChildren([projectsRoute, projectDetailRoute]),
+  appLayoutRoute.addChildren([
+    projectsRoute,
+    projectDetailRoute,
+    extractionHintsRoute,
+  ]),
 ]);
 
 export const router = createRouter({ routeTree });
