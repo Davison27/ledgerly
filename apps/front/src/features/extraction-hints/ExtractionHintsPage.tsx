@@ -24,23 +24,23 @@ import type { ExtractionHintDto } from '../../data/api/types';
 const { Title, Text } = Typography;
 
 interface IssuerGroup {
-  issuerTaxId: string;
+  issuerName: string;
   hints: ExtractionHintDto[];
 }
 
 function groupByIssuer(hints: ExtractionHintDto[]): IssuerGroup[] {
   const map = new Map<string, ExtractionHintDto[]>();
   for (const hint of hints) {
-    const group = map.get(hint.issuerTaxId);
+    const group = map.get(hint.issuerName);
     if (group) {
       group.push(hint);
     } else {
-      map.set(hint.issuerTaxId, [hint]);
+      map.set(hint.issuerName, [hint]);
     }
   }
   return Array.from(map.entries())
-    .map(([issuerTaxId, groupHints]) => ({ issuerTaxId, hints: groupHints }))
-    .sort((a, b) => a.issuerTaxId.localeCompare(b.issuerTaxId));
+    .map(([issuerName, groupHints]) => ({ issuerName, hints: groupHints }))
+    .sort((a, b) => a.issuerName.localeCompare(b.issuerName));
 }
 
 export function ExtractionHintsPage() {
@@ -163,12 +163,14 @@ export function ExtractionHintsPage() {
         <Empty description={t('extractionHints.empty')} />
       ) : (
         <Collapse
-          defaultActiveKey={groups.map((group) => group.issuerTaxId)}
+          defaultActiveKey={groups.map((group) => group.issuerName)}
           items={groups.map((group) => ({
-            key: group.issuerTaxId,
+            key: group.issuerName,
             label: (
               <Flex align="center" gap={8}>
-                <Text strong>{group.issuerTaxId}</Text>
+                <Text strong>
+                  {group.issuerName || t('extractionHints.unknownIssuer')}
+                </Text>
                 <Tag>
                   {t(
                     group.hints.length === 1

@@ -338,6 +338,7 @@
     "navLabel": "Pistas aprendidas",
     "title": "Pistas de extracción aprendidas",
     "subtitle": "Patrones que el sistema ha aprendido de tus facturas, agrupados por emisor. Elimina una pista para deshacer un aprendizaje incorrecto.",
+    "unknownIssuer": "Emisor desconocido",
     "empty": "Todavía no se ha aprendido ninguna pista de extracción.",
     "loadError": "No se han podido cargar las pistas de extracción.",
     "hintCountOne": "{{count}} pista",

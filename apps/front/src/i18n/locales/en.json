@@ -338,6 +338,7 @@
     "navLabel": "Learned hints",
     "title": "Learned extraction hints",
     "subtitle": "Patterns the system has learned from your invoices, grouped by issuer. Delete a hint to undo an incorrect learning.",
+    "unknownIssuer": "Unknown issuer",
     "empty": "No extraction hints have been learned yet.",
     "loadError": "Extraction hints could not be loaded.",
     "hintCountOne": "{{count}} hint",

@@ -182,7 +182,7 @@ export type ExtractionHintAnchorKind = 'inline' | 'preceding-line';
 
 export interface ExtractionHintDto {
   id: string;
-  issuerTaxId: string;
+  issuerName: string;
   field: ExtractionHintField;
   anchorKind: ExtractionHintAnchorKind;
   anchorLabel: string;
