@@ -8,6 +8,7 @@ import { SharedModule } from './shared/shared.module';
 import { CompanyModule } from './contexts/company/company.module';
 import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
+import { SuppliersModule } from './contexts/suppliers/suppliers.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { DocumentsModule } from './contexts/documents/documents.module';
     CompanyModule,
     ProjectsModule,
     DocumentsModule,
+    SuppliersModule,
   ],
   controllers: [AppController],
   providers: [AppService],
