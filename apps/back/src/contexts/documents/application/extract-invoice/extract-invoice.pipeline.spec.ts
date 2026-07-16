@@ -3,13 +3,21 @@ import { join } from 'path';
 import { ExtractInvoiceUseCase } from './extract-invoice.use-case';
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
+import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
 
 function loadFixture(name: string): Buffer {
   return readFileSync(join(__dirname, '../../infrastructure/pdf/__fixtures__', name));
 }
 
+class NoHintsRepository implements InvoiceHintRepository {
+  findByIssuer = () => Promise.resolve([]);
+  findAll = () => Promise.resolve([]);
+  upsert = () => Promise.resolve();
+  delete = () => Promise.resolve();
+}
+
 describe('ExtractInvoiceUseCase + PdfjsPdfReader (end-to-end, no DB/HTTP)', () => {
-  const useCase = new ExtractInvoiceUseCase(new PdfjsPdfReader());
+  const useCase = new ExtractInvoiceUseCase(new PdfjsPdfReader(), new NoHintsRepository());
 
   it('extracts via the embedded Factur-X attachment for a real PDF', async () => {
     const result = await useCase.execute(loadFixture('facturx-invoice.pdf'));

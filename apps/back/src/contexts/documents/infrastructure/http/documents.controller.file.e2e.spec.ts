@@ -11,6 +11,8 @@ import { CreateDocumentUseCase } from '../../application/create-document/create-
 import { DeleteDocumentUseCase } from '../../application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
+import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
+import { RecordExtractionFeedbackCommand } from '../../application/record-extraction-feedback/record-extraction-feedback.command';
 import { CreateDocumentCommand } from '../../application/create-document/create-document.command';
 import { Document } from '../../domain/document';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
@@ -33,6 +35,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
   let httpServer: Server;
   let createExecute: jest.Mock<Promise<Document>, [CreateDocumentCommand]>;
   let getFileExecute: jest.Mock;
+  let recordFeedbackExecute: jest.Mock<Promise<void>, [RecordExtractionFeedbackCommand]>;
 
   beforeAll(async () => {
     createExecute = jest.fn((command: CreateDocumentCommand) =>
@@ -62,6 +65,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
     );
 
     getFileExecute = jest.fn();
+    recordFeedbackExecute = jest.fn<Promise<void>, [RecordExtractionFeedbackCommand]>().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsController],
@@ -72,6 +76,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         { provide: DeleteDocumentUseCase, useValue: {} },
         { provide: ExtractInvoiceUseCase, useValue: {} },
         { provide: GetDocumentFileUseCase, useValue: { execute: getFileExecute } },
+        { provide: RecordExtractionFeedbackUseCase, useValue: { execute: recordFeedbackExecute } },
       ],
     }).compile();
 
@@ -85,6 +90,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
   afterEach(() => {
     createExecute.mockClear();
     getFileExecute.mockClear();
+    recordFeedbackExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -116,6 +122,10 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       const command = createExecute.mock.calls[0][0];
       expect(command.file?.originalName).toBe('invoice.pdf');
       expect(command.file?.buffer.equals(pdf)).toBe(true);
+
+      expect(recordFeedbackExecute).toHaveBeenCalledTimes(1);
+      const feedbackCommand = recordFeedbackExecute.mock.calls[0][0];
+      expect(feedbackCommand.fileBuffer.equals(pdf)).toBe(true);
     });
 
     it('creates a document without a file part and reports hasFile: false', async () => {
@@ -130,6 +140,20 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
 
       const command = createExecute.mock.calls[0][0];
       expect(command.file).toBeUndefined();
+      expect(recordFeedbackExecute).not.toHaveBeenCalled();
+    });
+
+    it('still returns 201 when recording extraction feedback fails', async () => {
+      recordFeedbackExecute.mockRejectedValueOnce(new Error('boom'));
+      const pdf = loadFixture('facturx-invoice.pdf');
+
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify(BASE_PAYLOAD))
+        .attach('file', pdf, { filename: 'invoice.pdf', contentType: 'application/pdf' });
+
+      expect(response.status).toBe(201);
+      expect(recordFeedbackExecute).toHaveBeenCalledTimes(1);
     });
 
     it('returns 400 when payload is missing', async () => {

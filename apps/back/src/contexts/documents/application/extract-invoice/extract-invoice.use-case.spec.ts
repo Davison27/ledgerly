@@ -3,6 +3,7 @@ import { PdfReader, PdfReadResult } from '../../domain/extraction/pdf-reader.por
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
 import { FACTURAE_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturae-sample.xml';
 import { FACTURX_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturx-sample.xml';
+import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
 
 class FakePdfReader implements PdfReader {
   constructor(private readonly result: PdfReadResult) {}
@@ -12,6 +13,13 @@ class FakePdfReader implements PdfReader {
   }
 }
 
+class NoHintsRepository implements InvoiceHintRepository {
+  findByIssuer = () => Promise.resolve([]);
+  findAll = () => Promise.resolve([]);
+  upsert = () => Promise.resolve();
+  delete = () => Promise.resolve();
+}
+
 describe('ExtractInvoiceUseCase', () => {
   it('prefers a Facturae attachment over the text layer when both are present', async () => {
     const useCase = new ExtractInvoiceUseCase(
@@ -19,6 +27,7 @@ describe('ExtractInvoiceUseCase', () => {
         text: 'Some unrelated text layer that would parse as heuristic',
         attachments: [{ filename: 'facturae.xml', content: Buffer.from(FACTURAE_SAMPLE_XML, 'utf-8') }],
       }),
+      new NoHintsRepository(),
     );
 
     const result = await useCase.execute(Buffer.from('fake-pdf'));
@@ -39,6 +48,7 @@ describe('ExtractInvoiceUseCase', () => {
         text: '',
         attachments: [{ filename: 'factur-x.xml', content: Buffer.from(FACTURX_SAMPLE_XML, 'utf-8') }],
       }),
+      new NoHintsRepository(),
     );
 
     const result = await useCase.execute(Buffer.from('fake-pdf'));
@@ -55,6 +65,7 @@ describe('ExtractInvoiceUseCase', () => {
         text: ['Mi Empresa SL', 'CIF: B12345678', 'Factura numero de factura: F-1', 'TOTAL: 100,00 EUR'].join('\n'),
         attachments: [],
       }),
+      new NoHintsRepository(),
     );
 
     const result = await useCase.execute(Buffer.from('fake-pdf'));
@@ -71,6 +82,7 @@ describe('ExtractInvoiceUseCase', () => {
         text: 'Unrelated text with no invoice-like structure at all.',
         attachments: [],
       }),
+      new NoHintsRepository(),
     );
 
     const result = await useCase.execute(Buffer.from('fake-pdf'));
@@ -85,6 +97,7 @@ describe('ExtractInvoiceUseCase', () => {
         text: '   \n  ',
         attachments: [],
       }),
+      new NoHintsRepository(),
     );
 
     await expect(useCase.execute(Buffer.from('fake-pdf'))).rejects.toThrow(PdfNoTextLayerException);
@@ -96,10 +109,49 @@ describe('ExtractInvoiceUseCase', () => {
         text: 'CIF: B12345678\nTOTAL: 50,00 EUR',
         attachments: [{ filename: 'logo.png', content: Buffer.from([0x89, 0x50, 0x4e, 0x47]) }],
       }),
+      new NoHintsRepository(),
     );
 
     const result = await useCase.execute(Buffer.from('fake-pdf'));
 
     expect(result.source).toBe('heuristic');
+  });
+
+  it('applies a learned hint for the issuer to override a heuristically-extracted field', async () => {
+    class SingleHintRepository implements InvoiceHintRepository {
+      findByIssuer = (issuerTaxId: string) =>
+        Promise.resolve(
+          issuerTaxId === 'B12345678'
+            ? [
+                {
+                  id: 'hint-1',
+                  issuerTaxId: 'B12345678',
+                  field: 'invoiceNumber' as const,
+                  anchorKind: 'inline' as const,
+                  anchorLabel: 'Ref interna',
+                  lineOffset: 0,
+                  sampleValue: 'REF-9',
+                  occurrences: 3,
+                },
+              ]
+            : [],
+        );
+      findAll = () => Promise.resolve([]);
+      upsert = () => Promise.resolve();
+      delete = () => Promise.resolve();
+    }
+
+    const useCase = new ExtractInvoiceUseCase(
+      new FakePdfReader({
+        text: ['Mi Empresa SL', 'CIF: B12345678', 'Ref interna: REF-9', 'TOTAL: 100,00 EUR'].join('\n'),
+        attachments: [],
+      }),
+      new SingleHintRepository(),
+    );
+
+    const result = await useCase.execute(Buffer.from('fake-pdf'));
+
+    expect(result.source).toBe('heuristic');
+    expect(result.fields.invoiceNumber).toBe('REF-9');
   });
 });

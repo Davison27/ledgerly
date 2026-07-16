@@ -6,6 +6,7 @@ import {
   Get,
   Header,
   HttpCode,
+  Logger,
   NotFoundException,
   Param,
   Post,
@@ -27,6 +28,7 @@ import { DeleteDocumentUseCase } from '../../application/delete-document/delete-
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
+import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
 import { CreateDocumentDto } from './dtos/create-document.dto';
 import { ListDocumentsQueryDto } from './dtos/list-documents.query.dto';
 import { DocumentResponse } from './document.response';
@@ -37,6 +39,8 @@ const PDF_MAGIC_BYTES = Buffer.from('%PDF-');
 
 @Controller('projects/:projectId/documents')
 export class DocumentsController {
+  private readonly logger = new Logger(DocumentsController.name);
+
   constructor(
     private readonly listDocumentsUseCase: ListDocumentsUseCase,
     private readonly getDocumentUseCase: GetDocumentUseCase,
@@ -44,6 +48,7 @@ export class DocumentsController {
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
     private readonly extractInvoiceUseCase: ExtractInvoiceUseCase,
     private readonly getDocumentFileUseCase: GetDocumentFileUseCase,
+    private readonly recordExtractionFeedbackUseCase: RecordExtractionFeedbackUseCase,
   ) {}
 
   @Get()
@@ -111,7 +116,35 @@ export class DocumentsController {
         : undefined,
     });
 
+    if (file) {
+      await this.recordExtractionFeedback(file.buffer, dto);
+    }
+
     return DocumentResponse.fromDomain(document);
+  }
+
+  // Best-effort, server-side learning: re-reads the just-uploaded PDF to
+  // compare it against what the user actually submitted. Never allowed to
+  // fail the document creation itself.
+  private async recordExtractionFeedback(fileBuffer: Buffer, dto: CreateDocumentDto): Promise<void> {
+    try {
+      await this.recordExtractionFeedbackUseCase.execute({
+        fileBuffer,
+        submitted: {
+          issuerName: dto.issuerName,
+          issuerTaxId: dto.issuerTaxId,
+          invoiceNumber: dto.invoiceNumber,
+          date: dto.date,
+          dueDate: dto.dueDate,
+          amount: dto.amount,
+          taxBase: dto.taxBase,
+          taxRate: dto.taxRate,
+          taxAmount: dto.taxAmount,
+        },
+      });
+    } catch (error) {
+      this.logger.warn(`Failed to record extraction feedback: ${(error as Error).message}`);
+    }
   }
 
   private async parseCreateDocumentPayload(payload: string): Promise<CreateDocumentDto> {

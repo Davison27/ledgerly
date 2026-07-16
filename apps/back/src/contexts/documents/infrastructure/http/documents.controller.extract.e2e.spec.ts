@@ -12,7 +12,9 @@ import { DeleteDocumentUseCase } from '../../application/delete-document/delete-
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
+import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
 import { PDF_READER } from '../../domain/extraction/pdf-reader.port';
+import { INVOICE_HINT_REPOSITORY } from '../../domain/extraction/hints/invoice-hint.repository';
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 
@@ -34,8 +36,10 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
         { provide: CreateDocumentUseCase, useValue: {} },
         { provide: DeleteDocumentUseCase, useValue: {} },
         { provide: GetDocumentFileUseCase, useValue: {} },
+        { provide: RecordExtractionFeedbackUseCase, useValue: {} },
         ExtractInvoiceUseCase,
         { provide: PDF_READER, useClass: PdfjsPdfReader },
+        { provide: INVOICE_HINT_REPOSITORY, useValue: { findByIssuer: () => Promise.resolve([]) } },
       ],
     }).compile();
 
