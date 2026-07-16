@@ -37,6 +37,9 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
         <MonthlyProfitChart profit={data.monthlyProfit} />
         <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
         <MarginTrendChart monthlyMargin={data.monthlyMargin} color={color} />
+      </Flex>
+
+      <Flex gap={12} wrap align="stretch">
         <CategoryDonut
           categoryTotals={data.categoryTotals}
           totalDocs={data.totalDocs}
