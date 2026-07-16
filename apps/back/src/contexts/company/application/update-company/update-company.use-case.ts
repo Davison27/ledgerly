@@ -1,19 +1,25 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Company } from '../../domain/company';
-import { CompanyNotFoundException } from '../../domain/errors/company-not-found.exception';
 import { COMPANY_REPOSITORY, CompanyRepository } from '../../domain/company.repository';
+import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { UpdateCompanyCommand } from './update-company.command';
 
 @Injectable()
 export class UpdateCompanyUseCase {
-  constructor(@Inject(COMPANY_REPOSITORY) private readonly repository: CompanyRepository) {}
+  constructor(
+    @Inject(COMPANY_REPOSITORY) private readonly repository: CompanyRepository,
+    @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
+  ) {}
 
   async execute(command: UpdateCompanyCommand): Promise<Company> {
-    const company = await this.repository.find();
+    const existing = await this.repository.find();
 
-    if (!company) {
-      throw new CompanyNotFoundException();
-    }
+    const company =
+      existing ??
+      Company.create({
+        id: this.idGenerator.generate(),
+        name: command.name ?? '',
+      });
 
     if (command.name !== undefined) {
       company.rename(command.name);
