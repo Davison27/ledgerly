@@ -45,8 +45,9 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
   useEffect(() => {
     if (open) {
       setLogo(company.logo);
+      form.setFieldsValue(company);
     }
-  }, [open, company.logo]);
+  }, [open, company, form]);
 
   const handleCancel = () => {
     form.resetFields();
