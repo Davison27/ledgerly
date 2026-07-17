@@ -15,11 +15,27 @@
     "comingSoon": "Esta función estará disponible próximamente"
   },
   "login": {
+    "welcome": "Bienvenido a Ledgerly",
     "subtitle": "Plataforma de gestión",
-    "signIn": "Iniciar sesión"
+    "signIn": "Entrar",
+    "tagline": "Gestiona tus proyectos, documentos y finanzas en un solo lugar."
   },
   "topbar": {
     "newTab": "Nueva pestaña"
+  },
+  "onboarding": {
+    "title": "Configura tu empresa",
+    "welcome": "Antes de empezar, cuéntanos un poco sobre tu empresa. Solo te llevará un minuto.",
+    "steps": {
+      "company": "Empresa",
+      "contact": "Contacto",
+      "address": "Dirección"
+    },
+    "back": "Atrás",
+    "next": "Siguiente",
+    "finish": "Finalizar",
+    "success": "Empresa configurada correctamente",
+    "error": "No se ha podido guardar la empresa. Inténtalo de nuevo."
   },
   "company": {
     "settings": {
