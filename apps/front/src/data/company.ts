@@ -1,11 +1,18 @@
 import { getCompany, updateCompany as updateCompanyRequest } from './api/company.api';
-import { createProject, deleteProject, listProjects } from './api/projects.api';
+import {
+  createProject,
+  deleteProject,
+  getProject,
+  listProjects,
+  updateProject as updateProjectRequest,
+} from './api/projects.api';
 import type {
   CompanyDto,
   CreateProjectPayload,
   ProjectDto,
   ProjectSummaryDto,
   UpdateCompanyPayload,
+  UpdateProjectPayload,
 } from './api/types';
 
 export type ProjectType =
@@ -41,6 +48,7 @@ export interface Project {
   currency?: ProjectCurrency;
   fiscalYear?: string;
   manager?: string;
+  image?: string;
 }
 
 export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingCount'>;
@@ -68,6 +76,7 @@ function mapProjectSummary(dto: ProjectSummaryDto): Project {
     code: dto.code,
     documentCount: dto.documentCount,
     pendingCount: dto.pendingCount,
+    image: dto.image ?? undefined,
   };
 }
 
@@ -93,6 +102,7 @@ function mapProject(dto: ProjectDto): Project {
     currency: dto.currency ?? undefined,
     fiscalYear: dto.fiscalYear ?? undefined,
     manager: dto.manager ?? undefined,
+    image: dto.image ?? undefined,
   };
 }
 
@@ -134,6 +144,11 @@ export async function fetchProjects(): Promise<Project[]> {
   return dtos.map(mapProjectSummary);
 }
 
+export async function fetchProject(id: string): Promise<Project> {
+  const dto = await getProject(id);
+  return mapProject(dto);
+}
+
 export async function addProject(values: ProjectFormValues): Promise<Project> {
   const payload: CreateProjectPayload = {
     name: values.name,
@@ -153,8 +168,37 @@ export async function addProject(values: ProjectFormValues): Promise<Project> {
     currency: values.currency,
     fiscalYear: values.fiscalYear,
     manager: values.manager,
+    image: values.image,
   };
   const dto = await createProject(payload);
+  return mapProject(dto);
+}
+
+export async function updateProject(
+  projectId: string,
+  values: ProjectFormValues,
+): Promise<Project> {
+  const payload: UpdateProjectPayload = {
+    name: values.name,
+    code: values.code,
+    type: values.type,
+    status: values.status,
+    description: values.description,
+    clientCompany: values.clientCompany,
+    clientTaxId: values.clientTaxId,
+    contactName: values.contactName,
+    contactEmail: values.contactEmail,
+    contactPhone: values.contactPhone,
+    address: values.address,
+    startDate: values.startDate,
+    endDate: values.endDate,
+    budget: values.budget,
+    currency: values.currency,
+    fiscalYear: values.fiscalYear,
+    manager: values.manager,
+    image: values.image,
+  };
+  const dto = await updateProjectRequest(projectId, payload);
   return mapProject(dto);
 }
 

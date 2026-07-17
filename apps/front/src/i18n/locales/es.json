@@ -275,29 +275,21 @@
       "fieldName": "Nombre",
       "fieldCode": "Código de proyecto",
       "fieldFiscalYear": "Ejercicio fiscal",
-      "team": "Equipo",
-      "notifications": "Notificaciones",
-      "integrations": "Integraciones",
-      "connected": "Conectado",
-      "disconnected": "Desconectado",
-      "roles": {
-        "accountant": "Contable",
-        "projectManager": "Gestor de proyecto",
-        "auditor": "Auditora",
-        "admin": "Administrador"
-      },
-      "notif": {
-        "news": "Nuevas facturas",
-        "overdue": "Documentos vencidos",
-        "weekly": "Resumen semanal",
-        "team": "Cambios en el equipo"
-      }
+      "saved": "Proyecto actualizado correctamente",
+      "saveError": "No se ha podido actualizar el proyecto. Inténtalo de nuevo.",
+      "loadError": "No se ha podido cargar el proyecto."
     },
     "form": {
       "title": "Añadir proyecto",
+      "editTitle": "Editar proyecto",
       "submit": "Crear proyecto",
+      "save": "Guardar cambios",
       "created": "Proyecto creado correctamente",
       "createError": "No se ha podido crear el proyecto. Inténtalo de nuevo.",
+      "updated": "Proyecto actualizado correctamente",
+      "updateError": "No se ha podido actualizar el proyecto. Inténtalo de nuevo.",
+      "duplicateCode": "Ya existe un proyecto con ese código.",
+      "loadError": "No se ha podido cargar el proyecto.",
       "sections": {
         "general": "General",
         "client": "Cliente / Contacto",
@@ -320,7 +312,13 @@
         "budget": "Presupuesto",
         "currency": "Moneda",
         "fiscalYear": "Ejercicio fiscal",
-        "manager": "Responsable"
+        "manager": "Responsable",
+        "image": "Imagen del proyecto"
+      },
+      "image": {
+        "upload": "Subir imagen",
+        "hint": "PNG o JPG, tamaño recomendado 256x256 px",
+        "remove": "Quitar imagen"
       },
       "placeholders": {
         "name": "Ej. La que se avecina",

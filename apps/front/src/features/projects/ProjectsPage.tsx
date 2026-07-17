@@ -3,7 +3,8 @@ import { useNavigate } from '@tanstack/react-router';
 import { App, Button, Flex, Spin, Typography, theme } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { Project, ProjectFormValues } from '../../data/company';
+import { fetchProject, type Project, type ProjectFormValues } from '../../data/company';
+import { ApiError } from '../../data/api/httpClient';
 import { useCompany } from '../../app/providers/CompanyProvider';
 import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { ProjectCard } from './components/ProjectCard';
@@ -16,9 +17,11 @@ export function ProjectsPage() {
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
   const { token } = theme.useToken();
-  const { projects, projectsLoading, addProject, removeProject } = useCompany();
+  const { projects, projectsLoading, addProject, updateProject, removeProject } = useCompany();
   const { openProject, isOpen, closeProject } = useOpenProjects();
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
 
   const handleOpen = (project: Project) => {
     openProject(project.id);
@@ -28,8 +31,22 @@ export function ProjectsPage() {
     });
   };
 
-  const handleEdit = (project: Project) => {
-    void message.info(`${project.name}: ${t('common.comingSoon')}`);
+  const handleCreate = () => {
+    setEditingProject(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEdit = async (project: Project) => {
+    setLoadingEditId(project.id);
+    try {
+      const full = await fetchProject(project.id);
+      setEditingProject(full);
+      setIsFormOpen(true);
+    } catch {
+      void message.error(t('projects.form.loadError'));
+    } finally {
+      setLoadingEditId(null);
+    }
   };
 
   const handleDelete = (project: Project) => {
@@ -50,13 +67,30 @@ export function ProjectsPage() {
     });
   };
 
-  const handleCreate = async (values: ProjectFormValues) => {
+  const handleFormCancel = () => {
+    setIsFormOpen(false);
+    setEditingProject(null);
+  };
+
+  const handleSubmit = async (values: ProjectFormValues) => {
     try {
-      await addProject(values);
+      if (editingProject) {
+        await updateProject(editingProject.id, values);
+        void message.success(t('projects.form.updated'));
+      } else {
+        await addProject(values);
+        void message.success(t('projects.form.created'));
+      }
       setIsFormOpen(false);
-      void message.success(t('projects.form.created'));
-    } catch {
-      void message.error(t('projects.form.createError'));
+      setEditingProject(null);
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409) {
+        void message.error(t('projects.form.duplicateCode'));
+      } else {
+        void message.error(
+          editingProject ? t('projects.form.updateError') : t('projects.form.createError'),
+        );
+      }
     }
   };
 
@@ -66,7 +100,7 @@ export function ProjectsPage() {
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
           {t('projects.title')}
         </Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsFormOpen(true)}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
           {t('common.add')}
         </Button>
       </Flex>
@@ -92,6 +126,7 @@ export function ProjectsPage() {
               project={project}
               color={token.colorPrimary}
               isOpen={isOpen(project.id)}
+              editLoading={loadingEditId === project.id}
               onOpen={handleOpen}
               onEdit={handleEdit}
               onDelete={handleDelete}
@@ -102,8 +137,9 @@ export function ProjectsPage() {
 
       <ProjectFormModal
         open={isFormOpen}
-        onCancel={() => setIsFormOpen(false)}
-        onSubmit={handleCreate}
+        project={editingProject}
+        onCancel={handleFormCancel}
+        onSubmit={handleSubmit}
       />
     </div>
   );
