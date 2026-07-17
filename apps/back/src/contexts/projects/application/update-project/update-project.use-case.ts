@@ -98,6 +98,10 @@ export class UpdateProjectUseCase {
       project.changeManager(command.manager);
     }
 
+    if (command.image !== undefined) {
+      project.changeImage(command.image);
+    }
+
     await this.projectRepository.save(project);
 
     return project;

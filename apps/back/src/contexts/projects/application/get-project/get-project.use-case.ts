@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ProjectSummary } from '../../domain/project-summary';
+import { Project } from '../../domain/project';
 import {
   PROJECT_REPOSITORY,
   ProjectRepository,
@@ -13,13 +13,13 @@ export class GetProjectUseCase {
     private readonly projectRepository: ProjectRepository,
   ) {}
 
-  async execute(id: string): Promise<ProjectSummary> {
-    const summary = await this.projectRepository.findSummaryById(id);
+  async execute(id: string): Promise<Project> {
+    const project = await this.projectRepository.findById(id);
 
-    if (summary === null) {
+    if (project === null) {
       throw new ProjectNotFoundException(id);
     }
 
-    return summary;
+    return project;
   }
 }

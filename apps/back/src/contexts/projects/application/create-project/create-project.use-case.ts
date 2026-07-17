@@ -46,6 +46,7 @@ export class CreateProjectUseCase {
       currency: command.currency ?? 'EUR',
       fiscalYear: command.fiscalYear ?? null,
       manager: command.manager ?? null,
+      image: command.image ?? null,
     });
 
     await this.projectRepository.save(project);

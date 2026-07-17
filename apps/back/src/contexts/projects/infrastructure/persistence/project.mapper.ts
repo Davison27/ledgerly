@@ -25,6 +25,7 @@ export class ProjectMapper {
       currency: orm.currency as ProjectCurrency,
       fiscalYear: orm.fiscalYear,
       manager: orm.manager,
+      image: orm.image,
     });
   }
 
@@ -50,6 +51,7 @@ export class ProjectMapper {
     orm.currency = primitives.currency;
     orm.fiscalYear = primitives.fiscalYear;
     orm.manager = primitives.manager;
+    orm.image = primitives.image;
 
     return orm;
   }

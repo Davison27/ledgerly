@@ -56,16 +56,17 @@ export class ProjectsController {
       currency: dto.currency,
       fiscalYear: dto.fiscalYear,
       manager: dto.manager,
+      image: dto.image,
     });
 
     return ProjectResponse.fromDomain(project);
   }
 
   @Get(':id')
-  async get(@Param('id') id: string): Promise<ProjectSummaryResponse> {
-    const summary = await this.getProjectUseCase.execute(id);
+  async get(@Param('id') id: string): Promise<ProjectResponse> {
+    const project = await this.getProjectUseCase.execute(id);
 
-    return ProjectSummaryResponse.fromSummary(summary);
+    return ProjectResponse.fromDomain(project);
   }
 
   @Patch(':id')
@@ -92,6 +93,7 @@ export class ProjectsController {
       currency: dto.currency,
       fiscalYear: dto.fiscalYear,
       manager: dto.manager,
+      image: dto.image,
     });
 
     return ProjectResponse.fromDomain(project);
