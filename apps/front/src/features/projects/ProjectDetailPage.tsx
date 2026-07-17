@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
-import { Flex, Segmented, Typography, theme } from 'antd';
+import { Avatar, Flex, Segmented, Typography, theme } from 'antd';
+import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
 import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
@@ -55,13 +56,25 @@ export function ProjectDetailPage() {
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
-        <Flex align="baseline" gap={8}>
-          <Text strong style={{ fontSize: 16 }}>
-            {project.name}
-          </Text>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {project.code}
-          </Text>
+        <Flex align="center" gap={10}>
+          {project.image ? (
+            <Avatar shape="square" size={28} src={project.image} />
+          ) : (
+            <Avatar
+              shape="square"
+              size={28}
+              style={{ backgroundColor: token.colorPrimary }}
+              icon={<ProjectOutlined />}
+            />
+          )}
+          <Flex align="baseline" gap={8}>
+            <Text strong style={{ fontSize: 16 }}>
+              {project.name}
+            </Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {project.code}
+            </Text>
+          </Flex>
         </Flex>
         <Segmented<Section>
           value={section}

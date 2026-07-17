@@ -13,6 +13,7 @@ import {
   fetchProjects,
   removeProject as removeProjectApi,
   updateCompany as updateCompanyApi,
+  updateProject as updateProjectApi,
   type Company,
   type Project,
   type ProjectFormValues,
@@ -27,6 +28,7 @@ interface CompanyContextValue {
   projectsLoading: boolean;
   updateCompany: (patch: Partial<Omit<Company, 'id'>>) => Promise<void>;
   addProject: (values: ProjectFormValues) => Promise<void>;
+  updateProject: (projectId: string, values: ProjectFormValues) => Promise<void>;
   removeProject: (projectId: string) => Promise<void>;
 }
 
@@ -98,6 +100,15 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     [reloadProjects],
   );
 
+  const updateProject = useCallback(
+    async (projectId: string, values: ProjectFormValues) => {
+      await updateProjectApi(projectId, values);
+      // Refetch from the backend so documentCount/pendingCount stay authoritative.
+      await reloadProjects();
+    },
+    [reloadProjects],
+  );
+
   const removeProject = useCallback(async (projectId: string) => {
     await removeProjectApi(projectId);
     setProjects((prev) => prev.filter((p) => p.id !== projectId));
@@ -111,9 +122,19 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
       projectsLoading,
       updateCompany,
       addProject,
+      updateProject,
       removeProject,
     }),
-    [company, companyLoading, projects, projectsLoading, updateCompany, addProject, removeProject],
+    [
+      company,
+      companyLoading,
+      projects,
+      projectsLoading,
+      updateCompany,
+      addProject,
+      updateProject,
+      removeProject,
+    ],
   );
 
   return <CompanyContext.Provider value={value}>{children}</CompanyContext.Provider>;

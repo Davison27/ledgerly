@@ -3,6 +3,7 @@ import {
   EditOutlined,
   DeleteOutlined,
   ExportOutlined,
+  LoadingOutlined,
   ProjectOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -15,6 +16,7 @@ export interface ProjectCardProps {
   project: Project;
   color: string;
   isOpen?: boolean;
+  editLoading?: boolean;
   onOpen: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
@@ -24,6 +26,7 @@ export function ProjectCard({
   project,
   color,
   isOpen,
+  editLoading,
   onOpen,
   onEdit,
   onDelete,
@@ -50,12 +53,16 @@ export function ProjectCard({
       />
     </Tooltip>,
     <Tooltip key="edit" title={t('common.edit')}>
-      <EditOutlined
-        onClick={(e) => {
-          e.stopPropagation();
-          onEdit(project);
-        }}
-      />
+      {editLoading ? (
+        <LoadingOutlined />
+      ) : (
+        <EditOutlined
+          onClick={(e) => {
+            e.stopPropagation();
+            onEdit(project);
+          }}
+        />
+      )}
     </Tooltip>,
     <Tooltip key="open" title={t('common.open')}>
       <ExportOutlined
@@ -73,12 +80,16 @@ export function ProjectCard({
       <Meta
         avatar={
           <Badge dot={isOpen} color={token.colorSuccess} offset={[-4, 4]}>
-            <Avatar
-              shape="square"
-              size={48}
-              style={{ backgroundColor: color }}
-              icon={<ProjectOutlined />}
-            />
+            {project.image ? (
+              <Avatar shape="square" size={48} src={project.image} />
+            ) : (
+              <Avatar
+                shape="square"
+                size={48}
+                style={{ backgroundColor: color }}
+                icon={<ProjectOutlined />}
+              />
+            )}
           </Badge>
         }
         title={project.name}

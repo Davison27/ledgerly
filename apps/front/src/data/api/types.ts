@@ -19,6 +19,7 @@ export interface ProjectSummaryDto {
   code: string;
   documentCount: number;
   pendingCount: number;
+  image?: string | null;
 }
 
 export interface ProjectDto {
@@ -40,6 +41,7 @@ export interface ProjectDto {
   currency?: ProjectCurrencyDto | null;
   fiscalYear?: string | null;
   manager?: string | null;
+  image?: string | null;
 }
 
 export interface CreateProjectPayload {
@@ -60,6 +62,28 @@ export interface CreateProjectPayload {
   currency?: ProjectCurrencyDto;
   fiscalYear?: string;
   manager?: string;
+  image?: string;
+}
+
+export interface UpdateProjectPayload {
+  name?: string;
+  code?: string;
+  type?: ProjectTypeDto;
+  status?: ProjectStatusDto;
+  description?: string;
+  clientCompany?: string;
+  clientTaxId?: string;
+  contactName?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  address?: string;
+  startDate?: string;
+  endDate?: string;
+  budget?: number;
+  currency?: ProjectCurrencyDto;
+  fiscalYear?: string;
+  manager?: string;
+  image?: string;
 }
 
 export interface CompanyDto {

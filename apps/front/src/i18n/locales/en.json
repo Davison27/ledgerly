@@ -275,29 +275,21 @@
       "fieldName": "Name",
       "fieldCode": "Project code",
       "fieldFiscalYear": "Fiscal year",
-      "team": "Team",
-      "notifications": "Notifications",
-      "integrations": "Integrations",
-      "connected": "Connected",
-      "disconnected": "Disconnected",
-      "roles": {
-        "accountant": "Accountant",
-        "projectManager": "Project manager",
-        "auditor": "Auditor",
-        "admin": "Administrator"
-      },
-      "notif": {
-        "news": "New invoices",
-        "overdue": "Overdue documents",
-        "weekly": "Weekly summary",
-        "team": "Team changes"
-      }
+      "saved": "Project updated successfully",
+      "saveError": "The project could not be updated. Please try again.",
+      "loadError": "The project could not be loaded."
     },
     "form": {
       "title": "Add project",
+      "editTitle": "Edit project",
       "submit": "Create project",
+      "save": "Save changes",
       "created": "Project created successfully",
       "createError": "The project could not be created. Please try again.",
+      "updated": "Project updated successfully",
+      "updateError": "The project could not be updated. Please try again.",
+      "duplicateCode": "A project with that code already exists.",
+      "loadError": "The project could not be loaded.",
       "sections": {
         "general": "General",
         "client": "Client / Contact",
@@ -320,7 +312,13 @@
         "budget": "Budget",
         "currency": "Currency",
         "fiscalYear": "Fiscal year",
-        "manager": "Manager"
+        "manager": "Manager",
+        "image": "Project image"
+      },
+      "image": {
+        "upload": "Upload image",
+        "hint": "PNG or JPG, recommended size 256x256 px",
+        "remove": "Remove image"
       },
       "placeholders": {
         "name": "E.g. La que se avecina",
