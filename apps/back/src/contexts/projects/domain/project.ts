@@ -57,6 +57,7 @@ export interface ProjectPrimitives {
   currency: ProjectCurrency;
   fiscalYear: string | null;
   manager: string | null;
+  image: string | null;
 }
 
 interface ProjectProps {
@@ -78,6 +79,7 @@ interface ProjectProps {
   currency: ProjectCurrency;
   fiscalYear: string | null;
   manager: string | null;
+  image: string | null;
 }
 
 export class Project {
@@ -99,6 +101,7 @@ export class Project {
   private currency_: ProjectCurrency;
   private fiscalYear_: string | null;
   private manager_: string | null;
+  private image_: string | null;
 
   private constructor(props: ProjectProps) {
     this.id_ = props.id;
@@ -119,6 +122,7 @@ export class Project {
     this.currency_ = props.currency;
     this.fiscalYear_ = props.fiscalYear;
     this.manager_ = props.manager;
+    this.image_ = props.image;
   }
 
   static create(params: ProjectPrimitives): Project {
@@ -151,6 +155,7 @@ export class Project {
       currency: params.currency,
       fiscalYear: params.fiscalYear,
       manager: params.manager,
+      image: params.image,
     });
   }
 
@@ -228,6 +233,10 @@ export class Project {
     this.manager_ = manager;
   }
 
+  changeImage(image: string | null): void {
+    this.image_ = image;
+  }
+
   get id(): string {
     return this.id_;
   }
@@ -300,6 +309,10 @@ export class Project {
     return this.manager_;
   }
 
+  get image(): string | null {
+    return this.image_;
+  }
+
   toPrimitives(): ProjectPrimitives {
     return {
       id: this.id_,
@@ -320,6 +333,7 @@ export class Project {
       currency: this.currency_,
       fiscalYear: this.fiscalYear_,
       manager: this.manager_,
+      image: this.image_,
     };
   }
 }

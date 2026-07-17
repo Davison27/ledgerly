@@ -85,4 +85,8 @@ export class UpdateProjectDto {
   @IsOptional()
   @IsString()
   manager?: string | null;
+
+  @IsOptional()
+  @IsString()
+  image?: string | null;
 }

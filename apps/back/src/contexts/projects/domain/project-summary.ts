@@ -4,4 +4,5 @@ export interface ProjectSummary {
   code: string;
   documentCount: number;
   pendingCount: number;
+  image: string | null;
 }

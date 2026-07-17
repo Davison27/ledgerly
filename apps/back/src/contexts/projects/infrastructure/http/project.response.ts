@@ -22,6 +22,7 @@ export class ProjectResponse {
   currency: ProjectCurrency;
   fiscalYear: string | null;
   manager: string | null;
+  image: string | null;
 
   static fromDomain(project: Project): ProjectResponse {
     const response = new ProjectResponse();
@@ -45,6 +46,7 @@ export class ProjectResponse {
     response.currency = primitives.currency;
     response.fiscalYear = primitives.fiscalYear;
     response.manager = primitives.manager;
+    response.image = primitives.image;
 
     return response;
   }

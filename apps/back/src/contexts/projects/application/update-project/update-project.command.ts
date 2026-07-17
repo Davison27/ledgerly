@@ -21,4 +21,5 @@ export interface UpdateProjectCommand {
   currency?: ProjectCurrency;
   fiscalYear?: string | null;
   manager?: string | null;
+  image?: string | null;
 }

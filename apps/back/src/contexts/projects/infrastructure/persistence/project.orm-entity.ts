@@ -55,4 +55,7 @@ export class ProjectOrmEntity {
 
   @Column({ type: 'varchar', length: 160, nullable: true })
   manager: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  image: string | null;
 }

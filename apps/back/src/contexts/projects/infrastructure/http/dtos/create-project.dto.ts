@@ -82,4 +82,8 @@ export class CreateProjectDto {
   @IsOptional()
   @IsString()
   manager?: string | null;
+
+  @IsOptional()
+  @IsString()
+  image?: string | null;
 }
