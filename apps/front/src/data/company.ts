@@ -119,6 +119,16 @@ export async function fetchCompany(): Promise<Company> {
   return mapCompany(dto);
 }
 
+/**
+ * Whether the given company still needs the first-run onboarding wizard.
+ * Today this is a single-tenant check (no company saved yet), but kept as
+ * one function so it can later become user/tenant-scoped without touching
+ * every call site.
+ */
+export function companyNeedsSetup(company: Company): boolean {
+  return !company.id;
+}
+
 export async function fetchProjects(): Promise<Project[]> {
   const dtos = await listProjects();
   return dtos.map(mapProjectSummary);

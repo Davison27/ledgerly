@@ -15,11 +15,27 @@
     "comingSoon": "This feature will be available soon"
   },
   "login": {
+    "welcome": "Welcome to Ledgerly",
     "subtitle": "Management platform",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "tagline": "Manage your projects, documents and finances in one place."
   },
   "topbar": {
     "newTab": "New tab"
+  },
+  "onboarding": {
+    "title": "Set up your company",
+    "welcome": "Before you get started, tell us a bit about your company. It only takes a minute.",
+    "steps": {
+      "company": "Company",
+      "contact": "Contact",
+      "address": "Address"
+    },
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "success": "Company set up successfully",
+    "error": "The company could not be saved. Please try again."
   },
   "company": {
     "settings": {
