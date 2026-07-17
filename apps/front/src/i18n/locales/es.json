@@ -90,6 +90,9 @@
     "subtitle": "Selecciona un proyecto para continuar",
     "notFound": "Proyecto no encontrado",
     "docSummary": "{{docs}} documentos · {{pending}} pendientes",
+    "switcher": {
+      "allProjects": "Ver todos los proyectos"
+    },
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
