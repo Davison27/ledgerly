@@ -5,21 +5,22 @@ import {
   Button,
   Col,
   DatePicker,
-  Divider,
   Flex,
   Form,
+  Grid,
   Input,
   InputNumber,
   Modal,
+  Popover,
   Progress,
   Row,
   Select,
-  Steps,
   Tag,
   Typography,
   Upload,
+  theme,
 } from 'antd';
-import { InboxOutlined, PlusOutlined } from '@ant-design/icons';
+import { ExclamationCircleOutlined, InboxOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
 import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +59,8 @@ function findMatchingSupplier(
 
 const { Dragger } = Upload;
 const { Text } = Typography;
+const { useBreakpoint } = Grid;
+const { useToken } = theme;
 
 interface DocumentUploadModalProps {
   open: boolean;
@@ -94,6 +97,8 @@ const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
   low: 'error',
 };
 
+const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
+
 export function DocumentUploadModal({
   open,
   projectId,
@@ -102,10 +107,14 @@ export function DocumentUploadModal({
 }: DocumentUploadModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const { token } = useToken();
+  const screens = useBreakpoint();
+  const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
 
   const [fileName, setFileName] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [pdfObjectUrl, setPdfObjectUrl] = useState<string | null>(null);
   const [step, setStep] = useState<FlowStep>('idle');
   const [progress, setProgress] = useState(0);
   const [extractResult, setExtractResult] = useState<ExtractInvoiceResult | null>(null);
@@ -148,6 +157,20 @@ export function DocumentUploadModal({
         .finally(() => setSuppliersLoaded(true));
     }
   }, [open, form]);
+
+  // Build (and clean up) an object URL for the in-memory PDF so it can be
+  // previewed in an iframe without any network round-trip.
+  useEffect(() => {
+    if (!selectedFile) {
+      setPdfObjectUrl(null);
+      return;
+    }
+    const url = URL.createObjectURL(selectedFile);
+    setPdfObjectUrl(url);
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [selectedFile]);
 
   // Once both the extraction result and the supplier list are available, try to
   // preselect a supplier matching the extracted issuer (by tax ID, then by name).
@@ -219,6 +242,17 @@ export function DocumentUploadModal({
     return false;
   };
 
+  const handleRemoveFile = () => {
+    extractionTokenRef.current += 1;
+    setFileName(null);
+    setSelectedFile(null);
+    setExtractResult(null);
+    setScannedPdfError(false);
+    setStep('idle');
+    setProgress(0);
+    setAutoMatchAttempted(false);
+  };
+
   const handleSelectSupplier = (value: string | undefined) => {
     setSupplierId(value ?? null);
     if (!value) return;
@@ -241,6 +275,14 @@ export function DocumentUploadModal({
     setCreatingSupplier(false);
     setNewSupplierName('');
     setNewSupplierTaxId('');
+  };
+
+  const handleCreateSupplierPopoverOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      handleOpenCreateSupplier();
+    } else {
+      handleCancelCreateSupplier();
+    }
   };
 
   const handleCreateSupplier = async () => {
@@ -306,11 +348,56 @@ export function DocumentUploadModal({
       });
   };
 
-  const stepsCurrent = step === 'uploading' ? 0 : step === 'processing' ? 1 : step === 'done' ? 2 : -1;
+  const isBusy = step === 'uploading' || step === 'processing';
   const progressPercent = step === 'uploading' ? progress : step === 'idle' ? 0 : 100;
   const progressStatus = step === 'done' ? 'success' : step === 'processing' ? 'active' : 'normal';
   const showReviewNote =
     extractResult && (extractResult.confidence === 'low' || extractResult.confidence === 'partial');
+
+  const confidenceTag = extractResult && (
+    <Tag color={CONFIDENCE_COLOR[extractResult.confidence]}>
+      {extractResult.warnings.length > 0 && <ExclamationCircleOutlined style={{ marginInlineEnd: 4 }} />}
+      {t(`projects.documents.upload.extraction.confidence.${extractResult.confidence}`)}
+    </Tag>
+  );
+
+  const createSupplierPopoverContent = (
+    <Flex vertical gap={8} style={{ width: 240 }}>
+      <Input
+        size="small"
+        placeholder={t('projects.documents.upload.supplier.createNamePlaceholder')}
+        value={newSupplierName}
+        onChange={(event) => setNewSupplierName(event.target.value)}
+      />
+      <Input
+        size="small"
+        placeholder={t('projects.documents.upload.supplier.createTaxIdPlaceholder')}
+        value={newSupplierTaxId}
+        onChange={(event) => setNewSupplierTaxId(event.target.value)}
+      />
+      <Flex gap={8} justify="end">
+        <Button size="small" onClick={handleCancelCreateSupplier}>
+          {t('common.cancel')}
+        </Button>
+        <Button
+          size="small"
+          type="primary"
+          loading={creatingSupplierSubmitting}
+          onClick={() => void handleCreateSupplier()}
+        >
+          {t('projects.documents.upload.supplier.createSubmit')}
+        </Button>
+      </Flex>
+    </Flex>
+  );
+
+  const leftPanelStyle: React.CSSProperties = isDesktop
+    ? { flex: '0 0 45%', height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }
+    : { flex: '1 1 auto', minHeight: 260, display: 'flex', flexDirection: 'column' };
+
+  const rightPanelStyle: React.CSSProperties = isDesktop
+    ? { flex: '1 1 55%', height: '100%', minHeight: 0, overflowY: 'auto', paddingRight: 4 }
+    : { flex: '1 1 auto' };
 
   return (
     <Modal
@@ -323,231 +410,236 @@ export function DocumentUploadModal({
       confirmLoading={submitting}
       destroyOnHidden
       centered
-      width="min(1080px, 95vw)"
-      styles={{ body: { maxHeight: '80vh', overflowY: 'auto', paddingTop: 4 } }}
+      width={isDesktop ? 'min(1200px, 96vw)' : '96vw'}
+      styles={{
+        body: isDesktop
+          ? { height: 'min(680px, 86vh)', overflow: 'hidden', paddingTop: 4 }
+          : { maxHeight: '86vh', overflowY: 'auto', paddingTop: 4 },
+      }}
     >
-      <Dragger
-        accept="application/pdf"
-        multiple={false}
-        maxCount={1}
-        showUploadList={false}
-        disabled={step === 'uploading' || step === 'processing'}
-        beforeUpload={handleFileSelected}
-        style={{ marginBottom: 12 }}
+      <Flex
+        gap={20}
+        style={{ height: isDesktop ? '100%' : 'auto' }}
+        vertical={!isDesktop}
       >
-        <p className="ant-upload-drag-icon">
-          <InboxOutlined />
-        </p>
-        <p className="ant-upload-text">{t('projects.documents.upload.dropzone.title')}</p>
-        <p className="ant-upload-hint">{t('projects.documents.upload.dropzone.hint')}</p>
-      </Dragger>
-
-      {fileName && (
-        <Text type="secondary" style={{ display: 'block', marginBottom: 8 }}>
-          {t('projects.documents.upload.dropzone.selectedFile', { name: fileName })}
-        </Text>
-      )}
-
-      {step !== 'idle' && (
-        <Flex vertical gap={4} style={{ marginBottom: 16 }}>
-          <Steps
-            size="small"
-            current={stepsCurrent}
-            items={[
-              { title: t('projects.documents.upload.steps.uploading') },
-              { title: t('projects.documents.upload.steps.processing') },
-              { title: t('projects.documents.upload.steps.done') },
-            ]}
-          />
-          <Progress percent={progressPercent} status={progressStatus} />
-        </Flex>
-      )}
-
-      {scannedPdfError && (
-        <Alert
-          type="warning"
-          showIcon
-          message={t('projects.documents.upload.scannedPdfAlert')}
-          style={{ marginBottom: 16 }}
-        />
-      )}
-
-      {extractResult && (
-        <Flex vertical gap={8} style={{ marginBottom: 16 }}>
-          <Flex gap={8} wrap align="center">
-            <Tag>{t(`projects.documents.upload.extraction.source.${extractResult.source}`)}</Tag>
-            <Tag color={CONFIDENCE_COLOR[extractResult.confidence]}>
-              {t(`projects.documents.upload.extraction.confidence.${extractResult.confidence}`)}
-            </Tag>
-          </Flex>
-          {showReviewNote && (
-            <Alert type="info" showIcon message={t('projects.documents.upload.extraction.reviewNote')} />
-          )}
-          {extractResult.warnings.length > 0 && (
-            <Alert
-              type="warning"
-              showIcon
-              message={t('projects.documents.upload.extraction.warningsTitle')}
-              description={
-                <ul style={{ margin: 0, paddingInlineStart: 18 }}>
-                  {extractResult.warnings.map((warning) => (
-                    <li key={warning}>{warning}</li>
-                  ))}
-                </ul>
-              }
-            />
-          )}
-        </Flex>
-      )}
-
-      <Form<DocumentFormFields>
-        form={form}
-        layout="vertical"
-        requiredMark={false}
-        initialValues={{ type: 'factura', status: 'pendiente', currency: 'EUR' }}
-      >
-        <Text strong>{t('projects.documents.upload.sections.document')}</Text>
-        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
-        <Row gutter={16}>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="name"
-              label={t('projects.documents.upload.fields.name')}
-              style={{ marginBottom: 12 }}
-              rules={[
-                { required: true, message: t('projects.documents.upload.validation.nameRequired') },
-              ]}
+        <div style={leftPanelStyle}>
+          {!selectedFile ? (
+            <Dragger
+              accept="application/pdf"
+              multiple={false}
+              maxCount={1}
+              showUploadList={false}
+              disabled={isBusy}
+              beforeUpload={handleFileSelected}
+              style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
             >
-              <Input placeholder={t('projects.documents.upload.placeholders.name')} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="type"
-              label={t('projects.documents.upload.fields.type')}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                options={DOCUMENT_TYPES.map((type) => ({
-                  value: type,
-                  label: t(`projects.documents.types.${type}`),
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="status"
-              label={t('projects.documents.upload.fields.status')}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                options={DOCUMENT_STATUSES.map((status) => ({
-                  value: status,
-                  label: t(`projects.documents.statuses.${status}`),
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="date"
-              label={t('projects.documents.upload.fields.date')}
-              style={{ marginBottom: 12 }}
-              rules={[
-                { required: true, message: t('projects.documents.upload.validation.dateRequired') },
-              ]}
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="dueDate"
-              label={t('projects.documents.upload.fields.dueDate')}
-              style={{ marginBottom: 12 }}
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12}>
-            <Form.Item
-              name="invoiceNumber"
-              label={t('projects.documents.upload.fields.invoiceNumber')}
-              style={{ marginBottom: 12 }}
-            >
-              <Input placeholder={t('projects.documents.upload.placeholders.invoiceNumber')} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Text strong>{t('projects.documents.upload.sections.supplier')}</Text>
-        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              label={t('projects.documents.upload.supplier.label')}
-              style={{ marginBottom: creatingSupplier ? 8 : 12 }}
-            >
-              <Select
-                showSearch
-                allowClear
-                value={supplierId ?? undefined}
-                onChange={handleSelectSupplier}
-                onClear={() => handleSelectSupplier(undefined)}
-                placeholder={t('projects.documents.upload.supplier.placeholder')}
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                }
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id,
-                  label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
-                }))}
-              />
-            </Form.Item>
-            {creatingSupplier ? (
-              <Flex gap={8} wrap style={{ marginBottom: 12 }}>
-                <Input
-                  style={{ flex: '1 1 160px' }}
-                  placeholder={t('projects.documents.upload.supplier.createNamePlaceholder')}
-                  value={newSupplierName}
-                  onChange={(event) => setNewSupplierName(event.target.value)}
-                />
-                <Input
-                  style={{ flex: '1 1 140px' }}
-                  placeholder={t('projects.documents.upload.supplier.createTaxIdPlaceholder')}
-                  value={newSupplierTaxId}
-                  onChange={(event) => setNewSupplierTaxId(event.target.value)}
-                />
-                <Button
-                  type="primary"
-                  loading={creatingSupplierSubmitting}
-                  onClick={() => void handleCreateSupplier()}
-                >
-                  {t('projects.documents.upload.supplier.createSubmit')}
+              <p className="ant-upload-drag-icon" style={{ marginBottom: 4 }}>
+                <InboxOutlined />
+              </p>
+              <p className="ant-upload-text" style={{ marginBottom: 2 }}>
+                {t('projects.documents.upload.dropzone.title')}
+              </p>
+              <p className="ant-upload-hint">{t('projects.documents.upload.dropzone.hint')}</p>
+            </Dragger>
+          ) : (
+            <Flex vertical gap={8} style={{ flex: '1 1 auto', minHeight: 0 }}>
+              <Flex justify="space-between" align="center" gap={8}>
+                <Text ellipsis title={fileName ?? undefined} style={{ flex: '1 1 auto', minWidth: 0 }}>
+                  {fileName}
+                </Text>
+                <Button size="small" icon={<SwapOutlined />} disabled={isBusy} onClick={handleRemoveFile}>
+                  {t('projects.documents.upload.dropzone.changeFile')}
                 </Button>
-                <Button onClick={handleCancelCreateSupplier}>{t('common.cancel')}</Button>
               </Flex>
-            ) : (
-              <Button
-                type="link"
-                icon={<PlusOutlined />}
-                style={{ paddingInlineStart: 0, marginBottom: 12 }}
-                onClick={handleOpenCreateSupplier}
+
+              {isBusy && <Progress percent={progressPercent} status={progressStatus} size="small" />}
+
+              {extractResult && (
+                <Flex vertical gap={4}>
+                  <Flex gap={6} wrap align="center">
+                    <Tag>{t(`projects.documents.upload.extraction.source.${extractResult.source}`)}</Tag>
+                    {extractResult.warnings.length > 0 ? (
+                      <Popover
+                        title={t('projects.documents.upload.extraction.warningsTitle')}
+                        content={
+                          <ul style={{ margin: 0, paddingInlineStart: 18, maxWidth: 280 }}>
+                            {extractResult.warnings.map((warning) => (
+                              <li key={warning}>{warning}</li>
+                            ))}
+                          </ul>
+                        }
+                      >
+                        <span style={{ cursor: 'pointer' }}>{confidenceTag}</span>
+                      </Popover>
+                    ) : (
+                      confidenceTag
+                    )}
+                  </Flex>
+                  {showReviewNote && (
+                    <Text type="warning" style={{ fontSize: 12 }}>
+                      {t('projects.documents.upload.extraction.reviewNote')}
+                    </Text>
+                  )}
+                </Flex>
+              )}
+
+              {scannedPdfError && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  message={t('projects.documents.upload.scannedPdfAlert')}
+                  style={{ fontSize: 12 }}
+                />
+              )}
+
+              <div
+                style={{
+                  flex: '1 1 auto',
+                  minHeight: 160,
+                  border: `1px solid ${token.colorBorder}`,
+                  borderRadius: token.borderRadiusLG,
+                  overflow: 'hidden',
+                  background: token.colorFillQuaternary,
+                }}
               >
-                {t('projects.documents.upload.supplier.createNew')}
-              </Button>
-            )}
-          </Col>
-          <Col xs={24} md={12}>
-            <Row gutter={8}>
-              <Col span={12}>
+                {pdfObjectUrl && (
+                  <iframe
+                    src={pdfObjectUrl}
+                    title={fileName ?? 'pdf-preview'}
+                    style={{ width: '100%', height: '100%', border: 'none' }}
+                  />
+                )}
+              </div>
+            </Flex>
+          )}
+        </div>
+
+        <div style={rightPanelStyle}>
+          <Form<DocumentFormFields>
+            form={form}
+            layout="vertical"
+            size="small"
+            requiredMark={false}
+            initialValues={{ type: 'factura', status: 'pendiente', currency: 'EUR' }}
+          >
+            <Text strong style={{ fontSize: 13 }}>
+              {t('projects.documents.upload.sections.document')}
+            </Text>
+            <Row gutter={12} style={{ marginTop: 8 }}>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item
+                  name="name"
+                  label={t('projects.documents.upload.fields.name')}
+                  style={FORM_ITEM_STYLE}
+                  rules={[
+                    { required: true, message: t('projects.documents.upload.validation.nameRequired') },
+                  ]}
+                >
+                  <Input placeholder={t('projects.documents.upload.placeholders.name')} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item name="type" label={t('projects.documents.upload.fields.type')} style={FORM_ITEM_STYLE}>
+                  <Select
+                    options={DOCUMENT_TYPES.map((type) => ({
+                      value: type,
+                      label: t(`projects.documents.types.${type}`),
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item
+                  name="status"
+                  label={t('projects.documents.upload.fields.status')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <Select
+                    options={DOCUMENT_STATUSES.map((status) => ({
+                      value: status,
+                      label: t(`projects.documents.statuses.${status}`),
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={12}>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item
+                  name="date"
+                  label={t('projects.documents.upload.fields.date')}
+                  style={FORM_ITEM_STYLE}
+                  rules={[
+                    { required: true, message: t('projects.documents.upload.validation.dateRequired') },
+                  ]}
+                >
+                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item
+                  name="dueDate"
+                  label={t('projects.documents.upload.fields.dueDate')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={8}>
+                <Form.Item
+                  name="invoiceNumber"
+                  label={t('projects.documents.upload.fields.invoiceNumber')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <Input placeholder={t('projects.documents.upload.placeholders.invoiceNumber')} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Text strong style={{ fontSize: 13 }}>
+              {t('projects.documents.upload.sections.supplier')}
+            </Text>
+            <Row gutter={12} style={{ marginTop: 8 }} align="top">
+              <Col xs={24} md={8}>
+                <Form.Item label={t('projects.documents.upload.supplier.label')} style={FORM_ITEM_STYLE}>
+                  <Select
+                    showSearch
+                    allowClear
+                    value={supplierId ?? undefined}
+                    onChange={handleSelectSupplier}
+                    onClear={() => handleSelectSupplier(undefined)}
+                    placeholder={t('projects.documents.upload.supplier.placeholder')}
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={suppliers.map((supplier) => ({
+                      value: supplier.id,
+                      label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
+                    }))}
+                  />
+                </Form.Item>
+                <Popover
+                  trigger="click"
+                  open={creatingSupplier}
+                  onOpenChange={handleCreateSupplierPopoverOpenChange}
+                  placement="bottomLeft"
+                  content={createSupplierPopoverContent}
+                >
+                  <Button
+                    type="link"
+                    size="small"
+                    icon={<PlusOutlined />}
+                    style={{ paddingInlineStart: 0, marginTop: -4 }}
+                  >
+                    {t('projects.documents.upload.supplier.createNew')}
+                  </Button>
+                </Popover>
+              </Col>
+              <Col xs={24} md={8}>
                 <Form.Item
                   name="issuerName"
                   label={t('projects.documents.upload.fields.issuerName')}
-                  style={{ marginBottom: 4 }}
+                  style={FORM_ITEM_STYLE}
                 >
                   <Input
                     disabled={Boolean(supplierId)}
@@ -555,85 +647,88 @@ export function DocumentUploadModal({
                   />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col xs={24} md={8}>
                 <Form.Item
                   name="issuerTaxId"
                   label={t('projects.documents.upload.fields.issuerTaxId')}
-                  style={{ marginBottom: 4 }}
+                  style={FORM_ITEM_STYLE}
                 >
                   <Input
                     disabled={Boolean(supplierId)}
                     placeholder={t('projects.documents.upload.placeholders.issuerTaxId')}
                   />
                 </Form.Item>
+                {supplierId && (
+                  <Text type="secondary" style={{ fontSize: 11 }}>
+                    {t('projects.documents.upload.supplier.autofillNote')}
+                  </Text>
+                )}
               </Col>
             </Row>
-            {supplierId && (
-              <Text type="secondary" style={{ fontSize: 12 }}>
-                {t('projects.documents.upload.supplier.autofillNote')}
-              </Text>
-            )}
-          </Col>
-        </Row>
 
-        <Text strong>{t('projects.documents.upload.sections.amounts')}</Text>
-        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
-        <Row gutter={16}>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="amount"
-              label={t('projects.documents.upload.fields.amount')}
-              style={{ marginBottom: 12 }}
-              rules={[
-                { required: true, message: t('projects.documents.upload.validation.amountRequired') },
-                { type: 'number', min: 0, message: t('projects.documents.upload.validation.amountMin') },
-              ]}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="currency"
-              label={t('projects.documents.upload.fields.currency')}
-              style={{ marginBottom: 12 }}
-            >
-              <Select
-                options={CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="taxBase"
-              label={t('projects.documents.upload.fields.taxBase')}
-              style={{ marginBottom: 12 }}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="taxRate"
-              label={t('projects.documents.upload.fields.taxRate')}
-              style={{ marginBottom: 12 }}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={16}>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="taxAmount"
-              label={t('projects.documents.upload.fields.taxAmount')}
-              style={{ marginBottom: 0 }}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-        </Row>
-      </Form>
+            <Text strong style={{ fontSize: 13 }}>
+              {t('projects.documents.upload.sections.amounts')}
+            </Text>
+            <Row gutter={12} style={{ marginTop: 8 }}>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="amount"
+                  label={t('projects.documents.upload.fields.amount')}
+                  style={FORM_ITEM_STYLE}
+                  rules={[
+                    { required: true, message: t('projects.documents.upload.validation.amountRequired') },
+                    {
+                      type: 'number',
+                      min: 0,
+                      message: t('projects.documents.upload.validation.amountMin'),
+                    },
+                  ]}
+                >
+                  <InputNumber style={{ width: '100%' }} min={0} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="currency"
+                  label={t('projects.documents.upload.fields.currency')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <Select options={CURRENCIES.map((currency) => ({ value: currency, label: currency }))} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="taxBase"
+                  label={t('projects.documents.upload.fields.taxBase')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <InputNumber style={{ width: '100%' }} min={0} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="taxRate"
+                  label={t('projects.documents.upload.fields.taxRate')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
+                </Form.Item>
+              </Col>
+            </Row>
+            <Row gutter={12}>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="taxAmount"
+                  label={t('projects.documents.upload.fields.taxAmount')}
+                  style={{ marginBottom: 0 }}
+                >
+                  <InputNumber style={{ width: '100%' }} min={0} />
+                </Form.Item>
+              </Col>
+            </Row>
+          </Form>
+        </div>
+      </Flex>
     </Modal>
   );
 }
