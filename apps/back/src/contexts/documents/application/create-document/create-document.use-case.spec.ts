@@ -1,6 +1,7 @@
 import { CreateDocumentUseCase } from './create-document.use-case';
 import { DocumentRepository } from '../../domain/document.repository';
 import { Document } from '../../domain/document';
+import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
 import { ProjectExistenceChecker } from '../../domain/project-existence-checker.port';
 import { SupplierExistenceChecker } from '../../domain/supplier-existence-checker.port';
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
@@ -33,6 +34,10 @@ class InMemoryDocumentRepository implements DocumentRepository {
 
   findContent(): Promise<Buffer | null> {
     return Promise.resolve(null);
+  }
+
+  findAllForDashboard(): Promise<DocumentDashboardRow[]> {
+    return Promise.resolve([]);
   }
 }
 

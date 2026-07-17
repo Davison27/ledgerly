@@ -4,6 +4,9 @@ import { Repository } from 'typeorm';
 import { Document } from '../../domain/document';
 import { DocumentFilters } from '../../domain/document-filters';
 import { DocumentRepository } from '../../domain/document.repository';
+import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
+import { DocumentType } from '../../domain/document-type';
+import { DocumentStatus } from '../../domain/document-status';
 import { DocumentOrmEntity } from './document.orm-entity';
 import { DocumentMapper } from './document.mapper';
 
@@ -82,5 +85,27 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       .getOne();
 
     return orm?.content ?? null;
+  }
+
+  async findAllForDashboard(): Promise<DocumentDashboardRow[]> {
+    const orms = await this.repository.find({
+      select: {
+        type: true,
+        amount: true,
+        month: true,
+        status: true,
+        issuerName: true,
+        projectId: true,
+      },
+    });
+
+    return orms.map((orm) => ({
+      type: orm.type as DocumentType,
+      amount: Number(orm.amount),
+      month: orm.month,
+      status: orm.status as DocumentStatus,
+      issuerName: orm.issuerName,
+      projectId: orm.projectId,
+    }));
   }
 }

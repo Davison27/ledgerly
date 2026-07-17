@@ -9,6 +9,7 @@ import { CompanyModule } from './contexts/company/company.module';
 import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
 import { SuppliersModule } from './contexts/suppliers/suppliers.module';
+import { DashboardModule } from './contexts/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { SuppliersModule } from './contexts/suppliers/suppliers.module';
     ProjectsModule,
     DocumentsModule,
     SuppliersModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
