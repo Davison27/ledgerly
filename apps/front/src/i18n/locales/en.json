@@ -90,6 +90,9 @@
     "subtitle": "Select a project to continue",
     "notFound": "Project not found",
     "docSummary": "{{docs}} documents · {{pending}} pending",
+    "switcher": {
+      "allProjects": "All projects"
+    },
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",

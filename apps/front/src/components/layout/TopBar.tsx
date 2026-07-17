@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useMemo, useState } from 'react';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import {
   App,
   Button,
@@ -12,6 +12,7 @@ import {
 } from 'antd';
 import {
   BulbOutlined,
+  DownOutlined,
   IdcardOutlined,
   PoweroffOutlined,
   SettingOutlined,
@@ -31,8 +32,39 @@ export function TopBar() {
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { company } = useCompany();
+  const { company, projects } = useCompany();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
+
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const currentProjectId = useMemo(() => {
+    const match = /^\/projects\/([^/]+)\/?$/.exec(pathname);
+    return match ? decodeURIComponent(match[1]) : undefined;
+  }, [pathname]);
+  const currentProject = currentProjectId
+    ? projects.find((p) => p.id === currentProjectId)
+    : undefined;
+
+  const switcherMenu: MenuProps['items'] = currentProject
+    ? [
+        ...projects
+          .filter((p) => p.id !== currentProject.id)
+          .map((p) => ({
+            key: p.id,
+            label: p.name,
+            onClick: () =>
+              void navigate({
+                to: '/projects/$projectId',
+                params: { projectId: p.id },
+              }),
+          })),
+        { type: 'divider' as const },
+        {
+          key: 'all-projects',
+          label: t('projects.switcher.allProjects'),
+          onClick: () => void navigate({ to: '/projects' }),
+        },
+      ]
+    : [];
 
   const settingsMenu: MenuProps['items'] = [
     {
@@ -99,6 +131,31 @@ export function TopBar() {
             <TeamOutlined style={{ fontSize: 18 }} />
             {t('suppliers.navLabel')}
           </Button>
+          {currentProject && (
+            <Dropdown menu={{ items: switcherMenu }} trigger={['click']}>
+              <Button
+                type="text"
+                style={{
+                  height: 40,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
+              >
+                <span
+                  style={{
+                    maxWidth: 220,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {currentProject.name}
+                </span>
+                <DownOutlined style={{ fontSize: 11 }} />
+              </Button>
+            </Dropdown>
+          )}
         </Flex>
 
         <Text

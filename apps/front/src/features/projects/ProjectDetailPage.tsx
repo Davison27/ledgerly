@@ -1,10 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from '@tanstack/react-router';
 import { Avatar, Flex, Segmented, Typography, theme } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
-import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { DocumentsSection } from './sections/DocumentsSection';
 import { DashboardSection } from './sections/DashboardSection';
 import { SettingsSection } from './sections/SettingsSection';
@@ -19,14 +18,9 @@ export function ProjectDetailPage() {
   const { t } = useTranslation();
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const { projects } = useCompany();
-  const { openProject } = useOpenProjects();
   const project = projects.find((p) => p.id === projectId);
 
   const [section, setSection] = useState<Section>('documents');
-
-  useEffect(() => {
-    if (project) openProject(project.id);
-  }, [project, openProject]);
 
   if (!project) {
     return (

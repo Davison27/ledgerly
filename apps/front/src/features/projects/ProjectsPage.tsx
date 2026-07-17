@@ -6,7 +6,6 @@ import { useTranslation } from 'react-i18next';
 import { fetchProject, type Project, type ProjectFormValues } from '../../data/company';
 import { ApiError } from '../../data/api/httpClient';
 import { useCompany } from '../../app/providers/CompanyProvider';
-import { useOpenProjects } from '../../app/providers/OpenProjectsProvider';
 import { ProjectCard } from './components/ProjectCard';
 import { ProjectFormModal } from './components/ProjectFormModal';
 
@@ -18,13 +17,11 @@ export function ProjectsPage() {
   const { message, modal } = App.useApp();
   const { token } = theme.useToken();
   const { projects, projectsLoading, addProject, updateProject, removeProject } = useCompany();
-  const { openProject, isOpen, closeProject } = useOpenProjects();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
 
   const handleOpen = (project: Project) => {
-    openProject(project.id);
     void navigate({
       to: '/projects/$projectId',
       params: { projectId: project.id },
@@ -59,7 +56,6 @@ export function ProjectsPage() {
       onOk: async () => {
         try {
           await removeProject(project.id);
-          closeProject(project.id);
         } catch {
           void message.error(t('projects.deleteConfirm.error'));
         }
@@ -125,7 +121,6 @@ export function ProjectsPage() {
               key={project.id}
               project={project}
               color={token.colorPrimary}
-              isOpen={isOpen(project.id)}
               editLoading={loadingEditId === project.id}
               onOpen={handleOpen}
               onEdit={handleEdit}
