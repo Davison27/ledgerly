@@ -23,6 +23,40 @@
   "topbar": {
     "newTab": "New tab"
   },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "suppliers": "Suppliers"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Hello, {{name}}",
+    "subtitle": "Here's a summary of your company's activity.",
+    "loadError": "The dashboard could not be loaded. Please try again.",
+    "empty": {
+      "title": "There's no data to show yet",
+      "description": "Create your first project and add documents to see your company's statistics here.",
+      "cta": "Create project"
+    },
+    "topProjects": {
+      "title": "Top projects",
+      "empty": "No projects with documents yet.",
+      "docCountOne": "{{count}} doc",
+      "docCountOther": "{{count}} docs"
+    },
+    "tips": {
+      "title": "Recommendations",
+      "overdue": "You have {{count}} overdue document(s). Review them to settle payments as soon as possible.",
+      "manyPending": "A high share of your documents are pending ({{count}}). Follow up on collections to improve cash flow.",
+      "expensesOverIncome": "Your expenses exceed your income this period. Review your cost structure.",
+      "negativeMargin": "Your margin is negative: you're losing money. Look into which projects or expenses are causing it.",
+      "lowMargin": "Your margin is low. Consider reviewing prices or cutting costs to improve profitability.",
+      "noProjects": "Create your first project to start tracking your documents and finances.",
+      "noDocuments": "Add documents to your projects to start seeing statistics here.",
+      "healthy": "Nice work: your margin is healthy and you have no overdue documents.",
+      "generic": "Everything looks fine. Keep adding documents to get more insight into your business."
+    }
+  },
   "onboarding": {
     "title": "Set up your company",
     "welcome": "Before you get started, tell us a bit about your company. It only takes a minute.",
@@ -90,9 +124,6 @@
     "subtitle": "Select a project to continue",
     "notFound": "Project not found",
     "docSummary": "{{docs}} documents · {{pending}} pending",
-    "switcher": {
-      "allProjects": "All projects"
-    },
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
