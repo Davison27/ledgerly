@@ -235,6 +235,40 @@ export type ExtractionHintField =
   | 'taxRate'
   | 'taxAmount';
 
+export interface CompanyDashboardDto {
+  projectCount: number;
+  totalDocuments: number;
+  income: number;
+  expenses: number;
+  profit: number;
+  margin: number;
+  paidCount: number;
+  pendingCount: number;
+  overdueCount: number;
+  amountByStatus: {
+    pagado: number;
+    pendiente: number;
+    vencido: number;
+  };
+  monthlyIncome: number[];
+  monthlyExpenses: number[];
+  monthlyProfit: number[];
+  cumulativeProfit: number[];
+  monthlyMargin: number[];
+  categoryTotals: {
+    factura: number;
+    nomina: number;
+    impuesto: number;
+  };
+  topIssuers: { key: string; name: string | null; total: number }[];
+  topProjects: {
+    id: string;
+    name: string;
+    documentCount: number;
+    total: number;
+  }[];
+}
+
 export type ExtractionHintAnchorKind = 'inline' | 'preceding-line';
 
 export interface ExtractionHintDto {

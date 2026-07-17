@@ -8,6 +8,7 @@ import { AppLayout } from '../components/layout/AppLayout';
 import { RootLayout } from '../components/layout/RootLayout';
 import { LoginPage } from '../features/auth/LoginPage';
 import { OnboardingPage } from '../features/onboarding/OnboardingPage';
+import { DashboardPage } from '../features/dashboard/DashboardPage';
 import { ProjectsPage } from '../features/projects/ProjectsPage';
 import { ProjectDetailPage } from '../features/projects/ProjectDetailPage';
 import { ExtractionHintsPage } from '../features/extraction-hints/ExtractionHintsPage';
@@ -31,6 +32,12 @@ const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_app',
   component: AppLayout,
+});
+
+const dashboardRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/dashboard',
+  component: DashboardPage,
 });
 
 const projectsRoute = createRoute({
@@ -61,6 +68,7 @@ const routeTree = rootRoute.addChildren([
   indexRoute,
   onboardingRoute,
   appLayoutRoute.addChildren([
+    dashboardRoute,
     projectsRoute,
     projectDetailRoute,
     extractionHintsRoute,

@@ -23,6 +23,40 @@
   "topbar": {
     "newTab": "Nueva pestaña"
   },
+  "nav": {
+    "dashboard": "Panel",
+    "projects": "Proyectos",
+    "suppliers": "Proveedores"
+  },
+  "dashboard": {
+    "title": "Panel",
+    "greeting": "Hola, {{name}}",
+    "subtitle": "Este es el resumen de la actividad de tu empresa.",
+    "loadError": "No se ha podido cargar el panel. Inténtalo de nuevo.",
+    "empty": {
+      "title": "Todavía no hay datos que mostrar",
+      "description": "Crea tu primer proyecto y añade documentos para ver aquí las estadísticas de tu empresa.",
+      "cta": "Crear proyecto"
+    },
+    "topProjects": {
+      "title": "Proyectos principales",
+      "empty": "No hay proyectos con documentos todavía.",
+      "docCountOne": "{{count}} doc",
+      "docCountOther": "{{count}} docs"
+    },
+    "tips": {
+      "title": "Recomendaciones",
+      "overdue": "Tienes {{count}} documento(s) vencido(s). Revísalos para regularizar los pagos cuanto antes.",
+      "manyPending": "Un alto porcentaje de tus documentos están pendientes ({{count}}). Haz seguimiento de los cobros para mejorar la liquidez.",
+      "expensesOverIncome": "Tus gastos superan a tus ingresos este periodo. Revisa tu estructura de costes.",
+      "negativeMargin": "Tu margen es negativo: estás perdiendo dinero. Analiza qué proyectos o gastos lo están provocando.",
+      "lowMargin": "Tu margen es bajo. Considera revisar precios o reducir costes para mejorar la rentabilidad.",
+      "noProjects": "Crea tu primer proyecto para empezar a llevar el control de tus documentos y finanzas.",
+      "noDocuments": "Añade documentos a tus proyectos para empezar a ver estadísticas aquí.",
+      "healthy": "Buen trabajo: tu margen es saludable y no tienes documentos vencidos.",
+      "generic": "Todo en orden. Sigue añadiendo documentos para obtener más información sobre tu negocio."
+    }
+  },
   "onboarding": {
     "title": "Configura tu empresa",
     "welcome": "Antes de empezar, cuéntanos un poco sobre tu empresa. Solo te llevará un minuto.",
@@ -90,9 +124,6 @@
     "subtitle": "Selecciona un proyecto para continuar",
     "notFound": "Proyecto no encontrado",
     "docSummary": "{{docs}} documentos · {{pending}} pendientes",
-    "switcher": {
-      "allProjects": "Ver todos los proyectos"
-    },
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",

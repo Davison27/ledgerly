@@ -57,7 +57,7 @@ export function OnboardingPage() {
       .then((company) => {
         if (cancelled) return;
         if (!companyNeedsSetup(company)) {
-          void navigate({ to: '/projects' });
+          void navigate({ to: '/dashboard' });
           return;
         }
         setCheckingExisting(false);
@@ -93,7 +93,7 @@ export function OnboardingPage() {
         try {
           await updateCompany({ ...values, logo });
           void message.success(t('onboarding.success'));
-          void navigate({ to: '/projects' });
+          void navigate({ to: '/dashboard' });
         } catch {
           void message.error(t('onboarding.error'));
         } finally {

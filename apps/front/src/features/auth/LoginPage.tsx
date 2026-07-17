@@ -43,7 +43,7 @@ export function LoginPage() {
   }, []);
 
   const handleEnter = () => {
-    void navigate({ to: needsSetup ? '/onboarding' : '/projects' });
+    void navigate({ to: needsSetup ? '/onboarding' : '/dashboard' });
   };
 
   const showBrandPanel = screens.md ?? true;
