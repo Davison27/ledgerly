@@ -569,5 +569,18 @@
       "issuer": "Emisor",
       "invoiceNumber": "Nº de factura"
     }
+  },
+  "commandPalette": {
+    "trigger": "Buscar",
+    "placeholder": "Buscar proyectos, proveedores, documentos...",
+    "empty": "No se han encontrado resultados",
+    "hint": "↑↓ para navegar · ↵ para seleccionar · Esc para cerrar · ⌘K para abrir",
+    "documentMeta": "{{project}} · {{amount}}",
+    "groups": {
+      "goTo": "Ir a",
+      "projects": "Proyectos",
+      "suppliers": "Proveedores",
+      "documents": "Documentos"
+    }
   }
 }

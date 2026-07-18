@@ -569,5 +569,18 @@
       "issuer": "Issuer",
       "invoiceNumber": "Invoice number"
     }
+  },
+  "commandPalette": {
+    "trigger": "Search",
+    "placeholder": "Search projects, suppliers, documents...",
+    "empty": "No results found",
+    "hint": "↑↓ to navigate · ↵ to select · Esc to close · ⌘K to open",
+    "documentMeta": "{{project}} · {{amount}}",
+    "groups": {
+      "goTo": "Go to",
+      "projects": "Projects",
+      "suppliers": "Suppliers",
+      "documents": "Documents"
+    }
   }
 }
