@@ -23,6 +23,11 @@
   "topbar": {
     "newTab": "Nueva pestaña"
   },
+  "theme": {
+    "toggleLight": "Activar modo claro",
+    "toggleDark": "Activar modo oscuro",
+    "ariaLabel": "Cambiar entre modo claro y oscuro"
+  },
   "nav": {
     "dashboard": "Panel",
     "projects": "Proyectos",
