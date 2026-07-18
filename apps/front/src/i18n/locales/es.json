@@ -239,9 +239,16 @@
         "scannedPdfAlert": "No pudimos leer el PDF automáticamente (parece una imagen escaneada). Rellena los campos manualmente.",
         "dropzone": {
           "title": "Sube el PDF de la factura",
-          "hint": "Arrastra el archivo aquí o haz clic para seleccionarlo. Rellenamos el formulario por ti.",
+          "hint": "Arrastra uno o varios archivos aquí o haz clic para seleccionarlos. Rellenamos el formulario por ti.",
           "selectedFile": "Archivo seleccionado: {{name}}",
           "changeFile": "Cambiar PDF"
+        },
+        "queue": {
+          "progress": "Documento {{current}} de {{total}}",
+          "saveAndNext": "Guardar y siguiente",
+          "skip": "Omitir",
+          "finish": "Guardar",
+          "allDone": "Todos los documentos han sido procesados"
         },
         "steps": {
           "uploading": "Subiendo",
