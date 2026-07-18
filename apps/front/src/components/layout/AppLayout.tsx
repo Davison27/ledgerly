@@ -1,15 +1,18 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, theme } from 'antd';
 import {
   DashboardOutlined,
   FileTextOutlined,
   ProjectOutlined,
+  SearchOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { CompanyProvider, useCompany } from '../../app/providers/CompanyProvider';
 import { companyNeedsSetup } from '../../data/company';
+import { CommandPalette } from '../../features/command-palette/CommandPalette';
+import { useCommandPalette } from '../../features/command-palette/useCommandPalette';
 import { TopBar } from './TopBar';
 import logoIconUrl from '../../assets/ledgerly-icon.svg';
 
@@ -128,6 +131,9 @@ function AppSider({
 
 export function AppLayout() {
   const [collapsed, setCollapsed] = useState(false);
+  const { token } = useToken();
+  const { t } = useTranslation();
+  const { open: paletteOpen, close: closePalette, toggle: togglePalette } = useCommandPalette();
 
   return (
     <CompanyProvider>
@@ -143,6 +149,25 @@ export function AppLayout() {
             </Layout.Content>
           </Layout>
         </Layout>
+
+        <Button
+          type="default"
+          shape="round"
+          icon={<SearchOutlined />}
+          onClick={togglePalette}
+          style={{
+            position: 'fixed',
+            bottom: 20,
+            right: 20,
+            zIndex: 100,
+            boxShadow: token.boxShadowSecondary,
+            background: token.colorBgContainer,
+          }}
+        >
+          {t('commandPalette.trigger')} <span style={{ opacity: 0.6 }}>⌘K</span>
+        </Button>
+
+        <CommandPalette open={paletteOpen} onClose={closePalette} />
       </CompanyGuard>
     </CompanyProvider>
   );
