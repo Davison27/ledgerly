@@ -112,7 +112,13 @@
     "next": "Next",
     "finish": "Finish",
     "success": "Company set up successfully",
-    "error": "The company could not be saved. Please try again."
+    "error": "The company could not be saved. Please try again.",
+    "demo": {
+      "helper": "Want to explore Ledgerly before setting up your company? Load a sample project with documents.",
+      "button": "Load sample data",
+      "success": "Sample data loaded successfully",
+      "error": "The sample data could not be loaded. Please try again."
+    }
   },
   "company": {
     "settings": {
