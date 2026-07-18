@@ -26,6 +26,7 @@
   "nav": {
     "dashboard": "Panel",
     "projects": "Proyectos",
+    "documents": "Documentos",
     "suppliers": "Proveedores"
   },
   "dashboard": {
@@ -246,6 +247,7 @@
           "source": {
             "facturae": "Facturae",
             "facturx": "Factur-X",
+            "ubl": "UBL / Peppol",
             "heuristic": "Detección heurística"
           },
           "confidence": {
@@ -255,6 +257,10 @@
           },
           "reviewNote": "Revisa los datos extraídos antes de guardar, la confianza es limitada.",
           "warningsTitle": "Avisos de la extracción"
+        },
+        "duplicate": {
+          "title": "Posible documento duplicado",
+          "match": "{{project}} · {{name}} · {{date}} · {{amount}}"
         },
         "sections": {
           "supplier": "Proveedor",
@@ -466,7 +472,23 @@
       "ok": "Eliminar"
     },
     "deleted": "Pista eliminada",
-    "deleteError": "No se ha podido eliminar la pista. Inténtalo de nuevo."
+    "deleteError": "No se ha podido eliminar la pista. Inténtalo de nuevo.",
+    "tabs": {
+      "hints": "Pistas aprendidas",
+      "quality": "Calidad de la extracción"
+    },
+    "quality": {
+      "loadError": "No se han podido cargar las métricas de calidad.",
+      "empty": "Todavía no hay extracciones registradas.",
+      "totalExtractions": "Extracciones totales",
+      "avgCorrectedFields": "Campos corregidos (media)",
+      "correctionRate": "Tasa de corrección",
+      "bySource": "Por fuente de extracción",
+      "byConfidence": "Por nivel de confianza",
+      "topHints": "Pistas más frecuentes",
+      "topHintsEmpty": "Todavía no hay pistas registradas.",
+      "occurrences": "{{count}} repeticiones"
+    }
   },
   "suppliers": {
     "navLabel": "Proveedores",
@@ -521,6 +543,31 @@
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
       "ok": "Eliminar",
       "error": "No se ha podido eliminar el proveedor. Inténtalo de nuevo."
+    }
+  },
+  "documents": {
+    "title": "Documentos",
+    "subtitle": "Busca y filtra todos los documentos de todos los proyectos.",
+    "empty": "No hay documentos que coincidan con los filtros.",
+    "loadError": "No se han podido cargar los documentos.",
+    "filters": {
+      "search": "Buscar por nombre, emisor o nº de factura...",
+      "allTypes": "Todos los tipos",
+      "allStatuses": "Todos los estados",
+      "amountMin": "Importe mín.",
+      "amountMax": "Importe máx.",
+      "allProjects": "Todos los proyectos",
+      "allSuppliers": "Todos los proveedores"
+    },
+    "columns": {
+      "project": "Proyecto",
+      "name": "Documento",
+      "type": "Tipo",
+      "status": "Estado",
+      "date": "Fecha",
+      "amount": "Importe",
+      "issuer": "Emisor",
+      "invoiceNumber": "Nº de factura"
     }
   }
 }

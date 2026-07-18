@@ -26,6 +26,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "projects": "Projects",
+    "documents": "Documents",
     "suppliers": "Suppliers"
   },
   "dashboard": {
@@ -246,6 +247,7 @@
           "source": {
             "facturae": "Facturae",
             "facturx": "Factur-X",
+            "ubl": "UBL / Peppol",
             "heuristic": "Heuristic detection"
           },
           "confidence": {
@@ -255,6 +257,10 @@
           },
           "reviewNote": "Review the extracted data before saving, confidence is limited.",
           "warningsTitle": "Extraction warnings"
+        },
+        "duplicate": {
+          "title": "Possible duplicate document",
+          "match": "{{project}} · {{name}} · {{date}} · {{amount}}"
         },
         "sections": {
           "supplier": "Supplier",
@@ -466,7 +472,23 @@
       "ok": "Delete"
     },
     "deleted": "Hint deleted",
-    "deleteError": "The hint could not be deleted. Please try again."
+    "deleteError": "The hint could not be deleted. Please try again.",
+    "tabs": {
+      "hints": "Learned hints",
+      "quality": "Extraction quality"
+    },
+    "quality": {
+      "loadError": "The extraction quality metrics could not be loaded.",
+      "empty": "No extractions have been recorded yet.",
+      "totalExtractions": "Total extractions",
+      "avgCorrectedFields": "Avg. corrected fields",
+      "correctionRate": "Correction rate",
+      "bySource": "By extraction source",
+      "byConfidence": "By confidence level",
+      "topHints": "Most frequent hints",
+      "topHintsEmpty": "No hints have been recorded yet.",
+      "occurrences": "{{count}} occurrences"
+    }
   },
   "suppliers": {
     "navLabel": "Suppliers",
@@ -521,6 +543,31 @@
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "ok": "Delete",
       "error": "The supplier could not be deleted. Please try again."
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Search and filter every document across all projects.",
+    "empty": "No documents match the filters.",
+    "loadError": "Documents could not be loaded.",
+    "filters": {
+      "search": "Search by name, issuer or invoice number...",
+      "allTypes": "All types",
+      "allStatuses": "All statuses",
+      "amountMin": "Min amount",
+      "amountMax": "Max amount",
+      "allProjects": "All projects",
+      "allSuppliers": "All suppliers"
+    },
+    "columns": {
+      "project": "Project",
+      "name": "Document",
+      "type": "Type",
+      "status": "Status",
+      "date": "Date",
+      "amount": "Amount",
+      "issuer": "Issuer",
+      "invoiceNumber": "Invoice number"
     }
   }
 }

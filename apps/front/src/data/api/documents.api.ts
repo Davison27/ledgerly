@@ -4,6 +4,10 @@ import type {
   CreateDocumentPayload,
   DocumentDto,
   DocumentFiltersDto,
+  DocumentListFiltersDto,
+  DocumentListItemDto,
+  DuplicateCheckParams,
+  DuplicateCheckResultDto,
   ExtractInvoiceResult,
 } from './types';
 
@@ -21,6 +25,35 @@ export function listDocuments(
     amountMax: filters.amountMax,
   });
   return get<DocumentDto[]>(`/projects/${projectId}/documents${qs}`);
+}
+
+export function listAllDocuments(
+  filters: DocumentListFiltersDto = {},
+): Promise<DocumentListItemDto[]> {
+  const qs = buildQueryString({
+    search: filters.search,
+    type: filters.type,
+    status: filters.status,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    amountMin: filters.amountMin,
+    amountMax: filters.amountMax,
+    projectId: filters.projectId,
+    supplierId: filters.supplierId,
+  });
+  return get<DocumentListItemDto[]>(`/documents${qs}`);
+}
+
+export function checkDuplicate(
+  params: DuplicateCheckParams,
+): Promise<DuplicateCheckResultDto> {
+  const qs = buildQueryString({
+    issuerName: params.issuerName,
+    issuerTaxId: params.issuerTaxId,
+    invoiceNumber: params.invoiceNumber,
+    amount: params.amount,
+  });
+  return get<DuplicateCheckResultDto>(`/documents/duplicate-check${qs}`);
 }
 
 export async function createDocument(

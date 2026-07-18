@@ -150,6 +150,53 @@ export interface DocumentFiltersDto {
   amountMax?: number;
 }
 
+export interface DocumentListItemDto {
+  id: string;
+  projectId: string;
+  projectName: string;
+  name: string;
+  type: DocumentTypeDto;
+  status: DocumentStatusDto;
+  date: string;
+  amount: number;
+  currency: string;
+  issuerName: string | null;
+  invoiceNumber: string | null;
+  supplierId: string | null;
+}
+
+export interface DocumentListFiltersDto {
+  search?: string;
+  type?: DocumentTypeDto;
+  status?: DocumentStatusDto;
+  dateFrom?: string;
+  dateTo?: string;
+  amountMin?: number;
+  amountMax?: number;
+  projectId?: string;
+  supplierId?: string;
+}
+
+export interface DocumentDuplicateDto {
+  id: string;
+  projectId: string;
+  projectName: string;
+  name: string;
+  date: string;
+  amount: number;
+}
+
+export interface DuplicateCheckParams {
+  issuerName?: string;
+  issuerTaxId?: string;
+  invoiceNumber: string;
+  amount: number;
+}
+
+export interface DuplicateCheckResultDto {
+  matches: DocumentDuplicateDto[];
+}
+
 export interface CreateDocumentPayload {
   name: string;
   type: DocumentTypeDto;
@@ -199,7 +246,7 @@ export interface UpdateSupplierPayload {
   notes?: string;
 }
 
-export type ExtractInvoiceSource = 'facturae' | 'facturx' | 'heuristic';
+export type ExtractInvoiceSource = 'facturae' | 'facturx' | 'ubl' | 'heuristic';
 export type ExtractInvoiceConfidence = 'high' | 'partial' | 'low';
 
 export interface ExtractInvoiceFields {
@@ -328,4 +375,19 @@ export interface ExtractionHintDto {
   lineOffset: number;
   sampleValue: string;
   occurrences: number;
+}
+
+export interface ExtractionQualityTopHintDto {
+  issuerName: string;
+  field: ExtractionHintField;
+  occurrences: number;
+}
+
+export interface ExtractionQualityDto {
+  totalExtractions: number;
+  bySource: Record<ExtractInvoiceSource, number>;
+  byConfidence: Record<ExtractInvoiceConfidence, number>;
+  avgCorrectedFields: number;
+  correctionRate: number;
+  topHints: ExtractionQualityTopHintDto[];
 }
