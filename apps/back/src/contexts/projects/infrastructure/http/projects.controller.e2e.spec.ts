@@ -118,6 +118,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
           documentCount: 0,
           pendingCount: 0,
           image: 'data:image/png;base64,abc',
+          isDemo: false,
         },
       ]);
     });
