@@ -10,6 +10,7 @@ export interface DocumentListItem {
   type: DocumentType;
   status: DocumentStatus;
   date: string;
+  dueDate: string | null;
   amount: number;
   currency: DocumentCurrency;
   issuerName: string | null;

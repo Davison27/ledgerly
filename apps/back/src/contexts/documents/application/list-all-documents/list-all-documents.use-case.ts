@@ -30,6 +30,7 @@ export class ListAllDocumentsUseCase {
       type: row.type,
       status: row.status,
       date: row.date,
+      dueDate: row.dueDate,
       amount: row.amount,
       currency: row.currency,
       issuerName: row.issuerName,

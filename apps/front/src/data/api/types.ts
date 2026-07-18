@@ -158,6 +158,7 @@ export interface DocumentListItemDto {
   type: DocumentTypeDto;
   status: DocumentStatusDto;
   date: string;
+  dueDate: string | null;
   amount: number;
   currency: string;
   issuerName: string | null;
