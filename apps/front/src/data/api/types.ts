@@ -235,7 +235,51 @@ export type ExtractionHintField =
   | 'taxRate'
   | 'taxAmount';
 
+export interface DashboardPreviousYearDto {
+  year: number;
+  income: number;
+  expenses: number;
+  profit: number;
+  margin: number;
+  totalDocuments: number;
+}
+
+export interface BudgetVsActualEntryDto {
+  projectId: string;
+  name: string;
+  currency: ProjectCurrencyDto;
+  budget: number | null;
+  income: number;
+  expenses: number;
+  consumptionPct: number | null;
+}
+
+export interface VatByQuarterEntryDto {
+  quarter: 1 | 2 | 3 | 4;
+  outputVat: number;
+  inputVat: number;
+  balance: number;
+}
+
+export interface CashflowForecastBucketDto {
+  inflow: number;
+  outflow: number;
+  net: number;
+}
+
+export interface CashflowForecastMonthDto extends CashflowForecastBucketDto {
+  /** "YYYY-MM" */
+  month: string;
+}
+
+export interface CashflowForecastDto {
+  overdue: CashflowForecastBucketDto;
+  months: CashflowForecastMonthDto[];
+}
+
 export interface CompanyDashboardDto {
+  year: number;
+  availableYears: number[];
   projectCount: number;
   totalDocuments: number;
   income: number;
@@ -267,6 +311,10 @@ export interface CompanyDashboardDto {
     documentCount: number;
     total: number;
   }[];
+  previousYear: DashboardPreviousYearDto;
+  budgetVsActual: BudgetVsActualEntryDto[];
+  vatByQuarter: VatByQuarterEntryDto[];
+  cashflowForecast: CashflowForecastDto;
 }
 
 export type ExtractionHintAnchorKind = 'inline' | 'preceding-line';

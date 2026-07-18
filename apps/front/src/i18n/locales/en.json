@@ -55,6 +55,48 @@
       "noDocuments": "Add documents to your projects to start seeing statistics here.",
       "healthy": "Nice work: your margin is healthy and you have no overdue documents.",
       "generic": "Everything looks fine. Keep adding documents to get more insight into your business."
+    },
+    "yearSelector": {
+      "label": "Year"
+    },
+    "yoy": {
+      "label": "vs {{year}}",
+      "noData": "— no data for last year",
+      "up": "is up",
+      "down": "is down",
+      "ariaLabel": "{{direction}} {{pct}} compared to last year"
+    },
+    "budget": {
+      "title": "Budget vs. actual by project",
+      "empty": "No projects with a budget or activity this year.",
+      "budget": "Budget",
+      "income": "Income",
+      "spent": "Spent",
+      "consumed": "{{pct}}% consumed",
+      "noBudget": "No budget",
+      "overBudget": "Over budget"
+    },
+    "vat": {
+      "title": "Quarterly VAT",
+      "output": "Output VAT",
+      "input": "Input VAT",
+      "balance": "Balance due",
+      "quarters": {
+        "1": "Q1",
+        "2": "Q2",
+        "3": "Q3",
+        "4": "Q4"
+      },
+      "approxNote": "Input VAT is an estimate calculated from your recorded expenses."
+    },
+    "cashflow": {
+      "title": "Cashflow forecast",
+      "overdue": "Overdue and pending",
+      "inflow": "Inflow",
+      "outflow": "Outflow",
+      "net": "Net",
+      "upcoming": "Upcoming months",
+      "empty": "No cashflow forecast available."
     }
   },
   "onboarding": {

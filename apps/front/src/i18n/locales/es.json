@@ -55,6 +55,48 @@
       "noDocuments": "Añade documentos a tus proyectos para empezar a ver estadísticas aquí.",
       "healthy": "Buen trabajo: tu margen es saludable y no tienes documentos vencidos.",
       "generic": "Todo en orden. Sigue añadiendo documentos para obtener más información sobre tu negocio."
+    },
+    "yearSelector": {
+      "label": "Ejercicio"
+    },
+    "yoy": {
+      "label": "vs {{year}}",
+      "noData": "— sin datos del año anterior",
+      "up": "sube",
+      "down": "baja",
+      "ariaLabel": "{{direction}} un {{pct}} respecto al año anterior"
+    },
+    "budget": {
+      "title": "Presupuesto vs. real por proyecto",
+      "empty": "No hay proyectos con presupuesto o actividad este año.",
+      "budget": "Presupuesto",
+      "income": "Ingresos",
+      "spent": "Gastado",
+      "consumed": "{{pct}}% consumido",
+      "noBudget": "Sin presupuesto",
+      "overBudget": "Presupuesto superado"
+    },
+    "vat": {
+      "title": "IVA trimestral",
+      "output": "IVA repercutido",
+      "input": "IVA soportado",
+      "balance": "A liquidar",
+      "quarters": {
+        "1": "T1",
+        "2": "T2",
+        "3": "T3",
+        "4": "T4"
+      },
+      "approxNote": "El IVA soportado es una estimación calculada a partir de tus gastos registrados."
+    },
+    "cashflow": {
+      "title": "Previsión de tesorería",
+      "overdue": "Vencido y pendiente de cobro/pago",
+      "inflow": "Cobros",
+      "outflow": "Pagos",
+      "net": "Neto",
+      "upcoming": "Próximos meses",
+      "empty": "No hay previsión de tesorería disponible."
     }
   },
   "onboarding": {
