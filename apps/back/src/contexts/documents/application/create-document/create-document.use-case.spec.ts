@@ -2,6 +2,8 @@ import { CreateDocumentUseCase } from './create-document.use-case';
 import { DocumentRepository } from '../../domain/document.repository';
 import { Document } from '../../domain/document';
 import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
+import { DocumentListRow } from '../../domain/document-list-row';
+import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import { ProjectExistenceChecker } from '../../domain/project-existence-checker.port';
 import { SupplierExistenceChecker } from '../../domain/supplier-existence-checker.port';
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
@@ -37,6 +39,14 @@ class InMemoryDocumentRepository implements DocumentRepository {
   }
 
   findAllForDashboard(): Promise<DocumentDashboardRow[]> {
+    return Promise.resolve([]);
+  }
+
+  findAllForListing(): Promise<DocumentListRow[]> {
+    return Promise.resolve([]);
+  }
+
+  findPossibleDuplicates(): Promise<DocumentDuplicateRow[]> {
     return Promise.resolve([]);
   }
 }

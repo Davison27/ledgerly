@@ -29,6 +29,7 @@ import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract
 import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
 import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
+import { RecordExtractionOutcomeUseCase } from '../../application/record-extraction-outcome/record-extraction-outcome.use-case';
 import { CreateDocumentDto } from './dtos/create-document.dto';
 import { ListDocumentsQueryDto } from './dtos/list-documents.query.dto';
 import { DocumentResponse } from './document.response';
@@ -49,6 +50,7 @@ export class DocumentsController {
     private readonly extractInvoiceUseCase: ExtractInvoiceUseCase,
     private readonly getDocumentFileUseCase: GetDocumentFileUseCase,
     private readonly recordExtractionFeedbackUseCase: RecordExtractionFeedbackUseCase,
+    private readonly recordExtractionOutcomeUseCase: RecordExtractionOutcomeUseCase,
   ) {}
 
   @Get()
@@ -119,6 +121,7 @@ export class DocumentsController {
 
     if (file) {
       await this.recordExtractionFeedback(file.buffer, dto);
+      await this.recordExtractionOutcome(file.buffer, dto);
     }
 
     return DocumentResponse.fromDomain(document);
@@ -145,6 +148,32 @@ export class DocumentsController {
       });
     } catch (error) {
       this.logger.warn(`Failed to record extraction feedback: ${(error as Error).message}`);
+    }
+  }
+
+  // Best-effort, server-side quality tracking: records which extraction
+  // strategy produced the fields shown for this PDF and how many the user
+  // corrected, for `GET /api/extraction-quality`. Kept as its own try/catch
+  // (separate from `recordExtractionFeedback`) so a failure in either
+  // never affects the other, and neither can ever fail document creation.
+  private async recordExtractionOutcome(fileBuffer: Buffer, dto: CreateDocumentDto): Promise<void> {
+    try {
+      await this.recordExtractionOutcomeUseCase.execute({
+        fileBuffer,
+        submitted: {
+          issuerName: dto.issuerName,
+          issuerTaxId: dto.issuerTaxId,
+          invoiceNumber: dto.invoiceNumber,
+          date: dto.date,
+          dueDate: dto.dueDate,
+          amount: dto.amount,
+          taxBase: dto.taxBase,
+          taxRate: dto.taxRate,
+          taxAmount: dto.taxAmount,
+        },
+      });
+    } catch (error) {
+      this.logger.warn(`Failed to record extraction outcome: ${(error as Error).message}`);
     }
   }
 

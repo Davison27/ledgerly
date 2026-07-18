@@ -13,6 +13,8 @@ import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
 import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
 import { RecordExtractionFeedbackCommand } from '../../application/record-extraction-feedback/record-extraction-feedback.command';
+import { RecordExtractionOutcomeUseCase } from '../../application/record-extraction-outcome/record-extraction-outcome.use-case';
+import { RecordExtractionOutcomeCommand } from '../../application/record-extraction-outcome/record-extraction-outcome.command';
 import { CreateDocumentCommand } from '../../application/create-document/create-document.command';
 import { Document } from '../../domain/document';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
@@ -37,6 +39,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
   let createExecute: jest.Mock<Promise<Document>, [CreateDocumentCommand]>;
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock<Promise<void>, [RecordExtractionFeedbackCommand]>;
+  let recordOutcomeExecute: jest.Mock<Promise<void>, [RecordExtractionOutcomeCommand]>;
 
   beforeAll(async () => {
     createExecute = jest.fn((command: CreateDocumentCommand) =>
@@ -68,6 +71,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
 
     getFileExecute = jest.fn();
     recordFeedbackExecute = jest.fn<Promise<void>, [RecordExtractionFeedbackCommand]>().mockResolvedValue(undefined);
+    recordOutcomeExecute = jest.fn<Promise<void>, [RecordExtractionOutcomeCommand]>().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsController],
@@ -79,6 +83,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         { provide: ExtractInvoiceUseCase, useValue: {} },
         { provide: GetDocumentFileUseCase, useValue: { execute: getFileExecute } },
         { provide: RecordExtractionFeedbackUseCase, useValue: { execute: recordFeedbackExecute } },
+        { provide: RecordExtractionOutcomeUseCase, useValue: { execute: recordOutcomeExecute } },
       ],
     }).compile();
 
@@ -93,6 +98,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
     createExecute.mockClear();
     getFileExecute.mockClear();
     recordFeedbackExecute.mockClear();
+    recordOutcomeExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -128,6 +134,10 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       expect(recordFeedbackExecute).toHaveBeenCalledTimes(1);
       const feedbackCommand = recordFeedbackExecute.mock.calls[0][0];
       expect(feedbackCommand.fileBuffer.equals(pdf)).toBe(true);
+
+      expect(recordOutcomeExecute).toHaveBeenCalledTimes(1);
+      const outcomeCommand = recordOutcomeExecute.mock.calls[0][0];
+      expect(outcomeCommand.fileBuffer.equals(pdf)).toBe(true);
     });
 
     it('creates a document without a file part and reports hasFile: false', async () => {
@@ -143,6 +153,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       const command = createExecute.mock.calls[0][0];
       expect(command.file).toBeUndefined();
       expect(recordFeedbackExecute).not.toHaveBeenCalled();
+      expect(recordOutcomeExecute).not.toHaveBeenCalled();
     });
 
     it('forwards supplierId to the use-case and echoes it in the response', async () => {
@@ -204,6 +215,20 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         .attach('file', pdf, { filename: 'invoice.pdf', contentType: 'application/pdf' });
 
       expect(response.status).toBe(201);
+      expect(recordFeedbackExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('still returns 201 and still records feedback when recording extraction outcome fails', async () => {
+      recordOutcomeExecute.mockRejectedValueOnce(new Error('boom'));
+      const pdf = loadFixture('facturx-invoice.pdf');
+
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify(BASE_PAYLOAD))
+        .attach('file', pdf, { filename: 'invoice.pdf', contentType: 'application/pdf' });
+
+      expect(response.status).toBe(201);
+      expect(recordOutcomeExecute).toHaveBeenCalledTimes(1);
       expect(recordFeedbackExecute).toHaveBeenCalledTimes(1);
     });
 
