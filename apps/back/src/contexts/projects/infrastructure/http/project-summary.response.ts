@@ -7,6 +7,7 @@ export class ProjectSummaryResponse {
   documentCount: number;
   pendingCount: number;
   image: string | null;
+  isDemo: boolean;
 
   static fromSummary(summary: ProjectSummary): ProjectSummaryResponse {
     const response = new ProjectSummaryResponse();
@@ -17,6 +18,7 @@ export class ProjectSummaryResponse {
     response.documentCount = summary.documentCount;
     response.pendingCount = summary.pendingCount;
     response.image = summary.image;
+    response.isDemo = summary.isDemo ?? false;
 
     return response;
   }
