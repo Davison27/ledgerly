@@ -4,6 +4,7 @@ import {
   DocumentRepository,
 } from '../../../documents/domain/document.repository';
 import { DocumentDashboardRow } from '../../../documents/domain/document-dashboard-row';
+import { deriveEffectiveStatus } from '../../../documents/domain/effective-status';
 import {
   PROJECT_REPOSITORY,
   ProjectDashboardRow,
@@ -192,6 +193,7 @@ export class GetCompanyDashboardUseCase {
 
   async execute(year?: number): Promise<CompanyDashboard> {
     const today = new Date();
+    const todayIso = formatDate(today);
     const selectedYear = year ?? today.getFullYear();
 
     const [rows, summaries, projectRows] = await Promise.all([
@@ -227,11 +229,12 @@ export class GetCompanyDashboardUseCase {
 
       categoryTotals[row.type] += row.amount;
 
-      if (row.status === 'pagado') paidCount += 1;
-      else if (row.status === 'pendiente') pendingCount += 1;
-      else if (row.status === 'vencido') overdueCount += 1;
+      const effectiveStatus = deriveEffectiveStatus(row.status, row.dueDate, todayIso);
+      if (effectiveStatus === 'pagado') paidCount += 1;
+      else if (effectiveStatus === 'pendiente') pendingCount += 1;
+      else if (effectiveStatus === 'vencido') overdueCount += 1;
 
-      amountByStatus[row.status] += row.amount;
+      amountByStatus[effectiveStatus] += row.amount;
 
       const issuerName = row.issuerName?.trim() || null;
       const issuerKey = issuerName ?? 'unknown';

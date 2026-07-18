@@ -172,6 +172,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       type: orm.type as DocumentType,
       status: orm.status as DocumentStatus,
       date: orm.date,
+      dueDate: orm.dueDate,
       amount: Number(orm.amount),
       currency: orm.currency as DocumentCurrency,
       issuerName: orm.issuerName,
