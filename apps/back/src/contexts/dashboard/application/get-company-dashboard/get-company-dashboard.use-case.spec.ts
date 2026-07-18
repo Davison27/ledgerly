@@ -1,6 +1,8 @@
 import { GetCompanyDashboardUseCase } from './get-company-dashboard.use-case';
 import { DocumentRepository } from '../../../documents/domain/document.repository';
 import { DocumentDashboardRow } from '../../../documents/domain/document-dashboard-row';
+import { DocumentListRow } from '../../../documents/domain/document-list-row';
+import { DocumentDuplicateRow } from '../../../documents/domain/document-duplicate-row';
 import { Document } from '../../../documents/domain/document';
 import {
   ProjectDashboardRow,
@@ -38,6 +40,14 @@ class FakeDocumentRepository implements DocumentRepository {
 
   findContent(): Promise<Buffer | null> {
     return Promise.resolve(null);
+  }
+
+  findAllForListing(): Promise<DocumentListRow[]> {
+    return Promise.resolve([]);
+  }
+
+  findPossibleDuplicates(): Promise<DocumentDuplicateRow[]> {
+    return Promise.resolve([]);
   }
 }
 

@@ -1,7 +1,7 @@
 import { DocumentType } from '../../domain/document-type';
 import { InvoiceFields } from '../../domain/extraction/invoice-fields';
 
-export type ExtractionSource = 'facturae' | 'facturx' | 'heuristic';
+export type ExtractionSource = 'facturae' | 'facturx' | 'ubl' | 'heuristic';
 export type ExtractionConfidence = 'high' | 'partial' | 'low';
 
 export interface ExtractedInvoiceFields extends InvoiceFields {

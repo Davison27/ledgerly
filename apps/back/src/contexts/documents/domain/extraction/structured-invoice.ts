@@ -1,5 +1,6 @@
 import { parseFacturae } from './facturae-parser';
 import { parseFacturx } from './facturx-parser';
+import { parseUbl } from './ubl-parser';
 import { InvoiceFields } from './invoice-fields';
 import { PdfAttachment } from './pdf-reader.port';
 
@@ -12,7 +13,7 @@ export function isXmlAttachment(attachment: PdfAttachment): boolean {
   );
 }
 
-export type StructuredExtractionSource = 'facturae' | 'facturx';
+export type StructuredExtractionSource = 'facturae' | 'facturx' | 'ubl';
 
 export interface StructuredExtraction {
   source: StructuredExtractionSource;
@@ -21,10 +22,10 @@ export interface StructuredExtraction {
 
 /**
  * Tries every XML-looking attachment against the known structured e-invoice
- * formats (Facturae, Factur-X/ZUGFeRD), returning the first successful
- * parse. Shared by extraction (to read the fields) and by feedback
- * recording (to detect that a PDF is a structured invoice at all — those
- * never feed the label-driven heuristic learning memory).
+ * formats (Facturae, Factur-X/ZUGFeRD, UBL/Peppol), returning the first
+ * successful parse. Shared by extraction (to read the fields) and by
+ * feedback recording (to detect that a PDF is a structured invoice at all —
+ * those never feed the label-driven heuristic learning memory).
  */
 export function tryParseStructuredInvoice(attachments: PdfAttachment[]): StructuredExtraction | null {
   for (const attachment of attachments.filter(isXmlAttachment)) {
@@ -38,6 +39,11 @@ export function tryParseStructuredInvoice(attachments: PdfAttachment[]): Structu
     const facturxFields = parseFacturx(xml);
     if (facturxFields) {
       return { source: 'facturx', fields: facturxFields };
+    }
+
+    const ublFields = parseUbl(xml);
+    if (ublFields) {
+      return { source: 'ubl', fields: ublFields };
     }
   }
 
