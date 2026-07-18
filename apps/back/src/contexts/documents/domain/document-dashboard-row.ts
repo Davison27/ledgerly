@@ -8,4 +8,7 @@ export interface DocumentDashboardRow {
   status: DocumentStatus;
   issuerName: string | null;
   projectId: string;
+  date: string;
+  dueDate: string | null;
+  taxAmount: number | null;
 }

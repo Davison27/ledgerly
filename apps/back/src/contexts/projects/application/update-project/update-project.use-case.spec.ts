@@ -1,5 +1,5 @@
 import { UpdateProjectUseCase } from './update-project.use-case';
-import { ProjectRepository } from '../../domain/project.repository';
+import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
@@ -34,6 +34,17 @@ class InMemoryProjectRepository implements ProjectRepository {
     }
 
     return Promise.resolve();
+  }
+
+  findAllForDashboard(): Promise<ProjectDashboardRow[]> {
+    return Promise.resolve(
+      this.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        budget: project.budget,
+        currency: project.currency,
+      })),
+    );
   }
 
   delete(id: string): Promise<void> {
