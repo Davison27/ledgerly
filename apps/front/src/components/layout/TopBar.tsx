@@ -6,6 +6,7 @@ import {
   Dropdown,
   Flex,
   Layout,
+  Tooltip,
   Typography,
   theme,
   type MenuProps,
@@ -13,12 +14,15 @@ import {
 import {
   BulbOutlined,
   IdcardOutlined,
+  MoonOutlined,
   PoweroffOutlined,
   SettingOutlined,
   ShopOutlined,
+  SunOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
+import { useThemeMode } from '../../app/providers/ThemeModeProvider';
 import { CompanySettingsModal } from './CompanySettingsModal';
 import logoIconUrl from '../../assets/ledgerly-icon.svg';
 
@@ -31,7 +35,9 @@ export function TopBar() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { company } = useCompany();
+  const { mode, toggle } = useThemeMode();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
+  const themeToggleLabel = mode === 'dark' ? t('theme.toggleLight') : t('theme.toggleDark');
 
   const settingsMenu: MenuProps['items'] = [
     {
@@ -97,23 +103,46 @@ export function TopBar() {
           {company.name}
         </Text>
 
-        <Dropdown
-          menu={{ items: settingsMenu, style: { minWidth: 150, padding: 10 } }}
-          trigger={['click']}
-        >
-          <Button
-            type="text"
-            style={{
-              height: 40,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 8,
-            }}
+        <Flex align="center" gap={4}>
+          <Tooltip title={themeToggleLabel}>
+            <Button
+              type="text"
+              aria-label={t('theme.ariaLabel')}
+              onClick={toggle}
+              style={{
+                height: 40,
+                width: 40,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {mode === 'dark' ? (
+                <MoonOutlined style={{ fontSize: 18 }} />
+              ) : (
+                <SunOutlined style={{ fontSize: 18 }} />
+              )}
+            </Button>
+          </Tooltip>
+
+          <Dropdown
+            menu={{ items: settingsMenu, style: { minWidth: 150, padding: 10 } }}
+            trigger={['click']}
           >
-            <SettingOutlined style={{ fontSize: 20 }} />
-            {t('common.settings')}
-          </Button>
-        </Dropdown>
+            <Button
+              type="text"
+              style={{
+                height: 40,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+              }}
+            >
+              <SettingOutlined style={{ fontSize: 20 }} />
+              {t('common.settings')}
+            </Button>
+          </Dropdown>
+        </Flex>
       </Flex>
 
       <CompanySettingsModal
