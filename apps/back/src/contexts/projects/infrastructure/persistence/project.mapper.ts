@@ -26,6 +26,7 @@ export class ProjectMapper {
       fiscalYear: orm.fiscalYear,
       manager: orm.manager,
       image: orm.image,
+      isDemo: orm.isDemo,
     });
   }
 
@@ -52,6 +53,7 @@ export class ProjectMapper {
     orm.fiscalYear = primitives.fiscalYear;
     orm.manager = primitives.manager;
     orm.image = primitives.image;
+    orm.isDemo = primitives.isDemo ?? false;
 
     return orm;
   }

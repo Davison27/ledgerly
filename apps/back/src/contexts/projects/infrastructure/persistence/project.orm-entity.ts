@@ -58,4 +58,7 @@ export class ProjectOrmEntity {
 
   @Column({ type: 'text', nullable: true })
   image: string | null;
+
+  @Column({ name: 'is_demo', type: 'boolean', default: false })
+  isDemo: boolean;
 }
