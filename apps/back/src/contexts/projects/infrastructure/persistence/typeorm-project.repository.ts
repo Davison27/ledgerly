@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
-import { ProjectRepository } from '../../domain/project.repository';
+import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 import { ProjectOrmEntity } from './project.orm-entity';
 import { ProjectMapper } from './project.mapper';
 
@@ -66,5 +66,23 @@ export class TypeOrmProjectRepository implements ProjectRepository {
 
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
+  }
+
+  async findAllForDashboard(): Promise<ProjectDashboardRow[]> {
+    const orms = await this.repository.find({
+      select: {
+        id: true,
+        name: true,
+        budget: true,
+        currency: true,
+      },
+    });
+
+    return orms.map((orm) => ({
+      id: orm.id,
+      name: orm.name,
+      budget: orm.budget !== null ? Number(orm.budget) : null,
+      currency: orm.currency,
+    }));
   }
 }

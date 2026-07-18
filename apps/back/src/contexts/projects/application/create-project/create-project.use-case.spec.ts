@@ -1,5 +1,5 @@
 import { CreateProjectUseCase } from './create-project.use-case';
-import { ProjectRepository } from '../../domain/project.repository';
+import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
@@ -39,6 +39,17 @@ class InMemoryProjectRepository implements ProjectRepository {
   delete(id: string): Promise<void> {
     this.projects = this.projects.filter((project) => project.id !== id);
     return Promise.resolve();
+  }
+
+  findAllForDashboard(): Promise<ProjectDashboardRow[]> {
+    return Promise.resolve(
+      this.projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        budget: project.budget,
+        currency: project.currency,
+      })),
+    );
   }
 
   private toSummary(project: Project): ProjectSummary {

@@ -96,6 +96,9 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
         status: true,
         issuerName: true,
         projectId: true,
+        date: true,
+        dueDate: true,
+        taxAmount: true,
       },
     });
 
@@ -106,6 +109,9 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       status: orm.status as DocumentStatus,
       issuerName: orm.issuerName,
       projectId: orm.projectId,
+      date: orm.date,
+      dueDate: orm.dueDate,
+      taxAmount: orm.taxAmount !== null ? Number(orm.taxAmount) : null,
     }));
   }
 }

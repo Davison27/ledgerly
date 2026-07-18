@@ -1,12 +1,18 @@
 import {
   AmountByStatus,
+  BudgetVsActual,
+  CashflowForecast,
   CategoryTotals,
   CompanyDashboard,
+  PreviousYearSummary,
   TopIssuer,
   TopProject,
+  VatByQuarter,
 } from '../../domain/company-dashboard';
 
 export class CompanyDashboardResponse {
+  year: number;
+  availableYears: number[];
   projectCount: number;
   totalDocuments: number;
   income: number;
@@ -25,10 +31,16 @@ export class CompanyDashboardResponse {
   categoryTotals: CategoryTotals;
   topIssuers: TopIssuer[];
   topProjects: TopProject[];
+  previousYear: PreviousYearSummary;
+  budgetVsActual: BudgetVsActual[];
+  vatByQuarter: VatByQuarter[];
+  cashflowForecast: CashflowForecast;
 
   static fromResult(result: CompanyDashboard): CompanyDashboardResponse {
     const response = new CompanyDashboardResponse();
 
+    response.year = result.year;
+    response.availableYears = result.availableYears;
     response.projectCount = result.projectCount;
     response.totalDocuments = result.totalDocuments;
     response.income = result.income;
@@ -47,6 +59,10 @@ export class CompanyDashboardResponse {
     response.categoryTotals = result.categoryTotals;
     response.topIssuers = result.topIssuers;
     response.topProjects = result.topProjects;
+    response.previousYear = result.previousYear;
+    response.budgetVsActual = result.budgetVsActual;
+    response.vatByQuarter = result.vatByQuarter;
+    response.cashflowForecast = result.cashflowForecast;
 
     return response;
   }
