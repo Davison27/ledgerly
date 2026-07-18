@@ -59,10 +59,16 @@ function findMatchingSupplier(
   return undefined;
 }
 
+function isPdfFile(file: File): boolean {
+  return file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+}
+
 const { Dragger } = Upload;
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
 const { useToken } = theme;
+
+const MAX_QUEUE_FILES = 20;
 
 interface DocumentUploadModalProps {
   open: boolean;
@@ -101,6 +107,8 @@ const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
 
 const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
 
+const FORM_INITIAL_VALUES = { type: 'factura' as DocumentTypeDto, status: 'pendiente' as DocumentStatusDto, currency: 'EUR' };
+
 export function DocumentUploadModal({
   open,
   projectId,
@@ -114,8 +122,17 @@ export function DocumentUploadModal({
   const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
 
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // The queue of PDFs to process, one document per file. `currentIndex` points
+  // at the file currently being reviewed; everything below the queue state
+  // (extraction result, duplicate matches, supplier match...) always refers to
+  // that single current item and gets reset whenever the index advances.
+  const [queue, setQueue] = useState<File[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const currentFile = queue[currentIndex] ?? null;
+  const fileName = currentFile?.name ?? null;
+  const isMultiQueue = queue.length > 1;
+  const isLastInQueue = currentIndex >= queue.length - 1;
+
   const [pdfObjectUrl, setPdfObjectUrl] = useState<string | null>(null);
   const [step, setStep] = useState<FlowStep>('idle');
   const [progress, setProgress] = useState(0);
@@ -136,11 +153,101 @@ export function DocumentUploadModal({
   const [newSupplierTaxId, setNewSupplierTaxId] = useState('');
   const [creatingSupplierSubmitting, setCreatingSupplierSubmitting] = useState(false);
 
+  // Resets everything scoped to a single queue item (extraction, duplicate
+  // check, supplier match, form fields). Used both when a fresh queue starts
+  // and whenever we advance to the next file.
+  const resetItemState = () => {
+    form.resetFields();
+    setExtractResult(null);
+    setScannedPdfError(false);
+    setStep('idle');
+    setProgress(0);
+    setAutoMatchAttempted(false);
+    setDuplicateMatches([]);
+    setSupplierId(null);
+    setCreatingSupplier(false);
+    setNewSupplierName('');
+    setNewSupplierTaxId('');
+  };
+
+  // Kicks off extraction for a given file, guarding against stale responses
+  // via extractionTokenRef the same way the single-file flow used to.
+  const runExtraction = (file: File) => {
+    const extractionToken = ++extractionTokenRef.current;
+    setStep('uploading');
+    setProgress(0);
+
+    const onProgress = (percent: number) => {
+      if (extractionTokenRef.current !== extractionToken) return;
+      setProgress(percent);
+      if (percent >= 100) setStep('processing');
+    };
+
+    extractInvoice(projectId, file, onProgress)
+      .then((result) => {
+        if (extractionTokenRef.current !== extractionToken) return;
+        setExtractResult(result);
+        setStep('done');
+        form.setFieldsValue({
+          name: result.fields.name,
+          type: result.fields.type ?? 'factura',
+          date: result.fields.date ? dayjs(result.fields.date) : undefined,
+          dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
+          amount: result.fields.amount,
+          taxBase: result.fields.taxBase,
+          taxRate: result.fields.taxRate,
+          taxAmount: result.fields.taxAmount,
+          currency: result.fields.currency ?? 'EUR',
+          invoiceNumber: result.fields.invoiceNumber,
+          issuerName: result.fields.issuerName,
+          issuerTaxId: result.fields.issuerTaxId,
+        });
+      })
+      .catch((error: unknown) => {
+        if (extractionTokenRef.current !== extractionToken) return;
+        setStep('idle');
+        setProgress(0);
+        if (error instanceof ApiError && error.status === 422) {
+          setScannedPdfError(true);
+          return;
+        }
+        void message.error(t('projects.documents.upload.extractError'));
+      });
+  };
+
+  const beginQueue = (files: File[]) => {
+    setQueue(files);
+    setCurrentIndex(0);
+    resetItemState();
+    runExtraction(files[0]);
+  };
+
+  // Called once the queue has no more files to review: resets the form and
+  // notifies the parent, which closes the modal and reloads the document list.
+  const finishQueue = () => {
+    form.resetFields();
+    if (isMultiQueue) {
+      void message.success(t('projects.documents.upload.queue.allDone'));
+    }
+    onCreated();
+  };
+
+  const advanceQueue = () => {
+    const nextIndex = currentIndex + 1;
+    if (nextIndex >= queue.length) {
+      finishQueue();
+      return;
+    }
+    setCurrentIndex(nextIndex);
+    resetItemState();
+    runExtraction(queue[nextIndex]);
+  };
+
   useEffect(() => {
     if (open) {
       form.resetFields();
-      setFileName(null);
-      setSelectedFile(null);
+      setQueue([]);
+      setCurrentIndex(0);
       setStep('idle');
       setProgress(0);
       setExtractResult(null);
@@ -169,16 +276,16 @@ export function DocumentUploadModal({
   // Build (and clean up) an object URL for the in-memory PDF so it can be
   // previewed in an iframe without any network round-trip.
   useEffect(() => {
-    if (!selectedFile) {
+    if (!currentFile) {
       setPdfObjectUrl(null);
       return;
     }
-    const url = URL.createObjectURL(selectedFile);
+    const url = URL.createObjectURL(currentFile);
     setPdfObjectUrl(url);
     return () => {
       URL.revokeObjectURL(url);
     };
-  }, [selectedFile]);
+  }, [currentFile]);
 
   // Once both the extraction result and the supplier list are available, try to
   // preselect a supplier matching the extracted issuer (by tax ID, then by name).
@@ -237,65 +344,24 @@ export function DocumentUploadModal({
     onCancel();
   };
 
-  const handleFileSelected = (selected: RcFile): boolean => {
-    const token = ++extractionTokenRef.current;
-    setFileName(selected.name);
-    setSelectedFile(selected);
-    setExtractResult(null);
-    setScannedPdfError(false);
-    setStep('uploading');
-    setProgress(0);
-    setAutoMatchAttempted(false);
+  const handleFilesSelected = (file: RcFile, fileList: RcFile[]): boolean => {
+    // antd calls beforeUpload once per file in a batch, sharing the same
+    // fileList reference; only act once, when we see the last file of the
+    // batch, so a multi-file drop seeds the whole queue in one go.
+    if (file !== fileList[fileList.length - 1]) return false;
 
-    const onProgress = (percent: number) => {
-      if (extractionTokenRef.current !== token) return;
-      setProgress(percent);
-      if (percent >= 100) setStep('processing');
-    };
+    const pdfFiles = fileList.filter(isPdfFile).slice(0, MAX_QUEUE_FILES);
+    if (pdfFiles.length === 0) return false;
 
-    extractInvoice(projectId, selected, onProgress)
-      .then((result) => {
-        if (extractionTokenRef.current !== token) return;
-        setExtractResult(result);
-        setStep('done');
-        form.setFieldsValue({
-          name: result.fields.name,
-          type: result.fields.type ?? 'factura',
-          date: result.fields.date ? dayjs(result.fields.date) : undefined,
-          dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
-          amount: result.fields.amount,
-          taxBase: result.fields.taxBase,
-          taxRate: result.fields.taxRate,
-          taxAmount: result.fields.taxAmount,
-          currency: result.fields.currency ?? 'EUR',
-          invoiceNumber: result.fields.invoiceNumber,
-          issuerName: result.fields.issuerName,
-          issuerTaxId: result.fields.issuerTaxId,
-        });
-      })
-      .catch((error: unknown) => {
-        if (extractionTokenRef.current !== token) return;
-        setStep('idle');
-        setProgress(0);
-        if (error instanceof ApiError && error.status === 422) {
-          setScannedPdfError(true);
-          return;
-        }
-        void message.error(t('projects.documents.upload.extractError'));
-      });
-
+    beginQueue(pdfFiles);
     return false;
   };
 
   const handleRemoveFile = () => {
     extractionTokenRef.current += 1;
-    setFileName(null);
-    setSelectedFile(null);
-    setExtractResult(null);
-    setScannedPdfError(false);
-    setStep('idle');
-    setProgress(0);
-    setAutoMatchAttempted(false);
+    setQueue([]);
+    setCurrentIndex(0);
+    resetItemState();
   };
 
   const handleSelectSupplier = (value: string | undefined) => {
@@ -377,11 +443,14 @@ export function DocumentUploadModal({
 
         setSubmitting(true);
 
-        createDocument(projectId, payload, selectedFile ?? undefined)
+        createDocument(projectId, payload, currentFile ?? undefined)
           .then(() => {
             void message.success(t('projects.documents.upload.created'));
-            form.resetFields();
-            onCreated();
+            if (isLastInQueue) {
+              finishQueue();
+            } else {
+              advanceQueue();
+            }
           })
           .catch(() => {
             void message.error(t('projects.documents.upload.extractError'));
@@ -393,11 +462,21 @@ export function DocumentUploadModal({
       });
   };
 
+  const handleSkip = () => {
+    advanceQueue();
+  };
+
   const isBusy = step === 'uploading' || step === 'processing';
   const progressPercent = step === 'uploading' ? progress : step === 'idle' ? 0 : 100;
   const progressStatus = step === 'done' ? 'success' : step === 'processing' ? 'active' : 'normal';
   const showReviewNote =
     extractResult && (extractResult.confidence === 'low' || extractResult.confidence === 'partial');
+
+  const okLabel = !isMultiQueue
+    ? t('projects.documents.upload.submit')
+    : isLastInQueue
+      ? t('projects.documents.upload.queue.finish')
+      : t('projects.documents.upload.queue.saveAndNext');
 
   const confidenceTag = extractResult && (
     <Tag color={CONFIDENCE_COLOR[extractResult.confidence]}>
@@ -448,11 +527,7 @@ export function DocumentUploadModal({
     <Modal
       open={open}
       title={t('projects.documents.upload.title')}
-      okText={t('projects.documents.upload.submit')}
-      cancelText={t('common.cancel')}
-      onOk={handleOk}
       onCancel={handleCancel}
-      confirmLoading={submitting}
       destroyOnHidden
       centered
       width={isDesktop ? 'min(1200px, 96vw)' : '96vw'}
@@ -461,6 +536,27 @@ export function DocumentUploadModal({
           ? { height: 'min(680px, 86vh)', overflow: 'hidden', paddingTop: 4 }
           : { maxHeight: '86vh', overflowY: 'auto', paddingTop: 4 },
       }}
+      footer={[
+        <Button key="cancel" onClick={handleCancel}>
+          {t('common.cancel')}
+        </Button>,
+        ...(isMultiQueue
+          ? [
+              <Button key="skip" disabled={!currentFile || submitting} onClick={handleSkip}>
+                {t('projects.documents.upload.queue.skip')}
+              </Button>,
+            ]
+          : []),
+        <Button
+          key="ok"
+          type="primary"
+          loading={submitting}
+          disabled={!currentFile || isBusy}
+          onClick={handleOk}
+        >
+          {okLabel}
+        </Button>,
+      ]}
     >
       <Flex
         gap={20}
@@ -468,14 +564,14 @@ export function DocumentUploadModal({
         vertical={!isDesktop}
       >
         <div style={leftPanelStyle}>
-          {!selectedFile ? (
+          {!currentFile ? (
             <Dragger
               accept="application/pdf"
-              multiple={false}
-              maxCount={1}
+              multiple
+              maxCount={MAX_QUEUE_FILES}
               showUploadList={false}
               disabled={isBusy}
-              beforeUpload={handleFileSelected}
+              beforeUpload={handleFilesSelected}
               style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
             >
               <p className="ant-upload-drag-icon" style={{ marginBottom: 4 }}>
@@ -488,6 +584,14 @@ export function DocumentUploadModal({
             </Dragger>
           ) : (
             <Flex vertical gap={8} style={{ flex: '1 1 auto', minHeight: 0 }}>
+              {isMultiQueue && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {t('projects.documents.upload.queue.progress', {
+                    current: currentIndex + 1,
+                    total: queue.length,
+                  })}
+                </Text>
+              )}
               <Flex justify="space-between" align="center" gap={8}>
                 <Text ellipsis title={fileName ?? undefined} style={{ flex: '1 1 auto', minWidth: 0 }}>
                   {fileName}
@@ -565,7 +669,7 @@ export function DocumentUploadModal({
             layout="vertical"
             size="small"
             requiredMark={false}
-            initialValues={{ type: 'factura', status: 'pendiente', currency: 'EUR' }}
+            initialValues={FORM_INITIAL_VALUES}
           >
             {duplicateMatches.length > 0 && (
               <Alert
