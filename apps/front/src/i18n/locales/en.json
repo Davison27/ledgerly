@@ -23,6 +23,11 @@
   "topbar": {
     "newTab": "New tab"
   },
+  "theme": {
+    "toggleLight": "Switch to light mode",
+    "toggleDark": "Switch to dark mode",
+    "ariaLabel": "Toggle between light and dark mode"
+  },
   "nav": {
     "dashboard": "Dashboard",
     "projects": "Projects",
