@@ -3,6 +3,7 @@ import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Layout, Menu, theme } from 'antd';
 import {
   DashboardOutlined,
+  FileTextOutlined,
   ProjectOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
@@ -31,10 +32,11 @@ function CompanyGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-type NavKey = 'dashboard' | 'projects' | 'suppliers';
+type NavKey = 'dashboard' | 'projects' | 'documents' | 'suppliers';
 
 function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
+  if (pathname.startsWith('/documents')) return 'documents';
   if (pathname.startsWith('/projects')) return 'projects';
   if (pathname.startsWith('/suppliers')) return 'suppliers';
   return undefined;
@@ -66,6 +68,12 @@ function AppSider({
         icon: <ProjectOutlined />,
         label: t('nav.projects'),
         onClick: () => void navigate({ to: '/projects' }),
+      },
+      {
+        key: 'documents' satisfies NavKey,
+        icon: <FileTextOutlined />,
+        label: t('nav.documents'),
+        onClick: () => void navigate({ to: '/documents' }),
       },
       {
         key: 'suppliers' satisfies NavKey,

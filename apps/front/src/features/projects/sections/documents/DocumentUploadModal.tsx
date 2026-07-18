@@ -24,17 +24,19 @@ import { ExclamationCircleOutlined, InboxOutlined, PlusOutlined, SwapOutlined } 
 import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { createDocument, extractInvoice } from '../../../../data/api/documents.api';
+import { checkDuplicate, createDocument, extractInvoice } from '../../../../data/api/documents.api';
 import { ApiError } from '../../../../data/api/httpClient';
 import { createSupplier, listSuppliers } from '../../../../data/api/suppliers.api';
 import type {
   CreateDocumentPayload,
+  DocumentDuplicateDto,
   DocumentStatusDto,
   DocumentTypeDto,
   ExtractInvoiceConfidence,
   ExtractInvoiceResult,
   SupplierDto,
 } from '../../../../data/api/types';
+import { formatEUR } from './documentFormat';
 
 function normalize(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -122,6 +124,9 @@ export function DocumentUploadModal({
   const [submitting, setSubmitting] = useState(false);
   const extractionTokenRef = useRef(0);
 
+  const [duplicateMatches, setDuplicateMatches] = useState<DocumentDuplicateDto[]>([]);
+  const duplicateCheckTokenRef = useRef(0);
+
   const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
   const [suppliersLoaded, setSuppliersLoaded] = useState(false);
   const [supplierId, setSupplierId] = useState<string | null>(null);
@@ -142,6 +147,9 @@ export function DocumentUploadModal({
       setScannedPdfError(false);
       setSubmitting(false);
       extractionTokenRef.current += 1;
+
+      setDuplicateMatches([]);
+      duplicateCheckTokenRef.current += 1;
 
       setSuppliers([]);
       setSuppliersLoaded(false);
@@ -186,6 +194,43 @@ export function DocumentUploadModal({
     }
     setAutoMatchAttempted(true);
   }, [extractResult, suppliers, suppliersLoaded, autoMatchAttempted]);
+
+  // Watch the fields the duplicate check relies on so we can re-run it whenever
+  // they change, whether from extraction or manual edits.
+  const invoiceNumberWatch = Form.useWatch('invoiceNumber', form);
+  const amountWatch = Form.useWatch('amount', form);
+  const issuerNameWatch = Form.useWatch('issuerName', form);
+  const issuerTaxIdWatch = Form.useWatch('issuerTaxId', form);
+
+  // Debounced, non-blocking duplicate check: only runs once we have an invoice
+  // number and an amount, and guards against stale/out-of-order responses.
+  useEffect(() => {
+    const requestToken = ++duplicateCheckTokenRef.current;
+
+    if (!open || !invoiceNumberWatch || amountWatch === undefined || amountWatch === null) {
+      setDuplicateMatches([]);
+      return;
+    }
+
+    const handle = setTimeout(() => {
+      checkDuplicate({
+        issuerName: issuerNameWatch || undefined,
+        issuerTaxId: issuerTaxIdWatch || undefined,
+        invoiceNumber: invoiceNumberWatch,
+        amount: amountWatch,
+      })
+        .then((result) => {
+          if (duplicateCheckTokenRef.current !== requestToken) return;
+          setDuplicateMatches(result.matches);
+        })
+        .catch(() => {
+          if (duplicateCheckTokenRef.current !== requestToken) return;
+          setDuplicateMatches([]);
+        });
+    }, 500);
+
+    return () => clearTimeout(handle);
+  }, [open, invoiceNumberWatch, amountWatch, issuerNameWatch, issuerTaxIdWatch]);
 
   const handleCancel = () => {
     form.resetFields();
@@ -522,6 +567,29 @@ export function DocumentUploadModal({
             requiredMark={false}
             initialValues={{ type: 'factura', status: 'pendiente', currency: 'EUR' }}
           >
+            {duplicateMatches.length > 0 && (
+              <Alert
+                type="warning"
+                showIcon
+                message={t('projects.documents.upload.duplicate.title')}
+                description={
+                  <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+                    {duplicateMatches.map((match) => (
+                      <li key={match.id}>
+                        {t('projects.documents.upload.duplicate.match', {
+                          project: match.projectName,
+                          name: match.name,
+                          date: match.date,
+                          amount: formatEUR(match.amount),
+                        })}
+                      </li>
+                    ))}
+                  </ul>
+                }
+                style={{ marginBottom: 12 }}
+              />
+            )}
+
             <Text strong style={{ fontSize: 13 }}>
               {t('projects.documents.upload.sections.document')}
             </Text>
