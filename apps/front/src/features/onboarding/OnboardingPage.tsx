@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  Alert,
   App,
   Button,
   Card,
@@ -17,6 +18,8 @@ import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { companyNeedsSetup, fetchCompany, updateCompany } from '../../data/company';
+import { loadDemoData } from '../../data/api/demo.api';
+import { listProjects } from '../../data/api/projects.api';
 
 const { Title, Text } = Typography;
 
@@ -49,6 +52,8 @@ export function OnboardingPage() {
   const [logo, setLogo] = useState<string | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
   const [checkingExisting, setCheckingExisting] = useState(true);
+  const [demoAvailable, setDemoAvailable] = useState(false);
+  const [loadingDemo, setLoadingDemo] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -71,6 +76,37 @@ export function OnboardingPage() {
       cancelled = true;
     };
   }, [navigate]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    listProjects()
+      .then((projects) => {
+        if (!cancelled) setDemoAvailable(projects.length === 0);
+      })
+      .catch(() => {
+        // If the check fails we simply hide the demo action rather than
+        // risk offering it in an inconsistent state.
+        if (!cancelled) setDemoAvailable(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleLoadDemoData = async () => {
+    setLoadingDemo(true);
+    try {
+      await loadDemoData();
+      void message.success(t('onboarding.demo.success'));
+      void navigate({ to: '/dashboard' });
+    } catch {
+      void message.error(t('onboarding.demo.error'));
+    } finally {
+      setLoadingDemo(false);
+    }
+  };
 
   const isLastStep = current === STEP_FIELDS.length - 1;
 
@@ -122,6 +158,20 @@ export function OnboardingPage() {
           </Title>
           <Text type="secondary">{t('onboarding.welcome')}</Text>
         </Flex>
+
+        {demoAvailable && (
+          <Alert
+            type="info"
+            showIcon
+            message={t('onboarding.demo.helper')}
+            action={
+              <Button size="small" onClick={() => void handleLoadDemoData()} loading={loadingDemo}>
+                {t('onboarding.demo.button')}
+              </Button>
+            }
+            style={{ marginBottom: 20 }}
+          />
+        )}
 
         <Steps
           current={current}

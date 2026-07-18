@@ -5,4 +5,5 @@ export interface ProjectSummary {
   documentCount: number;
   pendingCount: number;
   image: string | null;
+  isDemo?: boolean;
 }

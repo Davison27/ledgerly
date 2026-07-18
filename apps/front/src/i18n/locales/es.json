@@ -117,7 +117,13 @@
     "next": "Siguiente",
     "finish": "Finalizar",
     "success": "Empresa configurada correctamente",
-    "error": "No se ha podido guardar la empresa. Inténtalo de nuevo."
+    "error": "No se ha podido guardar la empresa. Inténtalo de nuevo.",
+    "demo": {
+      "helper": "¿Quieres explorar Ledgerly antes de configurar tu empresa? Carga un proyecto de ejemplo con documentos.",
+      "button": "Cargar datos de ejemplo",
+      "success": "Datos de ejemplo cargados correctamente",
+      "error": "No se han podido cargar los datos de ejemplo. Inténtalo de nuevo."
+    }
   },
   "company": {
     "settings": {

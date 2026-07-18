@@ -58,6 +58,7 @@ export interface ProjectPrimitives {
   fiscalYear: string | null;
   manager: string | null;
   image: string | null;
+  isDemo?: boolean;
 }
 
 interface ProjectProps {
@@ -80,6 +81,7 @@ interface ProjectProps {
   fiscalYear: string | null;
   manager: string | null;
   image: string | null;
+  isDemo: boolean;
 }
 
 export class Project {
@@ -102,6 +104,7 @@ export class Project {
   private fiscalYear_: string | null;
   private manager_: string | null;
   private image_: string | null;
+  private isDemo_: boolean;
 
   private constructor(props: ProjectProps) {
     this.id_ = props.id;
@@ -123,6 +126,7 @@ export class Project {
     this.fiscalYear_ = props.fiscalYear;
     this.manager_ = props.manager;
     this.image_ = props.image;
+    this.isDemo_ = props.isDemo;
   }
 
   static create(params: ProjectPrimitives): Project {
@@ -156,6 +160,7 @@ export class Project {
       fiscalYear: params.fiscalYear,
       manager: params.manager,
       image: params.image,
+      isDemo: params.isDemo ?? false,
     });
   }
 
@@ -313,6 +318,10 @@ export class Project {
     return this.image_;
   }
 
+  get isDemo(): boolean {
+    return this.isDemo_;
+  }
+
   toPrimitives(): ProjectPrimitives {
     return {
       id: this.id_,
@@ -334,6 +343,7 @@ export class Project {
       fiscalYear: this.fiscalYear_,
       manager: this.manager_,
       image: this.image_,
+      isDemo: this.isDemo_,
     };
   }
 }
