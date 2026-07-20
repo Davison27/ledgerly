@@ -208,6 +208,8 @@
       "columns": {
         "document": "Document",
         "type": "Type",
+        "direction": "Flow",
+        "irpf": "Withholding",
         "date": "Date",
         "amount": "Amount",
         "status": "Status"
@@ -230,6 +232,10 @@
         "factura": "Invoice",
         "nomina": "Payroll",
         "impuesto": "Tax"
+      },
+      "directions": {
+        "ingreso": "Income",
+        "gasto": "Expense"
       },
       "statuses": {
         "pagado": "Paid",
@@ -301,6 +307,7 @@
         "fields": {
           "name": "Name",
           "type": "Type",
+          "direction": "Income or expense",
           "status": "Status",
           "date": "Date",
           "dueDate": "Due date",
@@ -308,6 +315,8 @@
           "taxBase": "Tax base",
           "taxRate": "VAT %",
           "taxAmount": "VAT amount",
+          "irpfRate": "Withholding %",
+          "irpfAmount": "Withholding amount",
           "currency": "Currency",
           "invoiceNumber": "Invoice number",
           "issuerName": "Issuer",
@@ -323,7 +332,8 @@
           "nameRequired": "Name is required",
           "dateRequired": "Date is required",
           "amountRequired": "Amount is required",
-          "amountMin": "Amount cannot be negative"
+          "amountMin": "Amount cannot be negative",
+          "amountMismatch": "The total does not match base + VAT − withholding. Check it if this is not intentional."
         }
       }
     },
@@ -572,6 +582,7 @@
       "search": "Search by name, issuer or invoice number...",
       "allTypes": "All types",
       "allStatuses": "All statuses",
+      "direction": "Income / expense",
       "amountMin": "Min amount",
       "amountMax": "Max amount",
       "allProjects": "All projects",
@@ -581,6 +592,7 @@
       "project": "Project",
       "name": "Document",
       "type": "Type",
+      "direction": "Flow",
       "status": "Status",
       "date": "Date",
       "amount": "Amount",

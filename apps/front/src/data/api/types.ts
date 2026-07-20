@@ -1,5 +1,6 @@
 export type DocumentTypeDto = 'factura' | 'nomina' | 'impuesto';
 export type DocumentStatusDto = 'pagado' | 'pendiente' | 'vencido';
+export type DocumentDirectionDto = 'ingreso' | 'gasto';
 
 export type ProjectTypeDto =
   | 'client'
@@ -121,6 +122,7 @@ export interface DocumentDto {
   id: string;
   name: string;
   type: DocumentTypeDto;
+  direction: DocumentDirectionDto;
   month: number;
   date: string;
   amount: number;
@@ -132,6 +134,8 @@ export interface DocumentDto {
   taxBase?: number | null;
   taxRate?: number | null;
   taxAmount?: number | null;
+  irpfRate?: number | null;
+  irpfAmount?: number | null;
   currency?: string | null;
   hasFile?: boolean;
   fileName?: string | null;
@@ -144,6 +148,7 @@ export interface DocumentFiltersDto {
   search?: string;
   type?: DocumentTypeDto;
   status?: DocumentStatusDto;
+  direction?: DocumentDirectionDto;
   dateFrom?: string;
   dateTo?: string;
   amountMin?: number;
@@ -156,6 +161,7 @@ export interface DocumentListItemDto {
   projectName: string;
   name: string;
   type: DocumentTypeDto;
+  direction: DocumentDirectionDto;
   status: DocumentStatusDto;
   date: string;
   dueDate: string | null;
@@ -170,6 +176,7 @@ export interface DocumentListFiltersDto {
   search?: string;
   type?: DocumentTypeDto;
   status?: DocumentStatusDto;
+  direction?: DocumentDirectionDto;
   dateFrom?: string;
   dateTo?: string;
   amountMin?: number;
@@ -201,6 +208,7 @@ export interface DuplicateCheckResultDto {
 export interface CreateDocumentPayload {
   name: string;
   type: DocumentTypeDto;
+  direction: DocumentDirectionDto;
   month: number;
   date: string;
   amount: number;
@@ -212,6 +220,8 @@ export interface CreateDocumentPayload {
   taxBase?: number;
   taxRate?: number;
   taxAmount?: number;
+  irpfRate?: number;
+  irpfAmount?: number;
   currency?: string;
   supplierId?: string;
 }
@@ -259,6 +269,8 @@ export interface ExtractInvoiceFields {
   taxBase?: number;
   taxRate?: number;
   taxAmount?: number;
+  irpfRate?: number;
+  irpfAmount?: number;
   currency?: string;
   invoiceNumber?: string;
   issuerName?: string;
