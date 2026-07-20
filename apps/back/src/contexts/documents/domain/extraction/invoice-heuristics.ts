@@ -45,6 +45,11 @@ const SUBTOTAL_LABEL = /\bsubtotal\b/i;
 const BASE_IMPONIBLE_LABEL = /base\s+imponible/i;
 const IVA_LABEL = /\biva\b/i;
 const IVA_RATE = /iva[^%\d]{0,15}(\d{1,2}(?:[.,]\d+)?)\s*%/i;
+// IRPF/retención (income tax withholding), same conservative label-driven
+// approach as IVA above: no attempt to pair it with a base via
+// findTaxRatioPair (see extractLabelledIrpf).
+const IRPF_LABEL = /\b(irpf|retenci[oó]n(?:es)?)\b/i;
+const IRPF_RATE = /(?:irpf|retenci[oó]n(?:es)?)[^%\d]{0,15}(\d{1,2}(?:[.,]\d+)?)\s*%/i;
 const RATE_TOKEN = /\d{1,2}(?:[.,]\d+)?\s*%/;
 
 const AMOUNT_TOKEN = /\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+\.\d{1,2}/g;
@@ -274,6 +279,31 @@ function extractLabelledTax(lines: string[]): { taxRate?: number; taxAmount?: nu
 }
 
 /**
+ * Labelled IRPF (retention), same shape and same amount-adjacent-to-label
+ * assumption as `extractLabelledTax`. Deliberately has no `findTaxRatioPair`
+ * equivalent: with both an IVA rate and an IRPF rate in play, pairing bases
+ * to amounts purely by `base * rate ≈ amount` would produce spurious
+ * cross-matches between the two taxes, which is worse than leaving the
+ * field empty. If the labelled line doesn't carry an inline amount (e.g. a
+ * column-separated layout), irpfAmount is simply omitted.
+ */
+function extractLabelledIrpf(lines: string[]): { irpfRate?: number; irpfAmount?: number } {
+  for (const line of lines) {
+    if (!IRPF_LABEL.test(line)) {
+      continue;
+    }
+    const rateMatch = IRPF_RATE.exec(line);
+    const irpfRate = rateMatch ? (parseSpanishNumber(rateMatch[1]) ?? undefined) : undefined;
+    const irpfAmount = lastAmountInLine(line, true) ?? undefined;
+
+    if (irpfRate != null || irpfAmount != null) {
+      return { irpfRate, irpfAmount };
+    }
+  }
+  return {};
+}
+
+/**
  * Finds a (base, tax) pair among all monetary amounts in the document such
  * that `base * rate/100 ≈ tax`. Self-validates against the known tax rate,
  * so it works even when the "base imponible"/"IVA" labels and their values
@@ -400,6 +430,10 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
     }
   }
 
+  const labelledIrpf = extractLabelledIrpf(lines);
+  const irpfRate = labelledIrpf.irpfRate;
+  const irpfAmount = labelledIrpf.irpfAmount;
+
   const currency = detectCurrency(text) ?? (amount != null ? 'EUR' : undefined);
 
   // Only trust the "plausible line" heuristic for the issuer name when at
@@ -419,6 +453,8 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
   if (taxBase != null) fields.taxBase = taxBase;
   if (taxRate != null) fields.taxRate = taxRate;
   if (taxAmount != null) fields.taxAmount = taxAmount;
+  if (irpfRate != null) fields.irpfRate = irpfRate;
+  if (irpfAmount != null) fields.irpfAmount = irpfAmount;
   if (amount != null) fields.amount = amount;
 
   return { fields, warnings };

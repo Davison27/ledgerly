@@ -97,6 +97,15 @@ describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () =>
     expect(fields.amount).toBeCloseTo(1090);
     expect(fields.issuerTaxId).toBe('00000000T');
 
+    // IRPF/retención (D6): the label ("IRPF 15 %") and its amount ("-150,00")
+    // sit on separate lines in this column-separated layout, so the rate is
+    // recovered but the amount is not — pairing them via findTaxRatioPair
+    // would risk cross-matching against the IVA rate/amount that already
+    // works correctly above. This is the accepted limitation, not a gap to
+    // "fix" later.
+    expect(fields.irpfRate).toBe(15);
+    expect(fields.irpfAmount).toBeUndefined();
+
     expect(warnings).not.toContain('No se pudo determinar el importe total');
   });
 });

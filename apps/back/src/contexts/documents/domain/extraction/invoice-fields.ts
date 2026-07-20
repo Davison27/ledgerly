@@ -14,6 +14,8 @@ export interface InvoiceFields {
   taxBase?: number;
   taxRate?: number;
   taxAmount?: number;
+  irpfRate?: number;
+  irpfAmount?: number;
   currency?: DocumentCurrency;
   invoiceNumber?: string;
   issuerName?: string;
