@@ -31,6 +31,7 @@ const BASE_PAYLOAD = {
   date: '2026-06-01',
   amount: 100,
   status: 'pendiente',
+  direction: 'gasto',
 };
 
 describe('DocumentsController file upload/download (HTTP, no DB)', () => {
@@ -60,11 +61,14 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
           taxBase: command.taxBase ?? null,
           taxRate: command.taxRate ?? null,
           taxAmount: command.taxAmount ?? null,
+          irpfRate: command.irpfRate ?? null,
+          irpfAmount: command.irpfAmount ?? null,
           currency: command.currency ?? 'EUR',
           fileName: command.file?.originalName ?? null,
           mimeType: command.file?.mimeType ?? null,
           fileSize: command.file?.size ?? null,
           supplierId: command.supplierId ?? null,
+          direction: command.direction,
         }),
       ),
     );
@@ -250,6 +254,18 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         .field('payload', JSON.stringify({ ...BASE_PAYLOAD, month: 13 }));
 
       expect(response.status).toBe(400);
+    });
+
+    it('returns 400 when direction is missing (D11: no silent default)', async () => {
+      const payloadWithoutDirection: Record<string, unknown> = { ...BASE_PAYLOAD };
+      delete payloadWithoutDirection.direction;
+
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify(payloadWithoutDirection));
+
+      expect(response.status).toBe(400);
+      expect(createExecute).not.toHaveBeenCalled();
     });
 
     it('returns 400 when the attached file is not a PDF', async () => {

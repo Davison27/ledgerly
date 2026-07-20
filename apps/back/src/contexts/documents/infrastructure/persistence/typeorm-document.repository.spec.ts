@@ -101,4 +101,43 @@ describe('TypeOrmDocumentRepository', () => {
       expect(andWhereCalls.some((call) => call.sql.includes('CASE WHEN'))).toBe(false);
     });
   });
+
+  describe('direction filtering', () => {
+    it('findAllForListing filters by direction in SQL', async () => {
+      const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
+      const repository = createRepository(queryBuilder);
+
+      await repository.findAllForListing({ direction: 'ingreso' });
+
+      const directionCondition = andWhereCalls.find((call) =>
+        call.sql.includes('document.direction'),
+      );
+      expect(directionCondition).toBeDefined();
+      expect(directionCondition!.sql.trim()).toBe('document.direction = :direction');
+      expect(directionCondition!.params).toEqual({ direction: 'ingreso' });
+    });
+
+    it('findByProject filters by direction in SQL', async () => {
+      const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
+      const repository = createRepository(queryBuilder);
+
+      await repository.findByProject('project-1', { direction: 'gasto' });
+
+      const directionCondition = andWhereCalls.find((call) =>
+        call.sql.includes('document.direction'),
+      );
+      expect(directionCondition).toBeDefined();
+      expect(directionCondition!.sql.trim()).toBe('document.direction = :direction');
+      expect(directionCondition!.params).toEqual({ direction: 'gasto' });
+    });
+
+    it('does not add a direction condition when no direction filter is given', async () => {
+      const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
+      const repository = createRepository(queryBuilder);
+
+      await repository.findAllForListing({});
+
+      expect(andWhereCalls.some((call) => call.sql.includes('document.direction'))).toBe(false);
+    });
+  });
 });

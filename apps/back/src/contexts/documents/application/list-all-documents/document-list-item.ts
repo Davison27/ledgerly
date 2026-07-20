@@ -1,6 +1,7 @@
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
+import { DocumentDirection } from '../../domain/document-direction';
 
 export interface DocumentListItem {
   id: string;
@@ -9,6 +10,7 @@ export interface DocumentListItem {
   name: string;
   type: DocumentType;
   status: DocumentStatus;
+  direction: DocumentDirection;
   date: string;
   dueDate: string | null;
   amount: number;

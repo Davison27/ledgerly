@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import { IsIn, IsNumber, IsOptional, IsString, Matches, Min } from 'class-validator';
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
+import { DOCUMENT_DIRECTIONS, DocumentDirection } from '../../../domain/document-direction';
 
 export class ListAllDocumentsQueryDto {
   @IsOptional()
@@ -15,6 +16,10 @@ export class ListAllDocumentsQueryDto {
   @IsOptional()
   @IsIn(DOCUMENT_STATUSES)
   status?: DocumentStatus;
+
+  @IsOptional()
+  @IsIn(DOCUMENT_DIRECTIONS)
+  direction?: DocumentDirection;
 
   @IsOptional()
   @Matches(/^\d{4}-\d{2}-\d{2}$/)

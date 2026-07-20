@@ -208,6 +208,8 @@
       "columns": {
         "document": "Documento",
         "type": "Tipo",
+        "direction": "Tipo de flujo",
+        "irpf": "IRPF",
         "date": "Fecha",
         "amount": "Importe",
         "status": "Estado"
@@ -230,6 +232,10 @@
         "factura": "Factura",
         "nomina": "Nómina",
         "impuesto": "Impuesto"
+      },
+      "directions": {
+        "ingreso": "Ingreso",
+        "gasto": "Gasto"
       },
       "statuses": {
         "pagado": "Pagado",
@@ -301,6 +307,7 @@
         "fields": {
           "name": "Nombre",
           "type": "Tipo",
+          "direction": "Ingreso o gasto",
           "status": "Estado",
           "date": "Fecha",
           "dueDate": "Fecha de vencimiento",
@@ -308,6 +315,8 @@
           "taxBase": "Base imponible",
           "taxRate": "% IVA",
           "taxAmount": "Cuota IVA",
+          "irpfRate": "% IRPF",
+          "irpfAmount": "Retención IRPF",
           "currency": "Moneda",
           "invoiceNumber": "Nº de factura",
           "issuerName": "Emisor",
@@ -323,7 +332,8 @@
           "nameRequired": "El nombre es obligatorio",
           "dateRequired": "La fecha es obligatoria",
           "amountRequired": "El importe es obligatorio",
-          "amountMin": "El importe no puede ser negativo"
+          "amountMin": "El importe no puede ser negativo",
+          "amountMismatch": "El total no cuadra con base + IVA − IRPF. Revísalo si no es intencionado."
         }
       }
     },
@@ -572,6 +582,7 @@
       "search": "Buscar por nombre, emisor o nº de factura...",
       "allTypes": "Todos los tipos",
       "allStatuses": "Todos los estados",
+      "direction": "Ingreso / gasto",
       "amountMin": "Importe mín.",
       "amountMax": "Importe máx.",
       "allProjects": "Todos los proyectos",
@@ -581,6 +592,7 @@
       "project": "Proyecto",
       "name": "Documento",
       "type": "Tipo",
+      "direction": "Tipo de flujo",
       "status": "Estado",
       "date": "Fecha",
       "amount": "Importe",

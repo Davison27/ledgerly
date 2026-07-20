@@ -13,6 +13,7 @@ import {
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
 import { DOCUMENT_CURRENCIES, DocumentCurrency } from '../../../domain/document-currency';
+import { DOCUMENT_DIRECTIONS, DocumentDirection } from '../../../domain/document-direction';
 
 export class CreateDocumentDto {
   @IsString()
@@ -36,6 +37,9 @@ export class CreateDocumentDto {
 
   @IsIn(DOCUMENT_STATUSES)
   status: DocumentStatus;
+
+  @IsIn(DOCUMENT_DIRECTIONS)
+  direction: DocumentDirection;
 
   @IsOptional()
   @IsString()
@@ -70,6 +74,16 @@ export class CreateDocumentDto {
   @IsNumber()
   @Min(0)
   taxAmount?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  irpfRate?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  irpfAmount?: number;
 
   @IsOptional()
   @IsIn(DOCUMENT_CURRENCIES)
