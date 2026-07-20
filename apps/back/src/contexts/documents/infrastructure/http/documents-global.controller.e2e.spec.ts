@@ -17,6 +17,7 @@ function buildListItem(overrides: Partial<DocumentListItem> = {}): DocumentListI
     name: 'Invoice 1',
     type: 'factura',
     status: 'pendiente',
+    direction: 'gasto',
     date: '2026-06-15',
     dueDate: null,
     amount: 100,
@@ -87,6 +88,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
           name: 'Invoice 1',
           type: 'factura',
           status: 'pendiente',
+          direction: 'gasto',
           date: '2026-06-15',
           dueDate: null,
           amount: 100,
@@ -106,6 +108,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
           search: 'invoice',
           type: 'factura',
           status: 'pendiente',
+          direction: 'ingreso',
           dateFrom: '2026-01-01',
           dateTo: '2026-12-31',
           amountMin: '10',
@@ -118,6 +121,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
         search: 'invoice',
         type: 'factura',
         status: 'pendiente',
+        direction: 'ingreso',
         dateFrom: '2026-01-01',
         dateTo: '2026-12-31',
         amountMin: 10,
@@ -138,6 +142,13 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
 
     it('rejects an invalid type filter', async () => {
       const response = await request(httpServer).get('/documents').query({ type: 'not-a-type' });
+
+      expect(response.status).toBe(400);
+      expect(listExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects an invalid direction filter', async () => {
+      const response = await request(httpServer).get('/documents').query({ direction: 'not-a-direction' });
 
       expect(response.status).toBe(400);
       expect(listExecute).not.toHaveBeenCalled();

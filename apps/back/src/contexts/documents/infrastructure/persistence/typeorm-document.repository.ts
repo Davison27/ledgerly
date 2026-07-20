@@ -47,6 +47,10 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       queryBuilder.andWhere(EFFECTIVE_STATUS_FILTER_SQL, { status: filters.status, today: todayIso() });
     }
 
+    if (filters.direction) {
+      queryBuilder.andWhere('document.direction = :direction', { direction: filters.direction });
+    }
+
     if (filters.dateFrom) {
       queryBuilder.andWhere('document.date >= :dateFrom', { dateFrom: filters.dateFrom });
     }
@@ -154,6 +158,10 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       queryBuilder.andWhere(EFFECTIVE_STATUS_FILTER_SQL, { status: filters.status, today: todayIso() });
     }
 
+    if (filters.direction) {
+      queryBuilder.andWhere('document.direction = :direction', { direction: filters.direction });
+    }
+
     if (filters.dateFrom) {
       queryBuilder.andWhere('document.date >= :dateFrom', { dateFrom: filters.dateFrom });
     }
@@ -180,6 +188,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       name: orm.name,
       type: orm.type as DocumentType,
       status: orm.status as DocumentStatus,
+      direction: orm.direction as DocumentDirection,
       date: orm.date,
       dueDate: orm.dueDate,
       amount: Number(orm.amount),
