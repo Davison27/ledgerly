@@ -88,6 +88,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
           name: 'Invoice 1',
           type: 'factura',
           status: 'pendiente',
+          rawStatus: 'pendiente',
           direction: 'gasto',
           date: '2026-06-15',
           dueDate: null,
