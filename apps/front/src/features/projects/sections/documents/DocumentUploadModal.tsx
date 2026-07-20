@@ -14,6 +14,7 @@ import {
   Popover,
   Progress,
   Row,
+  Segmented,
   Select,
   Tag,
   Typography,
@@ -29,6 +30,7 @@ import { ApiError } from '../../../../data/api/httpClient';
 import { createSupplier, listSuppliers } from '../../../../data/api/suppliers.api';
 import type {
   CreateDocumentPayload,
+  DocumentDirectionDto,
   DocumentDuplicateDto,
   DocumentStatusDto,
   DocumentTypeDto,
@@ -80,6 +82,7 @@ interface DocumentUploadModalProps {
 interface DocumentFormFields {
   name: string;
   type: DocumentTypeDto;
+  direction: DocumentDirectionDto;
   status: DocumentStatusDto;
   date: dayjs.Dayjs;
   dueDate?: dayjs.Dayjs;
@@ -87,6 +90,8 @@ interface DocumentFormFields {
   taxBase?: number;
   taxRate?: number;
   taxAmount?: number;
+  irpfRate?: number;
+  irpfAmount?: number;
   currency?: string;
   invoiceNumber?: string;
   issuerName?: string;
@@ -97,6 +102,7 @@ type FlowStep = 'idle' | 'uploading' | 'processing' | 'done';
 
 const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
 const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
+const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 
 const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
@@ -107,7 +113,14 @@ const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
 
 const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
 
-const FORM_INITIAL_VALUES = { type: 'factura' as DocumentTypeDto, status: 'pendiente' as DocumentStatusDto, currency: 'EUR' };
+const AMOUNT_MISMATCH_TOLERANCE = 0.02;
+
+const FORM_INITIAL_VALUES = {
+  type: 'factura' as DocumentTypeDto,
+  direction: 'gasto' as DocumentDirectionDto,
+  status: 'pendiente' as DocumentStatusDto,
+  currency: 'EUR',
+};
 
 export function DocumentUploadModal({
   open,
@@ -197,6 +210,8 @@ export function DocumentUploadModal({
           taxBase: result.fields.taxBase,
           taxRate: result.fields.taxRate,
           taxAmount: result.fields.taxAmount,
+          irpfRate: result.fields.irpfRate,
+          irpfAmount: result.fields.irpfAmount,
           currency: result.fields.currency ?? 'EUR',
           invoiceNumber: result.fields.invoiceNumber,
           issuerName: result.fields.issuerName,
@@ -308,6 +323,18 @@ export function DocumentUploadModal({
   const amountWatch = Form.useWatch('amount', form);
   const issuerNameWatch = Form.useWatch('issuerName', form);
   const issuerTaxIdWatch = Form.useWatch('issuerTaxId', form);
+
+  // Watched purely for the non-blocking amount-coherence warning (D5): total
+  // should be base + VAT - withholding, but only when all four are filled in.
+  const taxBaseWatch = Form.useWatch('taxBase', form);
+  const taxAmountWatch = Form.useWatch('taxAmount', form);
+  const irpfAmountWatch = Form.useWatch('irpfAmount', form);
+  const amountMismatch =
+    amountWatch != null &&
+    taxBaseWatch != null &&
+    taxAmountWatch != null &&
+    irpfAmountWatch != null &&
+    Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) > AMOUNT_MISMATCH_TOLERANCE;
 
   // Debounced, non-blocking duplicate check: only runs once we have an invoice
   // number and an amount, and guards against stale/out-of-order responses.
@@ -890,14 +917,55 @@ export function DocumentUploadModal({
             <Row gutter={12}>
               <Col xs={24} sm={12} md={6}>
                 <Form.Item
+                  name="direction"
+                  label={t('projects.documents.upload.fields.direction')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <Segmented<DocumentDirectionDto>
+                    block
+                    options={DOCUMENT_DIRECTIONS.map((direction) => ({
+                      value: direction,
+                      label: t(`projects.documents.directions.${direction}`),
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
                   name="taxAmount"
                   label={t('projects.documents.upload.fields.taxAmount')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <InputNumber style={{ width: '100%' }} min={0} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="irpfRate"
+                  label={t('projects.documents.upload.fields.irpfRate')}
+                  style={FORM_ITEM_STYLE}
+                >
+                  <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="irpfAmount"
+                  label={t('projects.documents.upload.fields.irpfAmount')}
                   style={{ marginBottom: 0 }}
                 >
                   <InputNumber style={{ width: '100%' }} min={0} />
                 </Form.Item>
               </Col>
             </Row>
+            {amountMismatch && (
+              <Alert
+                type="warning"
+                showIcon
+                message={t('projects.documents.upload.validation.amountMismatch')}
+                style={{ marginTop: 8 }}
+              />
+            )}
           </Form>
         </div>
       </Flex>

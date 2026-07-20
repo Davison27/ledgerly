@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { documentFileUrl } from '../../../../data/api/documents.api';
 import type { ProjectDocument } from '../../../../data/documents';
 import { formatEUR, useTypeLabel } from './documentFormat';
-import { StatusTag } from './documentUi';
+import { DirectionTag, StatusTag } from './documentUi';
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
@@ -81,6 +81,10 @@ export function DocumentPreview({ projectId, document }: DocumentPreviewProps) {
 
   const rows: { label: string; value: React.ReactNode }[] = [
     { label: t('projects.documents.columns.type'), value: typeLabel(document.type) },
+    {
+      label: t('projects.documents.columns.direction'),
+      value: <DirectionTag direction={document.direction} />,
+    },
     { label: t('projects.documents.columns.date'), value: document.date },
     {
       label: t('projects.documents.columns.amount'),
@@ -91,6 +95,19 @@ export function DocumentPreview({ projectId, document }: DocumentPreviewProps) {
       value: <StatusTag status={document.status} />,
     },
   ];
+
+  // IRPF is rare (most documents don't have a withholding), so it only earns a
+  // row when there is something to show (D10) — otherwise it's pure noise.
+  if (document.irpfRate != null || document.irpfAmount != null) {
+    const irpfParts = [
+      document.irpfRate != null ? `${document.irpfRate}%` : null,
+      document.irpfAmount != null ? formatEUR(document.irpfAmount) : null,
+    ].filter((part): part is string => part !== null);
+    rows.push({
+      label: t('projects.documents.columns.irpf'),
+      value: irpfParts.join(' · '),
+    });
+  }
 
   const showRealViewer = !!document.hasFile;
 
