@@ -1,6 +1,7 @@
 import { Document } from '../../../documents/domain/document';
 import { DocumentType } from '../../../documents/domain/document-type';
 import { DocumentStatus } from '../../../documents/domain/document-status';
+import { DocumentDirection } from '../../../documents/domain/document-direction';
 
 interface DemoDocumentSeed {
   name: string;
@@ -12,6 +13,8 @@ interface DemoDocumentSeed {
   issuerTaxId: string | null;
   invoiceNumber: string | null;
   dueOffsetDays: number | null;
+  direction: DocumentDirection;
+  irpfRate?: number | null;
 }
 
 const VAT_RATE = 21;
@@ -27,6 +30,10 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: 'B10203040',
     invoiceNumber: 'FRA-DEMO-0001',
     dueOffsetDays: -45,
+    // Las dos facturas de mayor importe se marcan como ingreso: sin esto
+    // el dashboard demo saldría con income = 0, y no enseña nada del
+    // producto (al contrario que la migración de datos reales, ver C1).
+    direction: 'ingreso',
   },
   {
     name: 'Materiales García',
@@ -38,6 +45,9 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: 'B30405060',
     invoiceNumber: 'FRA-DEMO-0002',
     dueOffsetDays: -30,
+    direction: 'ingreso',
+    // Caso realista de un autónomo que factura a empresa y sufre retención.
+    irpfRate: 15,
   },
   {
     name: 'Servicios Cloud SA',
@@ -49,6 +59,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: 'B40506070',
     invoiceNumber: 'FRA-DEMO-0003',
     dueOffsetDays: 20,
+    direction: 'gasto',
   },
   {
     name: 'Oficina Total',
@@ -60,6 +71,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: 'B50607080',
     invoiceNumber: 'FRA-DEMO-0004',
     dueOffsetDays: -5,
+    direction: 'gasto',
   },
   {
     name: 'Nómina mensual',
@@ -71,6 +83,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: null,
     invoiceNumber: null,
     dueOffsetDays: null,
+    direction: 'gasto',
   },
   {
     name: 'Nómina mensual',
@@ -82,6 +95,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: null,
     invoiceNumber: null,
     dueOffsetDays: null,
+    direction: 'gasto',
   },
   {
     name: 'IVA Trimestre',
@@ -93,6 +107,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: null,
     invoiceNumber: null,
     dueOffsetDays: 10,
+    direction: 'gasto',
   },
   {
     name: 'Retenciones IRPF',
@@ -104,6 +119,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: null,
     invoiceNumber: null,
     dueOffsetDays: null,
+    direction: 'gasto',
   },
 ];
 
@@ -128,6 +144,9 @@ export function buildDemoDocuments(projectId: string, generateId: () => string):
     const taxBase = isInvoice ? Math.round((seed.amount / (1 + VAT_RATE / 100)) * 100) / 100 : null;
     const taxAmount = isInvoice && taxBase !== null ? Math.round((seed.amount - taxBase) * 100) / 100 : null;
     const taxRate = isInvoice ? VAT_RATE : null;
+    const irpfRate = seed.irpfRate ?? null;
+    const irpfAmount =
+      irpfRate !== null && taxBase !== null ? Math.round(taxBase * (irpfRate / 100) * 100) / 100 : null;
 
     return Document.create({
       id: generateId(),
@@ -145,7 +164,10 @@ export function buildDemoDocuments(projectId: string, generateId: () => string):
       taxBase,
       taxRate,
       taxAmount,
+      irpfRate,
+      irpfAmount,
       currency: 'EUR',
+      direction: seed.direction,
     });
   });
 }

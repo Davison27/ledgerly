@@ -2,6 +2,7 @@ import { Document } from '../../domain/document';
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
+import { DocumentDirection } from '../../domain/document-direction';
 import { deriveEffectiveStatus, todayIso } from '../../domain/effective-status';
 
 export class DocumentResponse {
@@ -19,12 +20,15 @@ export class DocumentResponse {
   taxBase: number | null;
   taxRate: number | null;
   taxAmount: number | null;
+  irpfRate: number | null;
+  irpfAmount: number | null;
   currency: DocumentCurrency;
   hasFile: boolean;
   fileName: string | null;
   fileSize: number | null;
   mimeType: string | null;
   supplierId: string | null;
+  direction: DocumentDirection;
 
   static fromDomain(document: Document): DocumentResponse {
     const response = new DocumentResponse();
@@ -43,12 +47,15 @@ export class DocumentResponse {
     response.taxBase = document.getTaxBase();
     response.taxRate = document.getTaxRate();
     response.taxAmount = document.getTaxAmount();
+    response.irpfRate = document.getIrpfRate();
+    response.irpfAmount = document.getIrpfAmount();
     response.currency = document.getCurrency();
     response.hasFile = document.hasFile();
     response.fileName = document.getFileName();
     response.fileSize = document.getFileSize();
     response.mimeType = document.getMimeType();
     response.supplierId = document.getSupplierId();
+    response.direction = document.getDirection();
 
     return response;
   }

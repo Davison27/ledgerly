@@ -2,6 +2,7 @@ import { InvalidValueException } from '../../../shared/domain/invalid-value.exce
 import { DocumentType } from './document-type';
 import { DocumentStatus } from './document-status';
 import { DOCUMENT_CURRENCIES, DocumentCurrency } from './document-currency';
+import { DOCUMENT_DIRECTIONS, DocumentDirection } from './document-direction';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -21,11 +22,14 @@ interface DocumentProps {
   taxBase?: number | null;
   taxRate?: number | null;
   taxAmount?: number | null;
+  irpfRate?: number | null;
+  irpfAmount?: number | null;
   currency?: DocumentCurrency;
   fileName?: string | null;
   mimeType?: string | null;
   fileSize?: number | null;
   supplierId?: string | null;
+  direction: DocumentDirection;
 }
 
 export class Document {
@@ -44,11 +48,14 @@ export class Document {
   private taxBase: number | null;
   private taxRate: number | null;
   private taxAmount: number | null;
+  private irpfRate: number | null;
+  private irpfAmount: number | null;
   private currency: DocumentCurrency;
   private fileName: string | null;
   private mimeType: string | null;
   private fileSize: number | null;
   private supplierId: string | null;
+  private direction: DocumentDirection;
 
   private constructor(props: DocumentProps) {
     this.id = props.id;
@@ -66,11 +73,14 @@ export class Document {
     this.taxBase = props.taxBase ?? null;
     this.taxRate = props.taxRate ?? null;
     this.taxAmount = props.taxAmount ?? null;
+    this.irpfRate = props.irpfRate ?? null;
+    this.irpfAmount = props.irpfAmount ?? null;
     this.currency = props.currency ?? 'EUR';
     this.fileName = props.fileName ?? null;
     this.mimeType = props.mimeType ?? null;
     this.fileSize = props.fileSize ?? null;
     this.supplierId = props.supplierId ?? null;
+    this.direction = props.direction;
   }
 
   static create(props: DocumentProps): Document {
@@ -100,6 +110,18 @@ export class Document {
 
     if (props.taxAmount != null && props.taxAmount < 0) {
       throw new InvalidValueException('taxAmount must be greater than or equal to 0');
+    }
+
+    if (props.irpfRate != null && props.irpfRate < 0) {
+      throw new InvalidValueException('irpfRate must be greater than or equal to 0');
+    }
+
+    if (props.irpfAmount != null && props.irpfAmount < 0) {
+      throw new InvalidValueException('irpfAmount must be greater than or equal to 0');
+    }
+
+    if (!DOCUMENT_DIRECTIONS.includes(props.direction)) {
+      throw new InvalidValueException('direction must be one of ingreso, gasto');
     }
 
     if (props.currency != null && !DOCUMENT_CURRENCIES.includes(props.currency)) {
@@ -177,6 +199,18 @@ export class Document {
     return this.taxAmount;
   }
 
+  getIrpfRate(): number | null {
+    return this.irpfRate;
+  }
+
+  getIrpfAmount(): number | null {
+    return this.irpfAmount;
+  }
+
+  getDirection(): DocumentDirection {
+    return this.direction;
+  }
+
   getCurrency(): DocumentCurrency {
     return this.currency;
   }
@@ -218,11 +252,14 @@ export class Document {
       taxBase: this.taxBase,
       taxRate: this.taxRate,
       taxAmount: this.taxAmount,
+      irpfRate: this.irpfRate,
+      irpfAmount: this.irpfAmount,
       currency: this.currency,
       fileName: this.fileName,
       mimeType: this.mimeType,
       fileSize: this.fileSize,
       supplierId: this.supplierId,
+      direction: this.direction,
     };
   }
 }
