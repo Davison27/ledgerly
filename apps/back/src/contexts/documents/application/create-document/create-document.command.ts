@@ -1,6 +1,7 @@
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
+import { DocumentDirection } from '../../domain/document-direction';
 
 export interface CreateDocumentCommand {
   projectId: string;
@@ -17,8 +18,11 @@ export interface CreateDocumentCommand {
   taxBase?: number | null;
   taxRate?: number | null;
   taxAmount?: number | null;
+  irpfRate?: number | null;
+  irpfAmount?: number | null;
   currency?: DocumentCurrency;
   supplierId?: string | null;
+  direction: DocumentDirection;
   file?: {
     buffer: Buffer;
     originalName: string;

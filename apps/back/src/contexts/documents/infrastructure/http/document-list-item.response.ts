@@ -1,6 +1,7 @@
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
+import { DocumentDirection } from '../../domain/document-direction';
 import { deriveEffectiveStatus, todayIso } from '../../domain/effective-status';
 import { DocumentListItem } from '../../application/list-all-documents/document-list-item';
 
@@ -11,6 +12,7 @@ export class DocumentListItemResponse {
   name: string;
   type: DocumentType;
   status: DocumentStatus;
+  direction: DocumentDirection;
   date: string;
   dueDate: string | null;
   amount: number;
@@ -30,6 +32,7 @@ export class DocumentListItemResponse {
     response.date = item.date;
     response.dueDate = item.dueDate;
     response.status = deriveEffectiveStatus(item.status, item.dueDate, todayIso());
+    response.direction = item.direction;
     response.amount = item.amount;
     response.currency = item.currency;
     response.issuerName = item.issuerName;

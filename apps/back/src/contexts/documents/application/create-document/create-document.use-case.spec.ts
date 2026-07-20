@@ -9,6 +9,7 @@ import { SupplierExistenceChecker } from '../../domain/supplier-existence-checke
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
+import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 class InMemoryDocumentRepository implements DocumentRepository {
   private documents: Document[] = [];
@@ -75,6 +76,7 @@ const BASE_COMMAND = {
   date: '2026-06-01',
   amount: 100,
   status: 'pendiente' as const,
+  direction: 'gasto' as const,
 };
 
 describe('CreateDocumentUseCase', () => {
@@ -140,5 +142,60 @@ describe('CreateDocumentUseCase', () => {
     await expect(
       useCase.execute({ ...BASE_COMMAND, supplierId: 'supplier-1' }),
     ).rejects.toThrow(DocumentProjectNotFoundException);
+  });
+
+  it('persists the direction and IRPF fields that arrive in the command', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      new SequentialIdGenerator(),
+    );
+
+    const document = await useCase.execute({
+      ...BASE_COMMAND,
+      direction: 'ingreso',
+      irpfRate: 15,
+      irpfAmount: 150,
+    });
+
+    expect(document.getDirection()).toBe('ingreso');
+    expect(document.getIrpfRate()).toBe(15);
+    expect(document.getIrpfAmount()).toBe(150);
+  });
+
+  it('rejects a negative irpfRate', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      new SequentialIdGenerator(),
+    );
+
+    await expect(
+      useCase.execute({ ...BASE_COMMAND, irpfRate: -1 }),
+    ).rejects.toThrow(InvalidValueException);
+  });
+
+  it('rejects an invalid direction', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      new SequentialIdGenerator(),
+    );
+
+    await expect(
+      useCase.execute({ ...BASE_COMMAND, direction: 'otro' as unknown as 'ingreso' | 'gasto' }),
+    ).rejects.toThrow(InvalidValueException);
   });
 });

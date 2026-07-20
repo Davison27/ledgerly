@@ -64,6 +64,7 @@ export class DocumentsController {
         search: query.search,
         type: query.type,
         status: query.status,
+        direction: query.direction,
         dateFrom: query.dateFrom,
         dateTo: query.dateTo,
         amountMin: query.amountMin,
@@ -107,8 +108,11 @@ export class DocumentsController {
       taxBase: dto.taxBase,
       taxRate: dto.taxRate,
       taxAmount: dto.taxAmount,
+      irpfRate: dto.irpfRate,
+      irpfAmount: dto.irpfAmount,
       currency: dto.currency,
       supplierId: dto.supplierId,
+      direction: dto.direction,
       file: file
         ? {
             buffer: file.buffer,

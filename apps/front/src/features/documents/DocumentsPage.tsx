@@ -20,6 +20,7 @@ import { listAllDocuments } from '../../data/api/documents.api';
 import { listProjects } from '../../data/api/projects.api';
 import { listSuppliers } from '../../data/api/suppliers.api';
 import type {
+  DocumentDirectionDto,
   DocumentListFiltersDto,
   DocumentListItemDto,
   DocumentStatusDto,
@@ -28,13 +29,14 @@ import type {
   SupplierDto,
 } from '../../data/api/types';
 import { formatEUR, useTypeLabel } from '../projects/sections/documents/documentFormat';
-import { StatusTag } from '../projects/sections/documents/documentUi';
+import { DirectionTag, StatusTag } from '../projects/sections/documents/documentUi';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
 
 const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
 const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
+const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const SEARCH_DEBOUNCE_MS = 350;
 
 type DateRangeValue = [Dayjs | null, Dayjs | null] | null;
@@ -52,6 +54,7 @@ export function DocumentsPage() {
   const [search, setSearch] = useState('');
   const [type, setType] = useState<DocumentTypeDto | undefined>();
   const [status, setStatus] = useState<DocumentStatusDto | undefined>();
+  const [direction, setDirection] = useState<DocumentDirectionDto | undefined>();
   const [dateRange, setDateRange] = useState<DateRangeValue>(null);
   const [amountMin, setAmountMin] = useState<number | undefined>();
   const [amountMax, setAmountMax] = useState<number | undefined>();
@@ -85,6 +88,7 @@ export function DocumentsPage() {
       search: search || undefined,
       type,
       status,
+      direction,
       dateFrom: dateRange?.[0] ? dateRange[0].format('YYYY-MM-DD') : undefined,
       dateTo: dateRange?.[1] ? dateRange[1].format('YYYY-MM-DD') : undefined,
       amountMin,
@@ -92,7 +96,7 @@ export function DocumentsPage() {
       projectId,
       supplierId,
     }),
-    [search, type, status, dateRange, amountMin, amountMax, projectId, supplierId],
+    [search, type, status, direction, dateRange, amountMin, amountMax, projectId, supplierId],
   );
 
   const loadDocuments = useCallback(() => {
@@ -136,6 +140,13 @@ export function DocumentsPage() {
       key: 'type',
       width: 110,
       render: (_, record) => typeLabel(record.type),
+    },
+    {
+      title: t('documents.columns.direction'),
+      dataIndex: 'direction',
+      key: 'direction',
+      width: 110,
+      render: (_, record) => <DirectionTag direction={record.direction} />,
     },
     {
       title: t('documents.columns.status'),
@@ -212,6 +223,17 @@ export function DocumentsPage() {
           options={DOCUMENT_STATUSES.map((value) => ({
             value,
             label: t(`projects.documents.statuses.${value}`),
+          }))}
+        />
+        <Select<DocumentDirectionDto>
+          allowClear
+          placeholder={t('documents.filters.direction')}
+          value={direction}
+          onChange={setDirection}
+          style={{ width: 150 }}
+          options={DOCUMENT_DIRECTIONS.map((value) => ({
+            value,
+            label: t(`projects.documents.directions.${value}`),
           }))}
         />
         <RangePicker

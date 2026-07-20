@@ -2,11 +2,13 @@ import type { DocumentDto } from './api/types';
 
 export type DocumentType = 'factura' | 'nomina' | 'impuesto';
 export type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
+export type DocumentDirection = 'ingreso' | 'gasto';
 
 export interface ProjectDocument {
   id: string;
   name: string;
   type: DocumentType;
+  direction: DocumentDirection;
   month: number;
   date: string;
   amount: number;
@@ -18,6 +20,8 @@ export interface ProjectDocument {
   taxBase?: number;
   taxRate?: number;
   taxAmount?: number;
+  irpfRate?: number;
+  irpfAmount?: number;
   currency?: string;
   hasFile?: boolean;
   fileName?: string | null;
@@ -30,6 +34,7 @@ export function mapDocumentDto(dto: DocumentDto): ProjectDocument {
     id: dto.id,
     name: dto.name,
     type: dto.type,
+    direction: dto.direction,
     month: dto.month,
     date: dto.date,
     amount: dto.amount,
@@ -41,6 +46,8 @@ export function mapDocumentDto(dto: DocumentDto): ProjectDocument {
     taxBase: dto.taxBase ?? undefined,
     taxRate: dto.taxRate ?? undefined,
     taxAmount: dto.taxAmount ?? undefined,
+    irpfRate: dto.irpfRate ?? undefined,
+    irpfAmount: dto.irpfAmount ?? undefined,
     currency: dto.currency ?? undefined,
     hasFile: dto.hasFile ?? false,
     fileName: dto.fileName ?? undefined,

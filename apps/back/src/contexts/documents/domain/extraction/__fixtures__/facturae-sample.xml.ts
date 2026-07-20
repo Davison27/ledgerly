@@ -55,3 +55,75 @@ export const FACTURAE_SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>
     </Invoice>
   </Invoices>
 </fe:Facturae>`;
+
+// Same invoice as FACTURAE_SAMPLE_XML but with a non-zero IRPF withholding,
+// used to verify TaxesWithheld/TotalTaxesWithheld extraction.
+export const FACTURAE_SAMPLE_WITH_IRPF_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<fe:Facturae xmlns:fe="http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml">
+  <FileHeader>
+    <SchemaVersion>3.2.2</SchemaVersion>
+  </FileHeader>
+  <Parties>
+    <SellerParty>
+      <TaxIdentification>
+        <PersonTypeCode>J</PersonTypeCode>
+        <TaxIdentificationNumber>B87654321</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>Consultoria Iberica de Sistemas SA</CorporateName>
+      </LegalEntity>
+    </SellerParty>
+    <BuyerParty>
+      <TaxIdentification>
+        <TaxIdentificationNumber>B99999999</TaxIdentificationNumber>
+      </TaxIdentification>
+      <LegalEntity>
+        <CorporateName>Ledgerly ERP SL</CorporateName>
+      </LegalEntity>
+    </BuyerParty>
+  </Parties>
+  <Invoices>
+    <Invoice>
+      <InvoiceHeader>
+        <InvoiceNumber>2026-045</InvoiceNumber>
+        <InvoiceSeriesCode>A</InvoiceSeriesCode>
+      </InvoiceHeader>
+      <InvoiceIssueData>
+        <IssueDate>2026-02-10</IssueDate>
+        <InvoiceCurrencyCode>EUR</InvoiceCurrencyCode>
+      </InvoiceIssueData>
+      <TaxesOutputs>
+        <Tax>
+          <TaxTypeCode>01</TaxTypeCode>
+          <TaxRate>21.00</TaxRate>
+          <TaxableBase>
+            <TotalAmount>500.00</TotalAmount>
+          </TaxableBase>
+          <TaxAmount>
+            <TotalAmount>105.00</TotalAmount>
+          </TaxAmount>
+        </Tax>
+      </TaxesOutputs>
+      <TaxesWithheld>
+        <Tax>
+          <TaxTypeCode>04</TaxTypeCode>
+          <TaxRate>15.00</TaxRate>
+          <TaxableBase>
+            <TotalAmount>500.00</TotalAmount>
+          </TaxableBase>
+          <TaxAmount>
+            <TotalAmount>75.00</TotalAmount>
+          </TaxAmount>
+        </Tax>
+      </TaxesWithheld>
+      <InvoiceTotals>
+        <TotalGrossAmount>500.00</TotalGrossAmount>
+        <TotalGeneralDiscounts>0.00</TotalGeneralDiscounts>
+        <TotalGeneralSurcharges>0.00</TotalGeneralSurcharges>
+        <TotalTaxOutputs>105.00</TotalTaxOutputs>
+        <TotalTaxesWithheld>75.00</TotalTaxesWithheld>
+        <InvoiceTotal>530.00</InvoiceTotal>
+      </InvoiceTotals>
+    </Invoice>
+  </Invoices>
+</fe:Facturae>`;

@@ -3,6 +3,7 @@ import dataSource from '../data-source';
 
 type DocumentType = 'factura' | 'nomina' | 'impuesto';
 type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
+type DocumentDirection = 'ingreso' | 'gasto';
 
 const COMPANY = {
   name: 'Ledgerly',
@@ -255,7 +256,10 @@ interface DocumentSeed {
   taxBase: number | null;
   taxRate: number | null;
   taxAmount: number | null;
+  irpfRate: number | null;
+  irpfAmount: number | null;
   currency: 'EUR' | 'USD' | 'GBP';
+  direction: DocumentDirection;
 }
 
 function addDays(date: string, days: number): string {
@@ -280,6 +284,14 @@ function generateDocuments(seed: number): DocumentSeed[] {
       const taxRate = 21;
       const taxBase = Math.round((amount / (1 + taxRate / 100)) * 100) / 100;
       const taxAmount = Math.round((amount - taxBase) * 100) / 100;
+      // Datos demo: al contrario que la migración (C1), aquí sí interesa
+      // mezclar direcciones para que el dashboard demo no salga con
+      // income = 0. Una de cada tres facturas de ingreso lleva IRPF (15%),
+      // el caso realista de un autónomo que factura a empresa.
+      const direction: DocumentDirection = (i + seed) % 2 === 0 ? 'ingreso' : 'gasto';
+      const hasIrpf = direction === 'ingreso' && (i + seed) % 3 === 0;
+      const irpfRate = hasIrpf ? 15 : null;
+      const irpfAmount = hasIrpf ? Math.round(taxBase * 0.15 * 100) / 100 : null;
       docs.push({
         name,
         type,
@@ -294,7 +306,10 @@ function generateDocuments(seed: number): DocumentSeed[] {
         taxBase,
         taxRate,
         taxAmount,
+        irpfRate,
+        irpfAmount,
         currency: 'EUR',
+        direction,
       });
     } else {
       docs.push({
@@ -311,7 +326,10 @@ function generateDocuments(seed: number): DocumentSeed[] {
         taxBase: null,
         taxRate: null,
         taxAmount: null,
+        irpfRate: null,
+        irpfAmount: null,
         currency: 'EUR',
+        direction: 'gasto',
       });
     }
   }
@@ -398,9 +416,9 @@ async function run(): Promise<void> {
           `INSERT INTO documents (
              id, project_id, name, type, month, date, amount, status,
              issuer_name, issuer_tax_id, invoice_number, due_date,
-             tax_base, tax_rate, tax_amount, currency
+             tax_base, tax_rate, tax_amount, irpf_rate, irpf_amount, currency, direction
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
           [
             randomUUID(),
             projectId,
@@ -417,7 +435,10 @@ async function run(): Promise<void> {
             document.taxBase,
             document.taxRate,
             document.taxAmount,
+            document.irpfRate,
+            document.irpfAmount,
             document.currency,
+            document.direction,
           ],
         );
       }

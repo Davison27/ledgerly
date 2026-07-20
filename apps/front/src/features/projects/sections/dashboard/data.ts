@@ -62,7 +62,7 @@ export function deriveDashboardData(docs: ProjectDocument[]): DashboardData {
     const idx = doc.month - 1;
     const inRange = idx >= 0 && idx < 12;
 
-    if (doc.type === 'factura') {
+    if (doc.direction === 'ingreso') {
       income += doc.amount;
       if (inRange) monthlyIncome[idx] += doc.amount;
     } else {

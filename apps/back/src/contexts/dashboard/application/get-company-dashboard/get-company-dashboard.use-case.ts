@@ -62,7 +62,7 @@ function computeHeadlineTotals(rows: DocumentDashboardRow[]): HeadlineTotals {
   let expenses = 0;
 
   for (const row of rows) {
-    if (row.type === 'factura') income += row.amount;
+    if (row.direction === 'ingreso') income += row.amount;
     else expenses += row.amount;
   }
 
@@ -92,7 +92,7 @@ function computeVatByQuarter(rows: DocumentDashboardRow[]): VatByQuarter[] {
     if (quarterIdx < 0 || quarterIdx >= QUARTERS_IN_YEAR) continue;
 
     const tax = row.taxAmount ?? 0;
-    if (row.type === 'factura') quarters[quarterIdx].outputVat += tax;
+    if (row.direction === 'ingreso') quarters[quarterIdx].outputVat += tax;
     else quarters[quarterIdx].inputVat += tax;
   }
 
@@ -111,7 +111,7 @@ function computeBudgetVsActual(
 
   for (const row of yearRows) {
     const activity = activityByProject.get(row.projectId) ?? { income: 0, expenses: 0 };
-    if (row.type === 'factura') activity.income += row.amount;
+    if (row.direction === 'ingreso') activity.income += row.amount;
     else activity.expenses += row.amount;
     activityByProject.set(row.projectId, activity);
   }
@@ -158,7 +158,7 @@ function computeCashflowForecast(allRows: DocumentDashboardRow[], today: Date): 
   for (const row of allRows) {
     if (row.status === 'pagado' || row.dueDate === null) continue;
 
-    const isInflow = row.type === 'factura';
+    const isInflow = row.direction === 'ingreso';
 
     if (row.dueDate < todayIso) {
       if (isInflow) overdueInflow += row.amount;
@@ -221,7 +221,7 @@ export class GetCompanyDashboardUseCase {
       const idx = row.month - 1;
       const inRange = idx >= 0 && idx < MONTHS_IN_YEAR;
 
-      if (row.type === 'factura') {
+      if (row.direction === 'ingreso') {
         if (inRange) monthlyIncome[idx] += row.amount;
       } else {
         if (inRange) monthlyExpenses[idx] += row.amount;

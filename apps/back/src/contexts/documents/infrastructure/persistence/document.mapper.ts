@@ -2,6 +2,7 @@ import { Document } from '../../domain/document';
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
+import { DocumentDirection } from '../../domain/document-direction';
 import { DocumentOrmEntity } from './document.orm-entity';
 
 export class DocumentMapper {
@@ -22,11 +23,14 @@ export class DocumentMapper {
       taxBase: orm.taxBase != null ? Number(orm.taxBase) : null,
       taxRate: orm.taxRate != null ? Number(orm.taxRate) : null,
       taxAmount: orm.taxAmount != null ? Number(orm.taxAmount) : null,
+      irpfRate: orm.irpfRate != null ? Number(orm.irpfRate) : null,
+      irpfAmount: orm.irpfAmount != null ? Number(orm.irpfAmount) : null,
       currency: orm.currency as DocumentCurrency,
       fileName: orm.fileName,
       mimeType: orm.mimeType,
       fileSize: orm.fileSize,
       supplierId: orm.supplierId,
+      direction: orm.direction as DocumentDirection,
     });
   }
 
@@ -49,11 +53,14 @@ export class DocumentMapper {
     orm.taxBase = primitives.taxBase != null ? primitives.taxBase.toString() : null;
     orm.taxRate = primitives.taxRate != null ? primitives.taxRate.toString() : null;
     orm.taxAmount = primitives.taxAmount != null ? primitives.taxAmount.toString() : null;
+    orm.irpfRate = primitives.irpfRate != null ? primitives.irpfRate.toString() : null;
+    orm.irpfAmount = primitives.irpfAmount != null ? primitives.irpfAmount.toString() : null;
     orm.currency = primitives.currency;
     orm.fileName = primitives.fileName;
     orm.mimeType = primitives.mimeType;
     orm.fileSize = primitives.fileSize;
     orm.supplierId = primitives.supplierId;
+    orm.direction = primitives.direction;
 
     return orm;
   }

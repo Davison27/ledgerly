@@ -1,6 +1,7 @@
 import { DocumentType } from './document-type';
 import { DocumentStatus } from './document-status';
 import { DocumentCurrency } from './document-currency';
+import { DocumentDirection } from './document-direction';
 
 export interface DocumentListRow {
   id: string;
@@ -8,6 +9,7 @@ export interface DocumentListRow {
   name: string;
   type: DocumentType;
   status: DocumentStatus;
+  direction: DocumentDirection;
   date: string;
   dueDate: string | null;
   amount: number;
