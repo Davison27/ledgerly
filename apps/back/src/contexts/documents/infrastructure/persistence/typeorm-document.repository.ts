@@ -12,8 +12,14 @@ import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
+import { todayIso } from '../../domain/effective-status';
 import { DocumentOrmEntity } from './document.orm-entity';
 import { DocumentMapper } from './document.mapper';
+
+const EFFECTIVE_STATUS_FILTER_SQL = `
+  CASE WHEN document.status = 'pendiente' AND document.due_date IS NOT NULL AND document.due_date < :today
+       THEN 'vencido' ELSE document.status END = :status
+`;
 
 @Injectable()
 export class TypeOrmDocumentRepository implements DocumentRepository {
@@ -37,7 +43,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
     }
 
     if (filters.status) {
-      queryBuilder.andWhere('document.status = :status', { status: filters.status });
+      queryBuilder.andWhere(EFFECTIVE_STATUS_FILTER_SQL, { status: filters.status, today: todayIso() });
     }
 
     if (filters.dateFrom) {
@@ -142,7 +148,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
     }
 
     if (filters.status) {
-      queryBuilder.andWhere('document.status = :status', { status: filters.status });
+      queryBuilder.andWhere(EFFECTIVE_STATUS_FILTER_SQL, { status: filters.status, today: todayIso() });
     }
 
     if (filters.dateFrom) {

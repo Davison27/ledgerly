@@ -243,6 +243,24 @@ describe('GetCompanyDashboardUseCase', () => {
     ]);
   });
 
+  it('derives overdue status for a pendiente document whose dueDate has already passed', async () => {
+    mockToday('2026-07-18T12:00:00.000Z');
+    const rows: DocumentDashboardRow[] = [
+      buildRow({ type: 'factura', amount: 500, status: 'pendiente', dueDate: '2026-07-01', date: '2026-06-01' }),
+    ];
+    const useCase = new GetCompanyDashboardUseCase(
+      new FakeDocumentRepository(rows),
+      new FakeProjectRepository([]),
+    );
+
+    const result = await useCase.execute(2026);
+
+    expect(result.overdueCount).toBe(1);
+    expect(result.pendingCount).toBe(0);
+    expect(result.paidCount).toBe(0);
+    expect(result.amountByStatus).toEqual({ pagado: 0, pendiente: 0, vencido: 500 });
+  });
+
   it('excludes documents from other years and buckets by month within the selected year only', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const rows: DocumentDashboardRow[] = [
