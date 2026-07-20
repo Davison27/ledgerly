@@ -97,6 +97,7 @@ function buildRow(overrides: Partial<DocumentDashboardRow> = {}): DocumentDashbo
     date: '2026-01-15',
     dueDate: null,
     taxAmount: null,
+    direction: 'ingreso',
     ...overrides,
   };
 }
@@ -197,8 +198,8 @@ describe('GetCompanyDashboardUseCase', () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const rows: DocumentDashboardRow[] = [
       buildRow({ type: 'factura', amount: 1000, month: 1, status: 'pagado', projectId: 'p1', issuerName: 'Client A', date: '2026-01-05' }),
-      buildRow({ type: 'nomina', amount: 300, month: 1, status: 'pendiente', projectId: 'p1', issuerName: 'Employee', date: '2026-01-20' }),
-      buildRow({ type: 'impuesto', amount: 100, month: 2, status: 'vencido', projectId: 'p2', issuerName: null, date: '2026-02-01' }),
+      buildRow({ type: 'nomina', direction: 'gasto', amount: 300, month: 1, status: 'pendiente', projectId: 'p1', issuerName: 'Employee', date: '2026-01-20' }),
+      buildRow({ type: 'impuesto', direction: 'gasto', amount: 100, month: 2, status: 'vencido', projectId: 'p2', issuerName: null, date: '2026-02-01' }),
     ];
     const summaries = [buildSummary({ id: 'p1', name: 'Project One' }), buildSummary({ id: 'p2', name: 'Project Two' })];
     const useCase = new GetCompanyDashboardUseCase(
@@ -314,7 +315,7 @@ describe('GetCompanyDashboardUseCase', () => {
     const rows: DocumentDashboardRow[] = [
       buildRow({ type: 'factura', amount: 1000, date: '2026-03-01' }),
       buildRow({ type: 'factura', amount: 400, date: '2025-03-01' }),
-      buildRow({ type: 'nomina', amount: 100, date: '2025-04-01' }),
+      buildRow({ type: 'nomina', direction: 'gasto', amount: 100, date: '2025-04-01' }),
       buildRow({ type: 'factura', amount: 999, date: '2024-01-01' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
@@ -416,8 +417,8 @@ describe('GetCompanyDashboardUseCase', () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DocumentDashboardRow[] = [
         buildRow({ projectId: 'p1', type: 'factura', amount: 500, date: '2026-02-01' }),
-        buildRow({ projectId: 'p1', type: 'nomina', amount: 200, date: '2026-03-01' }),
-        buildRow({ projectId: 'p2', type: 'impuesto', amount: 900, date: '2026-04-01' }),
+        buildRow({ projectId: 'p1', type: 'nomina', direction: 'gasto', amount: 200, date: '2026-03-01' }),
+        buildRow({ projectId: 'p2', type: 'impuesto', direction: 'gasto', amount: 900, date: '2026-04-01' }),
         buildRow({ projectId: 'p3', type: 'factura', amount: 50, date: '2025-04-01' }), // other year, excluded
       ];
       const summaries = [
@@ -463,10 +464,10 @@ describe('GetCompanyDashboardUseCase', () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DocumentDashboardRow[] = [
         buildRow({ type: 'factura', month: 1, taxAmount: 210, date: '2026-01-05' }),
-        buildRow({ type: 'nomina', month: 2, taxAmount: 50, date: '2026-02-05' }),
-        buildRow({ type: 'impuesto', month: 5, taxAmount: 30, date: '2026-05-05' }),
+        buildRow({ type: 'nomina', direction: 'gasto', month: 2, taxAmount: 50, date: '2026-02-05' }),
+        buildRow({ type: 'impuesto', direction: 'gasto', month: 5, taxAmount: 30, date: '2026-05-05' }),
         buildRow({ type: 'factura', month: 8, taxAmount: null, date: '2026-08-05' }),
-        buildRow({ type: 'nomina', month: 11, taxAmount: 20, date: '2026-11-05' }),
+        buildRow({ type: 'nomina', direction: 'gasto', month: 11, taxAmount: 20, date: '2026-11-05' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
         new FakeDocumentRepository(rows),
@@ -490,14 +491,14 @@ describe('GetCompanyDashboardUseCase', () => {
       const rows: DocumentDashboardRow[] = [
         // overdue: due before today, unpaid
         buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-06-01', date: '2026-05-01' }),
-        buildRow({ type: 'nomina', amount: 150, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
+        buildRow({ type: 'nomina', direction: 'gasto', amount: 150, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
         // paid, excluded regardless of due date
         buildRow({ type: 'factura', amount: 9999, status: 'pagado', dueDate: '2026-06-01', date: '2026-05-01' }),
         // no due date, excluded
         buildRow({ type: 'factura', amount: 9999, status: 'pendiente', dueDate: null, date: '2026-05-01' }),
         // upcoming: due in August 2026 (next month bucket)
         buildRow({ type: 'factura', amount: 300, status: 'pendiente', dueDate: '2026-08-10', date: '2026-07-01' }),
-        buildRow({ type: 'impuesto', amount: 80, status: 'pendiente', dueDate: '2026-08-20', date: '2026-07-01' }),
+        buildRow({ type: 'impuesto', direction: 'gasto', amount: 80, status: 'pendiente', dueDate: '2026-08-20', date: '2026-07-01' }),
         // upcoming: due in January 2027 (6th month bucket)
         buildRow({ type: 'factura', amount: 60, status: 'pendiente', dueDate: '2027-01-15', date: '2026-07-01' }),
         // beyond 6 months, ignored
@@ -534,6 +535,45 @@ describe('GetCompanyDashboardUseCase', () => {
       const result = await useCase.execute(2021);
 
       expect(result.cashflowForecast.months[0]).toEqual({ month: '2026-08', inflow: 40, outflow: 0, net: 40 });
+    });
+  });
+
+  describe('direction vs type', () => {
+    it('splits income/expenses, vatByQuarter and cashflowForecast by direction, not by type', async () => {
+      mockToday('2026-07-18T12:00:00.000Z');
+      const rows: DocumentDashboardRow[] = [
+        buildRow({
+          type: 'factura',
+          direction: 'ingreso',
+          amount: 1000,
+          month: 1,
+          taxAmount: 210,
+          status: 'pendiente',
+          dueDate: '2026-08-10',
+          date: '2026-01-05',
+        }),
+        buildRow({
+          type: 'factura',
+          direction: 'gasto',
+          amount: 400,
+          month: 1,
+          taxAmount: 80,
+          status: 'pendiente',
+          dueDate: '2026-08-15',
+          date: '2026-01-10',
+        }),
+      ];
+      const useCase = new GetCompanyDashboardUseCase(
+        new FakeDocumentRepository(rows),
+        new FakeProjectRepository([]),
+      );
+
+      const result = await useCase.execute(2026);
+
+      expect(result.income).toBe(1000);
+      expect(result.expenses).toBe(400);
+      expect(result.vatByQuarter[0]).toEqual({ quarter: 1, outputVat: 210, inputVat: 80, balance: 130 });
+      expect(result.cashflowForecast.months[0]).toEqual({ month: '2026-08', inflow: 1000, outflow: 400, net: 600 });
     });
   });
 });

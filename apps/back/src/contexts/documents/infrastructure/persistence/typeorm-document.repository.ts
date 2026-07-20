@@ -11,6 +11,7 @@ import { DocumentDuplicateCriteria } from '../../domain/document-duplicate-crite
 import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
+import { DocumentDirection } from '../../domain/document-direction';
 import { DocumentCurrency } from '../../domain/document-currency';
 import { todayIso } from '../../domain/effective-status';
 import { DocumentOrmEntity } from './document.orm-entity';
@@ -110,6 +111,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
         date: true,
         dueDate: true,
         taxAmount: true,
+        direction: true,
       },
     });
 
@@ -123,6 +125,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       date: orm.date,
       dueDate: orm.dueDate,
       taxAmount: orm.taxAmount !== null ? Number(orm.taxAmount) : null,
+      direction: orm.direction as DocumentDirection,
     }));
   }
 
