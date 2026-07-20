@@ -47,6 +47,12 @@ export class DocumentOrmEntity {
   @Column({ name: 'tax_amount', type: 'numeric', precision: 12, scale: 2, nullable: true })
   taxAmount: string | null;
 
+  @Column({ name: 'irpf_rate', type: 'numeric', precision: 5, scale: 2, nullable: true })
+  irpfRate: string | null;
+
+  @Column({ name: 'irpf_amount', type: 'numeric', precision: 12, scale: 2, nullable: true })
+  irpfAmount: string | null;
+
   @Column({ length: 3 })
   currency: string;
 
@@ -64,4 +70,7 @@ export class DocumentOrmEntity {
 
   @Column({ name: 'supplier_id', type: 'uuid', nullable: true })
   supplierId: string | null;
+
+  @Column({ length: 16 })
+  direction: string;
 }
