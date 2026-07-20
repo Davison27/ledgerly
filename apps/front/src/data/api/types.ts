@@ -120,6 +120,7 @@ export interface UpdateCompanyPayload {
 
 export interface DocumentDto {
   id: string;
+  projectId: string;
   name: string;
   type: DocumentTypeDto;
   direction: DocumentDirectionDto;
@@ -127,6 +128,14 @@ export interface DocumentDto {
   date: string;
   amount: number;
   status: DocumentStatusDto;
+  /**
+   * The status as STORED, without the `deriveEffectiveStatus` derivation the
+   * backend applies to `status`. Only used to preload the edit form — never
+   * to paint anything (see D5 of the document-crud plan). Reading `status`
+   * here to prefill a form would turn a derived "vencido" into a persisted
+   * one the moment the form is saved without touching the selector.
+   */
+  rawStatus: DocumentStatusDto;
   issuerName?: string | null;
   issuerTaxId?: string | null;
   invoiceNumber?: string | null;
@@ -163,6 +172,8 @@ export interface DocumentListItemDto {
   type: DocumentTypeDto;
   direction: DocumentDirectionDto;
   status: DocumentStatusDto;
+  /** The status as STORED, without derivation. See `DocumentDto.rawStatus`. */
+  rawStatus: DocumentStatusDto;
   date: string;
   dueDate: string | null;
   amount: number;
@@ -224,6 +235,38 @@ export interface CreateDocumentPayload {
   irpfAmount?: number;
   currency?: string;
   supplierId?: string;
+}
+
+/**
+ * All 17 editable fields (D2 of the document-crud plan), all optional:
+ * an absent key means "leave untouched", an explicit `null` clears it.
+ * Deliberately excludes `month` (derived server-side from `date`, D4),
+ * `projectId` (moving projects is out of scope, C2) and every file field
+ * (`fileName`/`mimeType`/`fileSize`/`content`: the PDF isn't editable, C1).
+ * Sending any of those trips `forbidNonWhitelisted` on the backend (400).
+ *
+ * `currency` is a loose `string`, mirroring `CreateDocumentPayload` above:
+ * `ProjectDocument.currency` is a plain `string`, so typing this as a
+ * literal union would break as soon as the edit form preloads it.
+ */
+export interface UpdateDocumentPayload {
+  name?: string;
+  type?: DocumentTypeDto;
+  direction?: DocumentDirectionDto;
+  status?: DocumentStatusDto;
+  date?: string;
+  dueDate?: string | null;
+  amount?: number;
+  taxBase?: number | null;
+  taxRate?: number | null;
+  taxAmount?: number | null;
+  irpfRate?: number | null;
+  irpfAmount?: number | null;
+  currency?: string;
+  issuerName?: string | null;
+  issuerTaxId?: string | null;
+  invoiceNumber?: string | null;
+  supplierId?: string | null;
 }
 
 export interface SupplierDto {

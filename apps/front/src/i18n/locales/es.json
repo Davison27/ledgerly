@@ -242,6 +242,28 @@
         "pendiente": "Pendiente",
         "vencido": "Vencido"
       },
+      "detail": {
+        "goToProject": "Ir al proyecto"
+      },
+      "edit": {
+        "button": "Editar",
+        "title": "Editar documento",
+        "submit": "Guardar cambios",
+        "saved": "Documento actualizado",
+        "error": "No se pudo actualizar el documento",
+        "noChanges": "No hay cambios que guardar",
+        "fileNote": "El PDF adjunto no se puede cambiar aquí"
+      },
+      "delete": {
+        "button": "Eliminar",
+        "confirm": {
+          "title": "¿Eliminar el documento?",
+          "content": "Se eliminarán «{{name}}» y su PDF. Esta acción no se puede deshacer.",
+          "ok": "Eliminar"
+        },
+        "deleted": "Documento eliminado",
+        "error": "No se pudo eliminar el documento"
+      },
       "upload": {
         "button": "Añadir documento",
         "title": "Añadir documento",

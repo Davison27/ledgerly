@@ -1,4 +1,4 @@
-import { API_URL, ApiError, buildQueryString, get } from './httpClient';
+import { API_URL, ApiError, buildQueryString, del, get, patch } from './httpClient';
 import { stripEmpty } from './sanitize';
 import type {
   CreateDocumentPayload,
@@ -9,6 +9,7 @@ import type {
   DuplicateCheckParams,
   DuplicateCheckResultDto,
   ExtractInvoiceResult,
+  UpdateDocumentPayload,
 } from './types';
 
 export function listDocuments(
@@ -98,6 +99,30 @@ export async function createDocument(
 
 export function documentFileUrl(projectId: string, documentId: string): string {
   return `${API_URL}/projects/${projectId}/documents/${documentId}/file`;
+}
+
+// Not consumed by anything in this batch of work — deliberately. It's what
+// the follow-up "open a document from /documents" work will use to re-fetch
+// the full document (the global list item doesn't carry every field). Left
+// unwired on purpose; do not remove it for being unused.
+export function getDocument(projectId: string, id: string): Promise<DocumentDto> {
+  return get<DocumentDto>(`/projects/${projectId}/documents/${id}`);
+}
+
+export function updateDocument(
+  projectId: string,
+  id: string,
+  payload: UpdateDocumentPayload,
+): Promise<DocumentDto> {
+  // Unlike `createDocument`, this payload must NOT go through `stripEmpty()`.
+  // An explicit `null` here means "clear this optional field" (D2 of the
+  // document-crud plan); `stripEmpty` would drop those nulls and make it
+  // impossible to clear a `dueDate` or an `invoiceNumber` from the edit form.
+  return patch<DocumentDto>(`/projects/${projectId}/documents/${id}`, payload);
+}
+
+export function deleteDocument(projectId: string, id: string): Promise<void> {
+  return del<void>(`/projects/${projectId}/documents/${id}`);
 }
 
 export function extractInvoice(

@@ -242,6 +242,28 @@
         "pendiente": "Pending",
         "vencido": "Overdue"
       },
+      "detail": {
+        "goToProject": "Go to project"
+      },
+      "edit": {
+        "button": "Edit",
+        "title": "Edit document",
+        "submit": "Save changes",
+        "saved": "Document updated",
+        "error": "The document could not be updated",
+        "noChanges": "There are no changes to save",
+        "fileNote": "The attached PDF cannot be changed here"
+      },
+      "delete": {
+        "button": "Delete",
+        "confirm": {
+          "title": "Delete this document?",
+          "content": "\"{{name}}\" and its PDF will be deleted. This cannot be undone.",
+          "ok": "Delete"
+        },
+        "deleted": "Document deleted",
+        "error": "The document could not be deleted"
+      },
       "upload": {
         "button": "Add document",
         "title": "Add document",
