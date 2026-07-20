@@ -25,8 +25,10 @@ pnpm-debug.log*
 # Coverage
 coverage/
 
-# Claude / agent skills
-.claude/
+# Claude — se versionan CLAUDE.md y .claude/agents/, nunca lo local
+.claude/*
+!.claude/agents/
+.claude/settings.local.json
 .agents/
 
 # Editor / OS
