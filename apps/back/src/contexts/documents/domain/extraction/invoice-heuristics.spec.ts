@@ -90,4 +90,55 @@ describe('extractInvoiceHeuristics', () => {
 
     expect(fields.issuerTaxId).toBe('B22222222');
   });
+
+  it('extracts irpfRate and irpfAmount from a labelled "IRPF" line with an inline amount', () => {
+    const text = [
+      'Suministros Industriales del Norte SL',
+      'CIF: B12345678',
+      'FACTURA',
+      'Numero de factura: FA-2026-0088',
+      'Fecha: 15/03/2026',
+      'BASE IMPONIBLE: 1.000,00 EUR',
+      'IVA 21%: 210,00 EUR',
+      'IRPF 15% -150,00',
+      'TOTAL: 1.060,00 EUR',
+    ].join('\n');
+
+    const { fields } = extractInvoiceHeuristics(text);
+
+    expect(fields.irpfRate).toBe(15);
+    expect(fields.irpfAmount).toBe(150);
+  });
+
+  it('extracts a labelled "Retención" line as IRPF', () => {
+    const text = [
+      'Consultoria Iberica de Sistemas SA',
+      'NIF: B87654321',
+      'Factura Nº: 2026/045',
+      'Base imponible: 500,00 EUR',
+      'IVA (21%): 105,00 EUR',
+      'Retención 7 %: -35,00 EUR',
+      'TOTAL FACTURA: 570,00 EUR',
+    ].join('\n');
+
+    const { fields } = extractInvoiceHeuristics(text);
+
+    expect(fields.irpfRate).toBe(7);
+    expect(fields.irpfAmount).toBe(35);
+  });
+
+  it('omits irpfRate and irpfAmount when the invoice has no IRPF/retención line', () => {
+    const text = [
+      'Suministros Industriales del Norte SL',
+      'CIF: B12345678',
+      'BASE IMPONIBLE: 1.000,00 EUR',
+      'IVA 21%: 210,00 EUR',
+      'TOTAL: 1.210,00 EUR',
+    ].join('\n');
+
+    const { fields } = extractInvoiceHeuristics(text);
+
+    expect(fields.irpfRate).toBeUndefined();
+    expect(fields.irpfAmount).toBeUndefined();
+  });
 });
