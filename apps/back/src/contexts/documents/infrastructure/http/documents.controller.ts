@@ -64,6 +64,7 @@ export class DocumentsController {
         search: query.search,
         type: query.type,
         status: query.status,
+        direction: query.direction,
         dateFrom: query.dateFrom,
         dateTo: query.dateTo,
         amountMin: query.amountMin,

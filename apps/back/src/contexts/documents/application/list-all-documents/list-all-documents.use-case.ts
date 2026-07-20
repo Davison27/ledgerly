@@ -29,6 +29,7 @@ export class ListAllDocumentsUseCase {
       name: row.name,
       type: row.type,
       status: row.status,
+      direction: row.direction,
       date: row.date,
       dueDate: row.dueDate,
       amount: row.amount,
