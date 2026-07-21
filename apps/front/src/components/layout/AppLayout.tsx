@@ -16,9 +16,11 @@ import { companyNeedsSetup } from '../../data/company';
 import { CommandPalette } from '../../features/command-palette/CommandPalette';
 import { useCommandPalette } from '../../features/command-palette/useCommandPalette';
 import { TopBar } from './TopBar';
-import logoIconUrl from '../../assets/ledgerly-icon.svg';
 
 const { useToken } = theme;
+
+// Must match TopBar.tsx's Layout.Header height, so the sider starts right below it.
+const TOPBAR_HEIGHT = 52;
 
 /**
  * Redirects to the onboarding wizard when there's no company data yet.
@@ -112,28 +114,13 @@ function AppSider({
       collapsedWidth={64}
       width={220}
       style={{
-        height: '100vh',
+        height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
         position: 'sticky',
-        top: 0,
+        top: TOPBAR_HEIGHT,
         background: token.colorBgContainer,
         borderRight: `1px solid ${token.colorBorderSecondary}`,
       }}
     >
-      <div
-        style={{
-          height: 52,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <img
-          src={logoIconUrl}
-          alt=""
-          aria-hidden="true"
-          style={{ height: 28, display: 'block', objectFit: 'contain' }}
-        />
-      </div>
       <Menu
         mode="inline"
         inlineCollapsed={collapsed}
@@ -154,10 +141,10 @@ export function AppLayout() {
   return (
     <CompanyProvider>
       <CompanyGuard>
-        <Layout hasSider style={{ minHeight: '100vh' }}>
-          <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
-          <Layout>
-            <TopBar />
+        <Layout style={{ minHeight: '100vh' }}>
+          <TopBar />
+          <Layout hasSider>
+            <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
             <Layout.Content
               style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
             >
