@@ -36,6 +36,21 @@ del plan en `docs/plans/<slug>.md`.
   no metas `companyId` en firmas ni rutas.
 - Todo texto de UI pasa por i18n en los dos idiomas.
 
+# Sé conciso: la verbosidad se paga varias veces
+
+Escribes para que un Sonnet ejecute, **no para archivo**. Cada línea del plan la
+releen después 3-4 agentes (implementadores y QA), así que cada párrafo de más se
+paga tantas veces como agentes lo lean.
+
+Di cada decisión **una vez**, en su sitio, y refiérete a ella por su
+identificador desde el resto. No repitas el mismo aviso en cinco secciones para
+que "no se les escape": si algo es crítico, va en el paso concreto donde se puede
+meter la pata, no esparcido por todo el documento.
+
+Un plan de 250 líneas bien escrito es mejor que uno de 700. Si te sale largo, casi
+siempre es que estás repitiéndote o explicando código que el implementador va a
+leer igualmente.
+
 # Formato de salida
 
 Escribe el plan en `docs/plans/<slug>.md` con esta estructura, y en tu respuesta

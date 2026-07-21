@@ -37,15 +37,20 @@ migraciones, i18n, tests, contratos de API.
 - Síncrono (`run_in_background: false`) — todo lo demás depende de su salida.
 - El plan se escribe en `docs/plans/<slug>.md`.
 
-## Fase 2 — `plan-validator` (Opus)
+## Fase 2 — `plan-validator` (Sonnet)
 
 Ingeniero que verifica que el plan es **realizable** contra el código real: que
 los ficheros y símbolos citados existen, que el orden de pasos es viable, que no
-rompe contratos ni migraciones existentes.
+rompe contratos ni migraciones existentes. Es trabajo mecánico de contraste
+contra el código, por eso va en Sonnet.
 
 - Devuelve `APPROVED` o `CHANGES_REQUESTED` con objeciones concretas.
-- Si pide cambios → vuelve al `planner` con las objeciones. Iterar hasta `APPROVED`
-  (máx. 3 vueltas; a la tercera, elevar a David).
+- Si pide cambios → vuelve al `planner` con las objeciones.
+- **Una sola vuelta de validación.** Cuando el `planner` aplica las objeciones,
+  **las verifico yo** leyendo el diff del plan, sin relanzar al validador. Solo
+  se hace una segunda pasada si los cambios fueron estructurales (se movieron
+  unidades, cambió el orden de merge). Medido: la segunda vuelta rutinaria cuesta
+  ~250k tokens y en la última tarea no encontró ni un bloqueante.
 
 ## Fase 3 — `implementer` (Sonnet) ×N
 
@@ -70,12 +75,41 @@ lint, y regresiones. Devuelve `PASS` o `FAIL` con la lista de defectos.
 | Fase | Agente | Modelo | Puede escribir código |
 |---|---|---|---|
 | 1 | `planner` | **opus** | no |
-| 2 | `plan-validator` | **opus** | no |
+| 2 | `plan-validator` | **sonnet** | no |
 | 3 | `implementer` | **sonnet** | sí |
 | 4 | `qa` | **sonnet** | no |
 
 **Opus solo piensa; Sonnet escribe.** Nunca implementar código yo directamente ni
 con Opus: si la tarea requiere editar ficheros del producto, va a un `implementer`.
+
+Opus queda reservado al `planner`, que es donde el juicio cambia el resultado.
+Validar, implementar y revisar son trabajos de contraste contra el código.
+
+---
+
+# Coste (IMPORTANTE)
+
+David paga esto y el pipeline es caro. **Escalar la ceremonia al tamaño real de
+la tarea**, no aplicar las cuatro fases por inercia:
+
+| Tamaño | Qué se hace |
+|---|---|
+| Una línea, entorno, pregunta | Directo, sin agentes. Decirlo. |
+| Una unidad, un solo fichero/capa | Yo planifico + un `implementer` + verifico yo |
+| Varias capas o back+front | Pipeline completo |
+
+Además, siempre:
+
+- **Planes concisos.** El `planner` escribe para que un Sonnet ejecute, no para
+  archivo. Cada línea del plan la releen después 3-4 agentes: la verbosidad se
+  paga varias veces. Nada de repetir la misma decisión en cinco sitios.
+- **Agrupar unidades en un mismo `implementer`** cuando son secuenciales y del
+  mismo ámbito. Arrancar un agente por unidad multiplica el contexto releído.
+- **Verificar yo lo barato.** Ejecutar `pnpm test`, mirar un diff, comprobar una
+  migración contra Postgres o confirmar dos líneas con `rg` no necesita un
+  subagente: cuesta una fracción y es más fiable que preguntar.
+- **Nunca relanzar un agente con `Agent` si sigue vivo**: `SendMessage` conserva
+  su contexto; `Agent` lo re-deriva entero desde cero.
 
 ## Cómo se comunican los agentes
 
