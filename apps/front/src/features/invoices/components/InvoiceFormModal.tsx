@@ -1,9 +1,27 @@
 import { useEffect, useState } from 'react';
-import { Button, Col, Flex, Form, Input, InputNumber, Modal, Row, Select, Typography } from 'antd';
+import {
+  AutoComplete,
+  Button,
+  Col,
+  Flex,
+  Form,
+  Input,
+  InputNumber,
+  Modal,
+  Row,
+  Select,
+  Typography,
+} from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { getProject, listProjects } from '../../../data/api/projects.api';
-import type { CreateInvoicePayload, ProjectSummaryDto } from '../../../data/api/types';
+import { listProducts } from '../../../data/api/products.api';
+import type {
+  CreateInvoiceLinePayload,
+  CreateInvoicePayload,
+  ProductDto,
+  ProjectSummaryDto,
+} from '../../../data/api/types';
 import { computeInvoiceTotals } from '../totals';
 
 const { TextArea } = Input;
@@ -15,7 +33,9 @@ function formatAmount(amount: number): string {
 
 interface InvoiceLineFormValue {
   description?: string;
+  quantity?: number;
   unitPrice?: number;
+  productId?: string;
 }
 
 interface InvoiceFormFields {
@@ -30,7 +50,7 @@ interface InvoiceFormFields {
 }
 
 const FORM_INITIAL_VALUES: Partial<InvoiceFormFields> = {
-  lines: [{ description: '', unitPrice: 0 }],
+  lines: [{ description: '', quantity: 1, unitPrice: undefined }],
   taxRate: 21,
   irpfRate: 0,
 };
@@ -46,6 +66,7 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
   const { t } = useTranslation();
   const [form] = Form.useForm<InvoiceFormFields>();
   const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
+  const [products, setProducts] = useState<ProductDto[]>([]);
   const [loadingProject, setLoadingProject] = useState(false);
 
   useEffect(() => {
@@ -54,6 +75,9 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
       listProjects()
         .then(setProjects)
         .catch(() => setProjects([]));
+      listProducts()
+        .then(setProducts)
+        .catch(() => setProducts([]));
     }
   }, [open, form]);
 
@@ -61,6 +85,19 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
   const taxRateWatch = Form.useWatch('taxRate', form);
   const irpfRateWatch = Form.useWatch('irpfRate', form);
   const totals = computeInvoiceTotals(linesWatch, taxRateWatch, irpfRateWatch);
+
+  const productOptions =
+    products.length > 0
+      ? [
+          {
+            label: t('invoices.lines.productGroup'),
+            options: products.map((product) => ({
+              value: product.name,
+              label: product.name,
+            })),
+          },
+        ]
+      : [];
 
   const handleCancel = () => {
     form.resetFields();
@@ -86,16 +123,44 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
     }
   };
 
+  // Elegir un producto del catálogo (D7): precarga su precio si lo tiene y
+  // deja el precio vacío si no, para que el `required` del InputNumber
+  // impida enviar la línea sin precio (D4).
+  const handleProductSelect = (lineIndex: number, value: string) => {
+    const product = products.find((candidate) => candidate.name === value);
+    if (!product) return;
+    form.setFieldValue(['lines', lineIndex, 'productId'], product.id);
+    form.setFieldValue(['lines', lineIndex, 'unitPrice'], product.price ?? undefined);
+  };
+
+  // Si el texto deja de coincidir exactamente con el nombre del producto
+  // seleccionado, la línea vuelve a ser texto libre (D7): se limpia productId.
+  const handleDescriptionChange = (lineIndex: number, value: string) => {
+    const productId = form.getFieldValue(['lines', lineIndex, 'productId']) as string | undefined;
+    if (!productId) return;
+    const selectedProduct = products.find((product) => product.id === productId);
+    if (selectedProduct && selectedProduct.name !== value) {
+      form.setFieldValue(['lines', lineIndex, 'productId'], undefined);
+    }
+  };
+
   const handleOk = () => {
     form
       .validateFields()
       .then((values) => {
         const payload: CreateInvoicePayload = {
           projectId: values.projectId!,
-          lines: values.lines.map((line) => ({
-            description: line.description!,
-            unitPrice: line.unitPrice!,
-          })),
+          lines: values.lines.map((line) => {
+            const mappedLine: CreateInvoiceLinePayload = {
+              description: line.description!,
+              quantity: line.quantity!,
+              unitPrice: line.unitPrice!,
+            };
+            if (line.productId) {
+              mappedLine.productId = line.productId;
+            }
+            return mappedLine;
+          }),
           taxRate: values.taxRate,
           irpfRate: values.irpfRate,
           customerName: values.customerName!,
@@ -157,6 +222,26 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
         <Form.List name="lines">
           {(fields, { add, remove }) => (
             <Flex vertical gap={4} style={{ marginTop: 8, marginBottom: 8 }}>
+              {fields.length > 0 && (
+                <Row gutter={12}>
+                  <Col flex="auto">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {t('invoices.lines.columns.description')}
+                    </Text>
+                  </Col>
+                  <Col flex="0 0 100px">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {t('invoices.lines.columns.quantity')}
+                    </Text>
+                  </Col>
+                  <Col flex="0 0 140px">
+                    <Text type="secondary" style={{ fontSize: 12 }}>
+                      {t('invoices.lines.columns.unitPrice')}
+                    </Text>
+                  </Col>
+                  <Col flex="0 0 32px" />
+                </Row>
+              )}
               {fields.map((field) => (
                 <Row gutter={12} key={field.key} align="top">
                   <Col flex="auto">
@@ -171,10 +256,45 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
                         },
                       ]}
                     >
-                      <Input placeholder={t('invoices.lines.descriptionPlaceholder')} />
+                      <AutoComplete
+                        options={productOptions}
+                        filterOption={(inputValue, option) =>
+                          (option?.label ?? '').toString().toLowerCase().includes(inputValue.toLowerCase())
+                        }
+                        onSelect={(value: string) => handleProductSelect(field.name, value)}
+                        onChange={(value: string) => handleDescriptionChange(field.name, value)}
+                        aria-label={t('invoices.lines.columns.description')}
+                        placeholder={t('invoices.lines.descriptionPlaceholder')}
+                      />
                     </Form.Item>
                   </Col>
-                  <Col flex="0 0 160px">
+                  <Col flex="0 0 100px">
+                    <Form.Item
+                      {...field}
+                      name={[field.name, 'quantity']}
+                      style={{ marginBottom: 8 }}
+                      rules={[
+                        {
+                          required: true,
+                          message: t('invoices.form.validation.lineQuantityRequired'),
+                        },
+                        {
+                          type: 'number',
+                          min: 0.001,
+                          message: t('invoices.form.validation.lineQuantityMin'),
+                        },
+                      ]}
+                    >
+                      <InputNumber
+                        style={{ width: '100%' }}
+                        min={0.001}
+                        step={1}
+                        aria-label={t('invoices.lines.columns.quantity')}
+                        placeholder={t('invoices.lines.quantityPlaceholder')}
+                      />
+                    </Form.Item>
+                  </Col>
+                  <Col flex="0 0 140px">
                     <Form.Item
                       {...field}
                       name={[field.name, 'unitPrice']}
@@ -194,10 +314,14 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
                       <InputNumber
                         style={{ width: '100%' }}
                         min={0}
+                        aria-label={t('invoices.lines.columns.unitPrice')}
                         placeholder={t('invoices.lines.unitPricePlaceholder')}
                       />
                     </Form.Item>
                   </Col>
+                  <Form.Item {...field} name={[field.name, 'productId']} hidden>
+                    <Input />
+                  </Form.Item>
                   <Col flex="0 0 32px">
                     <Button
                       type="text"
@@ -214,7 +338,7 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
                 type="dashed"
                 block
                 icon={<PlusOutlined />}
-                onClick={() => add({ description: '', unitPrice: 0 })}
+                onClick={() => add({ description: '', quantity: 1, unitPrice: undefined })}
               >
                 {t('invoices.lines.add')}
               </Button>

@@ -7,6 +7,7 @@ import {
   FileTextOutlined,
   ProjectOutlined,
   SearchOutlined,
+  ShoppingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -158,6 +159,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         icon: <FileDoneOutlined />,
         label: t('nav.invoices'),
         onSelect: () => void navigate({ to: '/invoices' }),
+      },
+      {
+        key: 'nav-products',
+        category: 'nav',
+        icon: <ShoppingOutlined />,
+        label: t('nav.products'),
+        onSelect: () => void navigate({ to: '/products' }),
       },
     ];
     const navItems: PaletteItem[] = navItemsRaw.filter(
