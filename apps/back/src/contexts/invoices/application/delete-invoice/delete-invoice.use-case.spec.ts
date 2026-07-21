@@ -13,7 +13,7 @@ function buildInvoice(documentId: string | null): Invoice {
     issueDate: '2026-06-01',
     projectId: 'project-1',
     customerName: 'Cliente SL',
-    lines: [{ description: 'Consultoría', unitPrice: 100 }],
+    lines: [{ description: 'Consultoría', unitPrice: 100, quantity: 1 }],
   }).withNumber('F', 2026, 1);
 
   return documentId !== null ? invoice.withDocumentId(documentId) : invoice;

@@ -300,9 +300,40 @@ export interface UpdateSupplierPayload {
   notes?: string;
 }
 
+export interface ProductDto {
+  id: string;
+  name: string;
+  price: number | null;
+}
+
+export interface CreateProductPayload {
+  name: string;
+  price?: number;
+}
+
+export interface UpdateProductPayload {
+  name?: string;
+  price?: number;
+}
+
 export interface InvoiceLineDto {
   description: string;
   unitPrice: number;
+  quantity: number;
+  productId: string | null;
+  amount: number;
+}
+
+/**
+ * What a line actually sends on creation — a strict subset of `InvoiceLineDto`.
+ * `CreateInvoiceLineDto` (`apps/back/.../invoices/infrastructure/http/dtos/create-invoice.dto.ts`)
+ * does not declare `amount`, so sending it trips `forbidNonWhitelisted` (400).
+ */
+export interface CreateInvoiceLinePayload {
+  description: string;
+  unitPrice: number;
+  quantity: number;
+  productId?: string;
 }
 
 export interface InvoiceDto {
@@ -339,7 +370,7 @@ export interface InvoiceDto {
 export interface CreateInvoicePayload {
   projectId: string;
   issueDate?: string;
-  lines: InvoiceLineDto[];
+  lines: CreateInvoiceLinePayload[];
   taxRate?: number;
   irpfRate?: number;
   customerName: string;

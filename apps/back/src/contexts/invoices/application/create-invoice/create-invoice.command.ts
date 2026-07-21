@@ -1,6 +1,8 @@
 export interface CreateInvoiceLineCommand {
   description: string;
   unitPrice: number;
+  quantity: number;
+  productId?: string | null;
 }
 
 export interface CreateInvoiceCommand {

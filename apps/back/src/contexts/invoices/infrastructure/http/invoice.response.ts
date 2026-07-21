@@ -3,6 +3,9 @@ import { Invoice } from '../../domain/invoice';
 export class InvoiceLineResponse {
   description: string;
   unitPrice: number;
+  quantity: number;
+  productId: string | null;
+  amount: number;
 }
 
 export class InvoiceResponse {
@@ -44,6 +47,9 @@ export class InvoiceResponse {
     response.lines = invoice.getLines().map((line) => ({
       description: line.getDescription(),
       unitPrice: line.getUnitPrice(),
+      quantity: line.getQuantity(),
+      productId: line.getProductId(),
+      amount: line.getAmount(),
     }));
     response.taxBase = invoice.getTaxBase();
     response.taxRate = invoice.getTaxRate();

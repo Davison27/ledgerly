@@ -7,6 +7,7 @@ import {
   FileTextOutlined,
   ProjectOutlined,
   SearchOutlined,
+  ShoppingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -36,7 +37,7 @@ function CompanyGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-type NavKey = 'dashboard' | 'projects' | 'documents' | 'suppliers' | 'invoices';
+type NavKey = 'dashboard' | 'projects' | 'documents' | 'suppliers' | 'invoices' | 'products';
 
 function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
@@ -44,6 +45,7 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/projects')) return 'projects';
   if (pathname.startsWith('/suppliers')) return 'suppliers';
   if (pathname.startsWith('/invoices')) return 'invoices';
+  if (pathname.startsWith('/products')) return 'products';
   return undefined;
 }
 
@@ -91,6 +93,12 @@ function AppSider({
         icon: <FileDoneOutlined />,
         label: t('nav.invoices'),
         onClick: () => void navigate({ to: '/invoices' }),
+      },
+      {
+        key: 'products' satisfies NavKey,
+        icon: <ShoppingOutlined />,
+        label: t('nav.products'),
+        onClick: () => void navigate({ to: '/products' }),
       },
     ],
     [t, navigate],

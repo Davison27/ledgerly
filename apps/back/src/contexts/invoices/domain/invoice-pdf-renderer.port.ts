@@ -29,7 +29,7 @@ export interface InvoicePdfView {
     taxId: string | null;
     address: string | null;
   };
-  lines: { description: string; unitPrice: number }[];
+  lines: { description: string; quantity: number; unitPrice: number; amount: number }[];
   taxBase: number;
   taxRate: number;
   taxAmount: number;
