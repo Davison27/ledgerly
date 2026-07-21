@@ -16,4 +16,10 @@ export class InvoiceLineOrmEntity {
 
   @Column({ name: 'unit_price', type: 'numeric', precision: 12, scale: 2 })
   unitPrice: string;
+
+  @Column({ type: 'numeric', precision: 12, scale: 3 })
+  quantity: string;
+
+  @Column({ name: 'product_id', type: 'uuid', nullable: true })
+  productId: string | null;
 }

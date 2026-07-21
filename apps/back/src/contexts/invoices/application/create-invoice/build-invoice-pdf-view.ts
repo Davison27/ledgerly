@@ -32,7 +32,9 @@ export function buildInvoicePdfView(invoice: Invoice, issuer: InvoiceIssuer): In
     },
     lines: invoice.getLines().map((line) => ({
       description: line.getDescription(),
+      quantity: line.getQuantity(),
       unitPrice: line.getUnitPrice(),
+      amount: line.getAmount(),
     })),
     taxBase: invoice.getTaxBase(),
     taxRate: invoice.getTaxRate(),

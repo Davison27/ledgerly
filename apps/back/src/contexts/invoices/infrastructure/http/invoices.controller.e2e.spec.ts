@@ -26,7 +26,7 @@ function buildInvoice(overrides: Partial<CreateInvoiceCommand> & { id?: string }
     customerName: overrides.customerName ?? 'Cliente SL',
     customerTaxId: overrides.customerTaxId ?? null,
     customerAddress: overrides.customerAddress ?? null,
-    lines: overrides.lines ?? [{ description: 'Consultoría', unitPrice: 100 }],
+    lines: overrides.lines ?? [{ description: 'Consultoría', unitPrice: 100, quantity: 1 }],
     taxRate: overrides.taxRate,
     irpfRate: overrides.irpfRate,
     notes: overrides.notes ?? null,
@@ -94,7 +94,7 @@ describe('InvoicesController (HTTP, no DB)', () => {
   describe('POST /invoices', () => {
     const VALID_PAYLOAD = {
       projectId: '11111111-1111-4111-8111-111111111111',
-      lines: [{ description: 'Consultoría', unitPrice: 100 }],
+      lines: [{ description: 'Consultoría', unitPrice: 100, quantity: 1 }],
       customerName: 'Cliente SL',
     };
 
