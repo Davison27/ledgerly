@@ -11,4 +11,5 @@ export interface UpdateCompanyCommand {
   postalCode?: string | null;
   country?: string | null;
   logo?: string | null;
+  brandColor?: string | null;
 }

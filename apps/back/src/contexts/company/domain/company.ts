@@ -14,6 +14,7 @@ interface CompanyProps {
   postalCode: string | null;
   country: string | null;
   logo: string | null;
+  brandColor: string | null;
 }
 
 export class Company {
@@ -30,6 +31,7 @@ export class Company {
   private postalCode: string | null;
   private country: string | null;
   private logo: string | null;
+  private brandColor: string | null;
 
   private constructor(props: CompanyProps) {
     this.id = props.id;
@@ -45,6 +47,7 @@ export class Company {
     this.postalCode = props.postalCode;
     this.country = props.country;
     this.logo = props.logo;
+    this.brandColor = props.brandColor;
   }
 
   static create(props: {
@@ -61,6 +64,7 @@ export class Company {
     postalCode?: string | null;
     country?: string | null;
     logo?: string | null;
+    brandColor?: string | null;
   }): Company {
     return new Company({
       id: props.id,
@@ -76,6 +80,7 @@ export class Company {
       postalCode: props.postalCode ?? null,
       country: props.country ?? null,
       logo: props.logo ?? null,
+      brandColor: props.brandColor ?? null,
     });
   }
 
@@ -93,6 +98,7 @@ export class Company {
     postalCode: string | null;
     country: string | null;
     logo: string | null;
+    brandColor: string | null;
   }): Company {
     return new Company({
       id: props.id,
@@ -108,6 +114,7 @@ export class Company {
       postalCode: props.postalCode,
       country: props.country,
       logo: props.logo,
+      brandColor: props.brandColor,
     });
   }
 
@@ -163,6 +170,10 @@ export class Company {
     return this.logo;
   }
 
+  getBrandColor(): string | null {
+    return this.brandColor;
+  }
+
   rename(name: string): void {
     this.name = name;
   }
@@ -211,6 +222,10 @@ export class Company {
     this.logo = logo;
   }
 
+  changeBrandColor(brandColor: string | null): void {
+    this.brandColor = brandColor;
+  }
+
   toPrimitives(): {
     id: string;
     name: string;
@@ -225,6 +240,7 @@ export class Company {
     postalCode: string | null;
     country: string | null;
     logo: string | null;
+    brandColor: string | null;
   } {
     return {
       id: this.id,
@@ -240,6 +256,7 @@ export class Company {
       postalCode: this.postalCode,
       country: this.country,
       logo: this.logo,
+      brandColor: this.brandColor,
     };
   }
 }
