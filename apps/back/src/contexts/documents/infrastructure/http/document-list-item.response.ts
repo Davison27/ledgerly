@@ -12,6 +12,8 @@ export class DocumentListItemResponse {
   name: string;
   type: DocumentType;
   status: DocumentStatus;
+  /** The status as STORED, without `deriveEffectiveStatus`. See D5/5-bis. */
+  rawStatus: DocumentStatus;
   direction: DocumentDirection;
   date: string;
   dueDate: string | null;
@@ -32,6 +34,7 @@ export class DocumentListItemResponse {
     response.date = item.date;
     response.dueDate = item.dueDate;
     response.status = deriveEffectiveStatus(item.status, item.dueDate, todayIso());
+    response.rawStatus = item.status;
     response.direction = item.direction;
     response.amount = item.amount;
     response.currency = item.currency;

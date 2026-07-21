@@ -24,6 +24,7 @@ import { ListAllDocumentsUseCase } from './application/list-all-documents/list-a
 import { CheckDocumentDuplicateUseCase } from './application/check-document-duplicate/check-document-duplicate.use-case';
 import { GetDocumentUseCase } from './application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from './application/create-document/create-document.use-case';
+import { UpdateDocumentUseCase } from './application/update-document/update-document.use-case';
 import { DeleteDocumentUseCase } from './application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from './application/extract-invoice/extract-invoice.use-case';
 import { GetDocumentFileUseCase } from './application/get-document-file/get-document-file.use-case';
@@ -52,6 +53,7 @@ import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
     CheckDocumentDuplicateUseCase,
     GetDocumentUseCase,
     CreateDocumentUseCase,
+    UpdateDocumentUseCase,
     DeleteDocumentUseCase,
     ExtractInvoiceUseCase,
     GetDocumentFileUseCase,

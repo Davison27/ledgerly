@@ -7,12 +7,23 @@ import { deriveEffectiveStatus, todayIso } from '../../domain/effective-status';
 
 export class DocumentResponse {
   id: string;
+  projectId: string;
   name: string;
   type: DocumentType;
   month: number;
   date: string;
   amount: number;
   status: DocumentStatus;
+  /**
+   * The status as STORED, without `deriveEffectiveStatus`. `status` above
+   * stays derived and is what every read view (list, ficha, filters) must
+   * keep using to paint the document. `rawStatus` exists for exactly one
+   * purpose: preloading the edit form, so that saving without touching the
+   * status selector cannot turn a derived `vencido` into a persisted one
+   * (see D5 of the document-crud plan). Do not remove either field: they
+   * mean different things and are meant to coexist.
+   */
+  rawStatus: DocumentStatus;
   issuerName: string | null;
   issuerTaxId: string | null;
   invoiceNumber: string | null;
@@ -34,6 +45,7 @@ export class DocumentResponse {
     const response = new DocumentResponse();
 
     response.id = document.getId();
+    response.projectId = document.getProjectId();
     response.name = document.getName();
     response.type = document.getType();
     response.month = document.getMonth();
@@ -41,6 +53,7 @@ export class DocumentResponse {
     response.amount = document.getAmount();
     response.dueDate = document.getDueDate();
     response.status = deriveEffectiveStatus(document.getStatus(), response.dueDate, todayIso());
+    response.rawStatus = document.getStatus();
     response.issuerName = document.getIssuerName();
     response.issuerTaxId = document.getIssuerTaxId();
     response.invoiceNumber = document.getInvoiceNumber();
