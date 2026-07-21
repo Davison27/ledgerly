@@ -87,7 +87,7 @@ class SequentialIdGenerator implements IdGenerator {
 const BASE_COMMAND = {
   projectId: 'project-1',
   issueDate: '2026-06-01',
-  lines: [{ description: 'Consultoría', unitPrice: 100 }],
+  lines: [{ description: 'Consultoría', unitPrice: 100, quantity: 1 }],
   customerName: 'Cliente SL',
 };
 

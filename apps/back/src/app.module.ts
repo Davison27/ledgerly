@@ -10,6 +10,7 @@ import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
 import { InvoicesModule } from './contexts/invoices/invoices.module';
 import { SuppliersModule } from './contexts/suppliers/suppliers.module';
+import { ProductsModule } from './contexts/products/products.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
 import { DemoModule } from './contexts/demo/demo.module';
 
@@ -23,6 +24,7 @@ import { DemoModule } from './contexts/demo/demo.module';
     DocumentsModule,
     InvoicesModule,
     SuppliersModule,
+    ProductsModule,
     DashboardModule,
     DemoModule,
   ],

@@ -101,6 +101,10 @@ export class Invoice {
    * Validates the invariants and computes the D3 totals (taxBase, taxAmount,
    * irpfAmount, total) here, in this single place, so the canonical
    * calculation never drifts from what actually gets persisted and printed.
+   * The formula itself (line amount = quantity × unitPrice, rounded per line
+   * before summing) is documented once in `docs/architecture/invoices.md`
+   * (D6.1); this is the code that implements it, not a second explanation of
+   * it.
    * `number` is a provisional placeholder at this point: the real
    * correlative is assigned by `InvoiceRepository.saveWithNumber` inside the
    * advisory-lock transaction (D2).
@@ -130,7 +134,7 @@ export class Invoice {
     }
 
     const lines = props.lines.map((line) => InvoiceLine.create(line));
-    const taxBase = round(lines.reduce((sum, line) => sum + line.getUnitPrice(), 0));
+    const taxBase = round(lines.reduce((sum, line) => sum + line.getAmount(), 0));
     const taxAmount = round((taxBase * taxRate) / 100);
     const irpfAmount = round((taxBase * irpfRate) / 100);
     const total = round(taxBase + taxAmount - irpfAmount);

@@ -10,9 +10,9 @@ const BASE_PROPS = {
   projectId: 'project-1',
   customerName: 'Acme SL',
   lines: [
-    { description: 'Consultoría', unitPrice: 100 },
-    { description: 'Desarrollo', unitPrice: 200 },
-    { description: 'Soporte', unitPrice: 50 },
+    { description: 'Consultoría', unitPrice: 100, quantity: 1 },
+    { description: 'Desarrollo', unitPrice: 200, quantity: 1 },
+    { description: 'Soporte', unitPrice: 50, quantity: 1 },
   ],
 };
 
@@ -45,7 +45,7 @@ describe('Invoice', () => {
   it('rounds every computed amount to 2 decimals', () => {
     const invoice = Invoice.create({
       ...BASE_PROPS,
-      lines: [{ description: 'Servicio', unitPrice: 33.33 }],
+      lines: [{ description: 'Servicio', unitPrice: 33.33, quantity: 1 }],
       taxRate: 21,
       irpfRate: 15,
     });
@@ -54,6 +54,61 @@ describe('Invoice', () => {
     expect(invoice.getTaxAmount()).toBe(7);
     expect(invoice.getIrpfAmount()).toBe(5);
     expect(invoice.getTotal()).toBe(35.33);
+  });
+
+  it('multiplies unitPrice by quantity when a line has more than one unit', () => {
+    const invoice = Invoice.create({
+      ...BASE_PROPS,
+      lines: [{ description: 'Servicio', unitPrice: 100, quantity: 3 }],
+    });
+
+    expect(invoice.getTaxBase()).toBe(300);
+  });
+
+  it('accepts a decimal quantity (D2: hours, kilos...)', () => {
+    const invoice = Invoice.create({
+      ...BASE_PROPS,
+      lines: [{ description: 'Horas', unitPrice: 20, quantity: 1.5 }],
+    });
+
+    expect(invoice.getTaxBase()).toBe(30);
+  });
+
+  it('rejects a line with quantity 0', () => {
+    expect(() =>
+      Invoice.create({
+        ...BASE_PROPS,
+        lines: [{ description: 'Servicio', unitPrice: 10, quantity: 0 }],
+      }),
+    ).toThrow(InvalidValueException);
+  });
+
+  it('rejects a line with a negative quantity', () => {
+    expect(() =>
+      Invoice.create({
+        ...BASE_PROPS,
+        lines: [{ description: 'Servicio', unitPrice: 10, quantity: -1 }],
+      }),
+    ).toThrow(InvalidValueException);
+  });
+
+  it('canonical example mirrored in apps/front/src/features/invoices/totals.ts', () => {
+    // lineAmounts = [round2(2 * 100), round2(1.5 * 33.33)] = [200, 50]
+    // (round2(49.995) = 50) -> taxBase = 250, taxAmount = 52.5, irpfAmount = 37.5, total = 265
+    const invoice = Invoice.create({
+      ...BASE_PROPS,
+      lines: [
+        { description: 'Consultoría', unitPrice: 100, quantity: 2 },
+        { description: 'Soporte', unitPrice: 33.33, quantity: 1.5 },
+      ],
+      taxRate: 21,
+      irpfRate: 15,
+    });
+
+    expect(invoice.getTaxBase()).toBe(250);
+    expect(invoice.getTaxAmount()).toBe(52.5);
+    expect(invoice.getIrpfAmount()).toBe(37.5);
+    expect(invoice.getTotal()).toBe(265);
   });
 
   it('rejects an invoice without lines', () => {
@@ -78,13 +133,13 @@ describe('Invoice', () => {
 
   it('rejects a line with an empty description', () => {
     expect(() =>
-      Invoice.create({ ...BASE_PROPS, lines: [{ description: '  ', unitPrice: 10 }] }),
+      Invoice.create({ ...BASE_PROPS, lines: [{ description: '  ', unitPrice: 10, quantity: 1 }] }),
     ).toThrow(InvalidValueException);
   });
 
   it('rejects a line with a negative unitPrice', () => {
     expect(() =>
-      Invoice.create({ ...BASE_PROPS, lines: [{ description: 'Item', unitPrice: -1 }] }),
+      Invoice.create({ ...BASE_PROPS, lines: [{ description: 'Item', unitPrice: -1, quantity: 1 }] }),
     ).toThrow(InvalidValueException);
   });
 
