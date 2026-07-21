@@ -70,5 +70,9 @@ import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },
     { provide: EXTRACTION_OUTCOME_REPOSITORY, useClass: TypeOrmExtractionOutcomeRepository },
   ],
+  // Only exported for `invoices` (D1/D9): the mirror document publisher and
+  // its deletion counterpart inject these use-cases directly, never the
+  // HTTP endpoint, so the mirror document never triggers extraction hints.
+  exports: [CreateDocumentUseCase, DeleteDocumentUseCase],
 })
 export class DocumentsModule {}
