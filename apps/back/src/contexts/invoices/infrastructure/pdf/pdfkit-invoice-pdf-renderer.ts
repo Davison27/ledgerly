@@ -9,6 +9,12 @@ function formatCurrency(amount: number, currency: string): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency }).format(amount);
 }
 
+// D2: the quantity is printed without a unit of measure and without
+// trailing zeros — "2" and "1,5", never "2,000" or "1,5 h".
+function formatQuantity(quantity: number): string {
+  return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 3 }).format(quantity);
+}
+
 function decodeLogo(logo: string | null): Buffer | null {
   if (logo === null) {
     return null;
@@ -128,10 +134,14 @@ export class PdfkitInvoicePdfRenderer implements InvoicePdfRenderer {
   private renderLines(doc: PDFKit.PDFDocument, view: InvoicePdfView): void {
     const tableTop = doc.y;
     const descriptionX = PAGE_MARGIN;
+    const quantityX = 330;
+    const unitPriceX = 390;
     const amountX = 450;
 
     doc.font('Helvetica-Bold').fontSize(9);
-    doc.text('Descripción', descriptionX, tableTop);
+    doc.text('Descripción', descriptionX, tableTop, { width: 260 });
+    doc.text('Cantidad', quantityX, tableTop, { width: 50, align: 'right' });
+    doc.text('Precio', unitPriceX, tableTop, { width: 55, align: 'right' });
     doc.text('Importe', amountX, tableTop, { width: 95, align: 'right' });
     doc
       .moveTo(PAGE_MARGIN, tableTop + 15)
@@ -142,8 +152,10 @@ export class PdfkitInvoicePdfRenderer implements InvoicePdfRenderer {
     let y = tableTop + 22;
 
     for (const line of view.lines) {
-      doc.text(line.description, descriptionX, y, { width: 380 });
-      doc.text(formatCurrency(line.unitPrice, view.currency), amountX, y, { width: 95, align: 'right' });
+      doc.text(line.description, descriptionX, y, { width: 260 });
+      doc.text(formatQuantity(line.quantity), quantityX, y, { width: 50, align: 'right' });
+      doc.text(formatCurrency(line.unitPrice, view.currency), unitPriceX, y, { width: 55, align: 'right' });
+      doc.text(formatCurrency(line.amount, view.currency), amountX, y, { width: 95, align: 'right' });
       y += 18;
     }
 

@@ -23,8 +23,8 @@ const VIEW: InvoicePdfView = {
     address: 'Calle Cliente 1',
   },
   lines: [
-    { description: 'Consultoría técnica (ñ, á, €)', unitPrice: 100 },
-    { description: 'Desarrollo', unitPrice: 200 },
+    { description: 'Consultoría técnica (ñ, á, €)', quantity: 1, unitPrice: 100, amount: 100 },
+    { description: 'Desarrollo', quantity: 2, unitPrice: 200, amount: 400 },
   ],
   taxBase: 300,
   taxRate: 21,

@@ -30,7 +30,7 @@ function buildInvoice(): Invoice {
     customerName: 'Cliente SL',
     customerTaxId: 'B87654321',
     customerAddress: 'Calle Cliente 1',
-    lines: [{ description: 'Consultoría', unitPrice: 100 }],
+    lines: [{ description: 'Consultoría', unitPrice: 100, quantity: 1 }],
     taxRate: 21,
     irpfRate: 15,
     notes: 'Pago por transferencia',
@@ -64,7 +64,7 @@ describe('buildInvoicePdfView (D7)', () => {
     expect(view.number).toBe('F-2026-0001');
     expect(view.issuer.taxId).toBe('B12345678');
     expect(view.customer.name).toBe('Cliente SL');
-    expect(view.lines).toEqual([{ description: 'Consultoría', unitPrice: 100 }]);
+    expect(view.lines).toEqual([{ description: 'Consultoría', quantity: 1, unitPrice: 100, amount: 100 }]);
     expect(view.taxBase).toBe(100);
     expect(view.total).toBe(invoice.getTotal());
     expect(view.notes).toBe('Pago por transferencia');

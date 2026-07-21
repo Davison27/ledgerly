@@ -21,6 +21,14 @@ export class CreateInvoiceLineDto {
   @IsNumber()
   @Min(0)
   unitPrice: number;
+
+  @IsNumber()
+  @Min(0.001)
+  quantity: number;
+
+  @IsOptional()
+  @IsUUID()
+  productId?: string;
 }
 
 export class CreateInvoiceDto {

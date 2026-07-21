@@ -11,6 +11,8 @@ export class InvoiceMapper {
         InvoiceLine.fromPrimitives({
           description: line.description,
           unitPrice: Number(line.unitPrice),
+          quantity: Number(line.quantity),
+          productId: line.productId,
         }),
       );
 
@@ -74,6 +76,8 @@ export class InvoiceMapper {
       orm.position = index;
       orm.description = line.getDescription();
       orm.unitPrice = line.getUnitPrice().toString();
+      orm.quantity = line.getQuantity().toString();
+      orm.productId = line.getProductId() ?? null;
 
       return orm;
     });
