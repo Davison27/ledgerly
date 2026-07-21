@@ -15,13 +15,15 @@ import {
 } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { deleteDocument } from '../../../data/api/documents.api';
 import type { DocumentStatus, DocumentType, ProjectDocument } from '../../../data/documents';
 import type { ProjectSectionProps } from './types';
 import { DocumentsListView } from './documents/DocumentsListView';
 import { DocumentsCardsView } from './documents/DocumentsCardsView';
-import { DocumentPreview } from './documents/DocumentPreview';
 import { DocumentUploadModal } from './documents/DocumentUploadModal';
 import { useProjectDocuments } from './documents/useProjectDocuments';
+import { DocumentDetail } from '../../documents/components/DocumentDetail';
+import { DocumentEditModal } from '../../documents/components/DocumentEditModal';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -58,10 +60,39 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const [layout, setLayout] = useState<LayoutMode>('list');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [uploadOpen, setUploadOpen] = useState(false);
+  const [editing, setEditing] = useState<ProjectDocument | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleDocumentCreated = () => {
     setUploadOpen(false);
     reloadDocuments();
+  };
+
+  const handleEdit = (doc: ProjectDocument) => {
+    setEditing(doc);
+  };
+
+  const handleDocumentUpdated = () => {
+    setEditing(null);
+    reloadDocuments();
+  };
+
+  const handleDelete = async (doc: ProjectDocument) => {
+    setDeletingId(doc.id);
+    try {
+      await deleteDocument(project.id, doc.id);
+      void message.success(t('projects.documents.delete.deleted'));
+      // The panel was pointing at the document we just deleted — if we leave
+      // it selected it would keep showing a document that no longer exists.
+      if (selectedId === doc.id) {
+        setSelectedId(null);
+      }
+      reloadDocuments();
+    } catch {
+      void message.error(t('projects.documents.delete.error'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -207,7 +238,12 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
           borderInlineStart: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
-        <DocumentPreview projectId={project.id} document={selectedDoc} />
+        <DocumentDetail
+          document={selectedDoc}
+          onEdit={handleEdit}
+          onDelete={(doc) => void handleDelete(doc)}
+          deleting={selectedDoc != null && deletingId === selectedDoc.id}
+        />
       </div>
 
       <DocumentUploadModal
@@ -215,6 +251,13 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
         projectId={project.id}
         onCancel={() => setUploadOpen(false)}
         onCreated={handleDocumentCreated}
+      />
+
+      <DocumentEditModal
+        open={editing !== null}
+        document={editing}
+        onCancel={() => setEditing(null)}
+        onUpdated={handleDocumentUpdated}
       />
     </Flex>
   );
