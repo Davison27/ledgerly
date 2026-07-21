@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
   App,
+  Button,
   Col,
+  ColorPicker,
   Divider,
   Form,
   Input,
@@ -10,9 +12,11 @@ import {
   Typography,
   Upload,
 } from 'antd';
+import type { Color } from 'antd/es/color-picker';
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
+import { BRAND_DEFAULT } from '../../app/theme/tokens';
 
 const { Text } = Typography;
 
@@ -33,6 +37,7 @@ interface CompanyFormFields {
   city?: string;
   postalCode?: string;
   country?: string;
+  brandColor?: string;
 }
 
 export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProps) {
@@ -45,7 +50,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
   useEffect(() => {
     if (open) {
       setLogo(company.logo);
-      form.setFieldsValue(company);
+      form.setFieldsValue({ ...company, brandColor: company.brandColor ?? BRAND_DEFAULT });
     }
   }, [open, company, form]);
 
@@ -88,7 +93,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
         form={form}
         layout="vertical"
         requiredMark={false}
-        initialValues={company}
+        initialValues={{ ...company, brandColor: company.brandColor ?? BRAND_DEFAULT }}
       >
         <Row gutter={16}>
           <Col xs={24} sm={8} md={4}>
@@ -171,6 +176,29 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
                 >
                   <Input placeholder={t('company.settings.placeholders.sector')} />
                 </Form.Item>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Form.Item
+                  name="brandColor"
+                  label={t('company.settings.fields.brandColor')}
+                  style={{ marginBottom: 4 }}
+                  getValueFromEvent={(color: Color) => color.toHexString()}
+                >
+                  <ColorPicker format="hex" disabledAlpha showText />
+                </Form.Item>
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  {t('company.settings.brandColor.hint')}
+                </Text>
+                <div>
+                  <Button
+                    type="link"
+                    size="small"
+                    style={{ padding: 0 }}
+                    onClick={() => form.setFieldValue('brandColor', BRAND_DEFAULT)}
+                  >
+                    {t('company.settings.brandColor.reset')}
+                  </Button>
+                </div>
               </Col>
             </Row>
           </Col>

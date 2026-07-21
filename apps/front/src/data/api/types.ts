@@ -101,6 +101,7 @@ export interface CompanyDto {
   postalCode?: string | null;
   country?: string | null;
   logo?: string | null;
+  brandColor?: string | null;
 }
 
 export interface UpdateCompanyPayload {
@@ -116,6 +117,7 @@ export interface UpdateCompanyPayload {
   postalCode?: string;
   country?: string;
   logo?: string;
+  brandColor?: string;
 }
 
 export interface DocumentDto {
