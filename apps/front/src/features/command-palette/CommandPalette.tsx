@@ -3,6 +3,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { Empty, Input, List, Modal, Typography, theme } from 'antd';
 import {
   DashboardOutlined,
+  FileDoneOutlined,
   FileTextOutlined,
   ProjectOutlined,
   SearchOutlined,
@@ -150,6 +151,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         icon: <TeamOutlined />,
         label: t('nav.suppliers'),
         onSelect: () => void navigate({ to: '/suppliers' }),
+      },
+      {
+        key: 'nav-invoices',
+        category: 'nav',
+        icon: <FileDoneOutlined />,
+        label: t('nav.invoices'),
+        onSelect: () => void navigate({ to: '/invoices' }),
       },
     ];
     const navItems: PaletteItem[] = navItemsRaw.filter(
