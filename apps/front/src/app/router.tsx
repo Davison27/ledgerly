@@ -14,6 +14,7 @@ import { ProjectDetailPage } from '../features/projects/ProjectDetailPage';
 import { ExtractionHintsPage } from '../features/extraction-hints/ExtractionHintsPage';
 import { SuppliersPage } from '../features/suppliers/SuppliersPage';
 import { DocumentsPage } from '../features/documents/DocumentsPage';
+import { InvoicesPage } from '../features/invoices/InvoicesPage';
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -71,6 +72,12 @@ const suppliersRoute = createRoute({
   component: SuppliersPage,
 });
 
+const invoicesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/invoices',
+  component: InvoicesPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   onboardingRoute,
@@ -81,6 +88,7 @@ const routeTree = rootRoute.addChildren([
     documentsRoute,
     extractionHintsRoute,
     suppliersRoute,
+    invoicesRoute,
   ]),
 ]);
 
