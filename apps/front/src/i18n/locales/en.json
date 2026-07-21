@@ -33,7 +33,8 @@
     "projects": "Projects",
     "documents": "Documents",
     "suppliers": "Suppliers",
-    "invoices": "Invoices"
+    "invoices": "Invoices",
+    "products": "Products"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -677,13 +678,22 @@
         "customerNameRequired": "Customer name is required",
         "lineDescriptionRequired": "Description is required",
         "lineUnitPriceRequired": "Price is required",
-        "lineUnitPriceMin": "Price must be 0 or greater"
+        "lineUnitPriceMin": "Price must be 0 or greater",
+        "lineQuantityRequired": "Quantity is required",
+        "lineQuantityMin": "Quantity must be greater than 0"
       }
     },
     "lines": {
       "title": "Lines",
+      "columns": {
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Price"
+      },
       "descriptionPlaceholder": "Description",
+      "quantityPlaceholder": "Quantity",
       "unitPricePlaceholder": "Price",
+      "productGroup": "From the catalog",
       "add": "Add line",
       "remove": "Remove line"
     },
@@ -698,6 +708,48 @@
       "content": "Are you sure you want to delete invoice \"{{number}}\"? This will also delete its linked project document. This action cannot be undone.",
       "ok": "Delete",
       "error": "The invoice could not be deleted. Please try again."
+    }
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Manage the catalog of products and services you invoice.",
+    "add": "New product",
+    "empty": "There are no products yet.",
+    "loadError": "Products could not be loaded.",
+    "deleted": "Product deleted",
+    "fields": {
+      "name": "Name",
+      "price": "Price"
+    },
+    "columns": {
+      "name": "Name",
+      "price": "Price",
+      "actions": "Actions"
+    },
+    "form": {
+      "createTitle": "New product",
+      "editTitle": "Edit product",
+      "submit": "Save",
+      "createSubmit": "Create product",
+      "created": "Product created successfully",
+      "updated": "Product updated successfully",
+      "createError": "The product could not be created. Please try again.",
+      "updateError": "The product could not be updated. Please try again.",
+      "duplicateName": "A product with that name already exists.",
+      "priceHelp": "Leave it empty if you haven't decided yet.",
+      "placeholders": {
+        "name": "E.g. Logo design",
+        "price": "E.g. 150"
+      },
+      "validation": {
+        "nameRequired": "Name is required"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Delete product",
+      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The product could not be deleted. Please try again."
     }
   },
   "commandPalette": {

@@ -33,7 +33,8 @@
     "projects": "Proyectos",
     "documents": "Documentos",
     "suppliers": "Proveedores",
-    "invoices": "Facturas"
+    "invoices": "Facturas",
+    "products": "Productos"
   },
   "dashboard": {
     "title": "Panel",
@@ -677,13 +678,22 @@
         "customerNameRequired": "El nombre del cliente es obligatorio",
         "lineDescriptionRequired": "La descripción es obligatoria",
         "lineUnitPriceRequired": "El precio es obligatorio",
-        "lineUnitPriceMin": "El precio debe ser 0 o mayor"
+        "lineUnitPriceMin": "El precio debe ser 0 o mayor",
+        "lineQuantityRequired": "La cantidad es obligatoria",
+        "lineQuantityMin": "La cantidad debe ser mayor que 0"
       }
     },
     "lines": {
       "title": "Líneas",
+      "columns": {
+        "description": "Descripción",
+        "quantity": "Cantidad",
+        "unitPrice": "Precio"
+      },
       "descriptionPlaceholder": "Descripción",
+      "quantityPlaceholder": "Cantidad",
       "unitPricePlaceholder": "Precio",
+      "productGroup": "Del catálogo",
       "add": "Añadir línea",
       "remove": "Eliminar línea"
     },
@@ -698,6 +708,48 @@
       "content": "¿Seguro que quieres eliminar la factura \"{{number}}\"? También se eliminará el documento del proyecto vinculado. Esta acción no se puede deshacer.",
       "ok": "Eliminar",
       "error": "No se ha podido eliminar la factura. Inténtalo de nuevo."
+    }
+  },
+  "products": {
+    "title": "Productos",
+    "subtitle": "Gestiona el catálogo de productos y servicios que facturas.",
+    "add": "Nuevo producto",
+    "empty": "Todavía no hay productos.",
+    "loadError": "No se han podido cargar los productos.",
+    "deleted": "Producto eliminado",
+    "fields": {
+      "name": "Nombre",
+      "price": "Precio"
+    },
+    "columns": {
+      "name": "Nombre",
+      "price": "Precio",
+      "actions": "Acciones"
+    },
+    "form": {
+      "createTitle": "Nuevo producto",
+      "editTitle": "Editar producto",
+      "submit": "Guardar",
+      "createSubmit": "Crear producto",
+      "created": "Producto creado correctamente",
+      "updated": "Producto actualizado correctamente",
+      "createError": "No se ha podido crear el producto. Inténtalo de nuevo.",
+      "updateError": "No se ha podido actualizar el producto. Inténtalo de nuevo.",
+      "duplicateName": "Ya existe un producto con ese nombre.",
+      "priceHelp": "Déjalo vacío si aún no lo has decidido.",
+      "placeholders": {
+        "name": "Ej. Diseño de logotipo",
+        "price": "Ej. 150"
+      },
+      "validation": {
+        "nameRequired": "El nombre es obligatorio"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Eliminar producto",
+      "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "ok": "Eliminar",
+      "error": "No se ha podido eliminar el producto. Inténtalo de nuevo."
     }
   },
   "commandPalette": {
