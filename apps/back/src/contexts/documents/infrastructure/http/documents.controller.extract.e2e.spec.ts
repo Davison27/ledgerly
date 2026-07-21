@@ -8,6 +8,7 @@ import { DocumentsController } from './documents.controller';
 import { ListDocumentsUseCase } from '../../application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from '../../application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from '../../application/create-document/create-document.use-case';
+import { UpdateDocumentUseCase } from '../../application/update-document/update-document.use-case';
 import { DeleteDocumentUseCase } from '../../application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
@@ -35,6 +36,7 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
         { provide: ListDocumentsUseCase, useValue: {} },
         { provide: GetDocumentUseCase, useValue: {} },
         { provide: CreateDocumentUseCase, useValue: {} },
+        { provide: UpdateDocumentUseCase, useValue: {} },
         { provide: DeleteDocumentUseCase, useValue: {} },
         { provide: GetDocumentFileUseCase, useValue: {} },
         { provide: RecordExtractionFeedbackUseCase, useValue: {} },

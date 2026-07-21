@@ -1,23 +1,27 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Flex, Spin, Typography, theme } from 'antd';
-import { DownloadOutlined, PrinterOutlined } from '@ant-design/icons';
+import { Alert, Button, Flex, Popconfirm, Spin, Typography, theme } from 'antd';
+import { DeleteOutlined, DownloadOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { documentFileUrl } from '../../../../data/api/documents.api';
-import type { ProjectDocument } from '../../../../data/documents';
-import { formatEUR, useTypeLabel } from './documentFormat';
-import { DirectionTag, StatusTag } from './documentUi';
+import { documentFileUrl } from '../../../data/api/documents.api';
+import type { ProjectDocument } from '../../../data/documents';
+import { formatEUR, useTypeLabel } from '../../projects/sections/documents/documentFormat';
+import { DirectionTag, StatusTag } from '../../projects/sections/documents/documentUi';
 
 const { Text, Title } = Typography;
 const { useToken } = theme;
 
-interface DocumentPreviewProps {
-  projectId: string;
+interface DocumentDetailProps {
   document: ProjectDocument | null;
+  onEdit?: (doc: ProjectDocument) => void;
+  onDelete?: (doc: ProjectDocument) => void;
+  onGoToProject?: (doc: ProjectDocument) => void;
+  /** Whether a delete request for this document is in flight (D7's `loading` on the button). */
+  deleting?: boolean;
 }
 
 type ViewerState = 'idle' | 'loading' | 'ready' | 'error';
 
-function usePdfObjectUrl(projectId: string, document: ProjectDocument | null) {
+function usePdfObjectUrl(document: ProjectDocument | null) {
   const [state, setState] = useState<ViewerState>('idle');
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
@@ -35,7 +39,7 @@ function usePdfObjectUrl(projectId: string, document: ProjectDocument | null) {
     setState('loading');
     setObjectUrl(null);
 
-    fetch(documentFileUrl(projectId, document.id))
+    fetch(documentFileUrl(document.projectId, document.id))
       .then((response) => {
         if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
         return response.blob();
@@ -58,16 +62,22 @@ function usePdfObjectUrl(projectId: string, document: ProjectDocument | null) {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldLoad, projectId, document?.id]);
+  }, [shouldLoad, document?.projectId, document?.id]);
 
   return { state, objectUrl };
 }
 
-export function DocumentPreview({ projectId, document }: DocumentPreviewProps) {
+export function DocumentDetail({
+  document,
+  onEdit,
+  onDelete,
+  onGoToProject,
+  deleting,
+}: DocumentDetailProps) {
   const { t } = useTranslation();
   const { token } = useToken();
   const typeLabel = useTypeLabel();
-  const { state: viewerState, objectUrl } = usePdfObjectUrl(projectId, document);
+  const { state: viewerState, objectUrl } = usePdfObjectUrl(document);
 
   if (!document) {
     return (
@@ -132,14 +142,51 @@ export function DocumentPreview({ projectId, document }: DocumentPreviewProps) {
 
   return (
     <Flex vertical gap={16} style={{ height: '100%' }}>
-      <div>
-        <Title level={5} style={{ margin: 0 }}>
-          {document.name}
-        </Title>
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {typeLabel(document.type)} · {document.date}
-        </Text>
-      </div>
+      <Flex align="flex-start" justify="space-between" gap={8}>
+        <div>
+          <Title level={5} style={{ margin: 0 }}>
+            {document.name}
+          </Title>
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {typeLabel(document.type)} · {document.date}
+          </Text>
+        </div>
+        {(onEdit || onDelete || onGoToProject) && (
+          <Flex gap={4} style={{ flex: 'none' }}>
+            {onGoToProject && (
+              <Button type="text" onClick={() => onGoToProject(document)}>
+                {t('projects.documents.detail.goToProject')}
+              </Button>
+            )}
+            {onEdit && (
+              <Button
+                type="text"
+                icon={<EditOutlined />}
+                aria-label={t('common.edit')}
+                onClick={() => onEdit(document)}
+              />
+            )}
+            {onDelete && (
+              <Popconfirm
+                title={t('projects.documents.delete.confirm.title')}
+                description={t('projects.documents.delete.confirm.content', { name: document.name })}
+                okText={t('projects.documents.delete.confirm.ok')}
+                cancelText={t('common.cancel')}
+                okButtonProps={{ danger: true }}
+                onConfirm={() => onDelete(document)}
+              >
+                <Button
+                  danger
+                  type="text"
+                  icon={<DeleteOutlined />}
+                  aria-label={t('common.delete')}
+                  loading={deleting}
+                />
+              </Popconfirm>
+            )}
+          </Flex>
+        )}
+      </Flex>
 
       {showRealViewer ? (
         <div

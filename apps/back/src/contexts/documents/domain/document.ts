@@ -6,7 +6,7 @@ import { DOCUMENT_DIRECTIONS, DocumentDirection } from './document-direction';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-interface DocumentProps {
+export interface DocumentProps {
   id: string;
   projectId: string;
   name: string;
@@ -233,6 +233,18 @@ export class Document {
 
   hasFile(): boolean {
     return this.fileName !== null;
+  }
+
+  /**
+   * Applies a partial set of changes by re-running them through `create()`,
+   * so every invariant it enforces (month 1-12, amount >= 0, date formats,
+   * tax/irpf >= 0, valid direction/currency) is re-checked in this single
+   * place instead of being duplicated across per-field mutators. `id` and
+   * `projectId` are deliberately excluded: identity and project ownership
+   * are not editable (see D2/D3 of the document-crud plan).
+   */
+  withChanges(changes: Partial<Omit<DocumentProps, 'id' | 'projectId'>>): Document {
+    return Document.create({ ...this.toPrimitives(), ...changes });
   }
 
   toPrimitives(): Required<DocumentProps> {
