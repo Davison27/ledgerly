@@ -39,6 +39,7 @@ export class DocumentResponse {
   fileSize: number | null;
   mimeType: string | null;
   supplierId: string | null;
+  staffMemberId: string | null;
   direction: DocumentDirection;
 
   static fromDomain(document: Document): DocumentResponse {
@@ -68,6 +69,7 @@ export class DocumentResponse {
     response.fileSize = document.getFileSize();
     response.mimeType = document.getMimeType();
     response.supplierId = document.getSupplierId();
+    response.staffMemberId = document.getStaffMemberId();
     response.direction = document.getDirection();
 
     return response;

@@ -15,6 +15,10 @@ interface DemoDocumentSeed {
   dueOffsetDays: number | null;
   direction: DocumentDirection;
   irpfRate?: number | null;
+  // Index into the demo staff members created by `LoadDemoDataUseCase`
+  // (D4/U2.8): only set on the `nomina` seeds, so every payroll the demo
+  // creates is imputed to a staff member from day one.
+  staffMemberIndex?: number;
 }
 
 const VAT_RATE = 21;
@@ -84,6 +88,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     invoiceNumber: null,
     dueOffsetDays: null,
     direction: 'gasto',
+    staffMemberIndex: 0,
   },
   {
     name: 'Nómina mensual',
@@ -96,6 +101,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     invoiceNumber: null,
     dueOffsetDays: null,
     direction: 'gasto',
+    staffMemberIndex: 1,
   },
   {
     name: 'IVA Trimestre',
@@ -132,8 +138,15 @@ function isoDateWithOffset(base: Date, offsetDays: number): string {
 /**
  * Builds the sample documents for the demo project, computed relative to
  * "today" so the demo always feels current regardless of when it is loaded.
+ * `staffMemberIds` are the ids of the demo staff members created by
+ * `LoadDemoDataUseCase` (D4/U2.8): the `nomina` seeds above reference them by
+ * index so every demo payroll is imputed to a staff member.
  */
-export function buildDemoDocuments(projectId: string, generateId: () => string): Document[] {
+export function buildDemoDocuments(
+  projectId: string,
+  generateId: () => string,
+  staffMemberIds: string[],
+): Document[] {
   const today = new Date();
 
   return RAW_DOCUMENTS.map((seed) => {
@@ -147,6 +160,8 @@ export function buildDemoDocuments(projectId: string, generateId: () => string):
     const irpfRate = seed.irpfRate ?? null;
     const irpfAmount =
       irpfRate !== null && taxBase !== null ? Math.round(taxBase * (irpfRate / 100) * 100) / 100 : null;
+    const staffMemberId =
+      seed.staffMemberIndex !== undefined ? staffMemberIds[seed.staffMemberIndex] : null;
 
     return Document.create({
       id: generateId(),
@@ -167,6 +182,7 @@ export function buildDemoDocuments(projectId: string, generateId: () => string):
       irpfRate,
       irpfAmount,
       currency: 'EUR',
+      staffMemberId,
       direction: seed.direction,
     });
   });

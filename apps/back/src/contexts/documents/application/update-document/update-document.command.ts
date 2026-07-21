@@ -33,4 +33,5 @@ export interface UpdateDocumentCommand {
   issuerTaxId?: string | null;
   invoiceNumber?: string | null;
   supplierId?: string | null;
+  staffMemberId?: string | null;
 }

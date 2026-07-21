@@ -11,6 +11,7 @@ const STATUS_BY_CODE: Record<string, number> = {
   ENTITY_NOT_FOUND: HttpStatus.NOT_FOUND,
   UNIQUE_CONSTRAINT: HttpStatus.CONFLICT,
   INVALID_VALUE: HttpStatus.BAD_REQUEST,
+  RESOURCE_IN_USE: HttpStatus.CONFLICT,
 };
 
 @Catch(DomainException)

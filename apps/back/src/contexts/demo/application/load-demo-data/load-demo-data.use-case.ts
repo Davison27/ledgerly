@@ -2,8 +2,13 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Project } from '../../../projects/domain/project';
 import { PROJECT_REPOSITORY, ProjectRepository } from '../../../projects/domain/project.repository';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../../documents/domain/document.repository';
+import {
+  STAFF_MEMBER_REPOSITORY,
+  StaffMemberRepository,
+} from '../../../staff/domain/staff-member.repository';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { buildDemoDocuments } from './demo-documents';
+import { buildDemoStaffMembers } from './demo-staff-members';
 import { LoadDemoDataResult } from './load-demo-data.result';
 
 const DEMO_PROJECT_NAME = 'Proyecto de ejemplo';
@@ -16,6 +21,8 @@ export class LoadDemoDataUseCase {
     private readonly projectRepository: ProjectRepository,
     @Inject(DOCUMENT_REPOSITORY)
     private readonly documentRepository: DocumentRepository,
+    @Inject(STAFF_MEMBER_REPOSITORY)
+    private readonly staffMemberRepository: StaffMemberRepository,
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IdGenerator,
   ) {}
@@ -26,7 +33,7 @@ export class LoadDemoDataUseCase {
     if (existingProjects.length > 0) {
       // Idempotent no-op: demo data is only provisioned when there is
       // nothing else in the workspace yet.
-      return { created: false, projectId: null, documentCount: 0 };
+      return { created: false, projectId: null, documentCount: 0, staffMemberCount: 0 };
     }
 
     const projectId = this.idGenerator.generate();
@@ -59,12 +66,26 @@ export class LoadDemoDataUseCase {
 
     await this.projectRepository.save(project);
 
-    const documents = buildDemoDocuments(projectId, () => this.idGenerator.generate());
+    // D4/U2.8: the staff members are created before the documents so their
+    // ids exist to imput the demo payrolls to (D3 requires it).
+    const staffMembers = buildDemoStaffMembers(() => this.idGenerator.generate());
+
+    for (const staffMember of staffMembers) {
+      await this.staffMemberRepository.save(staffMember);
+    }
+
+    const staffMemberIds = staffMembers.map((staffMember) => staffMember.id);
+    const documents = buildDemoDocuments(projectId, () => this.idGenerator.generate(), staffMemberIds);
 
     for (const document of documents) {
       await this.documentRepository.save(document);
     }
 
-    return { created: true, projectId, documentCount: documents.length };
+    return {
+      created: true,
+      projectId,
+      documentCount: documents.length,
+      staffMemberCount: staffMembers.length,
+    };
   }
 }

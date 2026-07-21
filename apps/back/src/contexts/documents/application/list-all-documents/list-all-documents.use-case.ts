@@ -37,6 +37,7 @@ export class ListAllDocumentsUseCase {
       issuerName: row.issuerName,
       invoiceNumber: row.invoiceNumber,
       supplierId: row.supplierId,
+      staffMemberId: row.staffMemberId,
     }));
   }
 }
