@@ -9,6 +9,7 @@ import {
   Logger,
   NotFoundException,
   Param,
+  Patch,
   Post,
   Query,
   Res,
@@ -24,13 +25,17 @@ import { memoryStorage } from 'multer';
 import { ListDocumentsUseCase } from '../../application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from '../../application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from '../../application/create-document/create-document.use-case';
+import { UpdateDocumentUseCase } from '../../application/update-document/update-document.use-case';
 import { DeleteDocumentUseCase } from '../../application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
 import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
 import { RecordExtractionOutcomeUseCase } from '../../application/record-extraction-outcome/record-extraction-outcome.use-case';
+import { Document } from '../../domain/document';
+import { LEARNABLE_FIELDS } from '../../domain/extraction/hints/invoice-hint';
 import { CreateDocumentDto } from './dtos/create-document.dto';
+import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { ListDocumentsQueryDto } from './dtos/list-documents.query.dto';
 import { DocumentResponse } from './document.response';
 
@@ -46,6 +51,7 @@ export class DocumentsController {
     private readonly listDocumentsUseCase: ListDocumentsUseCase,
     private readonly getDocumentUseCase: GetDocumentUseCase,
     private readonly createDocumentUseCase: CreateDocumentUseCase,
+    private readonly updateDocumentUseCase: UpdateDocumentUseCase,
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
     private readonly extractInvoiceUseCase: ExtractInvoiceUseCase,
     private readonly getDocumentFileUseCase: GetDocumentFileUseCase,
@@ -243,6 +249,83 @@ export class DocumentsController {
     const document = await this.getDocumentUseCase.execute(id);
 
     return DocumentResponse.fromDomain(document);
+  }
+
+  @Patch(':id')
+  async update(@Param('id') id: string, @Body() dto: UpdateDocumentDto): Promise<DocumentResponse> {
+    const updated = await this.updateDocumentUseCase.execute({
+      id,
+      name: dto.name,
+      type: dto.type,
+      direction: dto.direction,
+      status: dto.status,
+      date: dto.date,
+      dueDate: dto.dueDate,
+      amount: dto.amount,
+      taxBase: dto.taxBase,
+      taxRate: dto.taxRate,
+      taxAmount: dto.taxAmount,
+      irpfRate: dto.irpfRate,
+      irpfAmount: dto.irpfAmount,
+      currency: dto.currency,
+      issuerName: dto.issuerName,
+      issuerTaxId: dto.issuerTaxId,
+      invoiceNumber: dto.invoiceNumber,
+      supplierId: dto.supplierId,
+    });
+
+    await this.recordEditFeedback(updated, dto);
+
+    return DocumentResponse.fromDomain(updated);
+  }
+
+  // Best-effort re-feeding of the hints system after an edit (D6): a
+  // correction made after upload is exactly the same (arguably better)
+  // signal as one made during upload, and record-extraction-feedback is
+  // idempotent by design. Guarded on two conditions to avoid needlessly
+  // re-reading and re-parsing the PDF: the document must have a stored
+  // file, and at least one LEARNABLE_FIELD must actually be present in the
+  // incoming DTO — the majority edit this feature exists for (correcting
+  // `direction`, which is not a LEARNABLE_FIELD) never touches the file at
+  // all. Deliberately does NOT call RecordExtractionOutcomeUseCase: unlike
+  // creation, an edit is not a fresh extraction event, and counting it as
+  // one would artificially sink the measured heuristic quality every time
+  // someone reclassifies a field the extractor doesn't even produce.
+  private async recordEditFeedback(updated: Document, dto: UpdateDocumentDto): Promise<void> {
+    if (!updated.hasFile()) {
+      return;
+    }
+
+    const touchedLearnableField = LEARNABLE_FIELDS.some((field) => dto[field] !== undefined);
+
+    if (!touchedLearnableField) {
+      return;
+    }
+
+    try {
+      const file = await this.getDocumentFileUseCase.execute(updated.getId());
+
+      if (!file) {
+        return;
+      }
+
+      await this.recordExtractionFeedbackUseCase.execute({
+        fileBuffer: file.content,
+        submitted: {
+          issuerName: updated.getIssuerName() ?? undefined,
+          issuerTaxId: updated.getIssuerTaxId() ?? undefined,
+          invoiceNumber: updated.getInvoiceNumber() ?? undefined,
+          date: updated.getDate(),
+          dueDate: updated.getDueDate() ?? undefined,
+          amount: updated.getAmount(),
+          taxBase: updated.getTaxBase() ?? undefined,
+          taxRate: updated.getTaxRate() ?? undefined,
+          taxAmount: updated.getTaxAmount() ?? undefined,
+        },
+      });
+    } catch (error) {
+      this.logger.warn(`Failed to record extraction feedback on edit: ${(error as Error).message}`);
+    }
   }
 
   @Delete(':id')

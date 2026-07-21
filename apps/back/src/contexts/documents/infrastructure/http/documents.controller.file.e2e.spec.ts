@@ -8,6 +8,7 @@ import { DocumentsController } from './documents.controller';
 import { ListDocumentsUseCase } from '../../application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from '../../application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from '../../application/create-document/create-document.use-case';
+import { UpdateDocumentUseCase } from '../../application/update-document/update-document.use-case';
 import { DeleteDocumentUseCase } from '../../application/delete-document/delete-document.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
@@ -83,6 +84,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         { provide: ListDocumentsUseCase, useValue: {} },
         { provide: GetDocumentUseCase, useValue: {} },
         { provide: CreateDocumentUseCase, useValue: { execute: createExecute } },
+        { provide: UpdateDocumentUseCase, useValue: {} },
         { provide: DeleteDocumentUseCase, useValue: {} },
         { provide: ExtractInvoiceUseCase, useValue: {} },
         { provide: GetDocumentFileUseCase, useValue: { execute: getFileExecute } },
