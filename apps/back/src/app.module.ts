@@ -13,6 +13,7 @@ import { SuppliersModule } from './contexts/suppliers/suppliers.module';
 import { ProductsModule } from './contexts/products/products.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
 import { DemoModule } from './contexts/demo/demo.module';
+import { StaffModule } from './contexts/staff/staff.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { DemoModule } from './contexts/demo/demo.module';
     ProductsModule,
     DashboardModule,
     DemoModule,
+    StaffModule,
   ],
   controllers: [AppController],
   providers: [AppService],
