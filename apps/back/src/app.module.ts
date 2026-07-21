@@ -8,6 +8,7 @@ import { SharedModule } from './shared/shared.module';
 import { CompanyModule } from './contexts/company/company.module';
 import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
+import { InvoicesModule } from './contexts/invoices/invoices.module';
 import { SuppliersModule } from './contexts/suppliers/suppliers.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
 import { DemoModule } from './contexts/demo/demo.module';
@@ -20,6 +21,7 @@ import { DemoModule } from './contexts/demo/demo.module';
     CompanyModule,
     ProjectsModule,
     DocumentsModule,
+    InvoicesModule,
     SuppliersModule,
     DashboardModule,
     DemoModule,
