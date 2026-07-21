@@ -4,6 +4,8 @@ import { Avatar, Flex, Segmented, Typography, theme } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
+import { LAYOUT, SPACE } from '../../app/theme/tokens';
+import { PageContainer } from '../../components/ui/PageContainer';
 import { DocumentsSection } from './sections/DocumentsSection';
 import { DashboardSection } from './sections/DashboardSection';
 import { SettingsSection } from './sections/SettingsSection';
@@ -24,9 +26,9 @@ export function ProjectDetailPage() {
 
   if (!project) {
     return (
-      <div style={{ padding: '56px 64px' }}>
+      <PageContainer>
         <Text type="secondary">{t('projects.notFound')}</Text>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -42,10 +44,10 @@ export function ProjectDetailPage() {
         style={{
           display: 'flex',
           alignItems: 'center',
-          gap: 32,
+          gap: SPACE.xxl,
           flex: 'none',
-          height: 56,
-          padding: '0 28px',
+          height: LAYOUT.sectionHeaderHeight,
+          padding: `0 ${LAYOUT.pagePaddingInline}px`,
           background: token.colorBgContainer,
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         }}

@@ -1,6 +1,8 @@
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentType } from '../../../../data/documents';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { Numeric } from '../../../../components/ui/Numeric';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -20,11 +22,12 @@ export function CategoryDonut({
 }: CategoryDonutProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const palette: Record<DocumentType, string> = {
     factura: color,
-    nomina: token.colorTextSecondary,
-    impuesto: token.colorTextQuaternary,
+    nomina: colors.chartSeries[1],
+    impuesto: colors.chartSeries[2],
   };
 
   const total = ORDER.reduce((acc, key) => acc + categoryTotals[key], 0);
@@ -93,7 +96,9 @@ export function CategoryDonut({
                 <Text style={{ flex: '1 1 auto' }}>
                   {t(`projects.documents.types.${key}`)}
                 </Text>
-                <Text type="secondary">{pct}%</Text>
+                <Text type="secondary">
+                  <Numeric>{pct}%</Numeric>
+                </Text>
               </Flex>
             );
           })}

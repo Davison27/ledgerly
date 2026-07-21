@@ -16,7 +16,6 @@ import {
   Row,
   Segmented,
   Select,
-  Tag,
   Typography,
   Upload,
   theme,
@@ -28,6 +27,7 @@ import { useTranslation } from 'react-i18next';
 import { checkDuplicate, createDocument, extractInvoice } from '../../../../data/api/documents.api';
 import { ApiError } from '../../../../data/api/httpClient';
 import { createSupplier, listSuppliers } from '../../../../data/api/suppliers.api';
+import { SemanticTag, type SemanticTone } from '../../../../components/ui/SemanticTag';
 import type {
   CreateDocumentPayload,
   DocumentDirectionDto,
@@ -105,10 +105,10 @@ const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'
 const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 
-const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
-  high: 'success',
-  partial: 'warning',
-  low: 'error',
+const CONFIDENCE_TONE: Record<ExtractInvoiceConfidence, SemanticTone> = {
+  high: 'income',
+  partial: 'pending',
+  low: 'overdue',
 };
 
 const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
@@ -506,10 +506,10 @@ export function DocumentUploadModal({
       : t('projects.documents.upload.queue.saveAndNext');
 
   const confidenceTag = extractResult && (
-    <Tag color={CONFIDENCE_COLOR[extractResult.confidence]}>
+    <SemanticTag tone={CONFIDENCE_TONE[extractResult.confidence]}>
       {extractResult.warnings.length > 0 && <ExclamationCircleOutlined style={{ marginInlineEnd: 4 }} />}
       {t(`projects.documents.upload.extraction.confidence.${extractResult.confidence}`)}
-    </Tag>
+    </SemanticTag>
   );
 
   const createSupplierPopoverContent = (
@@ -633,7 +633,9 @@ export function DocumentUploadModal({
               {extractResult && (
                 <Flex vertical gap={4}>
                   <Flex gap={6} wrap align="center">
-                    <Tag>{t(`projects.documents.upload.extraction.source.${extractResult.source}`)}</Tag>
+                    <SemanticTag tone="neutral">
+                      {t(`projects.documents.upload.extraction.source.${extractResult.source}`)}
+                    </SemanticTag>
                     {extractResult.warnings.length > 0 ? (
                       <Popover
                         title={t('projects.documents.upload.extraction.warningsTitle')}

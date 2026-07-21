@@ -3,6 +3,8 @@ import { Button, Flex, Grid, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
+import { useSemanticColors } from '../../app/theme/useSemanticColors';
+import { SPACE } from '../../app/theme/tokens';
 import { companyNeedsSetup, fetchCompany } from '../../data/company';
 import logoUrl from '../../assets/ledgerly-logo.svg';
 import iconUrl from '../../assets/ledgerly-icon.svg';
@@ -14,6 +16,7 @@ export function LoginPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { token } = theme.useToken();
+  const colors = useSemanticColors();
   const screens = useBreakpoint();
   const [companyLogo, setCompanyLogo] = useState<string | undefined>(undefined);
   const [checking, setChecking] = useState(true);
@@ -58,7 +61,7 @@ export function LoginPage() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          padding: 24,
+          padding: SPACE.xl,
           background: token.colorBgContainer,
         }}
       >
@@ -101,10 +104,15 @@ export function LoginPage() {
             alignItems: 'center',
             justifyContent: 'center',
             overflow: 'hidden',
-            background: `linear-gradient(135deg, ${token.colorPrimary} 0%, #0D9488 55%, #063a5e 100%)`,
+            background: `linear-gradient(135deg, ${token.colorPrimary} 0%, ${colors.accentCool} 55%, ${token.colorPrimaryActive} 100%)`,
           }}
         >
-          <Flex vertical align="center" gap={24} style={{ padding: 48, textAlign: 'center' }}>
+          <Flex
+            vertical
+            align="center"
+            gap={SPACE.xl}
+            style={{ padding: SPACE.xxl + SPACE.lg, textAlign: 'center' }}
+          >
             <img
               src={iconUrl}
               alt=""

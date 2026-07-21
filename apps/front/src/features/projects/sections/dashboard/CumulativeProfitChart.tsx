@@ -1,5 +1,6 @@
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
 
 const { useToken } = theme;
 
@@ -21,6 +22,7 @@ export function CumulativeProfitChart({
 }: CumulativeProfitChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const min = Math.min(0, ...cumulativeProfit);
@@ -28,7 +30,7 @@ export function CumulativeProfitChart({
   const range = max - min || 1;
 
   const isPositive = cumulativeProfit[cumulativeProfit.length - 1] >= 0;
-  const lineColor = isPositive ? token.colorSuccess : token.colorError;
+  const lineColor = isPositive ? colors.income : colors.expense;
 
   const x = (i: number) => PAD_L + (PLOT_W * i) / 11;
   const y = (v: number) => PAD_T + PLOT_H * (1 - (v - min) / range);
