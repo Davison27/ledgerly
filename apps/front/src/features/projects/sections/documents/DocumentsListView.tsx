@@ -2,7 +2,7 @@ import { Table, Typography, type TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ProjectDocument } from '../../../../data/documents';
 import { formatEUR, useTypeLabel } from './documentFormat';
-import { StatusTag } from './documentUi';
+import { DirectionTag, StatusTag } from './documentUi';
 
 const { Text } = Typography;
 
@@ -50,6 +50,13 @@ export function DocumentsListView({
       width: 120,
       align: 'right',
       render: (amount: number) => formatEUR(amount),
+    },
+    {
+      title: t('projects.documents.columns.direction'),
+      dataIndex: 'direction',
+      key: 'direction',
+      width: 120,
+      render: (_, record) => <DirectionTag direction={record.direction} />,
     },
     {
       title: t('projects.documents.columns.status'),
