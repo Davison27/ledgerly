@@ -14,6 +14,7 @@ interface CompanyResponseProps {
   postalCode: string | null;
   country: string | null;
   logo: string | null;
+  brandColor: string | null;
 }
 
 export class CompanyResponse {
@@ -30,6 +31,7 @@ export class CompanyResponse {
   postalCode: string | null;
   country: string | null;
   logo: string | null;
+  brandColor: string | null;
 
   private constructor(props: CompanyResponseProps) {
     this.id = props.id;
@@ -45,6 +47,7 @@ export class CompanyResponse {
     this.postalCode = props.postalCode;
     this.country = props.country;
     this.logo = props.logo;
+    this.brandColor = props.brandColor;
   }
 
   static fromDomain(company: Company): CompanyResponse {
@@ -63,6 +66,7 @@ export class CompanyResponse {
       postalCode: primitives.postalCode,
       country: primitives.country,
       logo: primitives.logo,
+      brandColor: primitives.brandColor,
     });
   }
 }
