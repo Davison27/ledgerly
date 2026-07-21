@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Alert,
+  App,
+  Button,
   DatePicker,
+  Drawer,
   Empty,
   Flex,
   Input,
@@ -9,16 +12,18 @@ import {
   Select,
   Spin,
   Table,
+  Tooltip,
   Typography,
   type TableColumnsType,
 } from 'antd';
-import { SearchOutlined } from '@ant-design/icons';
+import { EyeOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import type { Dayjs } from 'dayjs';
-import { listAllDocuments } from '../../data/api/documents.api';
+import { deleteDocument, getDocument, listAllDocuments } from '../../data/api/documents.api';
 import { listProjects } from '../../data/api/projects.api';
 import { listSuppliers } from '../../data/api/suppliers.api';
+import { mapDocumentDto, type ProjectDocument } from '../../data/documents';
 import type {
   DocumentDirectionDto,
   DocumentListFiltersDto,
@@ -30,6 +35,8 @@ import type {
 } from '../../data/api/types';
 import { formatEUR, useTypeLabel } from '../projects/sections/documents/documentFormat';
 import { DirectionTag, StatusTag } from '../projects/sections/documents/documentUi';
+import { DocumentDetail } from './components/DocumentDetail';
+import { DocumentEditModal } from './components/DocumentEditModal';
 
 const { Title, Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -47,6 +54,7 @@ function filterByLabel(input: string, option?: { label?: string }): boolean {
 
 export function DocumentsPage() {
   const { t } = useTranslation();
+  const { message } = App.useApp();
   const navigate = useNavigate();
   const typeLabel = useTypeLabel();
 
@@ -67,6 +75,13 @@ export function DocumentsPage() {
   const [documents, setDocuments] = useState<DocumentListItemDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState(false);
+  const [editing, setEditing] = useState<ProjectDocument | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   // Debounce the free-text search so we don't fire a request on every keystroke.
   useEffect(() => {
@@ -115,8 +130,49 @@ export function DocumentsPage() {
     loadDocuments();
   }, [loadDocuments]);
 
-  const goToDocument = (record: DocumentListItemDto) => {
-    void navigate({ to: '/projects/$projectId', params: { projectId: record.projectId } });
+  const goToProject = (projectId: string) => {
+    void navigate({ to: '/projects/$projectId', params: { projectId } });
+  };
+
+  const openDocument = useCallback((record: DocumentListItemDto) => {
+    setDrawerOpen(true);
+    setSelectedDocument(null);
+    setDetailLoading(true);
+    setDetailError(false);
+    getDocument(record.projectId, record.id)
+      .then((dto) => setSelectedDocument(mapDocumentDto(dto)))
+      .catch(() => setDetailError(true))
+      .finally(() => setDetailLoading(false));
+  }, []);
+
+  const closeDrawer = () => {
+    setDrawerOpen(false);
+    setSelectedDocument(null);
+    setDetailError(false);
+  };
+
+  const handleEdit = (doc: ProjectDocument) => {
+    setEditing(doc);
+  };
+
+  const handleDocumentUpdated = (updated: ProjectDocument) => {
+    setEditing(null);
+    setSelectedDocument(updated);
+    loadDocuments();
+  };
+
+  const handleDelete = async (doc: ProjectDocument) => {
+    setDeletingId(doc.id);
+    try {
+      await deleteDocument(doc.projectId, doc.id);
+      void message.success(t('projects.documents.delete.deleted'));
+      closeDrawer();
+      loadDocuments();
+    } catch {
+      void message.error(t('projects.documents.delete.error'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const columns: TableColumnsType<DocumentListItemDto> = [
@@ -182,6 +238,38 @@ export function DocumentsPage() {
       key: 'invoiceNumber',
       width: 140,
       render: (invoiceNumber: string | null) => invoiceNumber || '—',
+    },
+    {
+      title: t('documents.columns.actions'),
+      key: 'actions',
+      width: 100,
+      align: 'center',
+      render: (_, record) => (
+        <Flex gap={4} justify="center">
+          <Tooltip title={t('documents.actions.view')}>
+            <Button
+              type="text"
+              icon={<EyeOutlined />}
+              aria-label={t('documents.actions.view')}
+              onClick={(event) => {
+                event.stopPropagation();
+                openDocument(record);
+              }}
+            />
+          </Tooltip>
+          <Tooltip title={t('projects.documents.detail.goToProject')}>
+            <Button
+              type="text"
+              icon={<ExportOutlined />}
+              aria-label={t('projects.documents.detail.goToProject')}
+              onClick={(event) => {
+                event.stopPropagation();
+                goToProject(record.projectId);
+              }}
+            />
+          </Tooltip>
+        </Flex>
+      ),
     },
   ];
 
@@ -292,11 +380,43 @@ export function DocumentsPage() {
           rowKey="id"
           pagination={{ pageSize: 20, showSizeChanger: true }}
           onRow={(record) => ({
-            onClick: () => goToDocument(record),
+            onClick: () => openDocument(record),
             style: { cursor: 'pointer' },
           })}
         />
       )}
+
+      <Drawer
+        open={drawerOpen}
+        onClose={closeDrawer}
+        title={t('documents.detail.title')}
+        width="min(900px, 96vw)"
+        destroyOnHidden
+        styles={{ body: { display: 'flex', flexDirection: 'column' } }}
+      >
+        {detailLoading ? (
+          <Flex justify="center" style={{ padding: '48px 0' }}>
+            <Spin />
+          </Flex>
+        ) : detailError ? (
+          <Alert type="error" showIcon message={t('documents.detail.loadError')} />
+        ) : (
+          <DocumentDetail
+            document={selectedDocument}
+            onEdit={handleEdit}
+            onDelete={(doc) => void handleDelete(doc)}
+            onGoToProject={(doc) => goToProject(doc.projectId)}
+            deleting={selectedDocument != null && deletingId === selectedDocument.id}
+          />
+        )}
+      </Drawer>
+
+      <DocumentEditModal
+        open={editing !== null}
+        document={editing}
+        onCancel={() => setEditing(null)}
+        onUpdated={handleDocumentUpdated}
+      />
     </div>
   );
 }

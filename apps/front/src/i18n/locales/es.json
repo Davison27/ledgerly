@@ -619,7 +619,15 @@
       "date": "Fecha",
       "amount": "Importe",
       "issuer": "Emisor",
-      "invoiceNumber": "Nº de factura"
+      "invoiceNumber": "Nº de factura",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "view": "Ver documento"
+    },
+    "detail": {
+      "title": "Detalle del documento",
+      "loadError": "No se ha podido cargar el documento."
     }
   },
   "commandPalette": {

@@ -619,7 +619,15 @@
       "date": "Date",
       "amount": "Amount",
       "issuer": "Issuer",
-      "invoiceNumber": "Invoice number"
+      "invoiceNumber": "Invoice number",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "View document"
+    },
+    "detail": {
+      "title": "Document details",
+      "loadError": "The document could not be loaded."
     }
   },
   "commandPalette": {
