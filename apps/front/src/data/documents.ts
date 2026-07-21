@@ -45,6 +45,12 @@ export interface ProjectDocument {
    * the user never touched the selector. See D2/R8 of the document-crud plan.
    */
   supplierId?: string | null;
+  /**
+   * ⚠️ Same rationale as `supplierId` above, for the staff-section plan (R8):
+   * without it the edit form's worker selector would render empty for a
+   * payroll that already has one, and saving would silently unassign it.
+   */
+  staffMemberId?: string | null;
 }
 
 export function mapDocumentDto(dto: DocumentDto): ProjectDocument {
@@ -74,5 +80,6 @@ export function mapDocumentDto(dto: DocumentDto): ProjectDocument {
     fileSize: dto.fileSize ?? undefined,
     mimeType: dto.mimeType ?? undefined,
     supplierId: dto.supplierId ?? undefined,
+    staffMemberId: dto.staffMemberId ?? undefined,
   };
 }

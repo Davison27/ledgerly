@@ -43,6 +43,7 @@ export function listAllDocuments(
     amountMax: filters.amountMax,
     projectId: filters.projectId,
     supplierId: filters.supplierId,
+    staffMemberId: filters.staffMemberId,
   });
   return get<DocumentListItemDto[]>(`/documents${qs}`);
 }
@@ -125,8 +126,10 @@ export function deleteDocument(projectId: string, id: string): Promise<void> {
   return del<void>(`/projects/${projectId}/documents/${id}`);
 }
 
-export function extractInvoice(
-  projectId: string,
+// Shared by `extractInvoice` and `extractInvoiceStandalone`: same XHR-based
+// upload-with-progress plumbing, only the URL differs.
+function requestExtraction(
+  url: string,
   file: File,
   onProgress?: (percent: number) => void,
 ): Promise<ExtractInvoiceResult> {
@@ -135,7 +138,7 @@ export function extractInvoice(
     const formData = new FormData();
     formData.append('file', file);
 
-    xhr.open('POST', `${API_URL}/projects/${projectId}/documents/extract`);
+    xhr.open('POST', url);
     xhr.responseType = 'text';
 
     if (onProgress) {
@@ -172,4 +175,24 @@ export function extractInvoice(
 
     xhr.send(formData);
   });
+}
+
+export function extractInvoice(
+  projectId: string,
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<ExtractInvoiceResult> {
+  return requestExtraction(`${API_URL}/projects/${projectId}/documents/extract`, file, onProgress);
+}
+
+/**
+ * Same extraction, without a project: used when uploading a payroll from the
+ * staff member's own page, where there's no project chosen yet (R4/D2 of the
+ * staff-section plan). Hits the global alias `POST /documents/extract`.
+ */
+export function extractInvoiceStandalone(
+  file: File,
+  onProgress?: (percent: number) => void,
+): Promise<ExtractInvoiceResult> {
+  return requestExtraction(`${API_URL}/documents/extract`, file, onProgress);
 }

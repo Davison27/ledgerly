@@ -16,6 +16,8 @@ import { SuppliersPage } from '../features/suppliers/SuppliersPage';
 import { DocumentsPage } from '../features/documents/DocumentsPage';
 import { InvoicesPage } from '../features/invoices/InvoicesPage';
 import { ProductsPage } from '../features/products/ProductsPage';
+import { StaffPage } from '../features/staff/StaffPage';
+import { StaffMemberDetailPage } from '../features/staff/StaffMemberDetailPage';
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -85,6 +87,18 @@ const productsRoute = createRoute({
   component: ProductsPage,
 });
 
+const staffRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/staff',
+  component: StaffPage,
+});
+
+const staffMemberDetailRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/staff/$staffMemberId',
+  component: StaffMemberDetailPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   onboardingRoute,
@@ -97,6 +111,8 @@ const routeTree = rootRoute.addChildren([
     suppliersRoute,
     invoicesRoute,
     productsRoute,
+    staffRoute,
+    staffMemberDetailRoute,
   ]),
 ]);
 

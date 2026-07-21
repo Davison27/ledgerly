@@ -5,6 +5,7 @@ import {
   DashboardOutlined,
   FileDoneOutlined,
   FileTextOutlined,
+  IdcardOutlined,
   ProjectOutlined,
   SearchOutlined,
   ShoppingOutlined,
@@ -37,7 +38,14 @@ function CompanyGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-type NavKey = 'dashboard' | 'projects' | 'documents' | 'suppliers' | 'invoices' | 'products';
+type NavKey =
+  | 'dashboard'
+  | 'projects'
+  | 'documents'
+  | 'suppliers'
+  | 'invoices'
+  | 'products'
+  | 'staff';
 
 function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
@@ -46,6 +54,7 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/suppliers')) return 'suppliers';
   if (pathname.startsWith('/invoices')) return 'invoices';
   if (pathname.startsWith('/products')) return 'products';
+  if (pathname.startsWith('/staff')) return 'staff';
   return undefined;
 }
 
@@ -99,6 +108,12 @@ function AppSider({
         icon: <ShoppingOutlined />,
         label: t('nav.products'),
         onClick: () => void navigate({ to: '/products' }),
+      },
+      {
+        key: 'staff' satisfies NavKey,
+        icon: <IdcardOutlined />,
+        label: t('nav.staff'),
+        onClick: () => void navigate({ to: '/staff' }),
       },
     ],
     [t, navigate],

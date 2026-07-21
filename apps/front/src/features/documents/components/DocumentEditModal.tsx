@@ -17,12 +17,14 @@ import {
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { updateDocument } from '../../../data/api/documents.api';
+import { listStaffMembers } from '../../../data/api/staff.api';
 import { listSuppliers } from '../../../data/api/suppliers.api';
 import { mapDocumentDto, type ProjectDocument } from '../../../data/documents';
 import type {
   DocumentDirectionDto,
   DocumentStatusDto,
   DocumentTypeDto,
+  StaffMemberDto,
   SupplierDto,
   UpdateDocumentPayload,
 } from '../../../data/api/types';
@@ -81,6 +83,13 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
   const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
+  // D3/D4 of the staff-section plan: a payroll requires a worker, and legacy
+  // payrolls saved before that invariant existed have none — this selector is
+  // how the user assigns one on edit (R8, R5 of that plan).
+  const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
+  const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
+  const [staffMemberError, setStaffMemberError] = useState(false);
+
   useEffect(() => {
     if (!open || !document) return;
 
@@ -88,11 +97,19 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
       .then(setSuppliers)
       .catch(() => setSuppliers([]));
 
+    listStaffMembers()
+      .then(setStaffMembers)
+      .catch(() => setStaffMembers([]));
+
     // ⚠️ Preloaded from `document.supplierId` (U4), never left blank on
     // purpose: `ProjectDocument` didn't use to carry this field, so this
     // selector would render empty and every save would send an explicit
     // `supplierId: null`, silently unassigning the supplier (R8).
     setSupplierId(document.supplierId ?? null);
+
+    // ⚠️ Same reasoning as `supplierId` above, for `document.staffMemberId`.
+    setStaffMemberId(document.staffMemberId ?? null);
+    setStaffMemberError(false);
 
     // ⚠️ Preloaded from `document.rawStatus`, never `document.status`.
     // `status` is derived on every read (e.g. a stored "pendiente" past its
@@ -131,10 +148,19 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     }
   };
 
+  const handleSelectStaffMember = (value: string | undefined) => {
+    setStaffMemberId(value ?? null);
+    setStaffMemberError(false);
+  };
+
   const handleCancel = () => {
     form.resetFields();
     onCancel();
   };
+
+  // D3: the worker field is only required while the edited type is `nomina`.
+  const typeWatch = Form.useWatch('type', form);
+  const showStaffSelect = typeWatch === 'nomina';
 
   // Watched purely for the non-blocking amount-coherence warning, same as
   // the upload modal: total should be base + VAT - withholding, but only
@@ -156,6 +182,13 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     form
       .validateFields()
       .then((values) => {
+        // D3: a `nomina` cannot be saved without a worker — this is the only
+        // way to fix a legacy payroll that predates the invariant (D4/R5).
+        if (values.type === 'nomina' && !staffMemberId) {
+          setStaffMemberError(true);
+          return;
+        }
+
         // Built field by field, never by spreading the source document (D4,
         // R3): the `DocumentDto` that preloaded this form also carries `id`,
         // `projectId`, `month`, `hasFile`, `fileName`, `fileSize`,
@@ -181,6 +214,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           issuerTaxId: blankToNull(values.issuerTaxId),
           invoiceNumber: blankToNull(values.invoiceNumber),
           supplierId,
+          staffMemberId: values.type === 'nomina' ? staffMemberId : null,
         };
 
         setSubmitting(true);
@@ -300,6 +334,37 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
             </Form.Item>
           </Col>
         </Row>
+
+        {showStaffSelect && (
+          <Row gutter={12}>
+            <Col xs={24} md={8}>
+              <Form.Item
+                label={t('projects.documents.upload.staffMember.label')}
+                style={FORM_ITEM_STYLE}
+                validateStatus={staffMemberError ? 'error' : undefined}
+                help={
+                  staffMemberError
+                    ? t('projects.documents.upload.staffMember.required')
+                    : t('projects.documents.upload.staffMember.hint')
+                }
+              >
+                <Select
+                  showSearch
+                  value={staffMemberId ?? undefined}
+                  onChange={handleSelectStaffMember}
+                  placeholder={t('projects.documents.upload.staffMember.placeholder')}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={staffMembers.map((member) => ({
+                    value: member.id,
+                    label: `${member.firstName} ${member.lastName}`,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+          </Row>
+        )}
 
         <Text strong style={{ fontSize: 13 }}>
           {t('projects.documents.upload.sections.supplier')}

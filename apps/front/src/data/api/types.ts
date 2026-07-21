@@ -153,6 +153,8 @@ export interface DocumentDto {
   fileSize?: number | null;
   mimeType?: string | null;
   supplierId?: string | null;
+  /** Only set (and required) when `type === 'nomina'`, D3 of the staff-section plan. */
+  staffMemberId?: string | null;
 }
 
 export interface DocumentFiltersDto {
@@ -183,6 +185,7 @@ export interface DocumentListItemDto {
   issuerName: string | null;
   invoiceNumber: string | null;
   supplierId: string | null;
+  staffMemberId: string | null;
 }
 
 export interface DocumentListFiltersDto {
@@ -196,6 +199,7 @@ export interface DocumentListFiltersDto {
   amountMax?: number;
   projectId?: string;
   supplierId?: string;
+  staffMemberId?: string;
 }
 
 export interface DocumentDuplicateDto {
@@ -237,6 +241,8 @@ export interface CreateDocumentPayload {
   irpfAmount?: number;
   currency?: string;
   supplierId?: string;
+  /** Required by the domain when `type === 'nomina'` (D3 of the staff-section plan). */
+  staffMemberId?: string;
 }
 
 /**
@@ -269,6 +275,12 @@ export interface UpdateDocumentPayload {
   issuerTaxId?: string | null;
   invoiceNumber?: string | null;
   supplierId?: string | null;
+  /**
+   * Nullable so an old payroll can be reassigned; absent means "leave
+   * untouched" (D3/D4 of the staff-section plan — editing a legacy payroll
+   * without a worker must let the form assign one, not silently keep null).
+   */
+  staffMemberId?: string | null;
 }
 
 export interface SupplierDto {
@@ -527,4 +539,80 @@ export interface ExtractionQualityDto {
   avgCorrectedFields: number;
   correctionRate: number;
   topHints: ExtractionQualityTopHintDto[];
+}
+
+export interface StaffMemberDto {
+  id: string;
+  firstName: string;
+  lastName: string;
+  taxId?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  position?: string | null;
+  hireDate?: string | null;
+  endDate?: string | null;
+  notes?: string | null;
+}
+
+export interface CreateStaffMemberPayload {
+  firstName: string;
+  lastName: string;
+  taxId?: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+  hireDate?: string;
+  endDate?: string;
+  notes?: string;
+}
+
+export interface UpdateStaffMemberPayload {
+  firstName?: string;
+  lastName?: string;
+  taxId?: string;
+  email?: string;
+  phone?: string;
+  position?: string;
+  hireDate?: string;
+  /** Explicit `null` clears the departure date when reinstating a staff member. */
+  endDate?: string | null;
+  notes?: string;
+}
+
+/** D1: seeded, read-only catalogue — the domain never hardcodes a code. */
+export interface StaffDocumentTypeDto {
+  id: string;
+  code: string;
+  name: string;
+  expires: boolean;
+  defaultValidityMonths: number | null;
+  isSystem: boolean;
+}
+
+export interface StaffDocumentDto {
+  id: string;
+  staffMemberId: string;
+  typeId: string;
+  name: string;
+  issueDate: string;
+  expiryDate: string | null;
+  notes?: string | null;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+}
+
+export interface CreateStaffDocumentPayload {
+  typeId: string;
+  name: string;
+  issueDate: string;
+  expiryDate?: string;
+  notes?: string;
+}
+
+export interface UpdateStaffDocumentPayload {
+  name?: string;
+  issueDate?: string;
+  expiryDate?: string | null;
+  notes?: string | null;
 }

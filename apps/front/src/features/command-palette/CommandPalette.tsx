@@ -5,6 +5,7 @@ import {
   DashboardOutlined,
   FileDoneOutlined,
   FileTextOutlined,
+  IdcardOutlined,
   ProjectOutlined,
   SearchOutlined,
   ShoppingOutlined,
@@ -167,6 +168,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         icon: <ShoppingOutlined />,
         label: t('nav.products'),
         onSelect: () => void navigate({ to: '/products' }),
+      },
+      {
+        key: 'nav-staff',
+        category: 'nav',
+        icon: <IdcardOutlined />,
+        label: t('nav.staff'),
+        onSelect: () => void navigate({ to: '/staff' }),
       },
     ];
     const navItems: PaletteItem[] = navItemsRaw.filter(
