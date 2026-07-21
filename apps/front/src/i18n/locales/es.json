@@ -32,7 +32,8 @@
     "dashboard": "Panel",
     "projects": "Proyectos",
     "documents": "Documentos",
-    "suppliers": "Proveedores"
+    "suppliers": "Proveedores",
+    "invoices": "Facturas"
   },
   "dashboard": {
     "title": "Panel",
@@ -628,6 +629,75 @@
     "detail": {
       "title": "Detalle del documento",
       "loadError": "No se ha podido cargar el documento."
+    }
+  },
+  "invoices": {
+    "title": "Facturas",
+    "subtitle": "Emite facturas para tus proyectos y descárgalas en PDF.",
+    "add": "Nueva factura",
+    "empty": "Todavía no hay facturas.",
+    "loadError": "No se han podido cargar las facturas.",
+    "deleted": "Factura eliminada",
+    "noLedgerEntry": "Sin reflejo contable",
+    "companyIncomplete": "Completa el nombre y el NIF/CIF de tu empresa en ajustes antes de emitir facturas.",
+    "columns": {
+      "number": "Número",
+      "issueDate": "Fecha",
+      "customerName": "Cliente",
+      "taxBase": "Base",
+      "total": "Total",
+      "actions": "Acciones"
+    },
+    "actions": {
+      "downloadPdf": "Descargar PDF"
+    },
+    "fields": {
+      "project": "Proyecto",
+      "customerName": "Nombre del cliente",
+      "customerTaxId": "NIF/CIF del cliente",
+      "customerAddress": "Dirección del cliente",
+      "taxRate": "IVA (%)",
+      "irpfRate": "IRPF (%)",
+      "notes": "Notas"
+    },
+    "form": {
+      "title": "Nueva factura",
+      "submit": "Emitir factura",
+      "created": "Factura emitida correctamente",
+      "createError": "No se ha podido emitir la factura. Inténtalo de nuevo.",
+      "placeholders": {
+        "project": "Selecciona un proyecto",
+        "customerName": "Ej. Acme Corp SL",
+        "customerTaxId": "Ej. B12345678",
+        "customerAddress": "Calle, número, ciudad",
+        "notes": "Ej. datos de pago, IBAN..."
+      },
+      "validation": {
+        "projectRequired": "Selecciona un proyecto",
+        "customerNameRequired": "El nombre del cliente es obligatorio",
+        "lineDescriptionRequired": "La descripción es obligatoria",
+        "lineUnitPriceRequired": "El precio es obligatorio",
+        "lineUnitPriceMin": "El precio debe ser 0 o mayor"
+      }
+    },
+    "lines": {
+      "title": "Líneas",
+      "descriptionPlaceholder": "Descripción",
+      "unitPricePlaceholder": "Precio",
+      "add": "Añadir línea",
+      "remove": "Eliminar línea"
+    },
+    "totals": {
+      "base": "Base",
+      "tax": "IVA ({{rate}}%)",
+      "irpf": "IRPF ({{rate}}%)",
+      "total": "Total"
+    },
+    "deleteConfirm": {
+      "title": "Eliminar factura",
+      "content": "¿Seguro que quieres eliminar la factura \"{{number}}\"? También se eliminará el documento del proyecto vinculado. Esta acción no se puede deshacer.",
+      "ok": "Eliminar",
+      "error": "No se ha podido eliminar la factura. Inténtalo de nuevo."
     }
   },
   "commandPalette": {

@@ -300,6 +300,54 @@ export interface UpdateSupplierPayload {
   notes?: string;
 }
 
+export interface InvoiceLineDto {
+  description: string;
+  unitPrice: number;
+}
+
+export interface InvoiceDto {
+  id: string;
+  series: string;
+  year: number;
+  number: number;
+  fullNumber: string;
+  issueDate: string;
+  projectId: string;
+  customerName: string;
+  customerTaxId: string | null;
+  customerAddress: string | null;
+  lines: InvoiceLineDto[];
+  taxBase: number;
+  taxRate: number;
+  taxAmount: number;
+  irpfRate: number;
+  irpfAmount: number;
+  total: number;
+  currency: string;
+  notes: string | null;
+  documentId: string | null;
+  hasPdf: boolean;
+}
+
+/**
+ * Exact mirror of `CreateInvoiceDto` (`apps/back/.../invoices/infrastructure/http/dtos/create-invoice.dto.ts`):
+ * the `ValidationPipe` uses `forbidNonWhitelisted`, so any extra field here would trip a 400.
+ * `issueDate` is part of the contract but never set by the current form — the backend
+ * defaults it to today (D2/U3 of the invoice-generator-poc plan) — and the project itself
+ * is never sent as the invoice's customer (D5/D7): only the receiver fields below are.
+ */
+export interface CreateInvoicePayload {
+  projectId: string;
+  issueDate?: string;
+  lines: InvoiceLineDto[];
+  taxRate?: number;
+  irpfRate?: number;
+  customerName: string;
+  customerTaxId?: string;
+  customerAddress?: string;
+  notes?: string;
+}
+
 export type ExtractInvoiceSource = 'facturae' | 'facturx' | 'ubl' | 'heuristic';
 export type ExtractInvoiceConfidence = 'high' | 'partial' | 'low';
 
