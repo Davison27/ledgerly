@@ -6,6 +6,7 @@ import type { ProjectSectionProps } from './types';
 import { useCompany } from '../../../app/providers/CompanyProvider';
 import { fetchProject, type Project, type ProjectFormValues } from '../../../data/company';
 import { ApiError } from '../../../data/api/httpClient';
+import { PageContainer } from '../../../components/ui/PageContainer';
 import {
   ProjectFormFields,
   type ProjectFormFieldValues,
@@ -101,7 +102,7 @@ export function SettingsSection({ project }: ProjectSectionProps) {
   }
 
   return (
-    <div style={{ padding: 28, maxWidth: 1080 }}>
+    <PageContainer maxWidth={1080}>
       <Flex align="center" justify="space-between" style={{ marginBottom: 20 }}>
         <Title level={5} style={{ margin: 0 }}>
           {t('projects.settings.details')}
@@ -113,6 +114,6 @@ export function SettingsSection({ project }: ProjectSectionProps) {
       <Form<ProjectFormFieldValues> form={form} layout="vertical" requiredMark={false}>
         <ProjectFormFields image={image} onImageChange={setImage} />
       </Form>
-    </div>
+    </PageContainer>
   );
 }

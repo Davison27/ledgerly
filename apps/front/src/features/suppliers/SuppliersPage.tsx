@@ -21,6 +21,7 @@ import {
 } from '../../data/api/suppliers.api';
 import { ApiError } from '../../data/api/httpClient';
 import type { SupplierDto } from '../../data/api/types';
+import { PageContainer } from '../../components/ui/PageContainer';
 import { SupplierFormModal, type SupplierFormValues } from './components/SupplierFormModal';
 
 const { Title, Text } = Typography;
@@ -165,7 +166,7 @@ export function SuppliersPage() {
   ];
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
+    <PageContainer>
       <Flex align="center" justify="space-between">
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
           {t('suppliers.title')}
@@ -185,7 +186,11 @@ export function SuppliersPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('suppliers.loadError')} />
       ) : suppliers.length === 0 ? (
-        <Empty description={t('suppliers.empty')} />
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('suppliers.empty')}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            {t('suppliers.add')}
+          </Button>
+        </Empty>
       ) : (
         <Table<SupplierDto>
           columns={columns}
@@ -202,6 +207,6 @@ export function SuppliersPage() {
         onSubmit={handleSubmit}
         submitting={submitting}
       />
-    </div>
+    </PageContainer>
   );
 }

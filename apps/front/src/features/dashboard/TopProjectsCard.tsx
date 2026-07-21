@@ -1,7 +1,9 @@
-import { Card, Empty, Flex, Typography, theme } from 'antd';
+import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { FolderOpenOutlined } from '@ant-design/icons';
 import type { CompanyDashboardDto } from '../../data/api/types';
-import { formatEur } from '../projects/sections/dashboard/data';
+import { Amount } from '../../components/ui/Amount';
+import { EmptyHint } from '../../components/ui/EmptyHint';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -23,10 +25,7 @@ export function TopProjectsCard({ topProjects }: TopProjectsCardProps) {
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
       {topProjects.length === 0 ? (
-        <Empty
-          description={t('dashboard.topProjects.empty')}
-          image={Empty.PRESENTED_IMAGE_SIMPLE}
-        />
+        <EmptyHint icon={<FolderOpenOutlined />} title={t('dashboard.topProjects.empty')} />
       ) : (
         <Flex vertical gap={8}>
           {topProjects.map((project) => (
@@ -68,7 +67,7 @@ export function TopProjectsCard({ topProjects }: TopProjectsCardProps) {
                 )}
               </Text>
               <Text strong style={{ flex: 'none', width: 90, textAlign: 'right' }}>
-                {formatEur(project.total)}
+                <Amount value={project.total} />
               </Text>
             </Flex>
           ))}

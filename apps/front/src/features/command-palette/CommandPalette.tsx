@@ -11,6 +11,7 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { SPACE } from '../../app/theme/tokens';
 import { listAllDocuments } from '../../data/api/documents.api';
 import { listProjects } from '../../data/api/projects.api';
 import { listSuppliers } from '../../data/api/suppliers.api';
@@ -257,7 +258,12 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       styles={{ body: { padding: 0 } }}
     >
       <div ref={containerRef} onKeyDown={handleKeyDown}>
-        <div style={{ padding: '12px 16px', borderBottom: `1px solid ${token.colorBorderSecondary}` }}>
+        <div
+          style={{
+            padding: `${SPACE.md}px ${SPACE.lg}px`,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          }}
+        >
           <Input
             autoFocus
             variant="borderless"
@@ -270,9 +276,12 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           />
         </div>
 
-        <div style={{ maxHeight: 420, overflowY: 'auto', padding: '8px 0' }}>
+        <div style={{ maxHeight: 420, overflowY: 'auto', padding: `${SPACE.sm}px 0` }}>
           {flatItems.length === 0 ? (
-            <Empty description={t('commandPalette.empty')} style={{ padding: '32px 0' }} />
+            <Empty
+              description={t('commandPalette.empty')}
+              style={{ padding: `${SPACE.xxl}px 0` }}
+            />
           ) : (
             groups.map((group) => (
               <div key={group.id} style={{ marginBottom: 4 }}>
@@ -280,7 +289,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                   type="secondary"
                   style={{
                     display: 'block',
-                    padding: '4px 16px',
+                    padding: `${SPACE.xs}px ${SPACE.lg}px`,
                     fontSize: 12,
                     textTransform: 'uppercase',
                     letterSpacing: 0.4,

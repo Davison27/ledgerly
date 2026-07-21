@@ -1,6 +1,20 @@
+import type { ReactNode } from 'react';
 import { Card, Flex, Typography, theme } from 'antd';
+import {
+  ArrowDownOutlined,
+  ArrowUpOutlined,
+  ClockCircleOutlined,
+  ExclamationCircleOutlined,
+  LineChartOutlined,
+  WalletOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { formatEur, formatPct } from './data';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { TYPE } from '../../../../app/theme/tokens';
+import { Amount } from '../../../../components/ui/Amount';
+import { Numeric } from '../../../../components/ui/Numeric';
+import { EmptyHint } from '../../../../components/ui/EmptyHint';
+import { formatPct } from './data';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -17,34 +31,43 @@ export interface KpiRowProps {
 export function KpiRow({ income, expenses, pending, overdue, profit, margin }: KpiRowProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
+
+  if (income === 0 && expenses === 0) {
+    return (
+      <Card size="small">
+        <EmptyHint icon={<WalletOutlined />} title={t('dashboard.kpi.emptyHint')} />
+      </Card>
+    );
+  }
 
   const isProfitable = profit >= 0;
-  const profitTone = isProfitable ? token.colorSuccess : token.colorError;
+  const profitColor = isProfitable ? colors.income : colors.expense;
 
-  const items = [
+  const items: { key: string; label: string; icon: ReactNode; value: ReactNode }[] = [
     {
       key: 'income',
       label: t('projects.dashboard.kpi.income'),
-      value: formatEur(income),
-      color: token.colorText,
+      icon: <ArrowDownOutlined />,
+      value: <Amount value={income} tone="income" />,
     },
     {
       key: 'expenses',
       label: t('projects.dashboard.kpi.expenses'),
-      value: formatEur(expenses),
-      color: token.colorText,
+      icon: <ArrowUpOutlined />,
+      value: <Amount value={expenses} tone="expense" />,
     },
     {
       key: 'pending',
       label: t('projects.dashboard.kpi.pending'),
-      value: String(pending),
-      color: token.colorWarning,
+      icon: <ClockCircleOutlined />,
+      value: <Numeric style={{ color: colors.pending }}>{pending}</Numeric>,
     },
     {
       key: 'overdue',
       label: t('projects.dashboard.kpi.overdue'),
-      value: String(overdue),
-      color: token.colorError,
+      icon: <ExclamationCircleOutlined />,
+      value: <Numeric style={{ color: colors.overdue }}>{overdue}</Numeric>,
     },
   ];
 
@@ -52,20 +75,15 @@ export function KpiRow({ income, expenses, pending, overdue, profit, margin }: K
     <Flex gap={12} wrap>
       {items.map((item) => (
         <Card key={item.key} size="small" style={{ flex: '1 1 150px', minWidth: 150 }}>
-          <Text type="secondary" style={{ fontSize: 12 }}>
-            {item.label}
-          </Text>
-          <div
-            style={{
-              marginTop: 4,
-              fontSize: 20,
-              fontWeight: 600,
-              lineHeight: 1.2,
-              color: item.color,
-            }}
-          >
-            {item.value}
-          </div>
+          <Flex justify="space-between" align="flex-start">
+            <Text style={{ ...TYPE.kpiLabel, color: token.colorTextSecondary }}>
+              {item.label}
+            </Text>
+            <span style={{ fontSize: 18, color: token.colorTextQuaternary, display: 'flex' }}>
+              {item.icon}
+            </span>
+          </Flex>
+          <div style={{ marginTop: 4, ...TYPE.kpiValue }}>{item.value}</div>
         </Card>
       ))}
 
@@ -74,26 +92,24 @@ export function KpiRow({ income, expenses, pending, overdue, profit, margin }: K
         style={{
           flex: '1 1 150px',
           minWidth: 150,
-          borderColor: profitTone,
-          background: isProfitable ? token.colorSuccessBg : token.colorErrorBg,
+          borderColor: isProfitable ? colors.incomeBorder : colors.expenseBorder,
+          borderInlineStart: `3px solid ${profitColor}`,
+          background: isProfitable ? colors.incomeBg : colors.expenseBg,
         }}
       >
-        <Text type="secondary" style={{ fontSize: 12 }}>
-          {t('projects.dashboard.profit.net')}
-        </Text>
-        <div
-          style={{
-            marginTop: 4,
-            fontSize: 20,
-            fontWeight: 600,
-            lineHeight: 1.2,
-            color: profitTone,
-          }}
-        >
-          {formatEur(profit)}
+        <Flex justify="space-between" align="flex-start">
+          <Text style={{ ...TYPE.kpiLabel, color: token.colorTextSecondary }}>
+            {t('projects.dashboard.profit.net')}
+          </Text>
+          <span style={{ fontSize: 18, color: token.colorTextQuaternary, display: 'flex' }}>
+            <LineChartOutlined />
+          </span>
+        </Flex>
+        <div style={{ marginTop: 4, ...TYPE.kpiValue }}>
+          <Amount value={profit} tone="auto" />
         </div>
-        <Text style={{ fontSize: 12, color: profitTone }}>
-          {t('projects.dashboard.profit.margin')} {formatPct(margin)}
+        <Text style={{ fontSize: 12, color: profitColor }}>
+          {t('projects.dashboard.profit.margin')} <Numeric>{formatPct(margin)}</Numeric>
         </Text>
       </Card>
     </Flex>

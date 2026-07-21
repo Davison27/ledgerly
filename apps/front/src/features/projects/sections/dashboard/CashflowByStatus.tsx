@@ -1,7 +1,8 @@
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentStatus } from '../../../../data/documents';
-import { formatEur } from './data';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { Amount } from '../../../../components/ui/Amount';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -19,11 +20,12 @@ export function CashflowByStatus({
 }: CashflowByStatusProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const rows: { key: DocumentStatus; amount: number; color: string }[] = [
-    { key: 'pagado', amount: pagado, color: token.colorSuccess },
-    { key: 'pendiente', amount: pendiente, color: token.colorWarning },
-    { key: 'vencido', amount: vencido, color: token.colorError },
+    { key: 'pagado', amount: pagado, color: colors.paid },
+    { key: 'pendiente', amount: pendiente, color: colors.pending },
+    { key: 'vencido', amount: vencido, color: colors.overdue },
   ];
 
   const max = Math.max(1, pagado, pendiente, vencido);
@@ -59,7 +61,7 @@ export function CashflowByStatus({
               />
             </div>
             <Text strong style={{ flex: 'none', width: 90, textAlign: 'right' }}>
-              {formatEur(row.amount)}
+              <Amount value={row.amount} />
             </Text>
           </Flex>
         ))}

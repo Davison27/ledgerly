@@ -15,7 +15,6 @@ import {
   Statistic,
   Table,
   Tabs,
-  Tag,
   Typography,
   type TableColumnsType,
 } from 'antd';
@@ -32,16 +31,19 @@ import type {
   ExtractionHintDto,
   ExtractionQualityDto,
 } from '../../data/api/types';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { Numeric } from '../../components/ui/Numeric';
+import { SemanticTag, type SemanticTone } from '../../components/ui/SemanticTag';
 
 const { Title, Text } = Typography;
 
 const QUALITY_SOURCES: ExtractInvoiceSource[] = ['facturae', 'facturx', 'ubl', 'heuristic'];
 const QUALITY_CONFIDENCES: ExtractInvoiceConfidence[] = ['high', 'partial', 'low'];
 
-const CONFIDENCE_COLOR: Record<ExtractInvoiceConfidence, string> = {
-  high: 'success',
-  partial: 'warning',
-  low: 'error',
+const CONFIDENCE_TONE: Record<ExtractInvoiceConfidence, SemanticTone> = {
+  high: 'income',
+  partial: 'pending',
+  low: 'overdue',
 };
 
 interface IssuerGroup {
@@ -139,7 +141,9 @@ function QualityPanel() {
                 return (
                   <div key={source}>
                     <Flex justify="space-between" style={{ marginBottom: 4 }}>
-                      <Tag>{t(`projects.documents.upload.extraction.source.${source}`)}</Tag>
+                      <SemanticTag tone="neutral">
+                        {t(`projects.documents.upload.extraction.source.${source}`)}
+                      </SemanticTag>
                       <Text type="secondary">{count}</Text>
                     </Flex>
                     <Progress percent={percent} showInfo={false} size="small" />
@@ -158,9 +162,9 @@ function QualityPanel() {
                 return (
                   <div key={confidence}>
                     <Flex justify="space-between" style={{ marginBottom: 4 }}>
-                      <Tag color={CONFIDENCE_COLOR[confidence]}>
+                      <SemanticTag tone={CONFIDENCE_TONE[confidence]}>
                         {t(`projects.documents.upload.extraction.confidence.${confidence}`)}
-                      </Tag>
+                      </SemanticTag>
                       <Text type="secondary">{count}</Text>
                     </Flex>
                     <Progress
@@ -191,7 +195,9 @@ function QualityPanel() {
               >
                 <Text strong>{hint.issuerName || t('extractionHints.unknownIssuer')}</Text>
                 <Text type="secondary">·</Text>
-                <Tag>{t(`projects.documents.upload.fields.${hint.field}`)}</Tag>
+                <SemanticTag tone="neutral">
+                  {t(`projects.documents.upload.fields.${hint.field}`)}
+                </SemanticTag>
                 <Text type="secondary">·</Text>
                 <Text type="secondary">
                   {t('extractionHints.quality.occurrences', { count: hint.occurrences })}
@@ -248,7 +254,7 @@ export function ExtractionHintsPage() {
       key: 'field',
       width: 160,
       render: (field: ExtractionHintDto['field']) => (
-        <Tag>{t(`projects.documents.upload.fields.${field}`)}</Tag>
+        <SemanticTag tone="neutral">{t(`projects.documents.upload.fields.${field}`)}</SemanticTag>
       ),
     },
     {
@@ -263,9 +269,9 @@ export function ExtractionHintsPage() {
       key: 'anchorKind',
       width: 150,
       render: (anchorKind: ExtractionHintDto['anchorKind']) => (
-        <Tag color={anchorKind === 'inline' ? 'blue' : 'purple'}>
+        <SemanticTag tone={anchorKind === 'inline' ? 'info' : 'neutral'}>
           {t(`extractionHints.anchorKinds.${anchorKind}`)}
-        </Tag>
+        </SemanticTag>
       ),
     },
     {
@@ -274,6 +280,7 @@ export function ExtractionHintsPage() {
       key: 'occurrences',
       width: 120,
       align: 'right',
+      render: (occurrences: number) => <Numeric>{occurrences}</Numeric>,
     },
     {
       title: t('extractionHints.columns.sampleValue'),
@@ -307,7 +314,7 @@ export function ExtractionHintsPage() {
   ];
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
+    <PageContainer>
       <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
         {t('extractionHints.title')}
       </Title>
@@ -338,14 +345,14 @@ export function ExtractionHintsPage() {
                       <Text strong>
                         {group.issuerName || t('extractionHints.unknownIssuer')}
                       </Text>
-                      <Tag>
+                      <SemanticTag tone="neutral">
                         {t(
                           group.hints.length === 1
                             ? 'extractionHints.hintCountOne'
                             : 'extractionHints.hintCountOther',
                           { count: group.hints.length },
                         )}
-                      </Tag>
+                      </SemanticTag>
                     </Flex>
                   ),
                   children: (
@@ -368,6 +375,6 @@ export function ExtractionHintsPage() {
           },
         ]}
       />
-    </div>
+    </PageContainer>
   );
 }

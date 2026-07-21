@@ -1,5 +1,6 @@
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
 
 const { useToken } = theme;
 
@@ -21,6 +22,7 @@ const GAP = 2;
 export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const maxAbs = Math.max(1, ...profit.map((v) => Math.abs(v)));
@@ -75,7 +77,7 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
                 height={Math.max(1, barH(v))}
                 rx={rMax}
                 ry={rMax}
-                fill={isPositive ? token.colorSuccess : token.colorError}
+                fill={isPositive ? colors.income : colors.expense}
               />
             );
           })}

@@ -33,8 +33,11 @@ import type {
   ProjectSummaryDto,
   SupplierDto,
 } from '../../data/api/types';
-import { formatEUR, useTypeLabel } from '../projects/sections/documents/documentFormat';
+import { useTypeLabel } from '../projects/sections/documents/documentFormat';
 import { DirectionTag, StatusTag } from '../projects/sections/documents/documentUi';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { Amount } from '../../components/ui/Amount';
+import { Numeric } from '../../components/ui/Numeric';
 import { DocumentDetail } from './components/DocumentDetail';
 import { DocumentEditModal } from './components/DocumentEditModal';
 
@@ -216,6 +219,7 @@ export function DocumentsPage() {
       dataIndex: 'date',
       key: 'date',
       width: 110,
+      render: (date: string) => <Numeric>{date}</Numeric>,
     },
     {
       title: t('documents.columns.amount'),
@@ -223,7 +227,9 @@ export function DocumentsPage() {
       key: 'amount',
       width: 120,
       align: 'right',
-      render: (amount: number) => formatEUR(amount),
+      render: (amount: number, record) => (
+        <Amount value={amount} tone={record.direction === 'ingreso' ? 'income' : 'expense'} />
+      ),
     },
     {
       title: t('documents.columns.issuer'),
@@ -274,7 +280,7 @@ export function DocumentsPage() {
   ];
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
+    <PageContainer>
       <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
         {t('documents.title')}
       </Title>
@@ -372,7 +378,7 @@ export function DocumentsPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('documents.loadError')} />
       ) : documents.length === 0 ? (
-        <Empty description={t('documents.empty')} />
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('documents.empty')} />
       ) : (
         <Table<DocumentListItemDto>
           columns={columns}
@@ -417,6 +423,6 @@ export function DocumentsPage() {
         onCancel={() => setEditing(null)}
         onUpdated={handleDocumentUpdated}
       />
-    </div>
+    </PageContainer>
   );
 }
