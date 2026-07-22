@@ -11,16 +11,6 @@ export interface YoyKpiRowProps {
   data: CompanyDashboardDto;
 }
 
-/**
- * Compact strip of YoY deltas for the headline KPIs, sitting under the
- * absolute-value KpiRow. Does not touch KpiRow's props/signature since that
- * component is shared with the per-project dashboard.
- *
- * The empty-state decision lives here, not in `YoyDelta`: a one-line `<Text>`
- * doesn't leave room for `EmptyHint`, so when there is no previous-year
- * baseline this replaces the whole Card body (label included) instead of
- * rendering `YoyDelta`.
- */
 export function YoyKpiRow({ data }: YoyKpiRowProps) {
   const { t } = useTranslation();
   const prev = data.previousYear;

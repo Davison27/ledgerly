@@ -18,8 +18,6 @@ import { StaffDocumentEditModal } from '../components/StaffDocumentEditModal';
 import { getExpiryStatus, getExpiryTone } from './staffDocumentStatus';
 import type { StaffSectionProps } from './types';
 
-/** D2: payrolls aren't part of this catalogue, but the filter is kept
- * defensive in case a future seed ever added one under this code. */
 const PAYROLL_TYPE_CODE = 'nomina';
 
 export function StaffDocumentsSection({

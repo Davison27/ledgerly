@@ -65,11 +65,6 @@ const CURRENCIES = ['EUR', 'USD', 'GBP'];
 const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
 const AMOUNT_MISMATCH_TOLERANCE = 0.02;
 
-// An empty string from a cleared `Input` is not the same thing as "leave
-// untouched" (D2): the backend's optional string fields are declared
-// `@IsOptional() @IsString() @IsNotEmpty()`, which only skips validation for
-// `undefined`/`null` — an explicit `''` would fail validation instead of
-// clearing the field. So a blank input must become an explicit `null`.
 function blankToNull(value: string | undefined): string | null {
   return value ? value : null;
 }
@@ -83,9 +78,6 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
   const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
-  // D3/D4 of the staff-section plan: a payroll requires a worker, and legacy
-  // payrolls saved before that invariant existed have none — this selector is
-  // how the user assigns one on edit (R8, R5 of that plan).
   const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [staffMemberError, setStaffMemberError] = useState(false);
@@ -101,21 +93,11 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
       .then(setStaffMembers)
       .catch(() => setStaffMembers([]));
 
-    // ⚠️ Preloaded from `document.supplierId` (U4), never left blank on
-    // purpose: `ProjectDocument` didn't use to carry this field, so this
-    // selector would render empty and every save would send an explicit
-    // `supplierId: null`, silently unassigning the supplier (R8).
     setSupplierId(document.supplierId ?? null);
 
-    // ⚠️ Same reasoning as `supplierId` above, for `document.staffMemberId`.
     setStaffMemberId(document.staffMemberId ?? null);
     setStaffMemberError(false);
 
-    // ⚠️ Preloaded from `document.rawStatus`, never `document.status`.
-    // `status` is derived on every read (e.g. a stored "pendiente" past its
-    // due date is served as "vencido"); precaching the selector with it and
-    // saving back without touching it would persist the derived value,
-    // turning a calculation into an irreversible fact (D5).
     form.setFieldsValue({
       name: document.name,
       type: document.type,
@@ -158,13 +140,9 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     onCancel();
   };
 
-  // D3: the worker field is only required while the edited type is `nomina`.
   const typeWatch = Form.useWatch('type', form);
   const showStaffSelect = typeWatch === 'nomina';
 
-  // Watched purely for the non-blocking amount-coherence warning, same as
-  // the upload modal: total should be base + VAT - withholding, but only
-  // once all four are filled in.
   const amountWatch = Form.useWatch('amount', form);
   const taxBaseWatch = Form.useWatch('taxBase', form);
   const taxAmountWatch = Form.useWatch('taxAmount', form);
@@ -182,20 +160,11 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     form
       .validateFields()
       .then((values) => {
-        // D3: a `nomina` cannot be saved without a worker — this is the only
-        // way to fix a legacy payroll that predates the invariant (D4/R5).
         if (values.type === 'nomina' && !staffMemberId) {
           setStaffMemberError(true);
           return;
         }
 
-        // Built field by field, never by spreading the source document (D4,
-        // R3): the `DocumentDto` that preloaded this form also carries `id`,
-        // `projectId`, `month`, `hasFile`, `fileName`, `fileSize`,
-        // `mimeType`, `status` and `rawStatus`, none of which
-        // `UpdateDocumentDto` declares — with `forbidNonWhitelisted` on the
-        // backend, any of those riding along turns into a 400, not a
-        // silently-ignored field.
         const payload: UpdateDocumentPayload = {
           name: values.name,
           type: values.type,
@@ -228,9 +197,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           })
           .finally(() => setSubmitting(false));
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

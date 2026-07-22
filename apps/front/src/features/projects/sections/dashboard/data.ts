@@ -7,9 +7,7 @@ export interface AmountByStatus {
 }
 
 export interface TopIssuer {
-  /** Stable key: the raw issuer name, or 'unknown' / 'other' for the fallback buckets. */
   key: string;
-  /** Raw issuer name, or null for the 'unknown'/'other' buckets (label resolved at the component layer). */
   name: string | null;
   total: number;
 }

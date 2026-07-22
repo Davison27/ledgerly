@@ -32,8 +32,6 @@ export function LoginPage() {
         setNeedsSetup(companyNeedsSetup(company));
       })
       .catch(() => {
-        // No company profile yet (or the request failed): keep the default logo
-        // and treat this as a first run.
         if (!cancelled) setNeedsSetup(true);
       })
       .finally(() => {

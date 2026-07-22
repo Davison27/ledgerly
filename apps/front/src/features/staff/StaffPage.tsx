@@ -95,10 +95,6 @@ export function StaffPage() {
     }
   };
 
-  // D5: a staff member with payrolls imputed to them can't just be deleted —
-  // the backend answers 409 and the UI must explain the two real ways out
-  // (reassign their payrolls, or mark them inactive with an end date) instead
-  // of a generic error.
   const handleDelete = async (staffMember: StaffMemberDto) => {
     setDeletingId(staffMember.id);
     try {

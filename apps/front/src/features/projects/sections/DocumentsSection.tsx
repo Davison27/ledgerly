@@ -82,8 +82,6 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
     try {
       await deleteDocument(project.id, doc.id);
       void message.success(t('projects.documents.delete.deleted'));
-      // The panel was pointing at the document we just deleted — if we leave
-      // it selected it would keep showing a document that no longer exists.
       if (selectedId === doc.id) {
         setSelectedId(null);
       }

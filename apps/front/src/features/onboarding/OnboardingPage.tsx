@@ -69,7 +69,6 @@ export function OnboardingPage() {
         setCheckingExisting(false);
       })
       .catch(() => {
-        // No company yet (404): this is the expected first-run case.
         if (!cancelled) setCheckingExisting(false);
       });
 
@@ -86,8 +85,6 @@ export function OnboardingPage() {
         if (!cancelled) setDemoAvailable(projects.length === 0);
       })
       .catch(() => {
-        // If the check fails we simply hide the demo action rather than
-        // risk offering it in an inconsistent state.
         if (!cancelled) setDemoAvailable(false);
       });
 
@@ -115,9 +112,7 @@ export function OnboardingPage() {
     form
       .validateFields(STEP_FIELDS[current])
       .then(() => setCurrent((c) => c + 1))
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   const handleBack = () => setCurrent((c) => c - 1);
@@ -137,9 +132,7 @@ export function OnboardingPage() {
           setSubmitting(false);
         }
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   if (checkingExisting) {

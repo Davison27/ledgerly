@@ -71,9 +71,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
           void message.error(t('company.settings.error'));
         }
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

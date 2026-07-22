@@ -21,7 +21,6 @@ const { useToken } = theme;
 
 type Section = 'profile' | 'documents' | 'payrolls';
 
-/** D1 seed code — used only to pick which document feeds the header avatar. */
 const PHOTO_TYPE_CODE = 'foto';
 
 export function StaffMemberDetailPage() {
@@ -36,9 +35,6 @@ export function StaffMemberDetailPage() {
 
   const [documentTypes, setDocumentTypes] = useState<StaffDocumentTypeDto[]>([]);
   const [photoDocuments, setPhotoDocuments] = useState<StaffDocumentDto[]>([]);
-  // Bumped whenever a document section reports a change, so the avatar photo
-  // (fed by the most recent `foto` document) stays in sync without every
-  // section having to know about the header.
   const [documentsVersion, setDocumentsVersion] = useState(0);
 
   const loadStaffMember = useCallback(() => {

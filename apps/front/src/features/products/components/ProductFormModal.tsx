@@ -47,9 +47,7 @@ export function ProductFormModal({
       .then((values) => {
         void onSubmit(values);
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

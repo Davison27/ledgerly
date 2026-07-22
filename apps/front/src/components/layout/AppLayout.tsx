@@ -21,10 +21,6 @@ import { TopBar } from './TopBar';
 
 const { useToken } = theme;
 
-/**
- * Redirects to the onboarding wizard when there's no company data yet.
- * Must be rendered inside CompanyProvider, since it reads company state from it.
- */
 function CompanyGuard({ children }: { children: ReactNode }) {
   const { company, companyLoading } = useCompany();
   const navigate = useNavigate();

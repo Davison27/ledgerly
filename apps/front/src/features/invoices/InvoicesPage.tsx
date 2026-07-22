@@ -44,8 +44,6 @@ export function InvoicesPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [companySettingsOpen, setCompanySettingsOpen] = useState(false);
 
-  // D8: emitting with an incomplete company (no name or no taxId) returns a 400.
-  // `companyNeedsSetup` only checks `!company.id`, so `taxId` needs its own check.
   const companyIncomplete = companyNeedsSetup(company) || !company.taxId;
 
   const loadInvoices = useCallback(() => {

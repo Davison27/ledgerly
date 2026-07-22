@@ -1,9 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 
-/**
- * Manages the open/close state of the global command palette and registers
- * the Cmd+K (mac) / Ctrl+K (win/linux) global hotkey to toggle it.
- */
 export function useCommandPalette() {
   const [open, setOpen] = useState(false);
 

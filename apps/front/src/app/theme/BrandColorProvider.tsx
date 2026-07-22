@@ -31,12 +31,6 @@ export function useBrandColor(): BrandColorContextValue {
   return ctx;
 }
 
-/**
- * Sits above `ConfigProvider` (see D3 of the ui-visual-improvements plan):
- * `CompanyProvider` lives below it, so the brand color that feeds
- * `buildThemeConfig` is seeded from `localStorage` for the first paint and
- * then pushed here once `/company` resolves or is saved from Settings.
- */
 export function BrandColorProvider({ children }: { children: ReactNode }) {
   const [brandColor, setBrandColorState] = useState<string>(readStoredBrandColor);
 
