@@ -15,7 +15,7 @@ import {
 import type { Color } from 'antd/es/color-picker';
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '../../../app/providers/CompanyProvider';
+import { useCompany } from '@/entities/company';
 import { BRAND_DEFAULT } from '@/shared/config/theme';
 
 const { Text } = Typography;

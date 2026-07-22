@@ -41,7 +41,7 @@ import {
 import { ApiError } from '@/shared/api/httpClient';
 import { createStaffMember, listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
 import { createSupplier, listSuppliers, type SupplierDto } from '@/entities/supplier';
-import { useCompany } from '../../../app/providers/CompanyProvider';
+import { useCompany } from '@/entities/company';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 
 function normalize(value: string | null | undefined): string {

@@ -1,21 +1,18 @@
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { Button, Layout, Menu, theme } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 import {
   DashboardOutlined,
   FileDoneOutlined,
   FileTextOutlined,
   IdcardOutlined,
   ProjectOutlined,
-  SearchOutlined,
   ShoppingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { CompanyProvider, useCompany } from '../../../app/providers/CompanyProvider';
-import { LAYOUT, SPACE } from '@/shared/config/theme';
-import { companyNeedsSetup } from '@/entities/company';
-import { CommandPalette, useCommandPalette } from '@/widgets/command-palette';
+import { CompanyProvider, companyNeedsSetup, useCompany } from '@/entities/company';
+import { LAYOUT } from '@/shared/config/theme';
 import { TopBar } from './TopBar';
 
 const { useToken } = theme;
@@ -140,11 +137,12 @@ function AppSider({
   );
 }
 
-export function AppLayout() {
+export interface AppLayoutProps {
+  commandPalette?: ReactNode;
+}
+
+export function AppLayout({ commandPalette }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const { token } = useToken();
-  const { t } = useTranslation();
-  const { open: paletteOpen, close: closePalette, toggle: togglePalette } = useCommandPalette();
 
   return (
     <CompanyProvider>
@@ -161,24 +159,7 @@ export function AppLayout() {
           </Layout>
         </Layout>
 
-        <Button
-          type="default"
-          shape="round"
-          icon={<SearchOutlined />}
-          onClick={togglePalette}
-          style={{
-            position: 'fixed',
-            bottom: SPACE.xl,
-            right: SPACE.xl,
-            zIndex: 100,
-            boxShadow: token.boxShadowSecondary,
-            background: token.colorBgContainer,
-          }}
-        >
-          {t('commandPalette.trigger')} <span style={{ opacity: 0.6 }}>⌘K</span>
-        </Button>
-
-        <CommandPalette open={paletteOpen} onClose={closePalette} />
+        {commandPalette}
       </CompanyGuard>
     </CompanyProvider>
   );

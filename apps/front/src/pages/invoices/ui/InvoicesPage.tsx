@@ -14,8 +14,7 @@ import {
 } from 'antd';
 import { DeleteOutlined, DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '../../../app/providers/CompanyProvider';
-import { companyNeedsSetup } from '@/entities/company';
+import { companyNeedsSetup, useCompany } from '@/entities/company';
 import {
   createInvoice,
   deleteInvoice,

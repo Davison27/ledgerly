@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Alert, Button, Card, Empty, Flex, Select, Spin, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
-import { useCompany } from '../../../app/providers/CompanyProvider';
+import { useCompany } from '@/entities/company';
 import { SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { getCompanyDashboard } from '../api/dashboard.api';

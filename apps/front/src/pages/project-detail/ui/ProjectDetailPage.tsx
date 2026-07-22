@@ -3,7 +3,7 @@ import { useParams } from '@tanstack/react-router';
 import { Avatar, Flex, Segmented, Typography, theme } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '../../../app/providers/CompanyProvider';
+import { useCompany } from '@/entities/company';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { DocumentsSection } from './DocumentsSection';
