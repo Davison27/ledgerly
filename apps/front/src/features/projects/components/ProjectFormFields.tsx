@@ -57,11 +57,6 @@ interface ProjectFormFieldsProps {
   onImageChange: (image: string | undefined) => void;
 }
 
-/**
- * Shared form body (general / client / planning fields + image upload) used by
- * both the create/edit project modal and the project configuration tab, so the
- * two stay in sync instead of duplicating the whole field layout.
- */
 export function ProjectFormFields({ image, onImageChange }: ProjectFormFieldsProps) {
   const { t } = useTranslation();
 

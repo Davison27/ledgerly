@@ -14,14 +14,6 @@ export interface ProjectDocument {
   date: string;
   amount: number;
   status: DocumentStatus;
-  /**
-   * The status as STORED, without the `deriveEffectiveStatus` derivation.
-   * `status` above stays derived and is what every read view (ficha, table,
-   * tags) must keep using. `rawStatus` exists for exactly one purpose:
-   * preloading the edit form's status selector — using `status` there would
-   * turn a derived "vencido" into a persisted one on save (see D5 of the
-   * document-crud plan). Do not use this field to paint anything.
-   */
   rawStatus: DocumentStatus;
   issuerName?: string;
   issuerTaxId?: string;
@@ -37,19 +29,7 @@ export interface ProjectDocument {
   fileName?: string | null;
   fileSize?: number | null;
   mimeType?: string | null;
-  /**
-   * ⚠️ R8: without this field the edit form's supplier selector would always
-   * render empty, and the payload it builds (`supplierId: values.supplierId
-   * ?? null`) would send an explicit `null` on every save — silently
-   * unassigning the supplier from any document that gets edited, even when
-   * the user never touched the selector. See D2/R8 of the document-crud plan.
-   */
   supplierId?: string | null;
-  /**
-   * ⚠️ Same rationale as `supplierId` above, for the staff-section plan (R8):
-   * without it the edit form's worker selector would render empty for a
-   * payroll that already has one, and saving would silently unassign it.
-   */
   staffMemberId?: string | null;
 }
 

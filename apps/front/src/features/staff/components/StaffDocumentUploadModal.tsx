@@ -19,7 +19,6 @@ interface StaffDocumentUploadModalProps {
   open: boolean;
   staffMemberId: string;
   documentTypes: StaffDocumentTypeDto[];
-  /** Preselects the tab the user was on when they clicked "Add" (U4.8). */
   initialTypeId?: string;
   onCancel: () => void;
   onCreated: () => void;
@@ -33,12 +32,6 @@ interface StaffDocumentFormFields {
   notes?: string;
 }
 
-/**
- * Own, simple upload modal for a staff member's personal documents (DNI,
- * photo, PRL...) — not to be confused with `DocumentUploadModal`, which
- * covers payrolls (D2 of the staff-section plan: payrolls are financial
- * documents, these aren't).
- */
 export function StaffDocumentUploadModal({
   open,
   staffMemberId,
@@ -68,9 +61,6 @@ export function StaffDocumentUploadModal({
   const selectedType = documentTypes.find((type) => type.id === typeIdWatch);
   const showExpiryDate = selectedType?.expires ?? true;
 
-  // D6: prefills the expiry from issue date + the catalogue's default
-  // validity, when the type carries one (the seed doesn't today, but the
-  // field exists precisely so a future type can use it without a migration).
   useEffect(() => {
     if (!selectedType?.defaultValidityMonths || !issueDateWatch) return;
     if (form.getFieldValue('expiryDate')) return;
@@ -124,9 +114,7 @@ export function StaffDocumentUploadModal({
           })
           .finally(() => setSubmitting(false));
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

@@ -15,7 +15,6 @@ interface DocumentDetailProps {
   onEdit?: (doc: ProjectDocument) => void;
   onDelete?: (doc: ProjectDocument) => void;
   onGoToProject?: (doc: ProjectDocument) => void;
-  /** Whether a delete request for this document is in flight (D7's `loading` on the button). */
   deleting?: boolean;
 }
 
@@ -106,8 +105,6 @@ export function DocumentDetail({
     },
   ];
 
-  // IRPF is rare (most documents don't have a withholding), so it only earns a
-  // row when there is something to show (D10) — otherwise it's pure noise.
   if (document.irpfRate != null || document.irpfAmount != null) {
     const irpfParts = [
       document.irpfRate != null ? `${document.irpfRate}%` : null,
@@ -132,7 +129,6 @@ export function DocumentDetail({
   const handlePrint = () => {
     if (!objectUrl) return;
     const printWindow = window.open(objectUrl, '_blank');
-    // Best-effort: some browsers block window.print() until the PDF has rendered.
     printWindow?.addEventListener('load', () => {
       printWindow.print();
     });

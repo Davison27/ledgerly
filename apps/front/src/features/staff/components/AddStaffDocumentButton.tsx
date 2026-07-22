@@ -14,12 +14,6 @@ interface AddStaffDocumentButtonProps {
 
 const PAYROLL_MENU_KEY = 'payroll';
 
-/**
- * Single "Add" entry point for a staff member's ficha (U4.8): lets the user
- * pick a destination — one of the catalogue's document types, or "Payrolls"
- * — and opens the matching modal. Shared as-is by `StaffDocumentsSection` and
- * `PayrollsSection` so both sections offer the exact same choice.
- */
 export function AddStaffDocumentButton({
   staffMemberId,
   documentTypes,

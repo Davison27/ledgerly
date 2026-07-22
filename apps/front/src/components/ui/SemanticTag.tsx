@@ -16,11 +16,6 @@ export interface SemanticTagProps {
   children: ReactNode;
 }
 
-/**
- * Único sitio donde se define el aspecto de un tag de estado en toda la app:
- * `Tag.ComponentToken` de AntD v6 no expone radio ni padding, así que cualquier
- * `<Tag>` de estado nuevo debe pasar por aquí.
- */
 export function SemanticTag({ tone, children }: SemanticTagProps) {
   const { token } = theme.useToken();
   const colors = useSemanticColors();

@@ -23,10 +23,6 @@ interface StaffDocumentEditFormFields {
   notes?: string;
 }
 
-/**
- * Only `name`, `issueDate`, `expiryDate` and `notes` are editable (the type
- * and the file itself aren't, same reasoning as `create-staff-document`).
- */
 export function StaffDocumentEditModal({
   open,
   staffMemberId,
@@ -80,9 +76,7 @@ export function StaffDocumentEditModal({
           })
           .finally(() => setSubmitting(false));
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

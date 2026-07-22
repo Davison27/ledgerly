@@ -130,13 +130,6 @@ export interface DocumentDto {
   date: string;
   amount: number;
   status: DocumentStatusDto;
-  /**
-   * The status as STORED, without the `deriveEffectiveStatus` derivation the
-   * backend applies to `status`. Only used to preload the edit form — never
-   * to paint anything (see D5 of the document-crud plan). Reading `status`
-   * here to prefill a form would turn a derived "vencido" into a persisted
-   * one the moment the form is saved without touching the selector.
-   */
   rawStatus: DocumentStatusDto;
   issuerName?: string | null;
   issuerTaxId?: string | null;
@@ -153,7 +146,6 @@ export interface DocumentDto {
   fileSize?: number | null;
   mimeType?: string | null;
   supplierId?: string | null;
-  /** Only set (and required) when `type === 'nomina'`, D3 of the staff-section plan. */
   staffMemberId?: string | null;
 }
 
@@ -176,7 +168,6 @@ export interface DocumentListItemDto {
   type: DocumentTypeDto;
   direction: DocumentDirectionDto;
   status: DocumentStatusDto;
-  /** The status as STORED, without derivation. See `DocumentDto.rawStatus`. */
   rawStatus: DocumentStatusDto;
   date: string;
   dueDate: string | null;
@@ -241,22 +232,9 @@ export interface CreateDocumentPayload {
   irpfAmount?: number;
   currency?: string;
   supplierId?: string;
-  /** Required by the domain when `type === 'nomina'` (D3 of the staff-section plan). */
   staffMemberId?: string;
 }
 
-/**
- * All 17 editable fields (D2 of the document-crud plan), all optional:
- * an absent key means "leave untouched", an explicit `null` clears it.
- * Deliberately excludes `month` (derived server-side from `date`, D4),
- * `projectId` (moving projects is out of scope, C2) and every file field
- * (`fileName`/`mimeType`/`fileSize`/`content`: the PDF isn't editable, C1).
- * Sending any of those trips `forbidNonWhitelisted` on the backend (400).
- *
- * `currency` is a loose `string`, mirroring `CreateDocumentPayload` above:
- * `ProjectDocument.currency` is a plain `string`, so typing this as a
- * literal union would break as soon as the edit form preloads it.
- */
 export interface UpdateDocumentPayload {
   name?: string;
   type?: DocumentTypeDto;
@@ -275,11 +253,6 @@ export interface UpdateDocumentPayload {
   issuerTaxId?: string | null;
   invoiceNumber?: string | null;
   supplierId?: string | null;
-  /**
-   * Nullable so an old payroll can be reassigned; absent means "leave
-   * untouched" (D3/D4 of the staff-section plan — editing a legacy payroll
-   * without a worker must let the form assign one, not silently keep null).
-   */
   staffMemberId?: string | null;
 }
 
@@ -338,11 +311,6 @@ export interface InvoiceLineDto {
   amount: number;
 }
 
-/**
- * What a line actually sends on creation — a strict subset of `InvoiceLineDto`.
- * `CreateInvoiceLineDto` (`apps/back/.../invoices/infrastructure/http/dtos/create-invoice.dto.ts`)
- * does not declare `amount`, so sending it trips `forbidNonWhitelisted` (400).
- */
 export interface CreateInvoiceLinePayload {
   description: string;
   unitPrice: number;
@@ -374,13 +342,6 @@ export interface InvoiceDto {
   hasPdf: boolean;
 }
 
-/**
- * Exact mirror of `CreateInvoiceDto` (`apps/back/.../invoices/infrastructure/http/dtos/create-invoice.dto.ts`):
- * the `ValidationPipe` uses `forbidNonWhitelisted`, so any extra field here would trip a 400.
- * `issueDate` is part of the contract but never set by the current form — the backend
- * defaults it to today (D2/U3 of the invoice-generator-poc plan) — and the project itself
- * is never sent as the invoice's customer (D5/D7): only the receiver fields below are.
- */
 export interface CreateInvoicePayload {
   projectId: string;
   issueDate?: string;
@@ -464,7 +425,6 @@ export interface CashflowForecastBucketDto {
 }
 
 export interface CashflowForecastMonthDto extends CashflowForecastBucketDto {
-  /** "YYYY-MM" */
   month: string;
 }
 
@@ -574,12 +534,10 @@ export interface UpdateStaffMemberPayload {
   phone?: string;
   position?: string;
   hireDate?: string;
-  /** Explicit `null` clears the departure date when reinstating a staff member. */
   endDate?: string | null;
   notes?: string;
 }
 
-/** D1: seeded, read-only catalogue — the domain never hardcodes a code. */
 export interface StaffDocumentTypeDto {
   id: string;
   code: string;

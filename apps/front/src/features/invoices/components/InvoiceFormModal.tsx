@@ -104,9 +104,6 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
     onCancel();
   };
 
-  // Precarga del receptor desde el proyecto elegido (D5): copia los datos del
-  // cliente a campos editables del formulario. El proyecto en sí nunca viaja
-  // en el payload, así que jamás puede acabar impreso en el PDF (D7).
   const handleProjectChange = async (projectId: string) => {
     setLoadingProject(true);
     try {
@@ -116,16 +113,13 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
         customerTaxId: project.clientTaxId ?? undefined,
         customerAddress: project.address ?? undefined,
       });
+      // eslint-disable-next-line no-empty
     } catch {
-      // Best-effort preload only: the receiver fields stay editable regardless.
     } finally {
       setLoadingProject(false);
     }
   };
 
-  // Elegir un producto del catálogo (D7): precarga su precio si lo tiene y
-  // deja el precio vacío si no, para que el `required` del InputNumber
-  // impida enviar la línea sin precio (D4).
   const handleProductSelect = (lineIndex: number, value: string) => {
     const product = products.find((candidate) => candidate.name === value);
     if (!product) return;
@@ -133,8 +127,6 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
     form.setFieldValue(['lines', lineIndex, 'unitPrice'], product.price ?? undefined);
   };
 
-  // Si el texto deja de coincidir exactamente con el nombre del producto
-  // seleccionado, la línea vuelve a ser texto libre (D7): se limpia productId.
   const handleDescriptionChange = (lineIndex: number, value: string) => {
     const productId = form.getFieldValue(['lines', lineIndex, 'productId']) as string | undefined;
     if (!productId) return;
@@ -170,9 +162,7 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
         };
         void onSubmit(payload);
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

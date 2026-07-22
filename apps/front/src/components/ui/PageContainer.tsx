@@ -6,7 +6,6 @@ export interface PageContainerProps {
   maxWidth?: number | string;
 }
 
-/** Wrapper de página estándar. Sustituye a los `padding: '56px 64px'` sueltos. */
 export function PageContainer({ children, maxWidth }: PageContainerProps) {
   return (
     <div

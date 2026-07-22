@@ -11,7 +11,6 @@ export interface EmptyHintProps {
   action?: ReactNode;
 }
 
-/** Bloque centrado para estados vacíos, en lugar de texto gris suelto. */
 export function EmptyHint({ icon, title, hint, action }: EmptyHintProps) {
   const { token } = theme.useToken();
 

@@ -1,23 +1,20 @@
 import type { CSSProperties } from 'react';
 import { theme, type ThemeConfig } from 'antd';
 
-/** Escala de espaciado. Sustituye a los paddings/gaps sueltos en píxeles. */
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 
-/** Medidas de layout: topbar, sider, cabeceras de sección y contenedor de página. */
 export const LAYOUT = {
   topbarHeight: 52,
   siderWidth: 220,
   siderCollapsedWidth: 64,
   sectionHeaderHeight: 56,
-  pagePaddingBlock: 32, // sustituye al 56 vertical
-  pagePaddingInline: 32, // sustituye al 64 horizontal
+  pagePaddingBlock: 32,
+  pagePaddingInline: 32,
   contentMaxWidth: 1440,
 } as const;
 
 export const BRAND_DEFAULT = '#00609c';
 
-/** Paleta semántica de D2. Índice por modo. */
 export interface SemanticPalette {
   income: string;
   expense: string;
@@ -48,8 +45,6 @@ export const SEMANTIC_DARK: SemanticPalette = {
   accentCool: '#8E7FC7',
 };
 
-/** Serie de 6 colores para donuts / TopIssuers, en orden. Reemplaza los hex de TopIssuers.tsx:16-21. */
-// orden: brand, income, accentWarm, pending, accentCool, neutral-slate
 export const CHART_SERIES_LIGHT: readonly string[] = [
   BRAND_DEFAULT,
   SEMANTIC_LIGHT.income,
@@ -68,7 +63,6 @@ export const CHART_SERIES_DARK: readonly string[] = [
   '#94A3B8',
 ];
 
-/** Escala tipográfica para lo que no cubre AntD (KPIs, cifras). */
 export const TYPE: {
   kpiValue: CSSProperties;
   kpiValueSm: CSSProperties;
@@ -115,15 +109,10 @@ export function buildThemeConfig(mode: 'light' | 'dark', brandColor?: string): T
       ? '0 2px 4px rgba(0, 0, 0, 0.28)'
       : '0 2px 4px rgba(16, 24, 40, 0.04)',
     wireframe: false,
-    // D4/point 6: la derivación por defecto queda casi invisible en oscuro; se sube
-    // la opacidad para que los bordes sutiles no desaparezcan.
     ...(isDark ? { colorBorderSecondary: 'rgba(255, 255, 255, 0.16)' } : {}),
   };
 
   const algorithm = isDark ? theme.darkAlgorithm : theme.defaultAlgorithm;
-  // Se calculan los tokens derivados (fills, bg, texto) para poder pisar los
-  // ComponentToken de Table/Layout/Tag/Segmented con valores coherentes con el modo,
-  // ya que `components` solo admite valores literales, no referencias a `token`.
   const derived = theme.getDesignToken({ token: seedToken, algorithm });
 
   return {

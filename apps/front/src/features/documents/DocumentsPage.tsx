@@ -86,7 +86,6 @@ export function DocumentsPage() {
   const [editing, setEditing] = useState<ProjectDocument | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  // Debounce the free-text search so we don't fire a request on every keystroke.
   useEffect(() => {
     const handle = setTimeout(() => setSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);

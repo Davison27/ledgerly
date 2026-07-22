@@ -17,8 +17,8 @@ export interface SemanticColors extends SemanticPalette {
   expenseBorder: string;
   pendingBg: string;
   overdueBg: string;
-  neutral: string; // token.colorTextTertiary
-  gridLine: string; // token.colorBorderSecondary
+  neutral: string;
+  gridLine: string;
   chartSeries: readonly string[];
   mode: 'light' | 'dark';
 }
@@ -31,13 +31,6 @@ function withOpacity(hex: string, alpha: number): string {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
-/**
- * Colores semánticos de D2, resueltos contra el modo activo. `expense` no tiene
- * token de AntD equivalente (D2), así que su tinte siempre se calcula a mano;
- * income/pending/overdue reutilizan los `colorXxxBg`/`colorXxxBorder` de AntD en
- * claro (sus seeds ya son los mismos hex) y pasan a `rgba` a mano en oscuro, que
- * es el fix de la tarjeta que quema (punto 6).
- */
 export function useSemanticColors(): SemanticColors {
   const { token } = useToken();
   const { mode } = useThemeMode();
@@ -55,8 +48,6 @@ export function useSemanticColors(): SemanticColors {
     overdueBg: isDark ? withOpacity(SEMANTIC_DARK.overdue, 0.12) : token.colorErrorBg,
     neutral: token.colorTextTertiary,
     gridLine: token.colorBorderSecondary,
-    // El primer color de la serie sigue al brand vivo (token.colorPrimary), no al
-    // BRAND_DEFAULT estático, para que U6 (color por empresa) se propague a las gráficas.
     chartSeries: [token.colorPrimary, ...baseSeries.slice(1)],
     mode,
   };

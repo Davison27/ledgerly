@@ -72,7 +72,6 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Reset the palette and (re)fetch the reference data every time it opens.
   useEffect(() => {
     if (!open) return;
 
@@ -89,13 +88,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       .catch(() => setSuppliers([]));
   }, [open]);
 
-  // Debounce the free-text query before filtering/searching.
   useEffect(() => {
     const handle = setTimeout(() => setDebouncedQuery(query.trim()), SEARCH_DEBOUNCE_MS);
     return () => clearTimeout(handle);
   }, [query]);
 
-  // Documents are searched server-side, only once there's something to search for.
   useEffect(() => {
     if (!open || !debouncedQuery) {
       setDocuments([]);

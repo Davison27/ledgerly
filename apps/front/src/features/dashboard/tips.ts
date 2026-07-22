@@ -15,10 +15,6 @@ const SEVERITY_ORDER: Record<TipSeverity, number> = {
   success: 2,
 };
 
-/**
- * Pure, data-driven rules that turn the company dashboard snapshot into a
- * short list of actionable tips. Most severe (warning) first.
- */
 export function deriveTips(data: CompanyDashboardDto): Tip[] {
   const tips: Tip[] = [];
 

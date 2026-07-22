@@ -81,9 +81,7 @@ export function StaffMemberFormModal({
           endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
         });
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

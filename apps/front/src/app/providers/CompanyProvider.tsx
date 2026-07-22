@@ -103,7 +103,6 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const addProject = useCallback(
     async (values: ProjectFormValues) => {
       await addProjectApi(values);
-      // Refetch from the backend so documentCount/pendingCount stay authoritative.
       await reloadProjects();
     },
     [reloadProjects],
@@ -112,7 +111,6 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const updateProject = useCallback(
     async (projectId: string, values: ProjectFormValues) => {
       await updateProjectApi(projectId, values);
-      // Refetch from the backend so documentCount/pendingCount stay authoritative.
       await reloadProjects();
     },
     [reloadProjects],

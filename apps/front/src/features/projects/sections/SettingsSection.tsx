@@ -88,9 +88,7 @@ export function SettingsSection({ project }: ProjectSectionProps) {
           setSaving(false);
         }
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   if (loading || !fullProject) {

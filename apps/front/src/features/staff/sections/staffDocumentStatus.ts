@@ -12,7 +12,6 @@ const TONE_BY_STATUS: Record<StaffDocumentExpiryStatus, SemanticTone> = {
   none: 'neutral',
 };
 
-/** `overdue`/`expiring`/`valid`/`none`, from a document's `expiryDate` (D6). */
 export function getExpiryStatus(expiryDate: string | null): StaffDocumentExpiryStatus {
   if (!expiryDate) return 'none';
   const today = dayjs().startOf('day');

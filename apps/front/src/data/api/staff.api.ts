@@ -26,10 +26,6 @@ export function updateStaffMember(
   staffMemberId: string,
   payload: UpdateStaffMemberPayload,
 ): Promise<StaffMemberDto> {
-  // Unlike `createStaffMember`, this must NOT go through `stripEmpty()`: an
-  // explicit `endDate: null` is how the form reinstates someone who was given
-  // an end date by mistake (D5 of the staff-section plan), and `stripEmpty`
-  // would silently drop that null instead of clearing the field.
   return patch<StaffMemberDto>(`/staff/${staffMemberId}`, payload);
 }
 
@@ -58,8 +54,6 @@ export async function createStaffDocument(
   formData.append('payload', JSON.stringify(stripEmpty(payload)));
   formData.append('file', file);
 
-  // Multipart upload: let the browser set the Content-Type header (with
-  // boundary), same reasoning as `createDocument` in documents.api.ts.
   const response = await fetch(`${API_URL}/staff/${staffMemberId}/documents`, {
     method: 'POST',
     headers: { Accept: 'application/json' },

@@ -71,8 +71,6 @@ export async function createDocument(
     formData.append('file', file);
   }
 
-  // Multipart upload: let the browser set the Content-Type header (with boundary),
-  // so we bypass the shared JSON `post` helper and use `fetch` directly here.
   const response = await fetch(`${API_URL}/projects/${projectId}/documents`, {
     method: 'POST',
     headers: { Accept: 'application/json' },
@@ -102,10 +100,6 @@ export function documentFileUrl(projectId: string, documentId: string): string {
   return `${API_URL}/projects/${projectId}/documents/${documentId}/file`;
 }
 
-// Not consumed by anything in this batch of work — deliberately. It's what
-// the follow-up "open a document from /documents" work will use to re-fetch
-// the full document (the global list item doesn't carry every field). Left
-// unwired on purpose; do not remove it for being unused.
 export function getDocument(projectId: string, id: string): Promise<DocumentDto> {
   return get<DocumentDto>(`/projects/${projectId}/documents/${id}`);
 }
@@ -115,10 +109,6 @@ export function updateDocument(
   id: string,
   payload: UpdateDocumentPayload,
 ): Promise<DocumentDto> {
-  // Unlike `createDocument`, this payload must NOT go through `stripEmpty()`.
-  // An explicit `null` here means "clear this optional field" (D2 of the
-  // document-crud plan); `stripEmpty` would drop those nulls and make it
-  // impossible to clear a `dueDate` or an `invoiceNumber` from the edit form.
   return patch<DocumentDto>(`/projects/${projectId}/documents/${id}`, payload);
 }
 
@@ -126,8 +116,6 @@ export function deleteDocument(projectId: string, id: string): Promise<void> {
   return del<void>(`/projects/${projectId}/documents/${id}`);
 }
 
-// Shared by `extractInvoice` and `extractInvoiceStandalone`: same XHR-based
-// upload-with-progress plumbing, only the URL differs.
 function requestExtraction(
   url: string,
   file: File,
@@ -185,11 +173,6 @@ export function extractInvoice(
   return requestExtraction(`${API_URL}/projects/${projectId}/documents/extract`, file, onProgress);
 }
 
-/**
- * Same extraction, without a project: used when uploading a payroll from the
- * staff member's own page, where there's no project chosen yet (R4/D2 of the
- * staff-section plan). Hits the global alias `POST /documents/extract`.
- */
 export function extractInvoiceStandalone(
   file: File,
   onProgress?: (percent: number) => void,

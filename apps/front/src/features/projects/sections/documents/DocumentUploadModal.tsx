@@ -80,11 +80,6 @@ const { useToken } = theme;
 
 const MAX_QUEUE_FILES = 20;
 
-/**
- * D8 of the staff-section plan: the modal no longer receives a bare
- * `projectId`, it receives a discriminated `context` instead. `lockedType`,
- * `showProjectSelect` and `showStaffSelect` are all derived from it.
- */
 export type DocumentUploadContext =
   | { kind: 'project'; projectId: string }
   | { kind: 'staffPayroll'; staffMemberId: string };
@@ -153,18 +148,10 @@ export function DocumentUploadModal({
   const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
 
-  // D8: `staffPayroll` locks the type to `nomina` and requires picking a
-  // project instead (D2 — a payroll is a document, so it always needs one);
-  // `project` keeps today's free type and, only when it's `nomina`, requires
-  // picking a worker instead (D3).
   const lockedType: DocumentTypeDto | undefined =
     context.kind === 'staffPayroll' ? 'nomina' : undefined;
   const showProjectSelect = context.kind === 'staffPayroll';
 
-  // The queue of PDFs to process, one document per file. `currentIndex` points
-  // at the file currently being reviewed; everything below the queue state
-  // (extraction result, duplicate matches, supplier match...) always refers to
-  // that single current item and gets reset whenever the index advances.
   const [queue, setQueue] = useState<File[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const currentFile = queue[currentIndex] ?? null;
@@ -192,9 +179,6 @@ export function DocumentUploadModal({
   const [newSupplierTaxId, setNewSupplierTaxId] = useState('');
   const [creatingSupplierSubmitting, setCreatingSupplierSubmitting] = useState(false);
 
-  // The worker selector (D3): only ever populated/shown for `kind: 'project'`
-  // once the observed `type` is `nomina`. Mirrors the supplier state above,
-  // quick-create popover included.
   const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [staffMemberError, setStaffMemberError] = useState(false);
@@ -203,19 +187,12 @@ export function DocumentUploadModal({
   const [newStaffMemberLastName, setNewStaffMemberLastName] = useState('');
   const [creatingStaffMemberSubmitting, setCreatingStaffMemberSubmitting] = useState(false);
 
-  // The project selector (D2): only for `kind: 'staffPayroll'`, since a
-  // payroll uploaded from the worker's page still needs a project to belong to.
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [projectError, setProjectError] = useState(false);
 
-  // Watched here (ahead of the other `Form.useWatch` calls further down) so
-  // both `showStaffSelect` and the reset effect below can react to it.
   const typeWatch = Form.useWatch('type', form);
   const showStaffSelect = context.kind === 'project' && typeWatch === 'nomina';
 
-  // Resets everything scoped to a single queue item (extraction, duplicate
-  // check, supplier match, form fields). Used both when a fresh queue starts
-  // and whenever we advance to the next file.
   const resetItemState = () => {
     form.resetFields();
     if (lockedType) form.setFieldsValue({ type: lockedType });
@@ -238,8 +215,6 @@ export function DocumentUploadModal({
     setProjectError(false);
   };
 
-  // Kicks off extraction for a given file, guarding against stale responses
-  // via extractionTokenRef the same way the single-file flow used to.
   const runExtraction = (file: File) => {
     const extractionToken = ++extractionTokenRef.current;
     setStep('uploading');
@@ -251,8 +226,6 @@ export function DocumentUploadModal({
       if (percent >= 100) setStep('processing');
     };
 
-    // `staffPayroll` has no project yet, so it must hit the project-less
-    // extraction alias (R4/D2 of the staff-section plan).
     const extraction =
       context.kind === 'project'
         ? extractInvoice(context.projectId, file, onProgress)
@@ -265,8 +238,6 @@ export function DocumentUploadModal({
         setStep('done');
         form.setFieldsValue({
           name: result.fields.name,
-          // A locked type (payroll from the worker's page) must never be
-          // overwritten by whatever the extractor guessed.
           type: lockedType ?? (result.fields.type ?? 'factura'),
           date: result.fields.date ? dayjs(result.fields.date) : undefined,
           dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
@@ -301,8 +272,6 @@ export function DocumentUploadModal({
     runExtraction(files[0]);
   };
 
-  // Called once the queue has no more files to review: resets the form and
-  // notifies the parent, which closes the modal and reloads the document list.
   const finishQueue = () => {
     form.resetFields();
     if (isMultiQueue) {
@@ -361,9 +330,6 @@ export function DocumentUploadModal({
       setSelectedProjectId(null);
       setProjectError(false);
 
-      // Only `kind: 'project'` can ever show the worker selector (it's
-      // fixed via context for `staffPayroll`), so it's the only case that
-      // needs the list loaded.
       if (context.kind === 'project') {
         listStaffMembers()
           .then(setStaffMembers)
@@ -372,8 +338,6 @@ export function DocumentUploadModal({
     }
   }, [open, form, context.kind, lockedType]);
 
-  // D3: leaving `nomina` must clear and stop validating the worker field —
-  // it only applies while the observed type is a payroll.
   useEffect(() => {
     if (context.kind !== 'project') return;
     if (typeWatch !== 'nomina') {
@@ -382,8 +346,6 @@ export function DocumentUploadModal({
     }
   }, [context.kind, typeWatch]);
 
-  // Build (and clean up) an object URL for the in-memory PDF so it can be
-  // previewed in an iframe without any network round-trip.
   useEffect(() => {
     if (!currentFile) {
       setPdfObjectUrl(null);
@@ -396,8 +358,6 @@ export function DocumentUploadModal({
     };
   }, [currentFile]);
 
-  // Once both the extraction result and the supplier list are available, try to
-  // preselect a supplier matching the extracted issuer (by tax ID, then by name).
   useEffect(() => {
     if (!extractResult || autoMatchAttempted || !suppliersLoaded) return;
     const match = findMatchingSupplier(
@@ -411,15 +371,11 @@ export function DocumentUploadModal({
     setAutoMatchAttempted(true);
   }, [extractResult, suppliers, suppliersLoaded, autoMatchAttempted]);
 
-  // Watch the fields the duplicate check relies on so we can re-run it whenever
-  // they change, whether from extraction or manual edits.
   const invoiceNumberWatch = Form.useWatch('invoiceNumber', form);
   const amountWatch = Form.useWatch('amount', form);
   const issuerNameWatch = Form.useWatch('issuerName', form);
   const issuerTaxIdWatch = Form.useWatch('issuerTaxId', form);
 
-  // Watched purely for the non-blocking amount-coherence warning (D5): total
-  // should be base + VAT - withholding, but only when all four are filled in.
   const taxBaseWatch = Form.useWatch('taxBase', form);
   const taxAmountWatch = Form.useWatch('taxAmount', form);
   const irpfAmountWatch = Form.useWatch('irpfAmount', form);
@@ -430,8 +386,6 @@ export function DocumentUploadModal({
     irpfAmountWatch != null &&
     Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) > AMOUNT_MISMATCH_TOLERANCE;
 
-  // Debounced, non-blocking duplicate check: only runs once we have an invoice
-  // number and an amount, and guards against stale/out-of-order responses.
   useEffect(() => {
     const requestToken = ++duplicateCheckTokenRef.current;
 
@@ -466,9 +420,6 @@ export function DocumentUploadModal({
   };
 
   const handleFilesSelected = (file: RcFile, fileList: RcFile[]): boolean => {
-    // antd calls beforeUpload once per file in a batch, sharing the same
-    // fileList reference; only act once, when we see the last file of the
-    // batch, so a multi-file drop seeds the whole queue in one go.
     if (file !== fileList[fileList.length - 1]) return false;
 
     const pdfFiles = fileList.filter(isPdfFile).slice(0, MAX_QUEUE_FILES);
@@ -606,8 +557,6 @@ export function DocumentUploadModal({
     setProjectError(false);
   };
 
-  // D8: resolves the submit target from `context` plus whatever the two
-  // conditional selectors hold.
   const resolveTarget = (): { projectId: string; staffMemberId: string | null } =>
     context.kind === 'staffPayroll'
       ? { projectId: selectedProjectId ?? '', staffMemberId: context.staffMemberId }
@@ -655,9 +604,7 @@ export function DocumentUploadModal({
           })
           .finally(() => setSubmitting(false));
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   const handleSkip = () => {
@@ -999,9 +946,6 @@ export function DocumentUploadModal({
               </Col>
             </Row>
 
-            {/* D8: mutually exclusive by construction — `showStaffSelect` only
-                applies to `kind: 'project'`, `showProjectSelect` only to
-                `kind: 'staffPayroll'` — never rendered together. */}
             {(showStaffSelect || showProjectSelect) && (
               <Row gutter={12} align="top">
                 {showStaffSelect && (

@@ -69,9 +69,7 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
         setImage(undefined);
         void onSubmit(payload);
       })
-      .catch(() => {
-        // validation errors are shown inline by antd
-      });
+      .catch(() => {});
   };
 
   return (

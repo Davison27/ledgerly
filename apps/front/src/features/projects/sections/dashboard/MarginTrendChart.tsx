@@ -8,11 +8,6 @@ const { useToken } = theme;
 
 export interface MarginTrendChartProps {
   monthlyMargin: number[];
-  /**
-   * Kept for signature compatibility with `DashboardSection` (per-project
-   * dashboard), which still passes the section's brand colour. The trace
-   * below is coloured by profitability (income/expense) instead.
-   */
   color: string;
 }
 

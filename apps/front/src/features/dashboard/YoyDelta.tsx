@@ -6,20 +6,11 @@ import { Numeric } from '../../components/ui/Numeric';
 const { Text } = Typography;
 
 export interface YoyDeltaProps {
-  /** Current-year value. */
   current: number;
-  /** Previous-year value, if known. */
   previous: number | null | undefined;
-  /** Whether an increase ('up') or a decrease ('down') is the favorable direction. */
   favorable: 'up' | 'down';
 }
 
-/**
- * Compact ▲/▼ % indicator comparing a KPI to the same metric a year ago.
- * Renders an em dash when there is no meaningful baseline (previous <= 0). This
- * fallback is defensive only: `YoyKpiRow` already filters that case upstream
- * and renders `EmptyHint` instead, so it is not reached from there.
- */
 export function YoyDelta({ current, previous, favorable }: YoyDeltaProps) {
   const { t } = useTranslation();
   const colors = useSemanticColors();

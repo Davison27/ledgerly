@@ -5,16 +5,15 @@ import { TYPE } from '../../app/theme/tokens';
 
 export interface AmountProps {
   value: number;
-  currency?: string; // default 'EUR'
-  maximumFractionDigits?: number; // default 0
-  tone?: 'default' | 'income' | 'expense' | 'auto'; // 'auto': income si >=0
+  currency?: string;
+  maximumFractionDigits?: number;
+  tone?: 'default' | 'income' | 'expense' | 'auto';
   strong?: boolean;
-  size?: number; // fontSize opcional
+  size?: number;
 }
 
 const LOCALE_BY_LANGUAGE: Record<string, string> = { es: 'es-ES', en: 'en-US' };
 
-/** Importe con `tabular-nums` siempre aplicado. Único formateador de dinero de la app. */
 export function Amount({
   value,
   currency = 'EUR',

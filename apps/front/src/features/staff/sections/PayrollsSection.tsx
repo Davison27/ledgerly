@@ -14,11 +14,6 @@ import { STATUS_TONE } from '../../projects/sections/documents/documentFormat';
 import { AddStaffDocumentButton } from '../components/AddStaffDocumentButton';
 import type { StaffSectionProps } from './types';
 
-/**
- * D2: a payroll is a `documents` row with `staffMemberId` set — filtering the
- * global list this way gets `projectName` for free, with no extra join or
- * separate `staff_documents` model for payrolls (they aren't `staff_documents`).
- */
 export function PayrollsSection({ staffMember, onDocumentsChanged }: StaffSectionProps) {
   const { t } = useTranslation();
   const [payrolls, setPayrolls] = useState<DocumentListItemDto[]>([]);
