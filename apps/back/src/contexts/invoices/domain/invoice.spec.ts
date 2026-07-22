@@ -36,7 +36,6 @@ describe('Invoice', () => {
   it('subtracts the irpf amount from the total (D3)', () => {
     const invoice = Invoice.create({ ...BASE_PROPS, taxRate: 21, irpfRate: 15 });
 
-    // base 350, iva 21% = 73.5, irpf 15% = 52.5 -> total = 350 + 73.5 - 52.5 = 371
     expect(invoice.getTaxAmount()).toBe(73.5);
     expect(invoice.getIrpfAmount()).toBe(52.5);
     expect(invoice.getTotal()).toBe(371);
@@ -93,8 +92,6 @@ describe('Invoice', () => {
   });
 
   it('canonical example mirrored in apps/front/src/features/invoices/totals.ts', () => {
-    // lineAmounts = [round2(2 * 100), round2(1.5 * 33.33)] = [200, 50]
-    // (round2(49.995) = 50) -> taxBase = 250, taxAmount = 52.5, irpfAmount = 37.5, total = 265
     const invoice = Invoice.create({
       ...BASE_PROPS,
       lines: [

@@ -15,15 +15,6 @@ export class DocumentResponse {
   date: string;
   amount: number;
   status: DocumentStatus;
-  /**
-   * The status as STORED, without `deriveEffectiveStatus`. `status` above
-   * stays derived and is what every read view (list, ficha, filters) must
-   * keep using to paint the document. `rawStatus` exists for exactly one
-   * purpose: preloading the edit form, so that saving without touching the
-   * status selector cannot turn a derived `vencido` into a persisted one
-   * (see D5 of the document-crud plan). Do not remove either field: they
-   * mean different things and are meant to coexist.
-   */
   rawStatus: DocumentStatus;
   issuerName: string | null;
   issuerTaxId: string | null;

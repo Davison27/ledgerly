@@ -41,13 +41,6 @@ import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project
     { provide: INVOICE_ISSUER_PROVIDER, useClass: CompanyRepositoryInvoiceIssuer },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: LEDGER_ENTRY_PUBLISHER, useClass: DocumentLedgerEntryPublisher },
-    // CompanyRepositoryInvoiceIssuer injects COMPANY_REPOSITORY, but
-    // CompanyModule has no `exports` block, so the token is not inherited by
-    // importing it — it must be re-registered here, exactly like
-    // DocumentsModule re-registers PROJECT_REPOSITORY
-    // (documents.module.ts:36-37,66). Omitting this makes `pnpm dev` fail at
-    // Nest's dependency-injection bootstrap while `pnpm test` stays green,
-    // because the *.e2e.spec.ts files bootstrap isolated test modules.
     { provide: COMPANY_REPOSITORY, useClass: TypeOrmCompanyRepository },
   ],
 })

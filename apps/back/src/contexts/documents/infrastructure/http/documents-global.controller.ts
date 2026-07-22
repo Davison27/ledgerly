@@ -61,10 +61,6 @@ export class DocumentsGlobalController {
     return documents.map((document) => DocumentListItemResponse.fromResult(document));
   }
 
-  // Alias of `POST /projects/:projectId/documents/extract` that ignores
-  // `projectId` anyway (documents.controller.ts): needed because uploading a
-  // payroll from the staff member side has no project chosen yet, and the
-  // project-scoped route requires one the use case never even reads.
   @Post('extract')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(

@@ -19,18 +19,6 @@ function isoDateWithOffset(base: Date, offsetDays: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-/**
- * Builds the demo staff members' primitives (D4/U2.8): the demo loader stops
- * creating payrolls without a staff member, so it needs someone to imput
- * them to. The first two are referenced by `demo-documents.ts`'s `nomina`
- * seeds via `staffMemberIndex`; the third exists so the Personal section
- * isn't a one-row list.
- *
- * Returns primitives rather than `StaffMember` instances: this is a pure
- * function, and constructing (and validating) the actual entity is
- * `LoadDemoDataUseCase`'s job, the same way it already owns creating the
- * demo `Project`.
- */
 export function buildDemoStaffMembers(
   generateId: () => string,
   today: Date,

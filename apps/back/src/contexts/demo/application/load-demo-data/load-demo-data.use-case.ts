@@ -36,8 +36,6 @@ export class LoadDemoDataUseCase {
     const existingProjects = await this.projectRepository.findAllSummaries();
 
     if (existingProjects.length > 0) {
-      // Idempotent no-op: demo data is only provisioned when there is
-      // nothing else in the workspace yet.
       return { created: false, projectId: null, documentCount: 0, staffMemberCount: 0 };
     }
 
@@ -71,8 +69,6 @@ export class LoadDemoDataUseCase {
 
     await this.projectRepository.save(project);
 
-    // D4/U2.8: the staff members are created before the documents so their
-    // ids exist to imput the demo payrolls to (D3 requires it).
     const staffMemberSeeds = buildDemoStaffMembers(() => this.idGenerator.generate(), today);
     const staffMembers = staffMemberSeeds.map((seed) => StaffMember.create(seed));
 

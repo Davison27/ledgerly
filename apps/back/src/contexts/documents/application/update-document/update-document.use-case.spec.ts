@@ -232,10 +232,6 @@ describe('UpdateDocumentUseCase', () => {
     ).rejects.toThrow(DocumentStaffMemberNotFoundException);
   });
 
-  // Point 5 of the staff-section review: an absent `staffMemberId` in the
-  // command must leave the existing one untouched, not be read as "unassign
-  // it" — that is what an explicit `null` is for, and D3 would reject it
-  // outright for a `nomina` anyway.
   it('keeps the existing staffMemberId of a nomina when the command omits it', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(

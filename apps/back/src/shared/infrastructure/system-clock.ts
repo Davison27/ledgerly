@@ -8,14 +8,6 @@ function formatIsoDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Free-standing helper for call sites that need today's date but have no
- * constructor to receive `Clock` through DI: static response mappers
- * (`DocumentResponse.fromDomain`, `DocumentListItemResponse.fromResult`) and
- * the TypeORM repository's query-builder helpers. Domain and application
- * code must go through the injected `Clock` port instead (see
- * `shared/domain/clock.port.ts`) so they stay deterministic under test.
- */
 export function todayIso(): string {
   return formatIsoDate(new Date());
 }

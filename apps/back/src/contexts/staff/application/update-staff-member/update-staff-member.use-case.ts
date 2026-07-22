@@ -23,10 +23,6 @@ export class UpdateStaffMemberUseCase {
       throw new StaffMemberNotFoundException(command.id);
     }
 
-    // Explicit `!== undefined` checks (not a spread of the whole command):
-    // an absent field must leave the current value untouched, not be
-    // interpreted as `undefined` overwriting it (same pattern as
-    // `UpdateDocumentUseCase`/`UpdateSupplierUseCase`).
     const changes: StaffMemberChanges = {};
 
     if (command.firstName !== undefined) changes.firstName = command.firstName;

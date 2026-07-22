@@ -26,12 +26,6 @@ function normaliseTaxId(raw: string | undefined): string | undefined {
   return match ? match[1].toUpperCase() : raw.trim();
 }
 
-/**
- * Parses a Factur-X/ZUGFeRD Cross Industry Invoice (CII) XML document
- * (`rsm:CrossIndustryInvoice`) into best-effort invoice fields. Returns
- * `null` when the document is not a recognisable CII invoice, so the caller
- * can fall back to another extraction strategy.
- */
 export function parseFacturx(xml: string): InvoiceFields | null {
   let parsed: unknown;
   try {

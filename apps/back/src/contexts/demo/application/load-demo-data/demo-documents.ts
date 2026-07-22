@@ -15,9 +15,6 @@ interface DemoDocumentSeed {
   dueOffsetDays: number | null;
   direction: DocumentDirection;
   irpfRate?: number | null;
-  // Index into the demo staff members created by `LoadDemoDataUseCase`
-  // (D4/U2.8): only set on the `nomina` seeds, so every payroll the demo
-  // creates is imputed to a staff member from day one.
   staffMemberIndex?: number;
 }
 
@@ -34,9 +31,6 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: 'B10203040',
     invoiceNumber: 'FRA-DEMO-0001',
     dueOffsetDays: -45,
-    // Las dos facturas de mayor importe se marcan como ingreso: sin esto
-    // el dashboard demo saldría con income = 0, y no enseña nada del
-    // producto (al contrario que la migración de datos reales, ver C1).
     direction: 'ingreso',
   },
   {
@@ -50,7 +44,6 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     invoiceNumber: 'FRA-DEMO-0002',
     dueOffsetDays: -30,
     direction: 'ingreso',
-    // Caso realista de un autónomo que factura a empresa y sufre retención.
     irpfRate: 15,
   },
   {
@@ -135,19 +128,6 @@ function isoDateWithOffset(base: Date, offsetDays: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-/**
- * Builds the primitives for the sample documents of the demo project,
- * computed relative to `today` so the demo always feels current regardless
- * of when it is loaded. `staffMemberIds` are the ids of the demo staff
- * members created by `LoadDemoDataUseCase` (D4/U2.8): the `nomina` seeds
- * above reference them by index so every demo payroll is imputed to a staff
- * member.
- *
- * Returns primitives rather than `Document` instances: this is a pure
- * function, and constructing (and validating) the actual entity is
- * `LoadDemoDataUseCase`'s job, the same way it already owns creating the
- * demo `Project`.
- */
 export function buildDemoDocuments(
   projectId: string,
   generateId: () => string,

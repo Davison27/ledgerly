@@ -1,9 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-// UUIDs literales y fijos (no generados) para los 8 tipos de documento de
-// personal sembrados por esta migración (D1 del plan de staff): así el
-// dominio nunca conoce sus códigos, pero cualquier instalación arranca con
-// el mismo catálogo semilla y los mismos ids.
 const STAFF_DOCUMENT_TYPE_IDS = {
   dni: '6c2e74ac-b547-40ee-ab31-5c10c490cbcf',
   foto: '5f9a1985-8d8d-4560-84df-f62b683d9396',
@@ -50,10 +46,6 @@ export class CreateStaff1737000000000 implements MigrationInterface {
       )
     `);
 
-    // Semilla de los 8 tipos de D1. `default_validity_months` se deja NULL
-    // para todos (decisión de David): inventar plazos legales haría mentir
-    // al futuro aviso de renovación; la columna existe porque ese aviso la
-    // necesitará, pero la fecha de caducidad la escribe el usuario.
     await queryRunner.query(
       `INSERT INTO "staff_document_types" ("id", "code", "name", "expires", "default_validity_months", "is_system") VALUES
         ('${STAFF_DOCUMENT_TYPE_IDS.dni}', 'dni', 'DNI', true, NULL, true),

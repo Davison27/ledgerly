@@ -170,8 +170,6 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     });
   });
 
-  // Fixes R2/D5: the two fields must never collapse into one. If this test
-  // fails, do not "adjust the expectation" — revert whatever change broke it.
   it('GET :id devuelve el status derivado y el status crudo por separado', async () => {
     getExecute.mockResolvedValueOnce(
       buildDocument({ status: 'pendiente', dueDate: '2020-01-01' }),
@@ -181,7 +179,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
 
     expect(response.status).toBe(200);
     const body = response.body as { status: string; rawStatus: string };
-    expect(body.status).toBe('vencido'); // derivado, para pintar
-    expect(body.rawStatus).toBe('pendiente'); // almacenado, para editar
+    expect(body.status).toBe('vencido');
+    expect(body.rawStatus).toBe('pendiente');
   });
 });

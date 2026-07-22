@@ -95,10 +95,6 @@ describe('RecordExtractionFeedbackUseCase', () => {
         occurrences: 4,
       },
     ]);
-    // A later invoice from the same issuer with a differently-labelled
-    // field: the old anchor can no longer be located, so the hint would
-    // show nothing for invoiceNumber, and the user's correction is learned
-    // against the new label instead of reinforcing the stale one.
     const text = ['Mi Empresa SL', 'CIF: B12345678', 'Codigo interno: REF-20', 'TOTAL: 100,00 EUR'].join('\n');
     const pdfReader = new FakePdfReader({ text, attachments: [] });
     const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);

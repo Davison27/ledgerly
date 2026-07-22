@@ -1,12 +1,5 @@
 export const INVOICE_ISSUER_PROVIDER = Symbol('InvoiceIssuerProvider');
 
-/**
- * Decouples `invoices` from `company`, the same way
- * `documents/domain/project-existence-checker.port.ts` decouples `documents`
- * from `projects`. `taxId` is non-nullable here: the implementation
- * (`CompanyRepositoryInvoiceIssuer`) is the one that enforces D8 and throws
- * before ever handing out an issuer without one.
- */
 export interface InvoiceIssuer {
   name: string;
   legalName: string | null;

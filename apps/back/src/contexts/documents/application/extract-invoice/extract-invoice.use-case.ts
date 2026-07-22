@@ -68,8 +68,6 @@ export class ExtractInvoiceUseCase {
     return buildResult('heuristic', computeHeuristicConfidence(improvedFields), improvedFields, warnings);
   }
 
-  // Structured (Facturae/Factur-X) extractions never go through here: the
-  // per-issuer memory only ever augments the label-driven heuristic path.
   private async applyLearnedHints(fields: InvoiceFields, text: string): Promise<InvoiceFields> {
     if (!fields.issuerName || fields.issuerName.trim().length === 0) {
       return fields;

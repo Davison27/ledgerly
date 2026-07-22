@@ -32,7 +32,6 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsController],
       providers: [
-        // Not exercised by these tests, but required by the controller's constructor.
         { provide: ListDocumentsUseCase, useValue: {} },
         { provide: GetDocumentUseCase, useValue: {} },
         { provide: CreateDocumentUseCase, useValue: {} },

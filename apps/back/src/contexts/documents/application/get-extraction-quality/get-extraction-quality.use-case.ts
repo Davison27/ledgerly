@@ -8,13 +8,6 @@ import { ExtractionQualityReport } from './extraction-quality-report';
 
 const TOP_HINTS_LIMIT = 10;
 
-/**
- * Assembles the aggregate extraction-quality report served by
- * `GET /api/extraction-quality`: outcome statistics (source/confidence
- * distribution, correction rate) plus the most-reinforced learned hints,
- * so the two decoupled learning mechanisms (outcome recording and
- * per-issuer hints) can be reviewed together.
- */
 @Injectable()
 export class GetExtractionQualityUseCase {
   constructor(

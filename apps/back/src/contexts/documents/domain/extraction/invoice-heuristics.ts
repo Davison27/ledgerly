@@ -8,29 +8,15 @@ export interface HeuristicExtraction {
   warnings: string[];
 }
 
-// CIF (letter + 7 digits + check digit/letter) and DNI/NIE (8 digits +
-// letter) tax ids, with an optional hyphen after the leading letter (CIF) or
-// before the trailing check letter (DNI), as commonly printed on invoices
-// ("B-12345678", "12345678-Z").
 const CIF_NIF_TOKEN = /\b([A-Z]-?\d{7}[0-9A-J]|\d{8}-?[A-Z])\b/i;
 const CUSTOMER_LABEL = /\b(cliente|comprador|destinatario|receptor)\b/i;
-// A tax id occurrence is only ever treated as belonging to the client when
-// the nearest "cliente"-like line is within this many lines; beyond that we
-// assume proximity is coincidental.
 const CLIENT_PROXIMITY_CAP = 20;
-// How far (in lines) a plausible issuer-name line may be considered "too
-// close to the client block" to be trusted.
 const CLIENT_NAME_EXCLUSION_WINDOW = 2;
 
 const DATE_VALUE = /(\d{1,2}[/.-]\d{1,2}[/.-]\d{4}|\d{4}-\d{2}-\d{2})/;
 const FECHA_LABEL = /\bfecha\b/i;
 const VENCIMIENTO_LABEL = /vencimiento/i;
-// A day-day/month/year span such as "9-10/5/2026" describes a work period,
-// not the invoice date; lines matching this are excluded from date
-// candidates entirely, numeric or Spanish long-form alike.
 const DATE_RANGE_LINE = /\d{1,2}\s*-\s*\d{1,2}\s*[/.-]\s*\d{1,2}\s*[/.-]\s*\d{4}/;
-// How far (in lines) a standalone date value may be from a "fecha" label and
-// still be considered "adjacent" to it.
 const DATE_LABEL_PROXIMITY_WINDOW = 2;
 
 const INVOICE_NUMBER_PATTERNS: RegExp[] = [
@@ -45,9 +31,6 @@ const SUBTOTAL_LABEL = /\bsubtotal\b/i;
 const BASE_IMPONIBLE_LABEL = /base\s+imponible/i;
 const IVA_LABEL = /\biva\b/i;
 const IVA_RATE = /iva[^%\d]{0,15}(\d{1,2}(?:[.,]\d+)?)\s*%/i;
-// IRPF/retención (income tax withholding), same conservative label-driven
-// approach as IVA above: no attempt to pair it with a base via
-// findTaxRatioPair (see extractLabelledIrpf).
 const IRPF_LABEL = /\b(irpf|retenci[oó]n(?:es)?)\b/i;
 const IRPF_RATE = /(?:irpf|retenci[oó]n(?:es)?)[^%\d]{0,15}(\d{1,2}(?:[.,]\d+)?)\s*%/i;
 const RATE_TOKEN = /\d{1,2}(?:[.,]\d+)?\s*%/;
@@ -55,9 +38,6 @@ const RATE_TOKEN = /\d{1,2}(?:[.,]\d+)?\s*%/;
 const AMOUNT_TOKEN = /\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+\.\d{1,2}/g;
 
 const NON_ISSUER_LINE = /^(factura|fecha|cif|nif|n[ºo]\.?|n[uú]mero|cliente|total|subtotal|base|iva|concepto)\b/i;
-// A line that starts with a lower-case letter almost always continues the
-// previous line (e.g. a wrapped company name/address), rather than starting
-// a new plausible issuer-name line.
 const STARTS_LOWERCASE = /^[a-záéíóúñü]/;
 
 interface TaxIdOccurrence {
@@ -100,12 +80,6 @@ function findClienteLineIndexes(lines: string[]): number[] {
   return indexes;
 }
 
-/**
- * Determines the issuer's tax id (and the line it was found on) among all
- * CIF/NIF-like tokens in the document. The token whose line sits closest to
- * a "cliente"/"comprador"/... label is assumed to belong to the client and
- * is excluded; the first remaining token, in document order, is the issuer's.
- */
 function extractIssuerTaxId(
   lines: string[],
   clienteLineIndexes: number[],
@@ -174,12 +148,6 @@ function collectDateCandidates(lines: string[]): DateCandidate[] {
   return candidates;
 }
 
-/**
- * Picks the invoice date among all date-like candidates in the document.
- * Prefers a candidate adjacent (same line, or within a couple of lines) to
- * a "fecha" label that isn't about a due date; otherwise falls back to the
- * first plausible date found.
- */
 function extractDate(lines: string[]): string | undefined {
   const candidates = collectDateCandidates(lines);
   if (candidates.length === 0) return undefined;
@@ -233,13 +201,6 @@ function extractLabelledTotal(lines: string[]): number | undefined {
   return best;
 }
 
-/**
- * Total, falling back to the largest monetary amount found anywhere in the
- * document when no line carries both a "total" label and an inline amount
- * (e.g. the label and the value sit in separate table columns/lines). The
- * grand total is always the largest single amount on a well-formed invoice,
- * so this is a robust general fallback.
- */
 function extractTotal(lines: string[], text: string): number | undefined {
   const labelled = extractLabelledTotal(lines);
   if (labelled != null) return labelled;
@@ -278,15 +239,6 @@ function extractLabelledTax(lines: string[]): { taxRate?: number; taxAmount?: nu
   return {};
 }
 
-/**
- * Labelled IRPF (retention), same shape and same amount-adjacent-to-label
- * assumption as `extractLabelledTax`. Deliberately has no `findTaxRatioPair`
- * equivalent: with both an IVA rate and an IRPF rate in play, pairing bases
- * to amounts purely by `base * rate ≈ amount` would produce spurious
- * cross-matches between the two taxes, which is worse than leaving the
- * field empty. If the labelled line doesn't carry an inline amount (e.g. a
- * column-separated layout), irpfAmount is simply omitted.
- */
 function extractLabelledIrpf(lines: string[]): { irpfRate?: number; irpfAmount?: number } {
   for (const line of lines) {
     if (!IRPF_LABEL.test(line)) {
@@ -303,15 +255,6 @@ function extractLabelledIrpf(lines: string[]): { irpfRate?: number; irpfAmount?:
   return {};
 }
 
-/**
- * Finds a (base, tax) pair among all monetary amounts in the document such
- * that `base * rate/100 ≈ tax`. Self-validates against the known tax rate,
- * so it works even when the "base imponible"/"IVA" labels and their values
- * are printed in separate columns rather than on the same line. When
- * several pairs satisfy the equation, the one whose base differs from the
- * total is preferred (the total itself can coincidentally satisfy the
- * equation for unrelated reasons).
- */
 function findTaxRatioPair(
   amounts: number[],
   rate: number,
@@ -361,8 +304,6 @@ function extractIssuerName(
     return true;
   };
 
-  // Prefer a plausible line near the issuer's own tax id: real invoices
-  // almost always print the issuer's name close to their CIF/NIF.
   if (issuerTaxIdLineIndex != null) {
     for (let distance = 0; distance <= 5; distance++) {
       const before = issuerTaxIdLineIndex - distance;
@@ -386,11 +327,6 @@ function extractIssuerName(
   return undefined;
 }
 
-/**
- * Best-effort extraction of Spanish invoice fields from the plain text
- * layer of a PDF, using label-driven regular expressions. Fields that
- * cannot be determined with reasonable confidence are omitted.
- */
 export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
   const lines = text
     .split('\n')
@@ -436,9 +372,6 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
 
   const currency = detectCurrency(text) ?? (amount != null ? 'EUR' : undefined);
 
-  // Only trust the "plausible line" heuristic for the issuer name when at
-  // least one other invoice-like field was found; otherwise a random block
-  // of text would always yield a bogus issuer name.
   const hasOtherEvidence = issuerTaxId != null || invoiceNumber != null || date != null || amount != null;
   const issuerName = hasOtherEvidence ? extractIssuerName(lines, issuer?.lineIndex, clienteLineIndexes) : undefined;
   if (!issuerName) warnings.push('No se pudo determinar el nombre del emisor');

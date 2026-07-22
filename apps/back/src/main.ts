@@ -7,11 +7,6 @@ import { DomainExceptionFilter } from './shared/infrastructure/http/domain-excep
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Debe ir antes que cualquier otro app.use()/enableCors()/ruta: si se
-  // registra después, no cubre lo ya definido. crossOriginResourcePolicy se
-  // relaja a 'cross-origin' porque el backend sirve ficheros (PDFs, fotos de
-  // personal) que el front consume desde otro origen (5173 vs 3000); con el
-  // 'same-origin' por defecto de helmet, el navegador los bloquearía.
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },

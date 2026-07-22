@@ -9,8 +9,6 @@ function formatCurrency(amount: number, currency: string): string {
   return new Intl.NumberFormat('es-ES', { style: 'currency', currency }).format(amount);
 }
 
-// D2: the quantity is printed without a unit of measure and without
-// trailing zeros — "2" and "1,5", never "2,000" or "1,5 h".
 function formatQuantity(quantity: number): string {
   return new Intl.NumberFormat('es-ES', { maximumFractionDigits: 3 }).format(quantity);
 }
@@ -63,7 +61,6 @@ export class PdfkitInvoicePdfRenderer implements InvoicePdfRenderer {
         doc.image(logo, PAGE_MARGIN, PAGE_MARGIN, { fit: [120, 60] });
         issuerTop = PAGE_MARGIN + 68;
       } catch {
-        // A corrupt or unsupported logo must never break invoice generation.
         issuerTop = PAGE_MARGIN;
       }
     }

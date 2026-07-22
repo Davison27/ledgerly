@@ -12,11 +12,6 @@ export class DeleteInvoiceUseCase {
     private readonly deleteDocumentUseCase: DeleteDocumentUseCase,
   ) {}
 
-  // D9: deleting the invoice also deletes its mirror document when one
-  // exists — the mirror only exists because of the invoice, so leaving it
-  // behind would keep an unsupported income in the dashboard. A failure
-  // deleting the mirror is logged and does not prevent the invoice itself
-  // from being deleted.
   async execute(id: string): Promise<void> {
     const invoice = await this.invoiceRepository.findById(id);
 

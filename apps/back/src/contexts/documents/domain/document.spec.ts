@@ -13,8 +13,6 @@ const BASE_PROPS = {
 };
 
 describe('Document', () => {
-  // D3 of the staff-section plan: a payroll always carries a staff member,
-  // whichever side (project or staff member) it is uploaded from.
   it('throws when creating a nomina without a staffMemberId', () => {
     expect(() => Document.create({ ...BASE_PROPS, type: 'nomina' })).toThrow(InvalidValueException);
   });
@@ -31,8 +29,6 @@ describe('Document', () => {
     expect(document.getStaffMemberId()).toBeNull();
   });
 
-  // `withChanges()` reruns `create()` (document.ts), so editing an existing
-  // document into type `nomina` without a staff member must be caught too.
   it('throws when withChanges turns a document into a nomina without a staffMemberId', () => {
     const document = Document.create({ ...BASE_PROPS, type: 'factura' });
 

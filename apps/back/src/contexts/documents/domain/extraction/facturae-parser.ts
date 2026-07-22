@@ -30,12 +30,6 @@ function readIssuerName(seller: unknown): string | undefined {
   return undefined;
 }
 
-/**
- * Parses a Spanish Facturae (`fe:Facturae`) XML document into best-effort
- * invoice fields. Returns `null` when the document is not a recognisable
- * Facturae invoice, so the caller can fall back to another extraction
- * strategy.
- */
 export function parseFacturae(xml: string): InvoiceFields | null {
   let parsed: unknown;
   try {
@@ -86,18 +80,6 @@ export function parseFacturae(xml: string): InvoiceFields | null {
     undefined;
   const amount = parseXmlDecimal(xmlText(invoice, 'InvoiceTotals', 'InvoiceTotal')) ?? undefined;
 
-  // IRPF (retention): read the first TaxesWithheld/Tax without filtering by
-  // TaxTypeCode ('04' = IRPF). xml-node.ts's xmlGet only unwraps the first
-  // item of a repeated element and has no helper to iterate/filter siblings,
-  // so filtering by code would mean extending that module for a lot more
-  // than the handful of lines this feature is worth. It's also unnecessary
-  // in practice: everything under TaxesWithheld is a withholding by
-  // definition (VAT lives under the sibling TaxesOutputs), so the first
-  // child is safely a withholding. The only case this degrades is an
-  // invoice with several withholdings of different kinds (rare for a
-  // freelancer's invoices), where we'd keep the first instead of
-  // specifically the IRPF one; TotalTaxesWithheld still reports the correct
-  // aggregate amount regardless.
   const irpfTax = xmlGet(invoice, 'TaxesWithheld', 'Tax');
   const irpfRate = parseXmlDecimal(xmlText(irpfTax, 'TaxRate')) ?? undefined;
   const irpfAmount =
@@ -115,8 +97,6 @@ export function parseFacturae(xml: string): InvoiceFields | null {
   if (taxBase != null) fields.taxBase = taxBase;
   if (taxRate != null) fields.taxRate = taxRate;
   if (taxAmount != null) fields.taxAmount = taxAmount;
-  // A 0.00 TotalTaxesWithheld (the common case: no retention at all) must
-  // not surface as an explicit-but-empty irpfAmount in the form.
   if (irpfRate != null && irpfRate > 0) fields.irpfRate = irpfRate;
   if (irpfAmount != null && irpfAmount > 0) fields.irpfAmount = irpfAmount;
   if (amount != null) fields.amount = amount;

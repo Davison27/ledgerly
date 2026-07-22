@@ -20,13 +20,6 @@ export interface StructuredExtraction {
   fields: InvoiceFields;
 }
 
-/**
- * Tries every XML-looking attachment against the known structured e-invoice
- * formats (Facturae, Factur-X/ZUGFeRD, UBL/Peppol), returning the first
- * successful parse. Shared by extraction (to read the fields) and by
- * feedback recording (to detect that a PDF is a structured invoice at all —
- * those never feed the label-driven heuristic learning memory).
- */
 export function tryParseStructuredInvoice(attachments: PdfAttachment[]): StructuredExtraction | null {
   for (const attachment of attachments.filter(isXmlAttachment)) {
     const xml = attachment.content.toString('utf-8');
