@@ -1,92 +1,33 @@
 import { GetCompanyDashboardUseCase } from './get-company-dashboard.use-case';
-import { DocumentRepository } from '../../../documents/domain/document.repository';
-import { DocumentDashboardRow } from '../../../documents/domain/document-dashboard-row';
-import { DocumentListRow } from '../../../documents/domain/document-list-row';
-import { DocumentDuplicateRow } from '../../../documents/domain/document-duplicate-row';
-import { Document } from '../../../documents/domain/document';
 import {
-  ProjectDashboardRow,
-  ProjectRepository,
-} from '../../../projects/domain/project.repository';
-import { ProjectSummary } from '../../../projects/domain/project-summary';
-import { Project } from '../../../projects/domain/project';
+  DashboardDataProvider,
+  DashboardDocumentRow,
+  DashboardProjectRow,
+  DashboardProjectSummary,
+} from '../../domain/dashboard-data-provider.port';
+import { SystemClock } from '../../../../shared/infrastructure/system-clock';
 
-class FakeDocumentRepository implements DocumentRepository {
-  constructor(private readonly rows: DocumentDashboardRow[]) {}
+class FakeDashboardDataProvider implements DashboardDataProvider {
+  constructor(
+    private readonly rows: DashboardDocumentRow[],
+    private readonly summaries: DashboardProjectSummary[],
+    private readonly projectRows: DashboardProjectRow[] = [],
+  ) {}
 
-  findAllForDashboard(): Promise<DocumentDashboardRow[]> {
+  findAllDocumentRows(): Promise<DashboardDocumentRow[]> {
     return Promise.resolve(this.rows);
   }
 
-  findByProject(): Promise<Document[]> {
-    return Promise.resolve([]);
-  }
-
-  findById(): Promise<Document | null> {
-    return Promise.resolve(null);
-  }
-
-  save(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  saveContent(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  findContent(): Promise<Buffer | null> {
-    return Promise.resolve(null);
-  }
-
-  findAllForListing(): Promise<DocumentListRow[]> {
-    return Promise.resolve([]);
-  }
-
-  findPossibleDuplicates(): Promise<DocumentDuplicateRow[]> {
-    return Promise.resolve([]);
-  }
-}
-
-class FakeProjectRepository implements ProjectRepository {
-  constructor(
-    private readonly summaries: ProjectSummary[],
-    private readonly dashboardRows: ProjectDashboardRow[] = [],
-  ) {}
-
-  findAllSummaries(): Promise<ProjectSummary[]> {
+  findAllProjectSummaries(): Promise<DashboardProjectSummary[]> {
     return Promise.resolve(this.summaries);
   }
 
-  findSummaryById(): Promise<ProjectSummary | null> {
-    return Promise.resolve(null);
-  }
-
-  findById(): Promise<Project | null> {
-    return Promise.resolve(null);
-  }
-
-  findByCode(): Promise<Project | null> {
-    return Promise.resolve(null);
-  }
-
-  save(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  findAllForDashboard(): Promise<ProjectDashboardRow[]> {
-    return Promise.resolve(this.dashboardRows);
+  findAllProjectRows(): Promise<DashboardProjectRow[]> {
+    return Promise.resolve(this.projectRows);
   }
 }
 
-function buildRow(overrides: Partial<DocumentDashboardRow> = {}): DocumentDashboardRow {
+function buildRow(overrides: Partial<DashboardDocumentRow> = {}): DashboardDocumentRow {
   return {
     type: 'factura',
     amount: 100,
@@ -102,21 +43,17 @@ function buildRow(overrides: Partial<DocumentDashboardRow> = {}): DocumentDashbo
   };
 }
 
-function buildSummary(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
+function buildSummary(overrides: Partial<DashboardProjectSummary> = {}): DashboardProjectSummary {
   return {
     id: 'project-1',
     name: 'Project One',
-    code: 'P1',
-    documentCount: 0,
-    pendingCount: 0,
-    image: null,
     ...overrides,
   };
 }
 
 function buildProjectDashboardRow(
-  overrides: Partial<ProjectDashboardRow> = {},
-): ProjectDashboardRow {
+  overrides: Partial<DashboardProjectRow> = {},
+): DashboardProjectRow {
   return {
     id: 'project-1',
     name: 'Project One',
@@ -138,8 +75,8 @@ describe('GetCompanyDashboardUseCase', () => {
   it('returns all-zero, empty-array data when there are no documents or projects', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository([]),
-      new FakeProjectRepository([]),
+      new FakeDashboardDataProvider([], []),
+      new SystemClock(),
     );
 
     const result = await useCase.execute();
@@ -196,15 +133,15 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('aggregates income, expenses, profit and margin across projects for the selected year', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
+    const rows: DashboardDocumentRow[] = [
       buildRow({ type: 'factura', amount: 1000, month: 1, status: 'pagado', projectId: 'p1', issuerName: 'Client A', date: '2026-01-05' }),
       buildRow({ type: 'nomina', direction: 'gasto', amount: 300, month: 1, status: 'pendiente', projectId: 'p1', issuerName: 'Employee', date: '2026-01-20' }),
       buildRow({ type: 'impuesto', direction: 'gasto', amount: 100, month: 2, status: 'vencido', projectId: 'p2', issuerName: null, date: '2026-02-01' }),
     ];
     const summaries = [buildSummary({ id: 'p1', name: 'Project One' }), buildSummary({ id: 'p2', name: 'Project Two' })];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository(summaries),
+      new FakeDashboardDataProvider(rows, summaries),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -244,14 +181,18 @@ describe('GetCompanyDashboardUseCase', () => {
     ]);
   });
 
-  it('derives overdue status for a pendiente document whose dueDate has already passed', async () => {
+  it('counts a document that already arrives with an overdue effective status', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
-      buildRow({ type: 'factura', amount: 500, status: 'pendiente', dueDate: '2026-07-01', date: '2026-06-01' }),
+    // `RepositoryDashboardDataProvider` is the one that runs
+    // `deriveEffectiveStatus`; by the time the use case sees this row, a
+    // `pendiente` document whose `dueDate` has passed already arrives as
+    // `vencido` (see `effective-status.spec.ts` for that derivation itself).
+    const rows: DashboardDocumentRow[] = [
+      buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository([]),
+      new FakeDashboardDataProvider(rows, []),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -264,14 +205,14 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('excludes documents from other years and buckets by month within the selected year only', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
+    const rows: DashboardDocumentRow[] = [
       buildRow({ amount: 1000, month: 1, date: '2026-01-10' }),
       buildRow({ amount: 500, month: 1, date: '2025-01-10' }),
       buildRow({ amount: 200, month: 12, date: '2024-12-31' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository([buildSummary()]),
+      new FakeDashboardDataProvider(rows, [buildSummary()]),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -284,13 +225,13 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('computes availableYears as distinct document years plus the current calendar year, descending', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
+    const rows: DashboardDocumentRow[] = [
       buildRow({ date: '2023-05-01' }),
       buildRow({ date: '2021-05-01' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository([]),
+      new FakeDashboardDataProvider(rows, []),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2021);
@@ -301,8 +242,8 @@ describe('GetCompanyDashboardUseCase', () => {
   it('defaults to the current calendar year when no year is provided', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository([]),
-      new FakeProjectRepository([]),
+      new FakeDashboardDataProvider([], []),
+      new SystemClock(),
     );
 
     const result = await useCase.execute();
@@ -312,15 +253,15 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('computes previousYear headline totals from the prior calendar year documents only', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
+    const rows: DashboardDocumentRow[] = [
       buildRow({ type: 'factura', amount: 1000, date: '2026-03-01' }),
       buildRow({ type: 'factura', amount: 400, date: '2025-03-01' }),
       buildRow({ type: 'nomina', direction: 'gasto', amount: 100, date: '2025-04-01' }),
       buildRow({ type: 'factura', amount: 999, date: '2024-01-01' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository([]),
+      new FakeDashboardDataProvider(rows, []),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -337,7 +278,7 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('buckets issuers beyond the top 6 into an "other" entry sorted by total', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
+    const rows: DashboardDocumentRow[] = [
       buildRow({ issuerName: 'Issuer A', amount: 700 }),
       buildRow({ issuerName: 'Issuer B', amount: 600 }),
       buildRow({ issuerName: 'Issuer C', amount: 500 }),
@@ -348,8 +289,8 @@ describe('GetCompanyDashboardUseCase', () => {
       buildRow({ issuerName: 'Issuer H', amount: 10 }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository([buildSummary()]),
+      new FakeDashboardDataProvider(rows, [buildSummary()]),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -368,7 +309,7 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('trims and treats blank issuer names as unknown, and orders top projects by total descending', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = [
+    const rows: DashboardDocumentRow[] = [
       buildRow({ issuerName: '  ', amount: 10, projectId: 'p-small' }),
       buildRow({ issuerName: null, amount: 20, projectId: 'p-small' }),
       buildRow({ issuerName: 'Big Client', amount: 900, projectId: 'p-big' }),
@@ -378,8 +319,8 @@ describe('GetCompanyDashboardUseCase', () => {
       buildSummary({ id: 'p-big', name: 'Big Project' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository(summaries),
+      new FakeDashboardDataProvider(rows, summaries),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -396,13 +337,13 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('limits topProjects to the top 5 by total amount', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    const rows: DocumentDashboardRow[] = Array.from({ length: 6 }, (_, i) =>
+    const rows: DashboardDocumentRow[] = Array.from({ length: 6 }, (_, i) =>
       buildRow({ projectId: `p${i}`, amount: (i + 1) * 100 }),
     );
     const summaries = Array.from({ length: 6 }, (_, i) => buildSummary({ id: `p${i}`, name: `Project ${i}` }));
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDocumentRepository(rows),
-      new FakeProjectRepository(summaries),
+      new FakeDashboardDataProvider(rows, summaries),
+      new SystemClock(),
     );
 
     const result = await useCase.execute(2026);
@@ -415,7 +356,7 @@ describe('GetCompanyDashboardUseCase', () => {
   describe('budgetVsActual', () => {
     it('includes projects with a budget or activity in the selected year, sorted by expenses desc', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
-      const rows: DocumentDashboardRow[] = [
+      const rows: DashboardDocumentRow[] = [
         buildRow({ projectId: 'p1', type: 'factura', amount: 500, date: '2026-02-01' }),
         buildRow({ projectId: 'p1', type: 'nomina', direction: 'gasto', amount: 200, date: '2026-03-01' }),
         buildRow({ projectId: 'p2', type: 'impuesto', direction: 'gasto', amount: 900, date: '2026-04-01' }),
@@ -432,8 +373,8 @@ describe('GetCompanyDashboardUseCase', () => {
         buildProjectDashboardRow({ id: 'p3', name: 'Project Three', budget: 300, currency: 'EUR' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDocumentRepository(rows),
-        new FakeProjectRepository(summaries, projectRows),
+        new FakeDashboardDataProvider(rows, summaries, projectRows),
+        new SystemClock(),
       );
 
       const result = await useCase.execute(2026);
@@ -449,8 +390,8 @@ describe('GetCompanyDashboardUseCase', () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const projectRows = [buildProjectDashboardRow({ id: 'idle', budget: null })];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDocumentRepository([]),
-        new FakeProjectRepository([], projectRows),
+        new FakeDashboardDataProvider([], [], projectRows),
+        new SystemClock(),
       );
 
       const result = await useCase.execute(2026);
@@ -462,7 +403,7 @@ describe('GetCompanyDashboardUseCase', () => {
   describe('vatByQuarter', () => {
     it('always returns 4 quarters and sums output/input VAT, treating null taxAmount as 0', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
-      const rows: DocumentDashboardRow[] = [
+      const rows: DashboardDocumentRow[] = [
         buildRow({ type: 'factura', month: 1, taxAmount: 210, date: '2026-01-05' }),
         buildRow({ type: 'nomina', direction: 'gasto', month: 2, taxAmount: 50, date: '2026-02-05' }),
         buildRow({ type: 'impuesto', direction: 'gasto', month: 5, taxAmount: 30, date: '2026-05-05' }),
@@ -470,8 +411,8 @@ describe('GetCompanyDashboardUseCase', () => {
         buildRow({ type: 'nomina', direction: 'gasto', month: 11, taxAmount: 20, date: '2026-11-05' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDocumentRepository(rows),
-        new FakeProjectRepository([]),
+        new FakeDashboardDataProvider(rows, []),
+        new SystemClock(),
       );
 
       const result = await useCase.execute(2026);
@@ -488,7 +429,7 @@ describe('GetCompanyDashboardUseCase', () => {
   describe('cashflowForecast', () => {
     it('buckets overdue vs upcoming documents, excludes paid documents, and computes inflow/outflow by type', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
-      const rows: DocumentDashboardRow[] = [
+      const rows: DashboardDocumentRow[] = [
         // overdue: due before today, unpaid
         buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-06-01', date: '2026-05-01' }),
         buildRow({ type: 'nomina', direction: 'gasto', amount: 150, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
@@ -505,8 +446,8 @@ describe('GetCompanyDashboardUseCase', () => {
         buildRow({ type: 'factura', amount: 70, status: 'pendiente', dueDate: '2027-02-01', date: '2026-07-01' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDocumentRepository(rows),
-        new FakeProjectRepository([]),
+        new FakeDashboardDataProvider(rows, []),
+        new SystemClock(),
       );
 
       const result = await useCase.execute(2026);
@@ -524,12 +465,12 @@ describe('GetCompanyDashboardUseCase', () => {
 
     it('is not scoped to the selected year', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
-      const rows: DocumentDashboardRow[] = [
+      const rows: DashboardDocumentRow[] = [
         buildRow({ type: 'factura', amount: 40, status: 'pendiente', dueDate: '2026-08-01', date: '2025-01-01' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDocumentRepository(rows),
-        new FakeProjectRepository([]),
+        new FakeDashboardDataProvider(rows, []),
+        new SystemClock(),
       );
 
       const result = await useCase.execute(2021);
@@ -541,7 +482,7 @@ describe('GetCompanyDashboardUseCase', () => {
   describe('direction vs type', () => {
     it('splits income/expenses, vatByQuarter and cashflowForecast by direction, not by type', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
-      const rows: DocumentDashboardRow[] = [
+      const rows: DashboardDocumentRow[] = [
         buildRow({
           type: 'factura',
           direction: 'ingreso',
@@ -564,8 +505,8 @@ describe('GetCompanyDashboardUseCase', () => {
         }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDocumentRepository(rows),
-        new FakeProjectRepository([]),
+        new FakeDashboardDataProvider(rows, []),
+        new SystemClock(),
       );
 
       const result = await useCase.execute(2026);

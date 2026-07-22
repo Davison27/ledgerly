@@ -3,7 +3,8 @@ import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
 import { DocumentDirection } from '../../domain/document-direction';
-import { deriveEffectiveStatus, todayIso } from '../../domain/effective-status';
+import { deriveEffectiveStatus } from '../../domain/effective-status';
+import { todayIso } from '../../../../shared/infrastructure/system-clock';
 
 export class DocumentResponse {
   id: string;

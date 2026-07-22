@@ -1,15 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 import {
-  DOCUMENT_REPOSITORY,
-  DocumentRepository,
-} from '../../../documents/domain/document.repository';
-import { DocumentDashboardRow } from '../../../documents/domain/document-dashboard-row';
-import { deriveEffectiveStatus } from '../../../documents/domain/effective-status';
-import {
-  PROJECT_REPOSITORY,
-  ProjectDashboardRow,
-  ProjectRepository,
-} from '../../../projects/domain/project.repository';
+  DASHBOARD_DATA_PROVIDER,
+  DashboardDataProvider,
+  DashboardDocumentRow,
+  DashboardProjectRow,
+} from '../../domain/dashboard-data-provider.port';
 import {
   AmountByStatus,
   BudgetVsActual,
@@ -57,7 +53,7 @@ function addMonths(date: Date, months: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + months, 1);
 }
 
-function computeHeadlineTotals(rows: DocumentDashboardRow[]): HeadlineTotals {
+function computeHeadlineTotals(rows: DashboardDocumentRow[]): HeadlineTotals {
   let income = 0;
   let expenses = 0;
 
@@ -72,14 +68,14 @@ function computeHeadlineTotals(rows: DocumentDashboardRow[]): HeadlineTotals {
   return { income, expenses, profit, margin, totalDocuments: rows.length };
 }
 
-function computeAvailableYears(rows: DocumentDashboardRow[], today: Date): number[] {
+function computeAvailableYears(rows: DashboardDocumentRow[], today: Date): number[] {
   const years = new Set<number>(rows.map((row) => yearOf(row.date)));
   years.add(today.getFullYear());
 
   return Array.from(years).sort((a, b) => b - a);
 }
 
-function computeVatByQuarter(rows: DocumentDashboardRow[]): VatByQuarter[] {
+function computeVatByQuarter(rows: DashboardDocumentRow[]): VatByQuarter[] {
   const quarters: VatByQuarter[] = Array.from({ length: QUARTERS_IN_YEAR }, (_, i) => ({
     quarter: i + 1,
     outputVat: 0,
@@ -104,8 +100,8 @@ function computeVatByQuarter(rows: DocumentDashboardRow[]): VatByQuarter[] {
 }
 
 function computeBudgetVsActual(
-  yearRows: DocumentDashboardRow[],
-  projectRows: ProjectDashboardRow[],
+  yearRows: DashboardDocumentRow[],
+  projectRows: DashboardProjectRow[],
 ): BudgetVsActual[] {
   const activityByProject = new Map<string, { income: number; expenses: number }>();
 
@@ -143,7 +139,7 @@ function computeBudgetVsActual(
   return result.sort((a, b) => b.expenses - a.expenses);
 }
 
-function computeCashflowForecast(allRows: DocumentDashboardRow[], today: Date): CashflowForecast {
+function computeCashflowForecast(allRows: DashboardDocumentRow[], today: Date): CashflowForecast {
   const todayIso = formatDate(today);
   const monthKeys = Array.from({ length: CASHFLOW_FORECAST_MONTHS }, (_, i) =>
     formatYearMonth(addMonths(today, i + 1)),
@@ -187,19 +183,18 @@ function computeCashflowForecast(allRows: DocumentDashboardRow[], today: Date): 
 @Injectable()
 export class GetCompanyDashboardUseCase {
   constructor(
-    @Inject(DOCUMENT_REPOSITORY) private readonly documentRepository: DocumentRepository,
-    @Inject(PROJECT_REPOSITORY) private readonly projectRepository: ProjectRepository,
+    @Inject(DASHBOARD_DATA_PROVIDER) private readonly dashboardDataProvider: DashboardDataProvider,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   async execute(year?: number): Promise<CompanyDashboard> {
-    const today = new Date();
-    const todayIso = formatDate(today);
+    const today = this.clock.now();
     const selectedYear = year ?? today.getFullYear();
 
     const [rows, summaries, projectRows] = await Promise.all([
-      this.documentRepository.findAllForDashboard(),
-      this.projectRepository.findAllSummaries(),
-      this.projectRepository.findAllForDashboard(),
+      this.dashboardDataProvider.findAllDocumentRows(),
+      this.dashboardDataProvider.findAllProjectSummaries(),
+      this.dashboardDataProvider.findAllProjectRows(),
     ]);
 
     const yearRows = rows.filter((row) => yearOf(row.date) === selectedYear);
@@ -229,12 +224,14 @@ export class GetCompanyDashboardUseCase {
 
       categoryTotals[row.type] += row.amount;
 
-      const effectiveStatus = deriveEffectiveStatus(row.status, row.dueDate, todayIso);
-      if (effectiveStatus === 'pagado') paidCount += 1;
-      else if (effectiveStatus === 'pendiente') pendingCount += 1;
-      else if (effectiveStatus === 'vencido') overdueCount += 1;
+      // `row.status` already went through `deriveEffectiveStatus` in
+      // `RepositoryDashboardDataProvider` (documents' own domain rule): the
+      // dashboard only aggregates it, it never re-derives it.
+      if (row.status === 'pagado') paidCount += 1;
+      else if (row.status === 'pendiente') pendingCount += 1;
+      else if (row.status === 'vencido') overdueCount += 1;
 
-      amountByStatus[effectiveStatus] += row.amount;
+      amountByStatus[row.status] += row.amount;
 
       const issuerName = row.issuerName?.trim() || null;
       const issuerKey = issuerName ?? 'unknown';

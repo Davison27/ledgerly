@@ -22,12 +22,3 @@ export function deriveEffectiveStatus(
 
   return status;
 }
-
-/** Today's date as an ISO `YYYY-MM-DD` string, matching the stored date format. */
-export function todayIso(): string {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const day = String(now.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}

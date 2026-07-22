@@ -2,22 +2,22 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../domain/document.repository';
 import { DocumentListFilters } from '../../domain/document-list-filters';
 import {
-  PROJECT_REPOSITORY,
-  ProjectRepository,
-} from '../../../projects/domain/project.repository';
+  PROJECT_NAME_PROVIDER,
+  ProjectNameProvider,
+} from '../../domain/project-name-provider.port';
 import { DocumentListItem } from './document-list-item';
 
 @Injectable()
 export class ListAllDocumentsUseCase {
   constructor(
     @Inject(DOCUMENT_REPOSITORY) private readonly documentRepository: DocumentRepository,
-    @Inject(PROJECT_REPOSITORY) private readonly projectRepository: ProjectRepository,
+    @Inject(PROJECT_NAME_PROVIDER) private readonly projectNameProvider: ProjectNameProvider,
   ) {}
 
   async execute(filters: DocumentListFilters): Promise<DocumentListItem[]> {
     const [rows, summaries] = await Promise.all([
       this.documentRepository.findAllForListing(filters),
-      this.projectRepository.findAllSummaries(),
+      this.projectNameProvider.findAllNames(),
     ]);
 
     const projectNameById = new Map(summaries.map((project) => [project.id, project.name]));
