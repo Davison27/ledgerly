@@ -24,9 +24,16 @@ import { ExclamationCircleOutlined, InboxOutlined, PlusOutlined, SwapOutlined } 
 import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { checkDuplicate, createDocument, extractInvoice } from '../../../../data/api/documents.api';
+import {
+  checkDuplicate,
+  createDocument,
+  extractInvoice,
+  extractInvoiceStandalone,
+} from '../../../../data/api/documents.api';
 import { ApiError } from '../../../../data/api/httpClient';
+import { createStaffMember, listStaffMembers } from '../../../../data/api/staff.api';
 import { createSupplier, listSuppliers } from '../../../../data/api/suppliers.api';
+import { useCompany } from '../../../../app/providers/CompanyProvider';
 import { SemanticTag, type SemanticTone } from '../../../../components/ui/SemanticTag';
 import type {
   CreateDocumentPayload,
@@ -36,6 +43,7 @@ import type {
   DocumentTypeDto,
   ExtractInvoiceConfidence,
   ExtractInvoiceResult,
+  StaffMemberDto,
   SupplierDto,
 } from '../../../../data/api/types';
 import { formatEUR } from './documentFormat';
@@ -72,9 +80,18 @@ const { useToken } = theme;
 
 const MAX_QUEUE_FILES = 20;
 
+/**
+ * D8 of the staff-section plan: the modal no longer receives a bare
+ * `projectId`, it receives a discriminated `context` instead. `lockedType`,
+ * `showProjectSelect` and `showStaffSelect` are all derived from it.
+ */
+export type DocumentUploadContext =
+  | { kind: 'project'; projectId: string }
+  | { kind: 'staffPayroll'; staffMemberId: string };
+
 interface DocumentUploadModalProps {
   open: boolean;
-  projectId: string;
+  context: DocumentUploadContext;
   onCancel: () => void;
   onCreated: () => void;
 }
@@ -124,16 +141,25 @@ const FORM_INITIAL_VALUES = {
 
 export function DocumentUploadModal({
   open,
-  projectId,
+  context,
   onCancel,
   onCreated,
 }: DocumentUploadModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const { token } = useToken();
+  const { projects } = useCompany();
   const screens = useBreakpoint();
   const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
+
+  // D8: `staffPayroll` locks the type to `nomina` and requires picking a
+  // project instead (D2 — a payroll is a document, so it always needs one);
+  // `project` keeps today's free type and, only when it's `nomina`, requires
+  // picking a worker instead (D3).
+  const lockedType: DocumentTypeDto | undefined =
+    context.kind === 'staffPayroll' ? 'nomina' : undefined;
+  const showProjectSelect = context.kind === 'staffPayroll';
 
   // The queue of PDFs to process, one document per file. `currentIndex` points
   // at the file currently being reviewed; everything below the queue state
@@ -166,11 +192,33 @@ export function DocumentUploadModal({
   const [newSupplierTaxId, setNewSupplierTaxId] = useState('');
   const [creatingSupplierSubmitting, setCreatingSupplierSubmitting] = useState(false);
 
+  // The worker selector (D3): only ever populated/shown for `kind: 'project'`
+  // once the observed `type` is `nomina`. Mirrors the supplier state above,
+  // quick-create popover included.
+  const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
+  const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
+  const [staffMemberError, setStaffMemberError] = useState(false);
+  const [creatingStaffMember, setCreatingStaffMember] = useState(false);
+  const [newStaffMemberFirstName, setNewStaffMemberFirstName] = useState('');
+  const [newStaffMemberLastName, setNewStaffMemberLastName] = useState('');
+  const [creatingStaffMemberSubmitting, setCreatingStaffMemberSubmitting] = useState(false);
+
+  // The project selector (D2): only for `kind: 'staffPayroll'`, since a
+  // payroll uploaded from the worker's page still needs a project to belong to.
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [projectError, setProjectError] = useState(false);
+
+  // Watched here (ahead of the other `Form.useWatch` calls further down) so
+  // both `showStaffSelect` and the reset effect below can react to it.
+  const typeWatch = Form.useWatch('type', form);
+  const showStaffSelect = context.kind === 'project' && typeWatch === 'nomina';
+
   // Resets everything scoped to a single queue item (extraction, duplicate
   // check, supplier match, form fields). Used both when a fresh queue starts
   // and whenever we advance to the next file.
   const resetItemState = () => {
     form.resetFields();
+    if (lockedType) form.setFieldsValue({ type: lockedType });
     setExtractResult(null);
     setScannedPdfError(false);
     setStep('idle');
@@ -181,6 +229,13 @@ export function DocumentUploadModal({
     setCreatingSupplier(false);
     setNewSupplierName('');
     setNewSupplierTaxId('');
+    setStaffMemberId(null);
+    setStaffMemberError(false);
+    setCreatingStaffMember(false);
+    setNewStaffMemberFirstName('');
+    setNewStaffMemberLastName('');
+    setSelectedProjectId(null);
+    setProjectError(false);
   };
 
   // Kicks off extraction for a given file, guarding against stale responses
@@ -196,14 +251,23 @@ export function DocumentUploadModal({
       if (percent >= 100) setStep('processing');
     };
 
-    extractInvoice(projectId, file, onProgress)
+    // `staffPayroll` has no project yet, so it must hit the project-less
+    // extraction alias (R4/D2 of the staff-section plan).
+    const extraction =
+      context.kind === 'project'
+        ? extractInvoice(context.projectId, file, onProgress)
+        : extractInvoiceStandalone(file, onProgress);
+
+    extraction
       .then((result) => {
         if (extractionTokenRef.current !== extractionToken) return;
         setExtractResult(result);
         setStep('done');
         form.setFieldsValue({
           name: result.fields.name,
-          type: result.fields.type ?? 'factura',
+          // A locked type (payroll from the worker's page) must never be
+          // overwritten by whatever the extractor guessed.
+          type: lockedType ?? (result.fields.type ?? 'factura'),
           date: result.fields.date ? dayjs(result.fields.date) : undefined,
           dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
           amount: result.fields.amount,
@@ -261,6 +325,7 @@ export function DocumentUploadModal({
   useEffect(() => {
     if (open) {
       form.resetFields();
+      if (lockedType) form.setFieldsValue({ type: lockedType });
       setQueue([]);
       setCurrentIndex(0);
       setStep('idle');
@@ -285,8 +350,37 @@ export function DocumentUploadModal({
         .then(setSuppliers)
         .catch(() => setSuppliers([]))
         .finally(() => setSuppliersLoaded(true));
+
+      setStaffMembers([]);
+      setStaffMemberId(null);
+      setStaffMemberError(false);
+      setCreatingStaffMember(false);
+      setNewStaffMemberFirstName('');
+      setNewStaffMemberLastName('');
+
+      setSelectedProjectId(null);
+      setProjectError(false);
+
+      // Only `kind: 'project'` can ever show the worker selector (it's
+      // fixed via context for `staffPayroll`), so it's the only case that
+      // needs the list loaded.
+      if (context.kind === 'project') {
+        listStaffMembers()
+          .then(setStaffMembers)
+          .catch(() => setStaffMembers([]));
+      }
     }
-  }, [open, form]);
+  }, [open, form, context.kind, lockedType]);
+
+  // D3: leaving `nomina` must clear and stop validating the worker field —
+  // it only applies while the observed type is a payroll.
+  useEffect(() => {
+    if (context.kind !== 'project') return;
+    if (typeWatch !== 'nomina') {
+      setStaffMemberId(null);
+      setStaffMemberError(false);
+    }
+  }, [context.kind, typeWatch]);
 
   // Build (and clean up) an object URL for the in-memory PDF so it can be
   // previewed in an iframe without any network round-trip.
@@ -455,10 +549,86 @@ export function DocumentUploadModal({
     }
   };
 
+  const handleSelectStaffMember = (value: string | undefined) => {
+    setStaffMemberId(value ?? null);
+    setStaffMemberError(false);
+  };
+
+  const handleOpenCreateStaffMember = () => {
+    setNewStaffMemberFirstName('');
+    setNewStaffMemberLastName('');
+    setCreatingStaffMember(true);
+  };
+
+  const handleCancelCreateStaffMember = () => {
+    setCreatingStaffMember(false);
+    setNewStaffMemberFirstName('');
+    setNewStaffMemberLastName('');
+  };
+
+  const handleCreateStaffMemberPopoverOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      handleOpenCreateStaffMember();
+    } else {
+      handleCancelCreateStaffMember();
+    }
+  };
+
+  const handleCreateStaffMember = async () => {
+    const firstName = newStaffMemberFirstName.trim();
+    const lastName = newStaffMemberLastName.trim();
+    if (!firstName || !lastName) {
+      void message.warning(t('projects.documents.upload.staffMember.createNameRequired'));
+      return;
+    }
+
+    setCreatingStaffMemberSubmitting(true);
+    try {
+      const created = await createStaffMember({ firstName, lastName });
+      setStaffMembers((prev) =>
+        [...prev, created].sort((a, b) =>
+          `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+        ),
+      );
+      setStaffMemberId(created.id);
+      setStaffMemberError(false);
+      handleCancelCreateStaffMember();
+      void message.success(t('projects.documents.upload.staffMember.created'));
+    } catch {
+      void message.error(t('projects.documents.upload.staffMember.createError'));
+    } finally {
+      setCreatingStaffMemberSubmitting(false);
+    }
+  };
+
+  const handleSelectProject = (value: string | undefined) => {
+    setSelectedProjectId(value ?? null);
+    setProjectError(false);
+  };
+
+  // D8: resolves the submit target from `context` plus whatever the two
+  // conditional selectors hold.
+  const resolveTarget = (): { projectId: string; staffMemberId: string | null } =>
+    context.kind === 'staffPayroll'
+      ? { projectId: selectedProjectId ?? '', staffMemberId: context.staffMemberId }
+      : { projectId: context.projectId, staffMemberId: showStaffSelect ? staffMemberId : null };
+
   const handleOk = () => {
     form
       .validateFields()
       .then((values) => {
+        let hasSelectorError = false;
+        if (showStaffSelect && !staffMemberId) {
+          setStaffMemberError(true);
+          hasSelectorError = true;
+        }
+        if (showProjectSelect && !selectedProjectId) {
+          setProjectError(true);
+          hasSelectorError = true;
+        }
+        if (hasSelectorError) return;
+
+        const { projectId, staffMemberId: targetStaffMemberId } = resolveTarget();
         const { date, dueDate, ...rest } = values;
         const payload: CreateDocumentPayload = {
           ...rest,
@@ -466,6 +636,7 @@ export function DocumentUploadModal({
           dueDate: dueDate ? dueDate.format('YYYY-MM-DD') : undefined,
           month: date.month() + 1,
           supplierId: supplierId ?? undefined,
+          staffMemberId: targetStaffMemberId ?? undefined,
         };
 
         setSubmitting(true);
@@ -537,6 +708,36 @@ export function DocumentUploadModal({
           onClick={() => void handleCreateSupplier()}
         >
           {t('projects.documents.upload.supplier.createSubmit')}
+        </Button>
+      </Flex>
+    </Flex>
+  );
+
+  const createStaffMemberPopoverContent = (
+    <Flex vertical gap={8} style={{ width: 240 }}>
+      <Input
+        size="small"
+        placeholder={t('projects.documents.upload.staffMember.createFirstNamePlaceholder')}
+        value={newStaffMemberFirstName}
+        onChange={(event) => setNewStaffMemberFirstName(event.target.value)}
+      />
+      <Input
+        size="small"
+        placeholder={t('projects.documents.upload.staffMember.createLastNamePlaceholder')}
+        value={newStaffMemberLastName}
+        onChange={(event) => setNewStaffMemberLastName(event.target.value)}
+      />
+      <Flex gap={8} justify="end">
+        <Button size="small" onClick={handleCancelCreateStaffMember}>
+          {t('common.cancel')}
+        </Button>
+        <Button
+          size="small"
+          type="primary"
+          loading={creatingStaffMemberSubmitting}
+          onClick={() => void handleCreateStaffMember()}
+        >
+          {t('projects.documents.upload.staffMember.createSubmit')}
         </Button>
       </Flex>
     </Flex>
@@ -742,6 +943,7 @@ export function DocumentUploadModal({
               <Col xs={24} sm={12} md={8}>
                 <Form.Item name="type" label={t('projects.documents.upload.fields.type')} style={FORM_ITEM_STYLE}>
                   <Select
+                    disabled={Boolean(lockedType)}
                     options={DOCUMENT_TYPES.map((type) => ({
                       value: type,
                       label: t(`projects.documents.types.${type}`),
@@ -796,6 +998,82 @@ export function DocumentUploadModal({
                 </Form.Item>
               </Col>
             </Row>
+
+            {/* D8: mutually exclusive by construction — `showStaffSelect` only
+                applies to `kind: 'project'`, `showProjectSelect` only to
+                `kind: 'staffPayroll'` — never rendered together. */}
+            {(showStaffSelect || showProjectSelect) && (
+              <Row gutter={12} align="top">
+                {showStaffSelect && (
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label={t('projects.documents.upload.staffMember.label')}
+                      style={FORM_ITEM_STYLE}
+                      validateStatus={staffMemberError ? 'error' : undefined}
+                      help={
+                        staffMemberError
+                          ? t('projects.documents.upload.staffMember.required')
+                          : t('projects.documents.upload.staffMember.hint')
+                      }
+                    >
+                      <Select
+                        showSearch
+                        value={staffMemberId ?? undefined}
+                        onChange={handleSelectStaffMember}
+                        placeholder={t('projects.documents.upload.staffMember.placeholder')}
+                        filterOption={(input, option) =>
+                          (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={staffMembers.map((member) => ({
+                          value: member.id,
+                          label: `${member.firstName} ${member.lastName}`,
+                        }))}
+                      />
+                    </Form.Item>
+                    <Popover
+                      trigger="click"
+                      open={creatingStaffMember}
+                      onOpenChange={handleCreateStaffMemberPopoverOpenChange}
+                      placement="bottomLeft"
+                      content={createStaffMemberPopoverContent}
+                    >
+                      <Button
+                        type="link"
+                        size="small"
+                        icon={<PlusOutlined />}
+                        style={{ paddingInlineStart: 0, marginTop: -4 }}
+                      >
+                        {t('projects.documents.upload.staffMember.createNew')}
+                      </Button>
+                    </Popover>
+                  </Col>
+                )}
+                {showProjectSelect && (
+                  <Col xs={24} md={8}>
+                    <Form.Item
+                      label={t('projects.documents.upload.project.label')}
+                      style={FORM_ITEM_STYLE}
+                      validateStatus={projectError ? 'error' : undefined}
+                      help={projectError ? t('projects.documents.upload.project.required') : undefined}
+                    >
+                      <Select
+                        showSearch
+                        value={selectedProjectId ?? undefined}
+                        onChange={handleSelectProject}
+                        placeholder={t('projects.documents.upload.project.placeholder')}
+                        filterOption={(input, option) =>
+                          (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={projects.map((project) => ({
+                          value: project.id,
+                          label: project.name,
+                        }))}
+                      />
+                    </Form.Item>
+                  </Col>
+                )}
+              </Row>
+            )}
 
             <Text strong style={{ fontSize: 13 }}>
               {t('projects.documents.upload.sections.supplier')}

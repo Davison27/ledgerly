@@ -248,7 +248,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
 
       <DocumentUploadModal
         open={uploadOpen}
-        projectId={project.id}
+        context={{ kind: 'project', projectId: project.id }}
         onCancel={() => setUploadOpen(false)}
         onCreated={handleDocumentCreated}
       />
