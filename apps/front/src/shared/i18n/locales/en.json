@@ -1,0 +1,954 @@
+{
+  "common": {
+    "appName": "Ledgerly ERP",
+    "language": "Language",
+    "signOut": "Sign out",
+    "profile": "Profile",
+    "settings": "Settings",
+    "actions": "Actions",
+    "add": "Add",
+    "edit": "Edit",
+    "delete": "Delete",
+    "cancel": "Cancel",
+    "close": "Close",
+    "open": "Open",
+    "save": "Save",
+    "comingSoon": "This feature will be available soon"
+  },
+  "login": {
+    "welcome": "Welcome to Ledgerly",
+    "subtitle": "Management platform",
+    "signIn": "Sign in",
+    "tagline": "Manage your projects, documents and finances in one place."
+  },
+  "topbar": {
+    "newTab": "New tab"
+  },
+  "theme": {
+    "toggleLight": "Switch to light mode",
+    "toggleDark": "Switch to dark mode",
+    "ariaLabel": "Toggle between light and dark mode"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "projects": "Projects",
+    "documents": "Documents",
+    "suppliers": "Suppliers",
+    "invoices": "Invoices",
+    "products": "Products",
+    "staff": "Staff"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "greeting": "Hello, {{name}}",
+    "subtitle": "Here's a summary of your company's activity.",
+    "loadError": "The dashboard could not be loaded. Please try again.",
+    "empty": {
+      "title": "There's no data to show yet",
+      "description": "Create your first project and add documents to see your company's statistics here.",
+      "cta": "Create project"
+    },
+    "topProjects": {
+      "title": "Top projects",
+      "empty": "No projects with documents yet.",
+      "docCountOne": "{{count}} doc",
+      "docCountOther": "{{count}} docs"
+    },
+    "tips": {
+      "title": "Recommendations",
+      "overdue": "You have {{count}} overdue document(s). Review them to settle payments as soon as possible.",
+      "manyPending": "A high share of your documents are pending ({{count}}). Follow up on collections to improve cash flow.",
+      "expensesOverIncome": "Your expenses exceed your income this period. Review your cost structure.",
+      "negativeMargin": "Your margin is negative: you're losing money. Look into which projects or expenses are causing it.",
+      "lowMargin": "Your margin is low. Consider reviewing prices or cutting costs to improve profitability.",
+      "noProjects": "Create your first project to start tracking your documents and finances.",
+      "noDocuments": "Add documents to your projects to start seeing statistics here.",
+      "healthy": "Nice work: your margin is healthy and you have no overdue documents.",
+      "generic": "Everything looks fine. Keep adding documents to get more insight into your business."
+    },
+    "yearSelector": {
+      "label": "Year"
+    },
+    "yoy": {
+      "label": "vs {{year}}",
+      "noData": "— no data for last year",
+      "up": "is up",
+      "down": "is down",
+      "ariaLabel": "{{direction}} {{pct}} compared to last year",
+      "empty": {
+        "title": "No comparison yet",
+        "hint": "Previous-year data is needed to show the change."
+      }
+    },
+    "kpi": {
+      "emptyHint": "No entries recorded yet."
+    },
+    "budget": {
+      "title": "Budget vs. actual by project",
+      "empty": "No projects with a budget or activity this year.",
+      "budget": "Budget",
+      "income": "Income",
+      "spent": "Spent",
+      "consumed": "{{pct}}% consumed",
+      "noBudget": "No budget",
+      "overBudget": "Over budget"
+    },
+    "vat": {
+      "title": "Quarterly VAT",
+      "output": "Output VAT",
+      "input": "Input VAT",
+      "balance": "Balance due",
+      "quarters": {
+        "1": "Q1",
+        "2": "Q2",
+        "3": "Q3",
+        "4": "Q4"
+      },
+      "approxNote": "Input VAT is an estimate calculated from your recorded expenses."
+    },
+    "cashflow": {
+      "title": "Cashflow forecast",
+      "overdue": "Overdue and pending",
+      "inflow": "Inflow",
+      "outflow": "Outflow",
+      "net": "Net",
+      "upcoming": "Upcoming months",
+      "empty": "No cashflow forecast available."
+    }
+  },
+  "onboarding": {
+    "title": "Set up your company",
+    "welcome": "Before you get started, tell us a bit about your company. It only takes a minute.",
+    "steps": {
+      "company": "Company",
+      "contact": "Contact",
+      "address": "Address"
+    },
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "success": "Company set up successfully",
+    "error": "The company could not be saved. Please try again.",
+    "demo": {
+      "helper": "Want to explore Ledgerly before setting up your company? Load a sample project with documents.",
+      "button": "Load sample data",
+      "success": "Sample data loaded successfully",
+      "error": "The sample data could not be loaded. Please try again."
+    }
+  },
+  "company": {
+    "settings": {
+      "title": "Company profile",
+      "saved": "Company updated",
+      "sections": {
+        "general": "General",
+        "contact": "Contact",
+        "address": "Address"
+      },
+      "fields": {
+        "name": "Commercial name",
+        "legalName": "Legal name",
+        "taxId": "Tax ID",
+        "sector": "Sector",
+        "email": "Email",
+        "phone": "Phone",
+        "website": "Website",
+        "address": "Address",
+        "city": "City",
+        "postalCode": "Postal code",
+        "country": "Country",
+        "logo": "Logo",
+        "brandColor": "Brand colour"
+      },
+      "placeholders": {
+        "name": "E.g. Ledgerly",
+        "legalName": "E.g. Ledgerly Gestión S.L.",
+        "taxId": "E.g. B12345678",
+        "sector": "E.g. Management and administration",
+        "email": "E.g. info@company.com",
+        "phone": "E.g. +34 600 123 456",
+        "website": "E.g. https://company.com",
+        "address": "Street, number",
+        "city": "E.g. Zaragoza",
+        "postalCode": "E.g. 50001",
+        "country": "E.g. Spain"
+      },
+      "logo": {
+        "upload": "Upload logo",
+        "hint": "PNG or JPG, recommended size 256x256 px"
+      },
+      "brandColor": {
+        "hint": "Sets the interface's primary colour.",
+        "reset": "Reset"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "emailInvalid": "Enter a valid email",
+        "urlInvalid": "Enter a valid URL"
+      },
+      "error": "The company could not be updated. Please try again."
+    }
+  },
+  "projects": {
+    "title": "Projects",
+    "subtitle": "Select a project to continue",
+    "notFound": "Project not found",
+    "docSummary": "{{docs}} documents · {{pending}} pending",
+    "deleteConfirm": {
+      "title": "Delete project",
+      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The project could not be deleted. Please try again."
+    },
+    "sections": {
+      "documents": "Documents",
+      "dashboard": "Dashboard",
+      "settings": "Settings"
+    },
+    "documents": {
+      "search": "Search by name...",
+      "countOne": "{{count}} document",
+      "countOther": "{{count}} documents",
+      "filters": {
+        "allTypes": "All types",
+        "allStatuses": "All statuses",
+        "dateFrom": "From",
+        "dateTo": "To",
+        "amountMin": "Min amount",
+        "amountMax": "Max amount"
+      },
+      "layout": {
+        "list": "List",
+        "cards": "Cards"
+      },
+      "columns": {
+        "document": "Document",
+        "type": "Type",
+        "direction": "Flow",
+        "irpf": "Withholding",
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status"
+      },
+      "empty": "No documents match the filters.",
+      "loading": "Loading documents...",
+      "loadError": "Documents could not be loaded.",
+      "preview": {
+        "empty": "Select a document to see its preview",
+        "placeholder": "preview · pdf",
+        "noFile": "No attached document",
+        "download": "Download",
+        "print": "Print",
+        "viewer": {
+          "loading": "Loading the PDF...",
+          "error": "The PDF could not be loaded."
+        }
+      },
+      "types": {
+        "factura": "Invoice",
+        "nomina": "Payroll",
+        "impuesto": "Tax"
+      },
+      "directions": {
+        "ingreso": "Income",
+        "gasto": "Expense"
+      },
+      "statuses": {
+        "pagado": "Paid",
+        "pendiente": "Pending",
+        "vencido": "Overdue"
+      },
+      "detail": {
+        "goToProject": "Go to project"
+      },
+      "edit": {
+        "button": "Edit",
+        "title": "Edit document",
+        "submit": "Save changes",
+        "saved": "Document updated",
+        "error": "The document could not be updated",
+        "noChanges": "There are no changes to save",
+        "fileNote": "The attached PDF cannot be changed here"
+      },
+      "delete": {
+        "button": "Delete",
+        "confirm": {
+          "title": "Delete this document?",
+          "content": "\"{{name}}\" and its PDF will be deleted. This cannot be undone.",
+          "ok": "Delete"
+        },
+        "deleted": "Document deleted",
+        "error": "The document could not be deleted"
+      },
+      "upload": {
+        "button": "Add document",
+        "title": "Add document",
+        "submit": "Create document",
+        "created": "Document created successfully",
+        "extractError": "The document could not be processed. Please try again.",
+        "scannedPdfAlert": "We couldn't read the PDF automatically (it looks like a scanned image). Fill in the fields manually.",
+        "dropzone": {
+          "title": "Upload the invoice PDF",
+          "hint": "Drag one or more files here or click to select them. We'll fill in the form for you.",
+          "selectedFile": "Selected file: {{name}}",
+          "changeFile": "Change PDF"
+        },
+        "queue": {
+          "progress": "Document {{current}} of {{total}}",
+          "saveAndNext": "Save and next",
+          "skip": "Skip",
+          "finish": "Save",
+          "allDone": "All documents have been processed"
+        },
+        "steps": {
+          "uploading": "Uploading",
+          "processing": "Processing PDF",
+          "done": "Done"
+        },
+        "extraction": {
+          "source": {
+            "facturae": "Facturae",
+            "facturx": "Factur-X",
+            "ubl": "UBL / Peppol",
+            "heuristic": "Heuristic detection"
+          },
+          "confidence": {
+            "high": "High confidence",
+            "partial": "Partial confidence",
+            "low": "Low confidence"
+          },
+          "reviewNote": "Review the extracted data before saving, confidence is limited.",
+          "warningsTitle": "Extraction warnings"
+        },
+        "duplicate": {
+          "title": "Possible duplicate document",
+          "match": "{{project}} · {{name}} · {{date}} · {{amount}}"
+        },
+        "sections": {
+          "supplier": "Supplier",
+          "document": "Document",
+          "amounts": "Amounts"
+        },
+        "supplier": {
+          "label": "Supplier",
+          "placeholder": "Search a supplier by name or tax ID...",
+          "createNew": "+ Create supplier",
+          "createNamePlaceholder": "Supplier name",
+          "createTaxIdPlaceholder": "Tax ID (optional)",
+          "createSubmit": "Create",
+          "createNameRequired": "The supplier name is required",
+          "created": "Supplier created and selected",
+          "createError": "The supplier could not be created. Please try again.",
+          "duplicateTaxId": "A supplier with that tax ID already exists.",
+          "autofillNote": "The issuer is auto-filled from the selected supplier."
+        },
+        "staffMember": {
+          "label": "Staff member",
+          "placeholder": "Search a staff member by name...",
+          "required": "Select the staff member this payroll belongs to",
+          "hint": "A payroll is imputed to a staff member and a project.",
+          "createNew": "+ New staff member",
+          "createFirstNamePlaceholder": "First name",
+          "createLastNamePlaceholder": "Last name",
+          "createSubmit": "Create",
+          "createNameRequired": "First and last name are required",
+          "created": "Staff member created and selected",
+          "createError": "The staff member could not be created. Please try again."
+        },
+        "project": {
+          "label": "Project",
+          "placeholder": "Select a project",
+          "required": "Select the project this payroll is imputed to"
+        },
+        "fields": {
+          "name": "Name",
+          "type": "Type",
+          "direction": "Income or expense",
+          "status": "Status",
+          "date": "Date",
+          "dueDate": "Due date",
+          "amount": "Amount",
+          "taxBase": "Tax base",
+          "taxRate": "VAT %",
+          "taxAmount": "VAT amount",
+          "irpfRate": "Withholding %",
+          "irpfAmount": "Withholding amount",
+          "currency": "Currency",
+          "invoiceNumber": "Invoice number",
+          "issuerName": "Issuer",
+          "issuerTaxId": "Issuer tax ID"
+        },
+        "placeholders": {
+          "name": "E.g. March supplies invoice",
+          "invoiceNumber": "E.g. F-2024-001",
+          "issuerName": "E.g. Suministros Norte SL",
+          "issuerTaxId": "E.g. B12345678"
+        },
+        "validation": {
+          "nameRequired": "Name is required",
+          "dateRequired": "Date is required",
+          "amountRequired": "Amount is required",
+          "amountMin": "Amount cannot be negative",
+          "amountMismatch": "The total does not match base + VAT − withholding. Check it if this is not intentional."
+        }
+      }
+    },
+    "dashboard": {
+      "kpi": {
+        "income": "Total income",
+        "expenses": "Total expenses",
+        "pending": "Pending",
+        "overdue": "Overdue"
+      },
+      "totalDocs": "{{count}} docs",
+      "monthly": "Monthly evolution (income vs expenses)",
+      "monthsShort": "Jan,Feb,Mar,Apr,May,Jun,Jul,Aug,Sep,Oct,Nov,Dec",
+      "legend": {
+        "income": "Income",
+        "expenses": "Expenses"
+      },
+      "category": "Distribution by category",
+      "statusBreakdown": "Pending vs paid vs overdue",
+      "documentsCount": "{{count}} documents",
+      "profit": {
+        "headline": "Profitability",
+        "profitable": "The project is profitable",
+        "unprofitable": "The project is not profitable",
+        "net": "Net profit",
+        "margin": "Margin"
+      },
+      "monthlyProfit": {
+        "title": "Monthly net profit"
+      },
+      "cumulativeProfit": {
+        "title": "Cumulative profit"
+      },
+      "marginTrend": {
+        "title": "Monthly margin"
+      },
+      "cashflowByStatus": {
+        "title": "Amount by status"
+      },
+      "topIssuers": {
+        "title": "Issuers by amount",
+        "unknown": "No issuer",
+        "other": "Other",
+        "empty": "No issuers on record."
+      }
+    },
+    "settings": {
+      "details": "Project details",
+      "fieldName": "Name",
+      "fieldCode": "Project code",
+      "fieldFiscalYear": "Fiscal year",
+      "saved": "Project updated successfully",
+      "saveError": "The project could not be updated. Please try again.",
+      "loadError": "The project could not be loaded."
+    },
+    "form": {
+      "title": "Add project",
+      "editTitle": "Edit project",
+      "submit": "Create project",
+      "save": "Save changes",
+      "created": "Project created successfully",
+      "createError": "The project could not be created. Please try again.",
+      "updated": "Project updated successfully",
+      "updateError": "The project could not be updated. Please try again.",
+      "duplicateCode": "A project with that code already exists.",
+      "loadError": "The project could not be loaded.",
+      "sections": {
+        "general": "General",
+        "client": "Client / Contact",
+        "planning": "Planning"
+      },
+      "fields": {
+        "name": "Name",
+        "code": "Code",
+        "type": "Type",
+        "status": "Status",
+        "description": "Description",
+        "clientCompany": "Company / Client",
+        "clientTaxId": "Tax ID",
+        "contactName": "Contact person",
+        "contactEmail": "Contact email",
+        "contactPhone": "Contact phone",
+        "address": "Address",
+        "startDate": "Start date",
+        "endDate": "End date",
+        "budget": "Budget",
+        "currency": "Currency",
+        "fiscalYear": "Fiscal year",
+        "manager": "Manager",
+        "image": "Project image"
+      },
+      "image": {
+        "upload": "Upload image",
+        "hint": "PNG or JPG, recommended size 256x256 px",
+        "remove": "Remove image"
+      },
+      "placeholders": {
+        "name": "E.g. La que se avecina",
+        "code": "E.g. GA-ZGZ-24",
+        "type": "Select a type",
+        "description": "Add a project description...",
+        "clientCompany": "E.g. Mediaset España",
+        "clientTaxId": "E.g. B12345678",
+        "contactName": "E.g. María López",
+        "contactEmail": "E.g. maria.lopez@company.com",
+        "contactPhone": "E.g. +34 600 123 456",
+        "address": "Street, number, city",
+        "budget": "0.00",
+        "fiscalYear": "E.g. 2025",
+        "manager": "E.g. Juan Pérez"
+      },
+      "types": {
+        "client": "Client",
+        "internal": "Internal",
+        "audiovisual": "Audiovisual",
+        "construction": "Construction",
+        "consulting": "Consulting",
+        "other": "Other"
+      },
+      "statuses": {
+        "active": "Active",
+        "on_hold": "On hold",
+        "completed": "Completed",
+        "archived": "Archived"
+      },
+      "currencies": {
+        "EUR": "Euro (EUR)",
+        "USD": "US Dollar (USD)",
+        "GBP": "British Pound (GBP)"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "codeRequired": "Code is required",
+        "typeRequired": "Type is required",
+        "emailInvalid": "Enter a valid email",
+        "budgetMin": "Budget cannot be negative"
+      }
+    }
+  },
+  "extractionHints": {
+    "navLabel": "Learned hints",
+    "title": "Learned extraction hints",
+    "subtitle": "Patterns the system has learned from your invoices, grouped by issuer. Delete a hint to undo an incorrect learning.",
+    "unknownIssuer": "Unknown issuer",
+    "empty": "No extraction hints have been learned yet.",
+    "loadError": "Extraction hints could not be loaded.",
+    "hintCountOne": "{{count}} hint",
+    "hintCountOther": "{{count}} hints",
+    "columns": {
+      "field": "Field",
+      "anchorLabel": "Anchor",
+      "anchorKind": "Type",
+      "occurrences": "Occurrences",
+      "sampleValue": "Sample value",
+      "actions": "Actions"
+    },
+    "anchorKinds": {
+      "inline": "Inline",
+      "preceding-line": "Preceding line"
+    },
+    "deleteConfirm": {
+      "title": "Delete hint",
+      "content": "Are you sure you want to delete this learned hint? The system will stop applying it to future invoices from this issuer.",
+      "ok": "Delete"
+    },
+    "deleted": "Hint deleted",
+    "deleteError": "The hint could not be deleted. Please try again.",
+    "tabs": {
+      "hints": "Learned hints",
+      "quality": "Extraction quality"
+    },
+    "quality": {
+      "loadError": "The extraction quality metrics could not be loaded.",
+      "empty": "No extractions have been recorded yet.",
+      "totalExtractions": "Total extractions",
+      "avgCorrectedFields": "Avg. corrected fields",
+      "correctionRate": "Correction rate",
+      "bySource": "By extraction source",
+      "byConfidence": "By confidence level",
+      "topHints": "Most frequent hints",
+      "topHintsEmpty": "No hints have been recorded yet.",
+      "occurrences": "{{count}} occurrences"
+    }
+  },
+  "suppliers": {
+    "navLabel": "Suppliers",
+    "title": "Suppliers",
+    "subtitle": "Manage the suppliers shared across all projects.",
+    "add": "Add supplier",
+    "empty": "There are no suppliers yet.",
+    "loadError": "Suppliers could not be loaded.",
+    "deleted": "Supplier deleted",
+    "fields": {
+      "name": "Name",
+      "taxId": "Tax ID",
+      "email": "Email",
+      "phone": "Phone",
+      "address": "Address",
+      "iban": "IBAN",
+      "notes": "Notes"
+    },
+    "columns": {
+      "name": "Name",
+      "taxId": "Tax ID",
+      "email": "Email",
+      "phone": "Phone",
+      "actions": "Actions"
+    },
+    "form": {
+      "createTitle": "Add supplier",
+      "editTitle": "Edit supplier",
+      "submit": "Save",
+      "createSubmit": "Create supplier",
+      "created": "Supplier created successfully",
+      "updated": "Supplier updated successfully",
+      "createError": "The supplier could not be created. Please try again.",
+      "updateError": "The supplier could not be updated. Please try again.",
+      "duplicateTaxId": "A supplier with that tax ID already exists.",
+      "placeholders": {
+        "name": "E.g. Suministros Norte SL",
+        "taxId": "E.g. B12345678",
+        "email": "E.g. contact@supplier.com",
+        "phone": "E.g. +34 600 123 456",
+        "address": "Street, number, city",
+        "iban": "E.g. ES91 2100 0418 4502 0005 1332",
+        "notes": "Internal notes about the supplier..."
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "emailInvalid": "Enter a valid email"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Delete supplier",
+      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The supplier could not be deleted. Please try again."
+    }
+  },
+  "documents": {
+    "title": "Documents",
+    "subtitle": "Search and filter every document across all projects.",
+    "empty": "No documents match the filters.",
+    "loadError": "Documents could not be loaded.",
+    "filters": {
+      "search": "Search by name, issuer or invoice number...",
+      "allTypes": "All types",
+      "allStatuses": "All statuses",
+      "direction": "Income / expense",
+      "amountMin": "Min amount",
+      "amountMax": "Max amount",
+      "allProjects": "All projects",
+      "allSuppliers": "All suppliers"
+    },
+    "columns": {
+      "project": "Project",
+      "name": "Document",
+      "type": "Type",
+      "direction": "Flow",
+      "status": "Status",
+      "date": "Date",
+      "amount": "Amount",
+      "issuer": "Issuer",
+      "invoiceNumber": "Invoice number",
+      "actions": "Actions"
+    },
+    "actions": {
+      "view": "View document"
+    },
+    "detail": {
+      "title": "Document details",
+      "loadError": "The document could not be loaded."
+    }
+  },
+  "invoices": {
+    "title": "Invoices",
+    "subtitle": "Issue invoices for your projects and download them as PDF.",
+    "add": "New invoice",
+    "empty": "There are no invoices yet.",
+    "loadError": "Invoices could not be loaded.",
+    "deleted": "Invoice deleted",
+    "noLedgerEntry": "No ledger entry",
+    "companyIncomplete": "Complete your company's name and tax ID in settings before issuing invoices.",
+    "columns": {
+      "number": "Number",
+      "issueDate": "Date",
+      "customerName": "Customer",
+      "taxBase": "Base",
+      "total": "Total",
+      "actions": "Actions"
+    },
+    "actions": {
+      "downloadPdf": "Download PDF"
+    },
+    "fields": {
+      "project": "Project",
+      "customerName": "Customer name",
+      "customerTaxId": "Customer tax ID",
+      "customerAddress": "Customer address",
+      "taxRate": "VAT (%)",
+      "irpfRate": "Withholding (%)",
+      "notes": "Notes"
+    },
+    "form": {
+      "title": "New invoice",
+      "submit": "Issue invoice",
+      "created": "Invoice issued successfully",
+      "createError": "The invoice could not be issued. Please try again.",
+      "placeholders": {
+        "project": "Select a project",
+        "customerName": "E.g. Acme Corp SL",
+        "customerTaxId": "E.g. B12345678",
+        "customerAddress": "Street, number, city",
+        "notes": "E.g. payment details, IBAN..."
+      },
+      "validation": {
+        "projectRequired": "Select a project",
+        "customerNameRequired": "Customer name is required",
+        "lineDescriptionRequired": "Description is required",
+        "lineUnitPriceRequired": "Price is required",
+        "lineUnitPriceMin": "Price must be 0 or greater",
+        "lineQuantityRequired": "Quantity is required",
+        "lineQuantityMin": "Quantity must be greater than 0"
+      }
+    },
+    "lines": {
+      "title": "Lines",
+      "columns": {
+        "description": "Description",
+        "quantity": "Quantity",
+        "unitPrice": "Price"
+      },
+      "descriptionPlaceholder": "Description",
+      "quantityPlaceholder": "Quantity",
+      "unitPricePlaceholder": "Price",
+      "productGroup": "From the catalog",
+      "add": "Add line",
+      "remove": "Remove line"
+    },
+    "totals": {
+      "base": "Base",
+      "tax": "VAT ({{rate}}%)",
+      "irpf": "Withholding ({{rate}}%)",
+      "total": "Total"
+    },
+    "deleteConfirm": {
+      "title": "Delete invoice",
+      "content": "Are you sure you want to delete invoice \"{{number}}\"? This will also delete its linked project document. This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The invoice could not be deleted. Please try again."
+    }
+  },
+  "products": {
+    "title": "Products",
+    "subtitle": "Manage the catalog of products and services you invoice.",
+    "add": "New product",
+    "empty": "There are no products yet.",
+    "loadError": "Products could not be loaded.",
+    "deleted": "Product deleted",
+    "fields": {
+      "name": "Name",
+      "price": "Price"
+    },
+    "columns": {
+      "name": "Name",
+      "price": "Price",
+      "actions": "Actions"
+    },
+    "form": {
+      "createTitle": "New product",
+      "editTitle": "Edit product",
+      "submit": "Save",
+      "createSubmit": "Create product",
+      "created": "Product created successfully",
+      "updated": "Product updated successfully",
+      "createError": "The product could not be created. Please try again.",
+      "updateError": "The product could not be updated. Please try again.",
+      "duplicateName": "A product with that name already exists.",
+      "priceHelp": "Leave it empty if you haven't decided yet.",
+      "placeholders": {
+        "name": "E.g. Logo design",
+        "price": "E.g. 150"
+      },
+      "validation": {
+        "nameRequired": "Name is required"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Delete product",
+      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The product could not be deleted. Please try again."
+    }
+  },
+  "staff": {
+    "title": "Staff",
+    "subtitle": "Manage the people who work at the company and their employment records.",
+    "add": "Add staff member",
+    "empty": "There are no staff members yet.",
+    "loadError": "Staff could not be loaded.",
+    "deleted": "Staff member deleted",
+    "columns": {
+      "name": "Name",
+      "position": "Position",
+      "taxId": "Tax ID",
+      "hireDate": "Hired on",
+      "actions": "Actions",
+      "inactive": "Inactive"
+    },
+    "fields": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "taxId": "Tax ID",
+      "email": "Email",
+      "phone": "Phone",
+      "position": "Position",
+      "hireDate": "Hire date",
+      "endDate": "End date",
+      "notes": "Notes"
+    },
+    "form": {
+      "createTitle": "Add staff member",
+      "editTitle": "Edit staff member",
+      "submit": "Save",
+      "createSubmit": "Create staff member",
+      "created": "Staff member created successfully",
+      "updated": "Staff member updated successfully",
+      "createError": "The staff member could not be created. Please try again.",
+      "updateError": "The staff member could not be updated. Please try again.",
+      "endDateHelp": "Leave it empty while they're still active. Fill it in to mark them inactive without deleting them.",
+      "placeholders": {
+        "firstName": "E.g. María",
+        "lastName": "E.g. López García",
+        "taxId": "E.g. 12345678A",
+        "position": "E.g. Camera operator",
+        "email": "E.g. maria.lopez@company.com",
+        "phone": "E.g. +34 600 123 456",
+        "notes": "Internal notes about the staff member..."
+      },
+      "validation": {
+        "firstNameRequired": "First name is required",
+        "lastNameRequired": "Last name is required",
+        "emailInvalid": "Enter a valid email"
+      }
+    },
+    "deleteConfirm": {
+      "title": "Delete staff member",
+      "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "ok": "Delete",
+      "error": "The staff member could not be deleted. Please try again.",
+      "blockedTitle": "This staff member can't be deleted",
+      "blockedGeneric": "This staff member has payrolls imputed to them and can't be deleted.",
+      "blockedHint": "You can reassign their payrolls to another staff member from their page (Payrolls tab), or mark them inactive with an end date when editing them, instead of deleting them.",
+      "goToProfile": "Go to their page"
+    },
+    "detail": {
+      "notFound": "Staff member not found",
+      "add": "Add"
+    },
+    "sections": {
+      "profile": "Profile",
+      "documents": "Documents",
+      "payrolls": "Payrolls"
+    },
+    "documentTypes": {
+      "dni": "National ID",
+      "foto": "Photo",
+      "prl": "Health & safety training",
+      "art19": "Article 19",
+      "epis": "PPE",
+      "renuncia_reco": "RECO waiver",
+      "reta_recibo": "RETA receipt",
+      "varios": "Other"
+    },
+    "documents": {
+      "noTypes": "The document type catalogue could not be loaded.",
+      "empty": "There are no documents of this type yet.",
+      "deleted": "Document deleted",
+      "columns": {
+        "name": "Document",
+        "issueDate": "Issued on",
+        "expiryDate": "Expiry",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "View document"
+      },
+      "deleteConfirm": {
+        "title": "Delete this document?",
+        "content": "\"{{name}}\" will be deleted. This action cannot be undone.",
+        "ok": "Delete",
+        "error": "The document could not be deleted"
+      },
+      "upload": {
+        "title": "Add document",
+        "submit": "Create document",
+        "created": "Document created successfully",
+        "createError": "The document could not be created. Please try again.",
+        "invalidFile": "Unsupported format. Upload a PDF, JPG, PNG or WEBP.",
+        "fileRequired": "Select a file to continue",
+        "fields": {
+          "type": "Type",
+          "name": "Name",
+          "issueDate": "Issue date",
+          "expiryDate": "Expiry date",
+          "notes": "Notes",
+          "file": "File"
+        },
+        "placeholders": {
+          "name": "E.g. María López's National ID",
+          "notes": "Notes about the document..."
+        },
+        "validation": {
+          "typeRequired": "Type is required",
+          "nameRequired": "Name is required",
+          "issueDateRequired": "Issue date is required"
+        },
+        "dropzone": {
+          "title": "Upload the file",
+          "hint": "PDF, JPG, PNG or WEBP"
+        }
+      },
+      "edit": {
+        "title": "Edit document",
+        "submit": "Save changes",
+        "saved": "Document updated",
+        "error": "The document could not be updated"
+      }
+    },
+    "payrolls": {
+      "title": "Payrolls",
+      "empty": "There are no payrolls yet.",
+      "columns": {
+        "name": "Document",
+        "project": "Project",
+        "date": "Date",
+        "amount": "Amount",
+        "status": "Status"
+      }
+    },
+    "expiry": {
+      "valid": "Valid",
+      "expiring": "Expiring soon",
+      "expired": "Expired",
+      "none": "No expiry"
+    }
+  },
+  "commandPalette": {
+    "trigger": "Search",
+    "placeholder": "Search projects, suppliers, documents...",
+    "empty": "No results found",
+    "hint": "↑↓ to navigate · ↵ to select · Esc to close · ⌘K to open",
+    "documentMeta": "{{project}} · {{amount}}",
+    "groups": {
+      "goTo": "Go to",
+      "projects": "Projects",
+      "suppliers": "Suppliers",
+      "documents": "Documents"
+    }
+  }
+}

@@ -1,13 +1,5 @@
 export const INVOICE_PDF_RENDERER = Symbol('InvoicePdfRenderer');
 
-/**
- * D7 — the structural guarantee that the project can never leak into the
- * PDF: this type has no `projectId`, no project name, nothing about the
- * project at all. `buildInvoicePdfView` is the only place allowed to build
- * one, and it is a pure function tested to never smuggle a project field
- * in. Adding one here "for convenience" is exactly the regression to catch
- * in review.
- */
 export interface InvoicePdfView {
   number: string;
   issueDate: string;

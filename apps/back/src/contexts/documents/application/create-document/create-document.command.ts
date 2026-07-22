@@ -22,6 +22,7 @@ export interface CreateDocumentCommand {
   irpfAmount?: number | null;
   currency?: DocumentCurrency;
   supplierId?: string | null;
+  staffMemberId?: string | null;
   direction: DocumentDirection;
   file?: {
     buffer: Buffer;

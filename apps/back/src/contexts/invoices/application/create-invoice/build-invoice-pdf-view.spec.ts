@@ -45,9 +45,6 @@ describe('buildInvoicePdfView (D7)', () => {
   });
 
   it('never contains a project name, because the view has no idea what one is', () => {
-    // The invoice domain object itself never receives a project name (only
-    // a projectId), so this asserts the negative shape of the type: there
-    // is no field the project name could even be assigned to.
     const view = buildInvoicePdfView(buildInvoice(), ISSUER) as unknown as Record<string, unknown>;
 
     expect(Object.keys(view)).not.toContain('project');

@@ -19,7 +19,6 @@ import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generato
 import { CreateInvoiceCommand } from './create-invoice.command';
 import { buildInvoicePdfView } from './build-invoice-pdf-view';
 
-// D2 — fixed series in the POC, no series configuration yet (see "Fuera de alcance").
 const INVOICE_SERIES = 'F';
 
 @Injectable()
@@ -43,8 +42,6 @@ export class CreateInvoiceUseCase {
       throw new InvoiceProjectNotFoundException(command.projectId);
     }
 
-    // D8: throws InvalidValueException before anything is persisted if the
-    // company is missing name/taxId.
     const issuer = await this.issuerProvider.get();
 
     const year = Number(command.issueDate.slice(0, 4));
@@ -70,10 +67,6 @@ export class CreateInvoiceUseCase {
       year,
     });
 
-    // Everything from here propagates: a factura whose PDF could not be
-    // generated, or whose income was never mirrored into `documents`, is
-    // not usable (D1/D9) — only the final `linkDocument` write-back is
-    // best-effort, see below.
     const view = buildInvoicePdfView(numberedInvoice, issuer);
     const pdf = await this.pdfRenderer.render(view);
     await this.invoiceRepository.savePdf(numberedInvoice.getId(), pdf);

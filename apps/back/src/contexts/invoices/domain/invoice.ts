@@ -97,18 +97,6 @@ export class Invoice {
     this.pdfSize = props.pdfSize;
   }
 
-  /**
-   * Validates the invariants and computes the D3 totals (taxBase, taxAmount,
-   * irpfAmount, total) here, in this single place, so the canonical
-   * calculation never drifts from what actually gets persisted and printed.
-   * The formula itself (line amount = quantity × unitPrice, rounded per line
-   * before summing) is documented once in `docs/architecture/invoices.md`
-   * (D6.1); this is the code that implements it, not a second explanation of
-   * it.
-   * `number` is a provisional placeholder at this point: the real
-   * correlative is assigned by `InvoiceRepository.saveWithNumber` inside the
-   * advisory-lock transaction (D2).
-   */
   static create(props: CreateInvoiceProps): Invoice {
     if (props.lines.length === 0) {
       throw new InvalidValueException('an invoice must have at least one line');
@@ -167,28 +155,14 @@ export class Invoice {
     return new Invoice(props);
   }
 
-  /**
-   * Returns a copy with the definitive series/year/number assigned by
-   * `InvoiceRepository.saveWithNumber` once the advisory lock has resolved
-   * the correlative (D2). Every other field is untouched.
-   */
   withNumber(series: string, year: number, number: number): Invoice {
     return new Invoice({ ...this.toPrimitives(), series, year, number });
   }
 
-  /**
-   * Returns a copy linked to its mirror document (D1/D9). Called after the
-   * ledger entry publisher has created the `document` row.
-   */
   withDocumentId(documentId: string | null): Invoice {
     return new Invoice({ ...this.toPrimitives(), documentId });
   }
 
-  /**
-   * Returns a copy with the size of the just-generated PDF recorded, so
-   * `hasPdf()` reflects reality without the caller needing to re-read the
-   * invoice from storage (D4: the PDF is generated once, right here).
-   */
   withPdfSize(pdfSize: number): Invoice {
     return new Invoice({ ...this.toPrimitives(), pdfSize });
   }

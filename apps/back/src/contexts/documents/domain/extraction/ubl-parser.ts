@@ -19,12 +19,6 @@ function readIssuerName(supplierParty: unknown): string | undefined {
   return xmlText(supplierParty, 'PartyName', 'Name') ?? xmlText(supplierParty, 'PartyLegalEntity', 'RegistrationName');
 }
 
-/**
- * Parses a UBL 2.1 Invoice (root `<Invoice>`, as used by Peppol BIS Billing
- * 3.0) into best-effort invoice fields. Returns `null` when the document is
- * not a recognisable UBL invoice, so the caller can fall back to another
- * extraction strategy.
- */
 export function parseUbl(xml: string): InvoiceFields | null {
   let parsed: unknown;
   try {
@@ -62,8 +56,6 @@ export function parseUbl(xml: string): InvoiceFields | null {
   const taxBase = parseXmlDecimal(xmlText(taxSubtotal, 'TaxableAmount')) ?? undefined;
   const taxRate = parseXmlDecimal(xmlText(taxSubtotal, 'TaxCategory', 'Percent')) ?? undefined;
 
-  // IRPF (retention): UBL 2.1 has a dedicated cac:WithholdingTaxTotal,
-  // structured just like TaxTotal above.
   const withholdingTaxTotal = xmlGet(root, 'WithholdingTaxTotal');
   const withholdingTaxSubtotal = xmlGet(withholdingTaxTotal, 'TaxSubtotal');
   const irpfAmount = parseXmlDecimal(xmlText(withholdingTaxTotal, 'TaxAmount')) ?? undefined;
@@ -79,8 +71,6 @@ export function parseUbl(xml: string): InvoiceFields | null {
   if (taxBase != null) fields.taxBase = taxBase;
   if (taxRate != null) fields.taxRate = taxRate;
   if (taxAmount != null) fields.taxAmount = taxAmount;
-  // A 0.00 withholding (no retention at all, the common case) must not
-  // surface as an explicit-but-empty irpfAmount in the form.
   if (irpfRate != null && irpfRate > 0) fields.irpfRate = irpfRate;
   if (irpfAmount != null && irpfAmount > 0) fields.irpfAmount = irpfAmount;
   if (amount != null) fields.amount = amount;

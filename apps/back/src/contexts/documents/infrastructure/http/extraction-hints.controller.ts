@@ -3,9 +3,6 @@ import { ListHintsUseCase } from '../../application/list-hints/list-hints.use-ca
 import { DeleteHintUseCase } from '../../application/delete-hint/delete-hint.use-case';
 import { ExtractionHintResponse } from './extraction-hint.response';
 
-// Global (not scoped under /projects/:projectId): the learned memory is
-// keyed by issuer tax id, which is meaningful across the whole tenant, not
-// per-project.
 @Controller('extraction-hints')
 export class ExtractionHintsController {
   constructor(

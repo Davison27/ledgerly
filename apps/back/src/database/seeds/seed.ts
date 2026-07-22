@@ -242,6 +242,18 @@ const ISSUER_TAX_IDS: Record<string, string> = {
   'Distribuciones Ebro': 'B60708090',
 };
 
+interface StaffMemberSeed {
+  firstName: string;
+  lastName: string;
+  position: string;
+}
+
+const STAFF_MEMBERS: StaffMemberSeed[] = [
+  { firstName: 'Carlos', lastName: 'Ruiz', position: 'Jefe de obra' },
+  { firstName: 'Elena', lastName: 'Torres', position: 'Encargada' },
+  { firstName: 'David', lastName: 'Pérez', position: 'Administrativo' },
+];
+
 interface DocumentSeed {
   name: string;
   type: DocumentType;
@@ -260,6 +272,7 @@ interface DocumentSeed {
   irpfAmount: number | null;
   currency: 'EUR' | 'USD' | 'GBP';
   direction: DocumentDirection;
+  staffMemberId: string | null;
 }
 
 function addDays(date: string, days: number): string {
@@ -268,7 +281,7 @@ function addDays(date: string, days: number): string {
   return parsed.toISOString().slice(0, 10);
 }
 
-function generateDocuments(seed: number): DocumentSeed[] {
+function generateDocuments(seed: number, staffMemberIds: string[]): DocumentSeed[] {
   const docs: DocumentSeed[] = [];
   for (let i = 0; i < 20; i++) {
     const type = TYPES[(i + seed) % 3];
@@ -284,10 +297,6 @@ function generateDocuments(seed: number): DocumentSeed[] {
       const taxRate = 21;
       const taxBase = Math.round((amount / (1 + taxRate / 100)) * 100) / 100;
       const taxAmount = Math.round((amount - taxBase) * 100) / 100;
-      // Datos demo: al contrario que la migración (C1), aquí sí interesa
-      // mezclar direcciones para que el dashboard demo no salga con
-      // income = 0. Una de cada tres facturas de ingreso lleva IRPF (15%),
-      // el caso realista de un autónomo que factura a empresa.
       const direction: DocumentDirection = (i + seed) % 2 === 0 ? 'ingreso' : 'gasto';
       const hasIrpf = direction === 'ingreso' && (i + seed) % 3 === 0;
       const irpfRate = hasIrpf ? 15 : null;
@@ -310,8 +319,11 @@ function generateDocuments(seed: number): DocumentSeed[] {
         irpfAmount,
         currency: 'EUR',
         direction,
+        staffMemberId: null,
       });
     } else {
+      const staffMemberId =
+        type === 'nomina' ? staffMemberIds[(i + seed) % staffMemberIds.length] : null;
       docs.push({
         name,
         type,
@@ -330,6 +342,7 @@ function generateDocuments(seed: number): DocumentSeed[] {
         irpfAmount: null,
         currency: 'EUR',
         direction: 'gasto',
+        staffMemberId,
       });
     }
   }
@@ -377,6 +390,17 @@ async function run(): Promise<void> {
       ],
     );
 
+    const staffMemberIds: string[] = [];
+    for (const staffMember of STAFF_MEMBERS) {
+      const staffMemberId = randomUUID();
+      staffMemberIds.push(staffMemberId);
+      await manager.query(
+        `INSERT INTO staff_members (id, first_name, last_name, position)
+         VALUES ($1, $2, $3, $4)`,
+        [staffMemberId, staffMember.firstName, staffMember.lastName, staffMember.position],
+      );
+    }
+
     for (let p = 0; p < PROJECTS.length; p++) {
       const project = PROJECTS[p];
       const projectId = randomUUID();
@@ -410,15 +434,16 @@ async function run(): Promise<void> {
         ],
       );
 
-      const documents = generateDocuments(p + 1);
+      const documents = generateDocuments(p + 1, staffMemberIds);
       for (const document of documents) {
         await manager.query(
           `INSERT INTO documents (
              id, project_id, name, type, month, date, amount, status,
              issuer_name, issuer_tax_id, invoice_number, due_date,
-             tax_base, tax_rate, tax_amount, irpf_rate, irpf_amount, currency, direction
+             tax_base, tax_rate, tax_amount, irpf_rate, irpf_amount, currency, direction,
+             staff_member_id
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
           [
             randomUUID(),
             projectId,
@@ -439,6 +464,7 @@ async function run(): Promise<void> {
             document.irpfAmount,
             document.currency,
             document.direction,
+            document.staffMemberId,
           ],
         );
       }

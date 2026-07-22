@@ -1,11 +1,5 @@
 import { extractInvoiceHeuristics } from './invoice-heuristics';
 
-/**
- * Regression fixtures for the tricky layouts found in audiovisual/freelance
- * invoices: totals split into separate label/value columns, dates printed
- * before their label or with the month spelled out, and the issuer's tax id
- * placed apart from a prominent client block. All data below is FICTIONAL.
- */
 describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () => {
   it('extracts fields from a cooperativa-style layout with client on top and totals in a separate column', () => {
     const text = [
@@ -97,12 +91,6 @@ describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () =>
     expect(fields.amount).toBeCloseTo(1090);
     expect(fields.issuerTaxId).toBe('00000000T');
 
-    // IRPF/retención (D6): the label ("IRPF 15 %") and its amount ("-150,00")
-    // sit on separate lines in this column-separated layout, so the rate is
-    // recovered but the amount is not — pairing them via findTaxRatioPair
-    // would risk cross-matching against the IVA rate/amount that already
-    // works correctly above. This is the accepted limitation, not a gap to
-    // "fix" later.
     expect(fields.irpfRate).toBe(15);
     expect(fields.irpfAmount).toBeUndefined();
 

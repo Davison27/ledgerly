@@ -48,4 +48,8 @@ export class ListAllDocumentsQueryDto {
   @IsOptional()
   @IsString()
   supplierId?: string;
+
+  @IsOptional()
+  @IsString()
+  staffMemberId?: string;
 }

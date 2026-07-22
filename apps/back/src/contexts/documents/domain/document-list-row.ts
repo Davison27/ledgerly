@@ -17,4 +17,5 @@ export interface DocumentListRow {
   issuerName: string | null;
   invoiceNumber: string | null;
   supplierId: string | null;
+  staffMemberId: string | null;
 }

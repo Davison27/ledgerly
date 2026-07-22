@@ -29,6 +29,7 @@ export interface DocumentProps {
   mimeType?: string | null;
   fileSize?: number | null;
   supplierId?: string | null;
+  staffMemberId?: string | null;
   direction: DocumentDirection;
 }
 
@@ -55,6 +56,7 @@ export class Document {
   private mimeType: string | null;
   private fileSize: number | null;
   private supplierId: string | null;
+  private staffMemberId: string | null;
   private direction: DocumentDirection;
 
   private constructor(props: DocumentProps) {
@@ -80,6 +82,7 @@ export class Document {
     this.mimeType = props.mimeType ?? null;
     this.fileSize = props.fileSize ?? null;
     this.supplierId = props.supplierId ?? null;
+    this.staffMemberId = props.staffMemberId ?? null;
     this.direction = props.direction;
   }
 
@@ -130,6 +133,10 @@ export class Document {
 
     if (props.fileSize != null && props.fileSize < 0) {
       throw new InvalidValueException('fileSize must be greater than or equal to 0');
+    }
+
+    if (props.type === 'nomina' && (props.staffMemberId ?? null) === null) {
+      throw new InvalidValueException('staffMemberId is required when type is nomina');
     }
 
     return new Document(props);
@@ -231,18 +238,14 @@ export class Document {
     return this.supplierId;
   }
 
+  getStaffMemberId(): string | null {
+    return this.staffMemberId;
+  }
+
   hasFile(): boolean {
     return this.fileName !== null;
   }
 
-  /**
-   * Applies a partial set of changes by re-running them through `create()`,
-   * so every invariant it enforces (month 1-12, amount >= 0, date formats,
-   * tax/irpf >= 0, valid direction/currency) is re-checked in this single
-   * place instead of being duplicated across per-field mutators. `id` and
-   * `projectId` are deliberately excluded: identity and project ownership
-   * are not editable (see D2/D3 of the document-crud plan).
-   */
   withChanges(changes: Partial<Omit<DocumentProps, 'id' | 'projectId'>>): Document {
     return Document.create({ ...this.toPrimitives(), ...changes });
   }
@@ -271,6 +274,7 @@ export class Document {
       mimeType: this.mimeType,
       fileSize: this.fileSize,
       supplierId: this.supplierId,
+      staffMemberId: this.staffMemberId,
       direction: this.direction,
     };
   }

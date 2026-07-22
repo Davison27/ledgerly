@@ -3,7 +3,8 @@ import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
 import { DocumentDirection } from '../../domain/document-direction';
-import { deriveEffectiveStatus, todayIso } from '../../domain/effective-status';
+import { deriveEffectiveStatus } from '../../domain/effective-status';
+import { todayIso } from '../../../../shared/infrastructure/system-clock';
 
 export class DocumentResponse {
   id: string;
@@ -14,15 +15,6 @@ export class DocumentResponse {
   date: string;
   amount: number;
   status: DocumentStatus;
-  /**
-   * The status as STORED, without `deriveEffectiveStatus`. `status` above
-   * stays derived and is what every read view (list, ficha, filters) must
-   * keep using to paint the document. `rawStatus` exists for exactly one
-   * purpose: preloading the edit form, so that saving without touching the
-   * status selector cannot turn a derived `vencido` into a persisted one
-   * (see D5 of the document-crud plan). Do not remove either field: they
-   * mean different things and are meant to coexist.
-   */
   rawStatus: DocumentStatus;
   issuerName: string | null;
   issuerTaxId: string | null;
@@ -39,6 +31,7 @@ export class DocumentResponse {
   fileSize: number | null;
   mimeType: string | null;
   supplierId: string | null;
+  staffMemberId: string | null;
   direction: DocumentDirection;
 
   static fromDomain(document: Document): DocumentResponse {
@@ -68,6 +61,7 @@ export class DocumentResponse {
     response.fileSize = document.getFileSize();
     response.mimeType = document.getMimeType();
     response.supplierId = document.getSupplierId();
+    response.staffMemberId = document.getStaffMemberId();
     response.direction = document.getDirection();
 
     return response;

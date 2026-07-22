@@ -48,15 +48,6 @@ function countCorrectedFields(submitted: InvoiceFields, shown: InvoiceFields): n
   return count;
 }
 
-/**
- * Records, as a side effect of creating a PDF-backed document, which
- * extraction strategy produced the fields shown to the user and how many of
- * them the user ended up correcting. Purely for quality reporting
- * (`GET /api/extraction-quality`) — never read back into the extraction
- * pipeline. Mirrors the comparison approach `RecordExtractionFeedbackUseCase`
- * uses to detect corrections, but never mutates the learned-hints memory
- * itself.
- */
 @Injectable()
 export class RecordExtractionOutcomeUseCase {
   constructor(

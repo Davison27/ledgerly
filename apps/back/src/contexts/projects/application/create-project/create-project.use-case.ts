@@ -59,9 +59,6 @@ export class CreateProjectUseCase {
 
     await this.projectRepository.save(project);
 
-    // The project created here is always a real (non-demo) project, since the
-    // public API never sets isDemo. As soon as a real project is saved, any
-    // demo data left over from onboarding must disappear automatically.
     try {
       await this.demoProjectPurger.purgeDemoProjects();
     } catch (error) {

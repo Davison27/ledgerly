@@ -1,4 +1,4 @@
-import { Document } from '../../../documents/domain/document';
+import { DocumentProps } from '../../../documents/domain/document';
 import { DocumentType } from '../../../documents/domain/document-type';
 import { DocumentStatus } from '../../../documents/domain/document-status';
 import { DocumentDirection } from '../../../documents/domain/document-direction';
@@ -15,6 +15,7 @@ interface DemoDocumentSeed {
   dueOffsetDays: number | null;
   direction: DocumentDirection;
   irpfRate?: number | null;
+  staffMemberIndex?: number;
 }
 
 const VAT_RATE = 21;
@@ -30,9 +31,6 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     issuerTaxId: 'B10203040',
     invoiceNumber: 'FRA-DEMO-0001',
     dueOffsetDays: -45,
-    // Las dos facturas de mayor importe se marcan como ingreso: sin esto
-    // el dashboard demo saldría con income = 0, y no enseña nada del
-    // producto (al contrario que la migración de datos reales, ver C1).
     direction: 'ingreso',
   },
   {
@@ -46,7 +44,6 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     invoiceNumber: 'FRA-DEMO-0002',
     dueOffsetDays: -30,
     direction: 'ingreso',
-    // Caso realista de un autónomo que factura a empresa y sufre retención.
     irpfRate: 15,
   },
   {
@@ -84,6 +81,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     invoiceNumber: null,
     dueOffsetDays: null,
     direction: 'gasto',
+    staffMemberIndex: 0,
   },
   {
     name: 'Nómina mensual',
@@ -96,6 +94,7 @@ const RAW_DOCUMENTS: DemoDocumentSeed[] = [
     invoiceNumber: null,
     dueOffsetDays: null,
     direction: 'gasto',
+    staffMemberIndex: 1,
   },
   {
     name: 'IVA Trimestre',
@@ -129,13 +128,12 @@ function isoDateWithOffset(base: Date, offsetDays: number): string {
   return date.toISOString().slice(0, 10);
 }
 
-/**
- * Builds the sample documents for the demo project, computed relative to
- * "today" so the demo always feels current regardless of when it is loaded.
- */
-export function buildDemoDocuments(projectId: string, generateId: () => string): Document[] {
-  const today = new Date();
-
+export function buildDemoDocuments(
+  projectId: string,
+  generateId: () => string,
+  staffMemberIds: string[],
+  today: Date,
+): DocumentProps[] {
   return RAW_DOCUMENTS.map((seed) => {
     const date = isoDateWithOffset(today, seed.offsetDays);
     const month = Number(date.slice(5, 7));
@@ -147,8 +145,10 @@ export function buildDemoDocuments(projectId: string, generateId: () => string):
     const irpfRate = seed.irpfRate ?? null;
     const irpfAmount =
       irpfRate !== null && taxBase !== null ? Math.round(taxBase * (irpfRate / 100) * 100) / 100 : null;
+    const staffMemberId =
+      seed.staffMemberIndex !== undefined ? staffMemberIds[seed.staffMemberIndex] : null;
 
-    return Document.create({
+    return {
       id: generateId(),
       projectId,
       name: seed.name,
@@ -167,7 +167,8 @@ export function buildDemoDocuments(projectId: string, generateId: () => string):
       irpfRate,
       irpfAmount,
       currency: 'EUR',
+      staffMemberId,
       direction: seed.direction,
-    });
+    };
   });
 }

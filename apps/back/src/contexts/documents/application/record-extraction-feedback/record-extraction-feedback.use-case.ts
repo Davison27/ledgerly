@@ -22,16 +22,6 @@ function valuesMatch(field: LearnableField, submitted: string | number, shown: s
   return submitted.trim().toLowerCase() === shown.trim().toLowerCase();
 }
 
-/**
- * Learns from a correction the user made when creating a document: for every
- * learnable field the user submitted a value that differs from what the
- * heuristics (base extraction + hints already known for this issuer) would
- * have shown them, derives a fresh textual anchor from the PDF's own text
- * layer and stores/reinforces it. Structured invoices (Facturae/Factur-X)
- * never contribute: their fields are read directly from XML, so a
- * label-position anchor in the PDF text layer wouldn't mean anything for
- * them, and their tag structure gives no genuine learning signal anyway.
- */
 @Injectable()
 export class RecordExtractionFeedbackUseCase {
   constructor(

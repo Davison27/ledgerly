@@ -1,12 +1,5 @@
 import { MigrationInterface, QueryRunner } from 'typeorm';
 
-/**
- * Re-keys `invoice_extraction_hints` by the issuer's printed name instead of
- * their tax id. The heuristic extraction routinely picks up the *client*'s
- * CIF/NIF (the ERP tenant, identical across every invoice) rather than the
- * supplier's, which collapsed every issuer's hints under a single key.
- * Existing rows were learned against that broken key and are discarded.
- */
 export class KeyHintsByIssuerName1726000000000 implements MigrationInterface {
   name = 'KeyHintsByIssuerName1726000000000';
 

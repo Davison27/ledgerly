@@ -29,6 +29,16 @@ del plan en `docs/plans/<slug>.md`.
 
 # Contexto obligatorio del repo
 
+- **Antes de planificar nada que toque `apps/back`, invoca la skill
+  `arquitectura-hexagonal`** (`Skill` con `skill: "arquitectura-hexagonal"`).
+  Es la doctrina canónica: capas, puertos y tokens, entidades ricas, mappers,
+  errores de dominio, módulos, migraciones y la tabla de anti-patrones
+  prohibidos. Un plan que la contradiga está mal.
+- **Antes de planificar nada que toque `apps/front`, invoca la skill
+  `arquitectura-frontend`** (`Skill` con `skill: "arquitectura-frontend"`).
+  El front sigue **Feature-Sliced Design**: capas, slices, segmentos, regla de
+  imports y public API por slice. Igual que la anterior: un plan que la
+  contradiga está mal.
 - Backend hexagonal por contextos: `domain/` (entidades, puertos, VOs),
   `application/<caso-de-uso>/`, `infrastructure/{http,persistence,...}`.
   Un caso de uso por carpeta, con su `.spec.ts` al lado.

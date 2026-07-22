@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../domain/document.repository';
 import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import {
-  PROJECT_REPOSITORY,
-  ProjectRepository,
-} from '../../../projects/domain/project.repository';
+  PROJECT_NAME_PROVIDER,
+  ProjectNameProvider,
+} from '../../domain/project-name-provider.port';
 import { normaliseTaxId } from '../../domain/extraction/tax-id';
 import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { CheckDocumentDuplicateQuery } from './check-document-duplicate.query';
@@ -33,7 +33,7 @@ function issuerNameMatches(
 export class CheckDocumentDuplicateUseCase {
   constructor(
     @Inject(DOCUMENT_REPOSITORY) private readonly documentRepository: DocumentRepository,
-    @Inject(PROJECT_REPOSITORY) private readonly projectRepository: ProjectRepository,
+    @Inject(PROJECT_NAME_PROVIDER) private readonly projectNameProvider: ProjectNameProvider,
   ) {}
 
   async execute(query: CheckDocumentDuplicateQuery): Promise<DocumentDuplicateMatch[]> {
@@ -58,7 +58,7 @@ export class CheckDocumentDuplicateUseCase {
       return [];
     }
 
-    const summaries = await this.projectRepository.findAllSummaries();
+    const summaries = await this.projectNameProvider.findAllNames();
     const projectNameById = new Map(summaries.map((project) => [project.id, project.name]));
 
     return matches.map((match) => ({
