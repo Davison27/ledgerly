@@ -13,11 +13,6 @@ export const STAFF_DOCUMENT_MIME_TYPES = [
 
 export type StaffDocumentMimeType = (typeof STAFF_DOCUMENT_MIME_TYPES)[number];
 
-/**
- * Staff documents are the first upload endpoint that accepts images as well
- * as PDFs (R3 of the staff-section plan): a photo is not a PDF, so each MIME
- * type gets its own magic-byte check instead of trusting `file.mimetype`.
- */
 export function isValidStaffDocumentFile(mimeType: string, buffer: Buffer): boolean {
   switch (mimeType) {
     case 'application/pdf':

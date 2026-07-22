@@ -233,9 +233,6 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
     });
   });
 
-  // U2.7: alias of the project-scoped extraction endpoint, needed because
-  // uploading a payroll from the staff member side has no project chosen
-  // yet (R4).
   describe('POST /documents/extract', () => {
     it('extracts a PDF without requiring a projectId', async () => {
       const response = await request(httpServer)

@@ -73,13 +73,6 @@ export class StaffMember {
     }
   }
 
-  /**
-   * Applies a partial set of changes by merging them onto the current
-   * primitives and re-running every invariant `create()` enforces in one
-   * shot, instead of per-field mutators that would validate `hireDate` and
-   * `endDate` against a stale counterpart when both change in the same
-   * request (see `document.ts`'s `withChanges()` for the same reasoning).
-   */
   update(changes: Partial<Omit<StaffMemberPrimitives, 'id'>>): void {
     const merged: StaffMemberPrimitives = { ...this.toPrimitives(), ...changes };
 

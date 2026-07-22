@@ -183,10 +183,6 @@ describe('GetCompanyDashboardUseCase', () => {
 
   it('counts a document that already arrives with an overdue effective status', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
-    // `RepositoryDashboardDataProvider` is the one that runs
-    // `deriveEffectiveStatus`; by the time the use case sees this row, a
-    // `pendiente` document whose `dueDate` has passed already arrives as
-    // `vencido` (see `effective-status.spec.ts` for that derivation itself).
     const rows: DashboardDocumentRow[] = [
       buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
     ];
@@ -360,7 +356,7 @@ describe('GetCompanyDashboardUseCase', () => {
         buildRow({ projectId: 'p1', type: 'factura', amount: 500, date: '2026-02-01' }),
         buildRow({ projectId: 'p1', type: 'nomina', direction: 'gasto', amount: 200, date: '2026-03-01' }),
         buildRow({ projectId: 'p2', type: 'impuesto', direction: 'gasto', amount: 900, date: '2026-04-01' }),
-        buildRow({ projectId: 'p3', type: 'factura', amount: 50, date: '2025-04-01' }), // other year, excluded
+        buildRow({ projectId: 'p3', type: 'factura', amount: 50, date: '2025-04-01' }),
       ];
       const summaries = [
         buildSummary({ id: 'p1', name: 'Project One' }),
@@ -430,19 +426,13 @@ describe('GetCompanyDashboardUseCase', () => {
     it('buckets overdue vs upcoming documents, excludes paid documents, and computes inflow/outflow by type', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DashboardDocumentRow[] = [
-        // overdue: due before today, unpaid
         buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-06-01', date: '2026-05-01' }),
         buildRow({ type: 'nomina', direction: 'gasto', amount: 150, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
-        // paid, excluded regardless of due date
         buildRow({ type: 'factura', amount: 9999, status: 'pagado', dueDate: '2026-06-01', date: '2026-05-01' }),
-        // no due date, excluded
         buildRow({ type: 'factura', amount: 9999, status: 'pendiente', dueDate: null, date: '2026-05-01' }),
-        // upcoming: due in August 2026 (next month bucket)
         buildRow({ type: 'factura', amount: 300, status: 'pendiente', dueDate: '2026-08-10', date: '2026-07-01' }),
         buildRow({ type: 'impuesto', direction: 'gasto', amount: 80, status: 'pendiente', dueDate: '2026-08-20', date: '2026-07-01' }),
-        // upcoming: due in January 2027 (6th month bucket)
         buildRow({ type: 'factura', amount: 60, status: 'pendiente', dueDate: '2027-01-15', date: '2026-07-01' }),
-        // beyond 6 months, ignored
         buildRow({ type: 'factura', amount: 70, status: 'pendiente', dueDate: '2027-02-01', date: '2026-07-01' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(

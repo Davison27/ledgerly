@@ -17,10 +17,6 @@ export class StaffDocumentMapper {
     });
   }
 
-  // Deliberately never assigns `content` (bytea, `select: false`): the same
-  // guarantee `document.mapper.ts` relies on so that `repository.save()` on
-  // an edit can never wipe out the stored file. Content is only ever
-  // written through `saveContent`.
   static toOrm(staffDocument: StaffDocument): StaffDocumentOrmEntity {
     const primitives = staffDocument.toPrimitives();
     const orm = new StaffDocumentOrmEntity();

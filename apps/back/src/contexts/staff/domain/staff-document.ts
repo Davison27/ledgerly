@@ -106,14 +106,6 @@ export class StaffDocument {
     return this.fileSize;
   }
 
-  /**
-   * Applies a partial set of changes by re-running them through `create()`
-   * (same reasoning as `document.ts`'s `withChanges()`). `id`, `staffMemberId`,
-   * `typeId` and the file fields are deliberately excluded: identity,
-   * ownership and the stored file are not editable — only `name`,
-   * `issueDate`, `expiryDate` and `notes` are (matches
-   * `UpdateStaffDocumentUseCase`).
-   */
   withChanges(
     changes: Partial<Omit<StaffDocumentProps, 'id' | 'staffMemberId' | 'typeId' | 'fileName' | 'mimeType' | 'fileSize'>>,
   ): StaffDocument {

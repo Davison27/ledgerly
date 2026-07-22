@@ -1,15 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PdfAttachment, PdfReadResult, PdfReader } from '../../domain/extraction/pdf-reader.port';
 
-/**
- * `pdfjs-dist` >= 4 ships as an ESM-only package (`legacy/build/pdf.mjs`).
- * TypeScript downlevels a plain `await import(...)` to `require(...)` when
- * targeting CommonJS (as this project does), which fails at runtime with
- * `ERR_REQUIRE_ESM` for a pure-ESM package. Going through `new Function`
- * forces a *real* dynamic `import()` call that survives the CommonJS
- * downlevel — this is the standard workaround for consuming ESM-only
- * packages from a CommonJS TypeScript build.
- */
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function('specifier', 'return import(specifier)') as (
   specifier: string,
@@ -51,11 +42,6 @@ async function loadPdfJs(): Promise<PdfJsModule> {
   return (await dynamicImport('pdfjs-dist/legacy/build/pdf.mjs')) as PdfJsModule;
 }
 
-/**
- * Reads the text layer and embedded file attachments of a PDF using
- * `pdfjs-dist`. This is pure parsing (no rendering, no OCR): pages with no
- * extractable text (e.g. scanned images) simply yield an empty string.
- */
 @Injectable()
 export class PdfjsPdfReader implements PdfReader {
   async read(buffer: Buffer): Promise<PdfReadResult> {

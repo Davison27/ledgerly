@@ -7,9 +7,6 @@ import { InvoiceIssuer, InvoiceIssuerProvider } from '../../domain/invoice-issue
 export class CompanyRepositoryInvoiceIssuer implements InvoiceIssuerProvider {
   constructor(@Inject(COMPANY_REPOSITORY) private readonly companyRepository: CompanyRepository) {}
 
-  // D8: a factura cannot be issued with an incomplete company profile. The
-  // front disables "Nueva factura" for the same reason, but this is the
-  // guarantee that actually holds regardless of what the front does.
   async get(): Promise<InvoiceIssuer> {
     const company = await this.companyRepository.find();
 

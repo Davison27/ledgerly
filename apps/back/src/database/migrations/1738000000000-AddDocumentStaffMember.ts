@@ -19,14 +19,6 @@ export class AddDocumentStaffMember1738000000000 implements MigrationInterface {
       `CREATE INDEX "IDX_documents_staff_member_id" ON "documents" ("staff_member_id")`,
     );
 
-    // D3/D4: a payroll (`type = 'nomina'`) must carry a staff member, but the
-    // constraint is added `NOT VALID` on purpose. `NOT VALID` skips scanning
-    // existing rows, so it cannot fail against any database that already has
-    // payrolls without a staff member (the seed and the demo loader both
-    // created them before this migration). From here on every INSERT/UPDATE
-    // is checked. Do NOT follow this with `VALIDATE CONSTRAINT`: that would
-    // scan and fail on exactly the legacy rows this migration is designed to
-    // tolerate (R6 of the staff-section plan).
     await queryRunner.query(`
       ALTER TABLE "documents"
         ADD CONSTRAINT "CHK_documents_payroll_staff"

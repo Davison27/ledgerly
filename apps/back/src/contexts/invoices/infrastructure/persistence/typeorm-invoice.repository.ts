@@ -53,9 +53,6 @@ export class TypeOrmInvoiceRepository implements InvoiceRepository {
 
   async saveWithNumber(invoice: Invoice, allocate: InvoiceNumberAllocation): Promise<Invoice> {
     return this.dataSource.transaction(async (manager) => {
-      // D2: serializes concurrent issuers on the same (series, year) pair
-      // without locking the whole table, then reads the next correlative
-      // inside the same lock so two emitters can never see the same MAX().
       await manager.query('SELECT pg_advisory_xact_lock(hashtext($1 || $2))', [
         allocate.series,
         String(allocate.year),

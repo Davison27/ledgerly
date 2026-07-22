@@ -242,9 +242,6 @@ const ISSUER_TAX_IDS: Record<string, string> = {
   'Distribuciones Ebro': 'B60708090',
 };
 
-// D4/U2.9: `pnpm seed` is dev-only, but it inserts `nomina` documents
-// (below), and every nomina now requires a staff member (D3). Without this,
-// a freshly seeded database would violate the invariant from minute one.
 interface StaffMemberSeed {
   firstName: string;
   lastName: string;
@@ -300,10 +297,6 @@ function generateDocuments(seed: number, staffMemberIds: string[]): DocumentSeed
       const taxRate = 21;
       const taxBase = Math.round((amount / (1 + taxRate / 100)) * 100) / 100;
       const taxAmount = Math.round((amount - taxBase) * 100) / 100;
-      // Datos demo: al contrario que la migración (C1), aquí sí interesa
-      // mezclar direcciones para que el dashboard demo no salga con
-      // income = 0. Una de cada tres facturas de ingreso lleva IRPF (15%),
-      // el caso realista de un autónomo que factura a empresa.
       const direction: DocumentDirection = (i + seed) % 2 === 0 ? 'ingreso' : 'gasto';
       const hasIrpf = direction === 'ingreso' && (i + seed) % 3 === 0;
       const irpfRate = hasIrpf ? 15 : null;
@@ -329,8 +322,6 @@ function generateDocuments(seed: number, staffMemberIds: string[]): DocumentSeed
         staffMemberId: null,
       });
     } else {
-      // Every nomina requires a staff member (D3); impuesto documents keep
-      // staffMemberId null, same as before.
       const staffMemberId =
         type === 'nomina' ? staffMemberIds[(i + seed) % staffMemberIds.length] : null;
       docs.push({

@@ -33,9 +33,6 @@ export class UpdateDocumentUseCase {
       throw new DocumentNotFoundException(command.id);
     }
 
-    // `null` means "unassign the supplier" and is not validated (same
-    // contract as CreateDocumentUseCase); only a non-null supplierId is
-    // checked against the supplier existence port.
     if (command.supplierId !== undefined && command.supplierId !== null) {
       const supplierExists = await this.supplierExistenceChecker.exists(command.supplierId);
 
@@ -44,13 +41,6 @@ export class UpdateDocumentUseCase {
       }
     }
 
-    // Same contract as supplierId. A `staffMemberId` explicitly absent from
-    // the command (`undefined`) is NOT the same as `null`: absent means
-    // "leave whatever the document already has untouched" (point 5 of the
-    // staff-section review — an old payroll that already has a staff member
-    // must keep it when the DTO simply omits the field), while `null` is an
-    // explicit unassignment attempt, which `Document.create()`/D3 rejects
-    // for a document of type `nomina` regardless.
     if (command.staffMemberId !== undefined && command.staffMemberId !== null) {
       const staffMemberExists = await this.staffMemberExistenceChecker.exists(command.staffMemberId);
 
@@ -80,8 +70,6 @@ export class UpdateDocumentUseCase {
     if (command.supplierId !== undefined) changes.supplierId = command.supplierId;
     if (command.staffMemberId !== undefined) changes.staffMemberId = command.staffMemberId;
 
-    // `month` is a pure projection of `date` (D4): whenever `date` changes,
-    // recompute it here. Never accepted from the client.
     if (command.date !== undefined) {
       changes.month = Number(command.date.slice(5, 7));
     }

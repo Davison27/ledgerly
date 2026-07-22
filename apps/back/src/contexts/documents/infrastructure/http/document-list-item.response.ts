@@ -13,7 +13,6 @@ export class DocumentListItemResponse {
   name: string;
   type: DocumentType;
   status: DocumentStatus;
-  /** The status as STORED, without `deriveEffectiveStatus`. See D5/5-bis. */
   rawStatus: DocumentStatus;
   direction: DocumentDirection;
   date: string;

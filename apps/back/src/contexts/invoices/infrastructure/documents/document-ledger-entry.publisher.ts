@@ -9,14 +9,6 @@ import { LedgerEntryPublisher } from '../../domain/ledger-entry.port';
 export class DocumentLedgerEntryPublisher implements LedgerEntryPublisher {
   constructor(private readonly createDocumentUseCase: CreateDocumentUseCase) {}
 
-  /**
-   * D9: injects `CreateDocumentUseCase` directly, never the HTTP endpoint —
-   * `POST /api/projects/:id/documents` would also run
-   * `recordExtractionFeedback`/`recordExtractionOutcome`
-   * (`documents.controller.ts:132-135`) against a PDF we generated
-   * ourselves, feeding the extractor with its own output. Calling the
-   * controller/endpoint from here is a defect.
-   */
   async publish(invoice: Invoice, issuer: InvoiceIssuer, pdf: Buffer): Promise<string> {
     const month = Number(invoice.getIssueDate().slice(5, 7));
 

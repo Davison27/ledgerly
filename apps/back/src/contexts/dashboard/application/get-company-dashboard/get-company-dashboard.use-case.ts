@@ -224,9 +224,6 @@ export class GetCompanyDashboardUseCase {
 
       categoryTotals[row.type] += row.amount;
 
-      // `row.status` already went through `deriveEffectiveStatus` in
-      // `RepositoryDashboardDataProvider` (documents' own domain rule): the
-      // dashboard only aggregates it, it never re-derives it.
       if (row.status === 'pagado') paidCount += 1;
       else if (row.status === 'pendiente') pendingCount += 1;
       else if (row.status === 'vencido') overdueCount += 1;

@@ -135,10 +135,6 @@ export class Document {
       throw new InvalidValueException('fileSize must be greater than or equal to 0');
     }
 
-    // D3 of the staff-section plan: a payroll always carries a staff
-    // member, whichever side it is uploaded from. `withChanges()` reruns
-    // `create()`, so editing an existing document into type `nomina`
-    // without a staff member is caught here too.
     if (props.type === 'nomina' && (props.staffMemberId ?? null) === null) {
       throw new InvalidValueException('staffMemberId is required when type is nomina');
     }
@@ -250,14 +246,6 @@ export class Document {
     return this.fileName !== null;
   }
 
-  /**
-   * Applies a partial set of changes by re-running them through `create()`,
-   * so every invariant it enforces (month 1-12, amount >= 0, date formats,
-   * tax/irpf >= 0, valid direction/currency) is re-checked in this single
-   * place instead of being duplicated across per-field mutators. `id` and
-   * `projectId` are deliberately excluded: identity and project ownership
-   * are not editable (see D2/D3 of the document-crud plan).
-   */
   withChanges(changes: Partial<Omit<DocumentProps, 'id' | 'projectId'>>): Document {
     return Document.create({ ...this.toPrimitives(), ...changes });
   }

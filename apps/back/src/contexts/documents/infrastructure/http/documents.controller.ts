@@ -137,9 +137,6 @@ export class DocumentsController {
     return DocumentResponse.fromDomain(document);
   }
 
-  // Best-effort, server-side learning: re-reads the just-uploaded PDF to
-  // compare it against what the user actually submitted. Never allowed to
-  // fail the document creation itself.
   private async recordExtractionFeedback(fileBuffer: Buffer, dto: CreateDocumentDto): Promise<void> {
     try {
       await this.recordExtractionFeedbackUseCase.execute({
@@ -161,11 +158,6 @@ export class DocumentsController {
     }
   }
 
-  // Best-effort, server-side quality tracking: records which extraction
-  // strategy produced the fields shown for this PDF and how many the user
-  // corrected, for `GET /api/extraction-quality`. Kept as its own try/catch
-  // (separate from `recordExtractionFeedback`) so a failure in either
-  // never affects the other, and neither can ever fail document creation.
   private async recordExtractionOutcome(fileBuffer: Buffer, dto: CreateDocumentDto): Promise<void> {
     try {
       await this.recordExtractionOutcomeUseCase.execute({
@@ -281,18 +273,6 @@ export class DocumentsController {
     return DocumentResponse.fromDomain(updated);
   }
 
-  // Best-effort re-feeding of the hints system after an edit (D6): a
-  // correction made after upload is exactly the same (arguably better)
-  // signal as one made during upload, and record-extraction-feedback is
-  // idempotent by design. Guarded on two conditions to avoid needlessly
-  // re-reading and re-parsing the PDF: the document must have a stored
-  // file, and at least one LEARNABLE_FIELD must actually be present in the
-  // incoming DTO — the majority edit this feature exists for (correcting
-  // `direction`, which is not a LEARNABLE_FIELD) never touches the file at
-  // all. Deliberately does NOT call RecordExtractionOutcomeUseCase: unlike
-  // creation, an edit is not a fresh extraction event, and counting it as
-  // one would artificially sink the measured heuristic quality every time
-  // someone reclassifies a field the extractor doesn't even produce.
   private async recordEditFeedback(updated: Document, dto: UpdateDocumentDto): Promise<void> {
     if (!updated.hasFile()) {
       return;

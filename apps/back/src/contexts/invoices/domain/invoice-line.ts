@@ -68,10 +68,6 @@ export class InvoiceLine {
     return this.productId;
   }
 
-  /**
-   * quantity × unitPrice, rounded to 2 decimals before being summed into the
-   * invoice's taxBase (D3) — see docs/architecture/invoices.md.
-   */
   getAmount(): number {
     return round2(this.quantity * this.unitPrice);
   }

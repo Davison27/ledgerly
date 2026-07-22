@@ -128,7 +128,6 @@ export class StaffDocumentsController {
       throw new NotFoundException('Staff document file not found');
     }
 
-    // D7: nunca cacheado, ningún nombre de fichero en cabeceras.
     res.set({
       'Content-Type': file.mimeType,
       'Cache-Control': 'no-store',

@@ -15,9 +15,6 @@ function buildDocument(): StaffDocument {
 }
 
 describe('StaffDocumentMapper', () => {
-  // Same guarantee as `document.mapper.spec.ts`: `content` (bytea,
-  // `select: false`) must never be assigned by `toOrm`, so a
-  // `repository.save()` on edit can never wipe out the stored file.
   it('never assigns content, so an update can never overwrite the stored file', () => {
     const orm = StaffDocumentMapper.toOrm(buildDocument());
 

@@ -21,10 +21,6 @@ import { StaffModule } from './contexts/staff/staff.module';
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, validationSchema: envValidationSchema }),
-    // Límite global y generoso: el objetivo es cortar abuso (subida de
-    // ficheros, extracción de PDF sin límite), no molestar al uso normal del
-    // front. Los endpoints caros añaden su propio límite más estricto con
-    // @Throttle() en su controlador.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 300 }]),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     SharedModule,

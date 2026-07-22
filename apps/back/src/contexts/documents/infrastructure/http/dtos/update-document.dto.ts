@@ -15,15 +15,6 @@ import { DOCUMENT_DIRECTIONS, DocumentDirection } from '../../../domain/document
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
-/**
- * Mirrors CreateDocumentDto's editable fields (D2), with `@IsOptional()` on
- * every one of them (absence = leave untouched). Deliberately does NOT
- * declare `month` (derived server-side from `date`, D4), `projectId`
- * (not editable, C2), or any file field (`fileName`/`mimeType`/`fileSize`)
- * — editing is JSON-only, no `FileInterceptor` (C1). With
- * `forbidNonWhitelisted: true` on the global ValidationPipe, sending any of
- * those returns 400, which is the intended trap-door (D4).
- */
 export class UpdateDocumentDto {
   @IsOptional()
   @IsString()
