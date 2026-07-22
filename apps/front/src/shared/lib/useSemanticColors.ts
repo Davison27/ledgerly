@@ -1,5 +1,5 @@
 import { theme } from 'antd';
-import { useThemeMode } from '../../app/providers/ThemeModeProvider';
+import { useThemeMode } from './theme-mode/ThemeModeProvider';
 import {
   CHART_SERIES_DARK,
   CHART_SERIES_LIGHT,

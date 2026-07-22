@@ -5,7 +5,7 @@ import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
-import { useCompany } from '../../../app/providers/CompanyProvider';
+import { useCompany } from '@/entities/company';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { ProjectCard } from './ProjectCard';
 import { ProjectFormModal } from './ProjectFormModal';

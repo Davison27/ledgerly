@@ -4,7 +4,7 @@ import {
   createRouter,
 } from '@tanstack/react-router';
 
-import { AppLayout } from '@/widgets/app-layout';
+import { AppShell } from './AppShell';
 import { RootLayout } from './RootLayout';
 import { LoginPage } from '@/pages/login';
 import { OnboardingPage } from '@/pages/onboarding';
@@ -36,7 +36,7 @@ const onboardingRoute = createRoute({
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_app',
-  component: AppLayout,
+  component: AppShell,
 });
 
 const dashboardRoute = createRoute({

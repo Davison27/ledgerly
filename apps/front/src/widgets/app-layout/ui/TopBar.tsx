@@ -21,8 +21,8 @@ import {
   SunOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '../../../app/providers/CompanyProvider';
-import { useThemeMode } from '../../../app/providers/ThemeModeProvider';
+import { useCompany } from '@/entities/company';
+import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { CompanySettingsModal } from '@/features/company-settings';
 import logoIconUrl from '../../../assets/ledgerly-icon.svg';

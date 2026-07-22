@@ -3,7 +3,7 @@ import { App, Button, Flex, Form, Spin, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from '../model/types';
-import { useCompany } from '../../../app/providers/CompanyProvider';
+import { useCompany } from '@/entities/company';
 import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
 import { PageContainer } from '@/shared/ui/PageContainer';
