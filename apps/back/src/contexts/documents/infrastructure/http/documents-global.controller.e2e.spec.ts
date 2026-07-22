@@ -5,9 +5,12 @@ import request from 'supertest';
 import { DocumentsGlobalController } from './documents-global.controller';
 import { ListAllDocumentsUseCase } from '../../application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from '../../application/check-document-duplicate/check-document-duplicate.use-case';
+import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { DocumentListItem } from '../../application/list-all-documents/document-list-item';
 import { DocumentDuplicateMatch } from '../../application/check-document-duplicate/document-duplicate-match';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+
+const PDF_HEADER = Buffer.from('%PDF-1.4\n%mock');
 
 function buildListItem(overrides: Partial<DocumentListItem> = {}): DocumentListItem {
   return {
@@ -25,6 +28,7 @@ function buildListItem(overrides: Partial<DocumentListItem> = {}): DocumentListI
     issuerName: 'Acme SL',
     invoiceNumber: 'INV-1',
     supplierId: null,
+    staffMemberId: null,
     ...overrides,
   };
 }
@@ -46,16 +50,19 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
   let httpServer: Server;
   let listExecute: jest.Mock;
   let duplicateCheckExecute: jest.Mock;
+  let extractExecute: jest.Mock;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildListItem()]));
     duplicateCheckExecute = jest.fn(() => Promise.resolve([]));
+    extractExecute = jest.fn(() => Promise.resolve({ fields: {}, confidence: 'low' }));
 
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsGlobalController],
       providers: [
         { provide: ListAllDocumentsUseCase, useValue: { execute: listExecute } },
         { provide: CheckDocumentDuplicateUseCase, useValue: { execute: duplicateCheckExecute } },
+        { provide: ExtractInvoiceUseCase, useValue: { execute: extractExecute } },
       ],
     }).compile();
 
@@ -69,6 +76,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
   afterEach(() => {
     listExecute.mockClear();
     duplicateCheckExecute.mockClear();
+    extractExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -97,12 +105,13 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
           issuerName: 'Acme SL',
           invoiceNumber: 'INV-1',
           supplierId: null,
+          staffMemberId: null,
         },
       ]);
       expect(listExecute).toHaveBeenCalledTimes(1);
     });
 
-    it('forwards all filters, including projectId and supplierId, to the use case', async () => {
+    it('forwards all filters, including projectId, supplierId and staffMemberId, to the use case', async () => {
       await request(httpServer)
         .get('/documents')
         .query({
@@ -116,6 +125,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
           amountMax: '1000',
           projectId: 'project-1',
           supplierId: 'supplier-1',
+          staffMemberId: 'staff-1',
         });
 
       expect(listExecute).toHaveBeenCalledWith({
@@ -129,6 +139,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
         amountMax: 1000,
         projectId: 'project-1',
         supplierId: 'supplier-1',
+        staffMemberId: 'staff-1',
       });
     });
 
@@ -219,6 +230,33 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(listExecute).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('POST /documents/extract', () => {
+    it('extracts a PDF without requiring a projectId', async () => {
+      const response = await request(httpServer)
+        .post('/documents/extract')
+        .attach('file', PDF_HEADER, { filename: 'invoice.pdf', contentType: 'application/pdf' });
+
+      expect(response.status).toBe(201);
+      expect(extractExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('requires a file', async () => {
+      const response = await request(httpServer).post('/documents/extract');
+
+      expect(response.status).toBe(400);
+      expect(extractExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects a file that is not a PDF', async () => {
+      const response = await request(httpServer)
+        .post('/documents/extract')
+        .attach('file', Buffer.from('not a pdf'), { filename: 'invoice.pdf', contentType: 'application/pdf' });
+
+      expect(response.status).toBe(400);
+      expect(extractExecute).not.toHaveBeenCalled();
     });
   });
 });

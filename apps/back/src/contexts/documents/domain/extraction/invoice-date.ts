@@ -20,9 +20,6 @@ const SPANISH_MONTH_NAMES: Record<string, number> = {
 
 const MONTH_NAME_ALTERNATION = Object.keys(SPANISH_MONTH_NAMES).join('|');
 
-// Matches Spanish long-form dates such as "30_Junio_2026", "30 de junio de
-// 2026", "30 junio 2026" or "30-junio-2026" (case-insensitive, separator can
-// be a space, underscore or hyphen, and the "de" connectors are optional).
 const SPANISH_MONTH_NAME_DATE = new RegExp(
   `\\b(\\d{1,2})[\\s_-]+(?:de[\\s_-]+)?(${MONTH_NAME_ALTERNATION})[\\s_-]+(?:de[\\s_-]+)?(\\d{4})\\b`,
   'i',
@@ -38,11 +35,6 @@ function isValidCalendarDate(year: number, month: number, day: number): boolean 
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
-/**
- * Normalises a date expressed as `YYYY-MM-DD`, `YYYY/MM/DD`, `DD/MM/YYYY`,
- * `DD-MM-YYYY` or `DD.MM.YYYY` into `YYYY-MM-DD`. Returns `null` when the
- * input does not match a known pattern or is not a valid calendar date.
- */
 export function normaliseDate(raw: string | null | undefined): string | null {
   if (raw == null) {
     return null;
@@ -76,10 +68,6 @@ export function normaliseDate(raw: string | null | undefined): string | null {
   return null;
 }
 
-/**
- * Normalises a compact `YYYYMMDD` date (as used by the UN/CEFACT
- * `format="102"` qualifier in Factur-X/ZUGFeRD) into `YYYY-MM-DD`.
- */
 export function normaliseCompactDate(raw: string | null | undefined): string | null {
   if (raw == null) {
     return null;
@@ -99,21 +87,10 @@ export function normaliseCompactDate(raw: string | null | undefined): string | n
   return `${year}-${month}-${day}`;
 }
 
-/**
- * Best-effort normalisation that tries the compact `YYYYMMDD` format first
- * (common in CII/Factur-X payloads) and falls back to the general date
- * formats used in ISO dates and Spanish plain-text invoices.
- */
 export function normaliseAnyDate(raw: string | null | undefined): string | null {
   return normaliseCompactDate(raw) ?? normaliseDate(raw);
 }
 
-/**
- * Finds and normalises the first Spanish long-form date (day + month name +
- * year, e.g. "30_Junio_2026" or "30 de junio de 2026") found in `text`.
- * Returns `null` when no such date is present or it is not a valid calendar
- * date.
- */
 export function extractSpanishMonthNameDate(text: string): string | null {
   const match = SPANISH_MONTH_NAME_DATE.exec(text);
   if (!match) {

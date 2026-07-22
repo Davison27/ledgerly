@@ -6,6 +6,8 @@ import { DOCUMENT_REPOSITORY } from '../documents/domain/document.repository';
 import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project.orm-entity';
 import { TypeOrmProjectRepository } from '../projects/infrastructure/persistence/typeorm-project.repository';
 import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
+import { DASHBOARD_DATA_PROVIDER } from './domain/dashboard-data-provider.port';
+import { RepositoryDashboardDataProvider } from './infrastructure/persistence/repository-dashboard-data-provider';
 import { DashboardController } from './infrastructure/http/dashboard.controller';
 import { GetCompanyDashboardUseCase } from './application/get-company-dashboard/get-company-dashboard.use-case';
 
@@ -16,6 +18,7 @@ import { GetCompanyDashboardUseCase } from './application/get-company-dashboard/
     GetCompanyDashboardUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+    { provide: DASHBOARD_DATA_PROVIDER, useClass: RepositoryDashboardDataProvider },
   ],
 })
 export class DashboardModule {}

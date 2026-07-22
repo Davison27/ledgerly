@@ -4,10 +4,6 @@ import { parseSpanishNumber } from '../spanish-number';
 import { normaliseTaxId } from '../tax-id';
 import { HintAnchorKind, InvoiceHint, LearnableField } from './invoice-hint';
 
-/**
- * The textual anchor `deriveHint` locates for a corrected field, ready to be
- * persisted as (part of) an `InvoiceHint`.
- */
 export interface DerivedAnchor {
   anchorKind: HintAnchorKind;
   anchorLabel: string;
@@ -17,8 +13,6 @@ export interface DerivedAnchor {
 
 const NUMBER_FIELDS: ReadonlySet<LearnableField> = new Set(['amount', 'taxBase', 'taxRate', 'taxAmount']);
 const DATE_FIELDS: ReadonlySet<LearnableField> = new Set(['date', 'dueDate']);
-// Single-token string fields: the value never contains embedded spaces, so
-// only the first whitespace-delimited token after the label is the value.
 const TOKEN_STRING_FIELDS: ReadonlySet<LearnableField> = new Set(['issuerTaxId', 'invoiceNumber']);
 
 const HAS_LETTER = /[a-zA-Z]/;
@@ -26,9 +20,6 @@ const TRAILING_SEPARATORS = /[\s:.-]+$/;
 const LEADING_SEPARATORS = /^[\s:.-]+/;
 const TRAILING_PUNCTUATION = /[.,;]+$/;
 
-// A generic numeric token: Spanish thousands/decimal grouping ("1.234,56"),
-// plain comma-decimal ("21,50"), dot-decimal ("1234.56") or a bare integer
-// ("21", as tax rates are often printed without decimals).
 const NUMBER_TOKEN = /-?\d{1,3}(?:\.\d{3})*(?:,\d+)?(?!\d)|-?\d+(?:\.\d+)?/;
 const NUMERIC_DATE_TOKEN = /(\d{1,2}[/.-]\d{1,2}[/.-]\d{4}|\d{4}-\d{2}-\d{2})/;
 
@@ -61,9 +52,6 @@ function stringRepresentations(field: LearnableField, value: string): string[] {
     return [trimmed];
   }
 
-  // Real invoices print CIF/NIF tokens with an optional hyphen either after
-  // the leading letter ("B-12345678") or before the trailing check letter
-  // ("12345678-Z"); try both alongside the plain, hyphen-free form.
   const normalised = normaliseTaxId(trimmed);
   const variants = new Set<string>([normalised]);
   if (normalised.length > 1) {
@@ -107,8 +95,6 @@ function numberRepresentations(value: number): string[] {
     `${sign}${whole}.${decimals}`,
   ]);
 
-  // Values with no meaningful decimal part (e.g. a 21% tax rate) are just as
-  // often printed without them ("21" rather than "21,00").
   if (decimals === '00') {
     representations.add(`${sign}${whole}`);
     representations.add(`${sign}${withThousands}`);
@@ -165,14 +151,6 @@ function findPrecedingLabelledLine(
   return null;
 }
 
-/**
- * Locates `correctedValue` in `text` and derives a reusable textual anchor
- * for `field`: a label found before the value on the same line ("inline"),
- * or the nearest preceding line carrying text when the value sits alone on
- * its own line ("preceding-line"). Returns `null` when the value cannot be
- * found in the text at all, or found with no locatable label above/beside
- * it (e.g. it's the very first line of the document).
- */
 export function deriveHint(text: string, field: LearnableField, correctedValue: string | number): DerivedAnchor | null {
   const lines = toLines(text);
   const representations = buildRepresentations(field, correctedValue);
@@ -223,7 +201,6 @@ function parseFieldValue(field: LearnableField, raw: string): string | number | 
     return field === 'issuerTaxId' ? normaliseTaxId(token) : token;
   }
 
-  // issuerName: free text, the whole (trimmed) remainder/line is the value.
   const name = trimmed.replace(TRAILING_PUNCTUATION, '').trim();
   return name.length > 0 ? name : undefined;
 }
@@ -248,12 +225,6 @@ function resolveHintValue(hint: InvoiceHint, lines: string[]): string | number |
   return parseFieldValue(hint.field, lines[valueLineIndex]);
 }
 
-/**
- * Applies previously learned per-issuer hints on top of a base heuristic
- * extraction, overriding only the fields whose anchor can still be located
- * in `text`. Fields whose anchor cannot be resolved fall back to whatever
- * `baseFields` already had. Never mutates `baseFields`.
- */
 export function applyHints(baseFields: InvoiceFields, hints: InvoiceHint[], text: string): InvoiceFields {
   const lines = toLines(text);
   const result: InvoiceFields = { ...baseFields };
@@ -261,9 +232,6 @@ export function applyHints(baseFields: InvoiceFields, hints: InvoiceHint[], text
   for (const hint of hints) {
     const value = resolveHintValue(hint, lines);
     if (value !== undefined) {
-      // Field <-> value type pairing is guaranteed by `parseFieldValue`
-      // switching on the same `hint.field`, but TypeScript can't express
-      // that correlation across a dynamic key.
       (result as unknown as Record<LearnableField, string | number>)[hint.field] = value;
     }
   }

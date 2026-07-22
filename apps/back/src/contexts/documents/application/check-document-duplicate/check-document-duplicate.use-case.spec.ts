@@ -6,11 +6,9 @@ import { Document } from '../../domain/document';
 import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
 import { DocumentListRow } from '../../domain/document-list-row';
 import {
-  ProjectDashboardRow,
-  ProjectRepository,
-} from '../../../projects/domain/project.repository';
-import { ProjectSummary } from '../../../projects/domain/project-summary';
-import { Project } from '../../../projects/domain/project';
+  ProjectNameProvider,
+  ProjectNameSummary,
+} from '../../domain/project-name-provider.port';
 
 class FakeDocumentRepository implements DocumentRepository {
   public receivedCriteria: DocumentDuplicateCriteria | undefined;
@@ -55,35 +53,11 @@ class FakeDocumentRepository implements DocumentRepository {
   }
 }
 
-class FakeProjectRepository implements ProjectRepository {
-  constructor(private readonly summaries: ProjectSummary[]) {}
+class FakeProjectNameProvider implements ProjectNameProvider {
+  constructor(private readonly names: ProjectNameSummary[]) {}
 
-  findAllSummaries(): Promise<ProjectSummary[]> {
-    return Promise.resolve(this.summaries);
-  }
-
-  findSummaryById(): Promise<ProjectSummary | null> {
-    return Promise.resolve(null);
-  }
-
-  findById(): Promise<Project | null> {
-    return Promise.resolve(null);
-  }
-
-  findByCode(): Promise<Project | null> {
-    return Promise.resolve(null);
-  }
-
-  save(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  findAllForDashboard(): Promise<ProjectDashboardRow[]> {
-    return Promise.resolve([]);
+  findAllNames(): Promise<ProjectNameSummary[]> {
+    return Promise.resolve(this.names);
   }
 }
 
@@ -101,14 +75,10 @@ function buildCandidate(overrides: Partial<DocumentDuplicateRow> = {}): Document
   };
 }
 
-function buildSummary(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
+function buildSummary(overrides: Partial<ProjectNameSummary> = {}): ProjectNameSummary {
   return {
     id: 'project-1',
     name: 'Project One',
-    code: 'P1',
-    documentCount: 0,
-    pendingCount: 0,
-    image: null,
     ...overrides,
   };
 }
@@ -118,8 +88,8 @@ describe('CheckDocumentDuplicateUseCase', () => {
     const documentRepository = new FakeDocumentRepository([
       buildCandidate({ issuerTaxId: 'B-12345678' }),
     ]);
-    const projectRepository = new FakeProjectRepository([buildSummary()]);
-    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([buildSummary()]);
+    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({
       issuerTaxId: 'b12345678',
@@ -143,8 +113,8 @@ describe('CheckDocumentDuplicateUseCase', () => {
     const documentRepository = new FakeDocumentRepository([
       buildCandidate({ issuerTaxId: null, issuerName: 'Acme  SL' }),
     ]);
-    const projectRepository = new FakeProjectRepository([buildSummary()]);
-    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([buildSummary()]);
+    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({
       issuerName: 'acme sl',
@@ -160,8 +130,8 @@ describe('CheckDocumentDuplicateUseCase', () => {
     const documentRepository = new FakeDocumentRepository([
       buildCandidate({ issuerName: null, issuerTaxId: null }),
     ]);
-    const projectRepository = new FakeProjectRepository([buildSummary()]);
-    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([buildSummary()]);
+    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({ invoiceNumber: 'INV-1', amount: 100 });
 
@@ -173,8 +143,8 @@ describe('CheckDocumentDuplicateUseCase', () => {
     const documentRepository = new FakeDocumentRepository([
       buildCandidate({ issuerTaxId: 'B99999999', issuerName: 'Other SL' }),
     ]);
-    const projectRepository = new FakeProjectRepository([buildSummary()]);
-    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([buildSummary()]);
+    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({
       issuerTaxId: 'B12345678',
@@ -188,8 +158,8 @@ describe('CheckDocumentDuplicateUseCase', () => {
 
   it('returns an empty array when the repository finds no candidates', async () => {
     const documentRepository = new FakeDocumentRepository([]);
-    const projectRepository = new FakeProjectRepository([]);
-    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([]);
+    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({ invoiceNumber: 'INV-404', amount: 50 });
 
@@ -198,8 +168,8 @@ describe('CheckDocumentDuplicateUseCase', () => {
 
   it('forwards the query criteria to the repository', async () => {
     const documentRepository = new FakeDocumentRepository([]);
-    const projectRepository = new FakeProjectRepository([]);
-    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([]);
+    const useCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
 
     await useCase.execute({
       issuerName: 'Acme SL',

@@ -3,10 +3,15 @@ import { Document, DocumentProps } from '../../domain/document';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../domain/document.repository';
 import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
+import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import {
   SUPPLIER_EXISTENCE_CHECKER,
   SupplierExistenceChecker,
 } from '../../domain/supplier-existence-checker.port';
+import {
+  STAFF_MEMBER_EXISTENCE_CHECKER,
+  StaffMemberExistenceChecker,
+} from '../../domain/staff-member-existence-checker.port';
 import { UpdateDocumentCommand } from './update-document.command';
 
 type DocumentChanges = Partial<Omit<DocumentProps, 'id' | 'projectId'>>;
@@ -17,6 +22,8 @@ export class UpdateDocumentUseCase {
     @Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository,
     @Inject(SUPPLIER_EXISTENCE_CHECKER)
     private readonly supplierExistenceChecker: SupplierExistenceChecker,
+    @Inject(STAFF_MEMBER_EXISTENCE_CHECKER)
+    private readonly staffMemberExistenceChecker: StaffMemberExistenceChecker,
   ) {}
 
   async execute(command: UpdateDocumentCommand): Promise<Document> {
@@ -26,14 +33,19 @@ export class UpdateDocumentUseCase {
       throw new DocumentNotFoundException(command.id);
     }
 
-    // `null` means "unassign the supplier" and is not validated (same
-    // contract as CreateDocumentUseCase); only a non-null supplierId is
-    // checked against the supplier existence port.
     if (command.supplierId !== undefined && command.supplierId !== null) {
       const supplierExists = await this.supplierExistenceChecker.exists(command.supplierId);
 
       if (!supplierExists) {
         throw new DocumentSupplierNotFoundException(command.supplierId);
+      }
+    }
+
+    if (command.staffMemberId !== undefined && command.staffMemberId !== null) {
+      const staffMemberExists = await this.staffMemberExistenceChecker.exists(command.staffMemberId);
+
+      if (!staffMemberExists) {
+        throw new DocumentStaffMemberNotFoundException(command.staffMemberId);
       }
     }
 
@@ -56,9 +68,8 @@ export class UpdateDocumentUseCase {
     if (command.issuerTaxId !== undefined) changes.issuerTaxId = command.issuerTaxId;
     if (command.invoiceNumber !== undefined) changes.invoiceNumber = command.invoiceNumber;
     if (command.supplierId !== undefined) changes.supplierId = command.supplierId;
+    if (command.staffMemberId !== undefined) changes.staffMemberId = command.staffMemberId;
 
-    // `month` is a pure projection of `date` (D4): whenever `date` changes,
-    // recompute it here. Never accepted from the client.
     if (command.date !== undefined) {
       changes.month = Number(command.date.slice(5, 7));
     }

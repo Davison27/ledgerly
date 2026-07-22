@@ -63,8 +63,6 @@ describe('RecordExtractionOutcomeUseCase', () => {
     const outcomeRepository = new InMemoryOutcomeRepository();
     const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository);
 
-    // Facturae fields: issuerName 'Consultoria Iberica de Sistemas SA', amount 605.
-    // User corrects the amount only.
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
       submitted: {
@@ -122,7 +120,6 @@ describe('RecordExtractionOutcomeUseCase', () => {
     const outcomeRepository = new InMemoryOutcomeRepository();
     const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository);
 
-    // The hint already resolves invoiceNumber to REF-9, matching what was submitted.
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
       submitted: { issuerName: 'Mi Empresa SL', invoiceNumber: 'REF-9' },

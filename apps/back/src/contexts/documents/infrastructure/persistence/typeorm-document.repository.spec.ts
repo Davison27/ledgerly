@@ -1,7 +1,7 @@
 import { Repository } from 'typeorm';
 import { TypeOrmDocumentRepository } from './typeorm-document.repository';
 import { DocumentOrmEntity } from './document.orm-entity';
-import { todayIso } from '../../domain/effective-status';
+import { todayIso } from '../../../../shared/infrastructure/system-clock';
 
 interface RecordedCondition {
   sql: string;

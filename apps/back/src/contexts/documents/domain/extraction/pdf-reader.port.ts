@@ -4,7 +4,6 @@ export interface PdfAttachment {
 }
 
 export interface PdfReadResult {
-  /** Concatenated text layer of every page, lines separated by `\n`. */
   text: string;
   attachments: PdfAttachment[];
 }

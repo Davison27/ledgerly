@@ -6,11 +6,9 @@ import { Document } from '../../domain/document';
 import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
 import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import {
-  ProjectDashboardRow,
-  ProjectRepository,
-} from '../../../projects/domain/project.repository';
-import { ProjectSummary } from '../../../projects/domain/project-summary';
-import { Project } from '../../../projects/domain/project';
+  ProjectNameProvider,
+  ProjectNameSummary,
+} from '../../domain/project-name-provider.port';
 
 class FakeDocumentRepository implements DocumentRepository {
   public receivedFilters: DocumentListFilters | undefined;
@@ -55,35 +53,11 @@ class FakeDocumentRepository implements DocumentRepository {
   }
 }
 
-class FakeProjectRepository implements ProjectRepository {
-  constructor(private readonly summaries: ProjectSummary[]) {}
+class FakeProjectNameProvider implements ProjectNameProvider {
+  constructor(private readonly names: ProjectNameSummary[]) {}
 
-  findAllSummaries(): Promise<ProjectSummary[]> {
-    return Promise.resolve(this.summaries);
-  }
-
-  findSummaryById(): Promise<ProjectSummary | null> {
-    return Promise.resolve(null);
-  }
-
-  findById(): Promise<Project | null> {
-    return Promise.resolve(null);
-  }
-
-  findByCode(): Promise<Project | null> {
-    return Promise.resolve(null);
-  }
-
-  save(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  findAllForDashboard(): Promise<ProjectDashboardRow[]> {
-    return Promise.resolve([]);
+  findAllNames(): Promise<ProjectNameSummary[]> {
+    return Promise.resolve(this.names);
   }
 }
 
@@ -102,29 +76,26 @@ function buildRow(overrides: Partial<DocumentListRow> = {}): DocumentListRow {
     issuerName: 'Acme SL',
     invoiceNumber: 'INV-1',
     supplierId: null,
+    staffMemberId: null,
     ...overrides,
   };
 }
 
-function buildSummary(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
+function buildSummary(overrides: Partial<ProjectNameSummary> = {}): ProjectNameSummary {
   return {
     id: 'project-1',
     name: 'Project One',
-    code: 'P1',
-    documentCount: 0,
-    pendingCount: 0,
-    image: null,
     ...overrides,
   };
 }
 
 describe('ListAllDocumentsUseCase', () => {
-  it('attaches the project name resolved via the project repository', async () => {
+  it('attaches the project name resolved via the project name provider', async () => {
     const documentRepository = new FakeDocumentRepository([buildRow({ projectId: 'project-1' })]);
-    const projectRepository = new FakeProjectRepository([
+    const projectNameProvider = new FakeProjectNameProvider([
       buildSummary({ id: 'project-1', name: 'Project One' }),
     ]);
-    const useCase = new ListAllDocumentsUseCase(documentRepository, projectRepository);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({});
 
@@ -135,8 +106,8 @@ describe('ListAllDocumentsUseCase', () => {
 
   it('falls back to an empty project name when the project is unknown', async () => {
     const documentRepository = new FakeDocumentRepository([buildRow({ projectId: 'missing-project' })]);
-    const projectRepository = new FakeProjectRepository([]);
-    const useCase = new ListAllDocumentsUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([]);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({});
 
@@ -145,8 +116,8 @@ describe('ListAllDocumentsUseCase', () => {
 
   it('forwards filters, including projectId and supplierId, to the repository', async () => {
     const documentRepository = new FakeDocumentRepository([]);
-    const projectRepository = new FakeProjectRepository([]);
-    const useCase = new ListAllDocumentsUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([]);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
 
     const filters: DocumentListFilters = {
       search: 'invoice',
@@ -172,8 +143,8 @@ describe('ListAllDocumentsUseCase', () => {
       buildRow({ id: 'doc-middle', date: '2026-03-01' }),
       buildRow({ id: 'doc-oldest', date: '2026-01-10' }),
     ]);
-    const projectRepository = new FakeProjectRepository([buildSummary()]);
-    const useCase = new ListAllDocumentsUseCase(documentRepository, projectRepository);
+    const projectNameProvider = new FakeProjectNameProvider([buildSummary()]);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({});
 
@@ -196,12 +167,13 @@ describe('ListAllDocumentsUseCase', () => {
         issuerName: 'Beta SL',
         invoiceNumber: 'INV-2',
         supplierId: 'supplier-1',
+        staffMemberId: 'staff-1',
       }),
     ]);
-    const projectRepository = new FakeProjectRepository([
+    const projectNameProvider = new FakeProjectNameProvider([
       buildSummary({ id: 'project-1', name: 'Project One' }),
     ]);
-    const useCase = new ListAllDocumentsUseCase(documentRepository, projectRepository);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
 
     const result = await useCase.execute({});
 
@@ -221,6 +193,7 @@ describe('ListAllDocumentsUseCase', () => {
         issuerName: 'Beta SL',
         invoiceNumber: 'INV-2',
         supplierId: 'supplier-1',
+        staffMemberId: 'staff-1',
       },
     ]);
   });

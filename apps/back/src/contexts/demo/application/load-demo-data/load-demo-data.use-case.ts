@@ -1,9 +1,17 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Project } from '../../../projects/domain/project';
 import { PROJECT_REPOSITORY, ProjectRepository } from '../../../projects/domain/project.repository';
+import { Document } from '../../../documents/domain/document';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../../documents/domain/document.repository';
+import { StaffMember } from '../../../staff/domain/staff-member';
+import {
+  STAFF_MEMBER_REPOSITORY,
+  StaffMemberRepository,
+} from '../../../staff/domain/staff-member.repository';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
+import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 import { buildDemoDocuments } from './demo-documents';
+import { buildDemoStaffMembers } from './demo-staff-members';
 import { LoadDemoDataResult } from './load-demo-data.result';
 
 const DEMO_PROJECT_NAME = 'Proyecto de ejemplo';
@@ -16,21 +24,23 @@ export class LoadDemoDataUseCase {
     private readonly projectRepository: ProjectRepository,
     @Inject(DOCUMENT_REPOSITORY)
     private readonly documentRepository: DocumentRepository,
+    @Inject(STAFF_MEMBER_REPOSITORY)
+    private readonly staffMemberRepository: StaffMemberRepository,
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IdGenerator,
+    @Inject(CLOCK)
+    private readonly clock: Clock,
   ) {}
 
   async execute(): Promise<LoadDemoDataResult> {
     const existingProjects = await this.projectRepository.findAllSummaries();
 
     if (existingProjects.length > 0) {
-      // Idempotent no-op: demo data is only provisioned when there is
-      // nothing else in the workspace yet.
-      return { created: false, projectId: null, documentCount: 0 };
+      return { created: false, projectId: null, documentCount: 0, staffMemberCount: 0 };
     }
 
     const projectId = this.idGenerator.generate();
-    const today = new Date();
+    const today = this.clock.now();
     const startDate = today.toISOString().slice(0, 10);
     const fiscalYear = String(today.getUTCFullYear());
 
@@ -59,12 +69,31 @@ export class LoadDemoDataUseCase {
 
     await this.projectRepository.save(project);
 
-    const documents = buildDemoDocuments(projectId, () => this.idGenerator.generate());
+    const staffMemberSeeds = buildDemoStaffMembers(() => this.idGenerator.generate(), today);
+    const staffMembers = staffMemberSeeds.map((seed) => StaffMember.create(seed));
+
+    for (const staffMember of staffMembers) {
+      await this.staffMemberRepository.save(staffMember);
+    }
+
+    const staffMemberIds = staffMembers.map((staffMember) => staffMember.id);
+    const documentSeeds = buildDemoDocuments(
+      projectId,
+      () => this.idGenerator.generate(),
+      staffMemberIds,
+      today,
+    );
+    const documents = documentSeeds.map((seed) => Document.create(seed));
 
     for (const document of documents) {
       await this.documentRepository.save(document);
     }
 
-    return { created: true, projectId, documentCount: documents.length };
+    return {
+      created: true,
+      projectId,
+      documentCount: documents.length,
+      staffMemberCount: staffMembers.length,
+    };
   }
 }

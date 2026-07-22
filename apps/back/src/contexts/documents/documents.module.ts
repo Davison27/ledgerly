@@ -4,6 +4,7 @@ import { DocumentOrmEntity } from './infrastructure/persistence/document.orm-ent
 import { TypeOrmDocumentRepository } from './infrastructure/persistence/typeorm-document.repository';
 import { TypeOrmProjectExistenceChecker } from './infrastructure/persistence/typeorm-project-existence-checker';
 import { TypeOrmSupplierExistenceChecker } from './infrastructure/persistence/typeorm-supplier-existence-checker';
+import { TypeOrmStaffMemberExistenceChecker } from './infrastructure/persistence/typeorm-staff-member-existence-checker';
 import { InvoiceExtractionHintOrmEntity } from './infrastructure/persistence/invoice-extraction-hint.orm-entity';
 import { TypeOrmInvoiceHintRepository } from './infrastructure/persistence/typeorm-invoice-hint.repository';
 import { ExtractionOutcomeOrmEntity } from './infrastructure/persistence/extraction-outcome.orm-entity';
@@ -11,6 +12,7 @@ import { TypeOrmExtractionOutcomeRepository } from './infrastructure/persistence
 import { DOCUMENT_REPOSITORY } from './domain/document.repository';
 import { PROJECT_EXISTENCE_CHECKER } from './domain/project-existence-checker.port';
 import { SUPPLIER_EXISTENCE_CHECKER } from './domain/supplier-existence-checker.port';
+import { STAFF_MEMBER_EXISTENCE_CHECKER } from './domain/staff-member-existence-checker.port';
 import { PDF_READER } from './domain/extraction/pdf-reader.port';
 import { INVOICE_HINT_REPOSITORY } from './domain/extraction/hints/invoice-hint.repository';
 import { EXTRACTION_OUTCOME_REPOSITORY } from './domain/extraction/quality/extraction-outcome.repository';
@@ -36,6 +38,8 @@ import { DeleteHintUseCase } from './application/delete-hint/delete-hint.use-cas
 import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project.orm-entity';
 import { TypeOrmProjectRepository } from '../projects/infrastructure/persistence/typeorm-project.repository';
 import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
+import { PROJECT_NAME_PROVIDER } from './domain/project-name-provider.port';
+import { ProjectRepositoryNameProvider } from './infrastructure/projects/project-repository-name-provider';
 
 @Module({
   imports: [
@@ -64,15 +68,14 @@ import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
     DeleteHintUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+    { provide: PROJECT_NAME_PROVIDER, useClass: ProjectRepositoryNameProvider },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: SUPPLIER_EXISTENCE_CHECKER, useClass: TypeOrmSupplierExistenceChecker },
+    { provide: STAFF_MEMBER_EXISTENCE_CHECKER, useClass: TypeOrmStaffMemberExistenceChecker },
     { provide: PDF_READER, useClass: PdfjsPdfReader },
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },
     { provide: EXTRACTION_OUTCOME_REPOSITORY, useClass: TypeOrmExtractionOutcomeRepository },
   ],
-  // Only exported for `invoices` (D1/D9): the mirror document publisher and
-  // its deletion counterpart inject these use-cases directly, never the
-  // HTTP endpoint, so the mirror document never triggers extraction hints.
   exports: [CreateDocumentUseCase, DeleteDocumentUseCase],
 })
 export class DocumentsModule {}

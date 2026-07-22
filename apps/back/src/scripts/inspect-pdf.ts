@@ -1,13 +1,3 @@
-/**
- * Herramienta de diagnóstico de extracción de facturas.
- *
- * Uso:
- *   pnpm --filter @ledgerly/back exec ts-node src/scripts/inspect-pdf.ts <ruta-al-pdf>
- *
- * Imprime el texto que pdfjs extrae del PDF, los adjuntos XML (si los hay) y
- * los campos que la heurística detecta actualmente. Sirve para entender por qué
- * una factura concreta no se extrae bien y afinar los patrones.
- */
 import { readFileSync } from 'node:fs';
 import { PdfjsPdfReader } from '../contexts/documents/infrastructure/pdf/pdfjs-pdf-reader';
 import { extractInvoiceHeuristics } from '../contexts/documents/domain/extraction/invoice-heuristics';

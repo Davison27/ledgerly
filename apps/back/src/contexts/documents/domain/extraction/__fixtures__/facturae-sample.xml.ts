@@ -56,8 +56,6 @@ export const FACTURAE_SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </Invoices>
 </fe:Facturae>`;
 
-// Same invoice as FACTURAE_SAMPLE_XML but with a non-zero IRPF withholding,
-// used to verify TaxesWithheld/TotalTaxesWithheld extraction.
 export const FACTURAE_SAMPLE_WITH_IRPF_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <fe:Facturae xmlns:fe="http://www.facturae.gob.es/formato/Versiones/Facturaev3_2_2.xml">
   <FileHeader>

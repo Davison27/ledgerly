@@ -4,8 +4,6 @@ export class AddDocumentIrpfAndDirection1732000000000 implements MigrationInterf
   name = 'AddDocumentIrpfAndDirection1732000000000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
-    // C1: TODO el histórico pasa a 'gasto'. NO hay ningún UPDATE ... WHERE type = 'factura':
-    // las facturas cargadas son recibidas de proveedores, no emitidas.
     await queryRunner.query(`
       ALTER TABLE "documents"
         ADD COLUMN "irpf_rate" numeric(5,2),

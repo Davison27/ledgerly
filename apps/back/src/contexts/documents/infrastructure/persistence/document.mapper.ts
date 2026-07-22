@@ -30,6 +30,7 @@ export class DocumentMapper {
       mimeType: orm.mimeType,
       fileSize: orm.fileSize,
       supplierId: orm.supplierId,
+      staffMemberId: orm.staffMemberId,
       direction: orm.direction as DocumentDirection,
     });
   }
@@ -60,6 +61,7 @@ export class DocumentMapper {
     orm.mimeType = primitives.mimeType;
     orm.fileSize = primitives.fileSize;
     orm.supplierId = primitives.supplierId;
+    orm.staffMemberId = primitives.staffMemberId;
     orm.direction = primitives.direction;
 
     return orm;

@@ -2,7 +2,8 @@ import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
 import { DocumentDirection } from '../../domain/document-direction';
-import { deriveEffectiveStatus, todayIso } from '../../domain/effective-status';
+import { deriveEffectiveStatus } from '../../domain/effective-status';
+import { todayIso } from '../../../../shared/infrastructure/system-clock';
 import { DocumentListItem } from '../../application/list-all-documents/document-list-item';
 
 export class DocumentListItemResponse {
@@ -12,7 +13,6 @@ export class DocumentListItemResponse {
   name: string;
   type: DocumentType;
   status: DocumentStatus;
-  /** The status as STORED, without `deriveEffectiveStatus`. See D5/5-bis. */
   rawStatus: DocumentStatus;
   direction: DocumentDirection;
   date: string;
@@ -22,6 +22,7 @@ export class DocumentListItemResponse {
   issuerName: string | null;
   invoiceNumber: string | null;
   supplierId: string | null;
+  staffMemberId: string | null;
 
   static fromResult(item: DocumentListItem): DocumentListItemResponse {
     const response = new DocumentListItemResponse();
@@ -41,6 +42,7 @@ export class DocumentListItemResponse {
     response.issuerName = item.issuerName;
     response.invoiceNumber = item.invoiceNumber;
     response.supplierId = item.supplierId;
+    response.staffMemberId = item.staffMemberId;
 
     return response;
   }

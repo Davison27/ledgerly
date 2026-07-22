@@ -52,8 +52,6 @@ export const UBL_SAMPLE_XML = `<?xml version="1.0" encoding="UTF-8"?>
   </cac:LegalMonetaryTotal>
 </Invoice>`;
 
-// Same invoice as UBL_SAMPLE_XML but with a non-zero IRPF withholding, used
-// to verify cac:WithholdingTaxTotal extraction.
 export const UBL_SAMPLE_WITH_IRPF_XML = `<?xml version="1.0" encoding="UTF-8"?>
 <Invoice xmlns="urn:oasis:names:specification:ubl:schema:xsd:Invoice-2"
          xmlns:cac="urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2"

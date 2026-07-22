@@ -9,6 +9,7 @@ import {
   Matches,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
@@ -92,4 +93,9 @@ export class CreateDocumentDto {
   @IsOptional()
   @IsUUID()
   supplierId?: string;
+
+  @ValidateIf((dto: CreateDocumentDto) => dto.type === 'nomina')
+  @IsString()
+  @IsNotEmpty()
+  staffMemberId?: string;
 }
