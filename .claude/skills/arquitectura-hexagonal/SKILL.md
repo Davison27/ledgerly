@@ -439,6 +439,7 @@ por un puerto.
 | Publicar un evento de dominio antes de persistir | Se notifica un hecho que todavía puede fallar |
 | Mockear el repositorio con expectativas por método | El test se rompe en cada refactor sin detectar fallos reales; usa un fake |
 | Un value object por cada `string` | Ceremonia: multiplica ficheros y mapeos sin comprar ninguna regla |
+| **Cualquier comentario en el código** | Prohibido en este repo. Si hace falta explicar, el código está mal: renombra o extrae. Ver abajo |
 
 ---
 
@@ -459,6 +460,37 @@ por un puerto.
 13. ¿Los tests de dominio y caso de uso corren sin BD, sin HTTP y sin reloj real?
 14. Si se introducen VOs o eventos: ¿resuelven una regla repetida o un efecto
     cruzado real, o son ceremonia? Ante la duda, no.
+
+---
+
+## Código sin comentarios
+
+En este repo **no se escribe ni un comentario**. Ni de línea, ni de bloque, ni
+JSDoc. Solo se conservan las **directivas** (`eslint-disable`,
+`@ts-expect-error`), que no son comentarios: borrarlas rompe lint o build.
+
+La regla no es cosmética, encaja con todo lo anterior: si un trozo de código
+necesita una frase en castellano al lado, es que la intención no está en el
+código. La respuesta es renombrar, extraer una función cuyo nombre sea la
+explicación, o mover la regla al agregado, que es donde nadie puede saltársela.
+
+Un comentario, además, envejece en silencio: nada lo compila ni lo prueba, así
+que al tercer refactor miente. Un nombre mal puesto lo delata el uso; un
+comentario falso no lo delata nadie.
+
+Dónde va cada cosa que antes se comentaba:
+
+| Antes | Ahora |
+|---|---|
+| Qué hace este bloque | Extraer función con nombre; el nombre es la frase |
+| Qué significa este valor | Value object o tipo, no una nota al margen |
+| Por qué se hizo así | Mensaje del commit |
+| Advertencia de consecuencias (`NOT VALID`, orden de `helmet`, DI local de un módulo) | **Esta skill**, que la lee quien va a tomar la decisión |
+| Diseño de un contexto | `docs/architecture/` |
+
+Las tres advertencias que solían vivir como comentarios en el código ya están
+recogidas arriba, en «Migraciones», «Módulos de Nest» y «Frontera HTTP»: ese es
+su sitio, porque aplican al repo entero y no solo a la línea donde estaban.
 
 ---
 
