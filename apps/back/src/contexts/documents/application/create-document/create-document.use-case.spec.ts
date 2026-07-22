@@ -6,8 +6,10 @@ import { DocumentListRow } from '../../domain/document-list-row';
 import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import { ProjectExistenceChecker } from '../../domain/project-existence-checker.port';
 import { SupplierExistenceChecker } from '../../domain/supplier-existence-checker.port';
+import { StaffMemberExistenceChecker } from '../../domain/staff-member-existence-checker.port';
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
+import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
@@ -52,7 +54,9 @@ class InMemoryDocumentRepository implements DocumentRepository {
   }
 }
 
-class FakeExistenceChecker implements ProjectExistenceChecker, SupplierExistenceChecker {
+class FakeExistenceChecker
+  implements ProjectExistenceChecker, SupplierExistenceChecker, StaffMemberExistenceChecker
+{
   constructor(private readonly existingIds: Set<string>) {}
 
   exists(id: string): Promise<boolean> {
@@ -84,10 +88,12 @@ describe('CreateDocumentUseCase', () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
     const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 
@@ -100,10 +106,12 @@ describe('CreateDocumentUseCase', () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
     const supplierChecker = new FakeExistenceChecker(new Set(['supplier-1']));
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 
@@ -116,10 +124,12 @@ describe('CreateDocumentUseCase', () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
     const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 
@@ -132,10 +142,12 @@ describe('CreateDocumentUseCase', () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set());
     const supplierChecker = new FakeExistenceChecker(new Set(['supplier-1']));
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 
@@ -148,10 +160,12 @@ describe('CreateDocumentUseCase', () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
     const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 
@@ -171,10 +185,12 @@ describe('CreateDocumentUseCase', () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
     const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 
@@ -183,14 +199,74 @@ describe('CreateDocumentUseCase', () => {
     ).rejects.toThrow(InvalidValueException);
   });
 
-  it('rejects an invalid direction', async () => {
+  it('creates a nomina with a staff member when it exists', async () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
     const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set(['staff-1']));
     const useCase = new CreateDocumentUseCase(
       repository,
       projectChecker,
       supplierChecker,
+      staffMemberChecker,
+      new SequentialIdGenerator(),
+    );
+
+    const document = await useCase.execute({
+      ...BASE_COMMAND,
+      type: 'nomina',
+      staffMemberId: 'staff-1',
+    });
+
+    expect(document.getStaffMemberId()).toBe('staff-1');
+  });
+
+  it('throws DocumentStaffMemberNotFoundException when the staff member does not exist', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      staffMemberChecker,
+      new SequentialIdGenerator(),
+    );
+
+    await expect(
+      useCase.execute({ ...BASE_COMMAND, type: 'nomina', staffMemberId: 'missing-staff' }),
+    ).rejects.toThrow(DocumentStaffMemberNotFoundException);
+  });
+
+  it('throws InvalidValueException (D3) when creating a nomina without a staffMemberId', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      staffMemberChecker,
+      new SequentialIdGenerator(),
+    );
+
+    await expect(useCase.execute({ ...BASE_COMMAND, type: 'nomina' })).rejects.toThrow(
+      InvalidValueException,
+    );
+  });
+
+  it('rejects an invalid direction', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      staffMemberChecker,
       new SequentialIdGenerator(),
     );
 

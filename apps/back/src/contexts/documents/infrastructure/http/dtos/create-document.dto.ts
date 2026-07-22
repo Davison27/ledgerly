@@ -9,6 +9,7 @@ import {
   Matches,
   Max,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
@@ -92,4 +93,12 @@ export class CreateDocumentDto {
   @IsOptional()
   @IsUUID()
   supplierId?: string;
+
+  // D3: courtesy validation only, so a missing staffMemberId on a nomina
+  // gets a field-level 400 instead of the generic one the domain throws.
+  // The actual guarantee lives in Document.create() and the DB CHECK.
+  @ValidateIf((dto: CreateDocumentDto) => dto.type === 'nomina')
+  @IsString()
+  @IsNotEmpty()
+  staffMemberId?: string;
 }

@@ -71,6 +71,9 @@ export class DocumentOrmEntity {
   @Column({ name: 'supplier_id', type: 'uuid', nullable: true })
   supplierId: string | null;
 
+  @Column({ name: 'staff_member_id', type: 'uuid', nullable: true })
+  staffMemberId: string | null;
+
   @Column({ length: 16 })
   direction: string;
 }

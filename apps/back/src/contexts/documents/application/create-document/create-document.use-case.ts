@@ -9,8 +9,13 @@ import {
   SUPPLIER_EXISTENCE_CHECKER,
   SupplierExistenceChecker,
 } from '../../domain/supplier-existence-checker.port';
+import {
+  STAFF_MEMBER_EXISTENCE_CHECKER,
+  StaffMemberExistenceChecker,
+} from '../../domain/staff-member-existence-checker.port';
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
+import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { CreateDocumentCommand } from './create-document.command';
 
@@ -20,6 +25,8 @@ export class CreateDocumentUseCase {
     @Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository,
     @Inject(PROJECT_EXISTENCE_CHECKER) private readonly projectExistenceChecker: ProjectExistenceChecker,
     @Inject(SUPPLIER_EXISTENCE_CHECKER) private readonly supplierExistenceChecker: SupplierExistenceChecker,
+    @Inject(STAFF_MEMBER_EXISTENCE_CHECKER)
+    private readonly staffMemberExistenceChecker: StaffMemberExistenceChecker,
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
   ) {}
 
@@ -37,6 +44,16 @@ export class CreateDocumentUseCase {
 
       if (!supplierExists) {
         throw new DocumentSupplierNotFoundException(supplierId);
+      }
+    }
+
+    const staffMemberId = command.staffMemberId ?? null;
+
+    if (staffMemberId !== null) {
+      const staffMemberExists = await this.staffMemberExistenceChecker.exists(staffMemberId);
+
+      if (!staffMemberExists) {
+        throw new DocumentStaffMemberNotFoundException(staffMemberId);
       }
     }
 
@@ -63,6 +80,7 @@ export class CreateDocumentUseCase {
       mimeType: command.file?.mimeType ?? null,
       fileSize: command.file?.size ?? null,
       supplierId,
+      staffMemberId,
       direction: command.direction,
     });
 

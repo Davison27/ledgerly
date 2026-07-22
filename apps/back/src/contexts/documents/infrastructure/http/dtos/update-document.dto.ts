@@ -102,4 +102,9 @@ export class UpdateDocumentDto {
   @IsOptional()
   @IsUUID()
   supplierId?: string | null;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  staffMemberId?: string | null;
 }

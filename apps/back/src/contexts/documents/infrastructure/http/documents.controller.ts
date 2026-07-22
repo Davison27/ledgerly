@@ -38,10 +38,7 @@ import { CreateDocumentDto } from './dtos/create-document.dto';
 import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { ListDocumentsQueryDto } from './dtos/list-documents.query.dto';
 import { DocumentResponse } from './document.response';
-
-const MAX_PDF_FILE_SIZE_BYTES = 10 * 1024 * 1024;
-const PDF_MIME_TYPE = 'application/pdf';
-const PDF_MAGIC_BYTES = Buffer.from('%PDF-');
+import { isValidPdfFile, MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
 
 @Controller('projects/:projectId/documents')
 export class DocumentsController {
@@ -95,7 +92,7 @@ export class DocumentsController {
   ): Promise<DocumentResponse> {
     const dto = await this.parseCreateDocumentPayload(payload);
 
-    if (file && (file.mimetype !== PDF_MIME_TYPE || !file.buffer.subarray(0, 5).equals(PDF_MAGIC_BYTES))) {
+    if (file && !isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
 
@@ -118,6 +115,7 @@ export class DocumentsController {
       irpfAmount: dto.irpfAmount,
       currency: dto.currency,
       supplierId: dto.supplierId,
+      staffMemberId: dto.staffMemberId,
       direction: dto.direction,
       file: file
         ? {
@@ -221,7 +219,7 @@ export class DocumentsController {
       throw new BadRequestException('file is required');
     }
 
-    if (file.mimetype !== PDF_MIME_TYPE || !file.buffer.subarray(0, 5).equals(PDF_MAGIC_BYTES)) {
+    if (!isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
 
@@ -272,6 +270,7 @@ export class DocumentsController {
       issuerTaxId: dto.issuerTaxId,
       invoiceNumber: dto.invoiceNumber,
       supplierId: dto.supplierId,
+      staffMemberId: dto.staffMemberId,
     });
 
     await this.recordEditFeedback(updated, dto);

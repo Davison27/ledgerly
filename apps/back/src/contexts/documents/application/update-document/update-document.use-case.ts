@@ -3,10 +3,15 @@ import { Document, DocumentProps } from '../../domain/document';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../domain/document.repository';
 import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
+import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import {
   SUPPLIER_EXISTENCE_CHECKER,
   SupplierExistenceChecker,
 } from '../../domain/supplier-existence-checker.port';
+import {
+  STAFF_MEMBER_EXISTENCE_CHECKER,
+  StaffMemberExistenceChecker,
+} from '../../domain/staff-member-existence-checker.port';
 import { UpdateDocumentCommand } from './update-document.command';
 
 type DocumentChanges = Partial<Omit<DocumentProps, 'id' | 'projectId'>>;
@@ -17,6 +22,8 @@ export class UpdateDocumentUseCase {
     @Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository,
     @Inject(SUPPLIER_EXISTENCE_CHECKER)
     private readonly supplierExistenceChecker: SupplierExistenceChecker,
+    @Inject(STAFF_MEMBER_EXISTENCE_CHECKER)
+    private readonly staffMemberExistenceChecker: StaffMemberExistenceChecker,
   ) {}
 
   async execute(command: UpdateDocumentCommand): Promise<Document> {
@@ -34,6 +41,21 @@ export class UpdateDocumentUseCase {
 
       if (!supplierExists) {
         throw new DocumentSupplierNotFoundException(command.supplierId);
+      }
+    }
+
+    // Same contract as supplierId. A `staffMemberId` explicitly absent from
+    // the command (`undefined`) is NOT the same as `null`: absent means
+    // "leave whatever the document already has untouched" (point 5 of the
+    // staff-section review — an old payroll that already has a staff member
+    // must keep it when the DTO simply omits the field), while `null` is an
+    // explicit unassignment attempt, which `Document.create()`/D3 rejects
+    // for a document of type `nomina` regardless.
+    if (command.staffMemberId !== undefined && command.staffMemberId !== null) {
+      const staffMemberExists = await this.staffMemberExistenceChecker.exists(command.staffMemberId);
+
+      if (!staffMemberExists) {
+        throw new DocumentStaffMemberNotFoundException(command.staffMemberId);
       }
     }
 
@@ -56,6 +78,7 @@ export class UpdateDocumentUseCase {
     if (command.issuerTaxId !== undefined) changes.issuerTaxId = command.issuerTaxId;
     if (command.invoiceNumber !== undefined) changes.invoiceNumber = command.invoiceNumber;
     if (command.supplierId !== undefined) changes.supplierId = command.supplierId;
+    if (command.staffMemberId !== undefined) changes.staffMemberId = command.staffMemberId;
 
     // `month` is a pure projection of `date` (D4): whenever `date` changes,
     // recompute it here. Never accepted from the client.

@@ -29,6 +29,7 @@ export interface DocumentProps {
   mimeType?: string | null;
   fileSize?: number | null;
   supplierId?: string | null;
+  staffMemberId?: string | null;
   direction: DocumentDirection;
 }
 
@@ -55,6 +56,7 @@ export class Document {
   private mimeType: string | null;
   private fileSize: number | null;
   private supplierId: string | null;
+  private staffMemberId: string | null;
   private direction: DocumentDirection;
 
   private constructor(props: DocumentProps) {
@@ -80,6 +82,7 @@ export class Document {
     this.mimeType = props.mimeType ?? null;
     this.fileSize = props.fileSize ?? null;
     this.supplierId = props.supplierId ?? null;
+    this.staffMemberId = props.staffMemberId ?? null;
     this.direction = props.direction;
   }
 
@@ -130,6 +133,14 @@ export class Document {
 
     if (props.fileSize != null && props.fileSize < 0) {
       throw new InvalidValueException('fileSize must be greater than or equal to 0');
+    }
+
+    // D3 of the staff-section plan: a payroll always carries a staff
+    // member, whichever side it is uploaded from. `withChanges()` reruns
+    // `create()`, so editing an existing document into type `nomina`
+    // without a staff member is caught here too.
+    if (props.type === 'nomina' && (props.staffMemberId ?? null) === null) {
+      throw new InvalidValueException('staffMemberId is required when type is nomina');
     }
 
     return new Document(props);
@@ -231,6 +242,10 @@ export class Document {
     return this.supplierId;
   }
 
+  getStaffMemberId(): string | null {
+    return this.staffMemberId;
+  }
+
   hasFile(): boolean {
     return this.fileName !== null;
   }
@@ -271,6 +286,7 @@ export class Document {
       mimeType: this.mimeType,
       fileSize: this.fileSize,
       supplierId: this.supplierId,
+      staffMemberId: this.staffMemberId,
       direction: this.direction,
     };
   }

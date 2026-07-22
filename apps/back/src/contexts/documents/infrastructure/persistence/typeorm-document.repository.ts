@@ -144,6 +144,12 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       queryBuilder.andWhere('document.supplier_id = :supplierId', { supplierId: filters.supplierId });
     }
 
+    if (filters.staffMemberId) {
+      queryBuilder.andWhere('document.staff_member_id = :staffMemberId', {
+        staffMemberId: filters.staffMemberId,
+      });
+    }
+
     if (filters.search) {
       queryBuilder.andWhere('LOWER(document.name) LIKE :search', {
         search: `%${filters.search.toLowerCase()}%`,
@@ -196,6 +202,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       issuerName: orm.issuerName,
       invoiceNumber: orm.invoiceNumber,
       supplierId: orm.supplierId,
+      staffMemberId: orm.staffMemberId,
     }));
   }
 

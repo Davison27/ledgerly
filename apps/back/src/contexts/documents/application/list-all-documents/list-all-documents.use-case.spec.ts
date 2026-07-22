@@ -102,6 +102,7 @@ function buildRow(overrides: Partial<DocumentListRow> = {}): DocumentListRow {
     issuerName: 'Acme SL',
     invoiceNumber: 'INV-1',
     supplierId: null,
+    staffMemberId: null,
     ...overrides,
   };
 }
@@ -196,6 +197,7 @@ describe('ListAllDocumentsUseCase', () => {
         issuerName: 'Beta SL',
         invoiceNumber: 'INV-2',
         supplierId: 'supplier-1',
+        staffMemberId: 'staff-1',
       }),
     ]);
     const projectRepository = new FakeProjectRepository([
@@ -221,6 +223,7 @@ describe('ListAllDocumentsUseCase', () => {
         issuerName: 'Beta SL',
         invoiceNumber: 'INV-2',
         supplierId: 'supplier-1',
+        staffMemberId: 'staff-1',
       },
     ]);
   });

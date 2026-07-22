@@ -22,6 +22,7 @@ export class DocumentListItemResponse {
   issuerName: string | null;
   invoiceNumber: string | null;
   supplierId: string | null;
+  staffMemberId: string | null;
 
   static fromResult(item: DocumentListItem): DocumentListItemResponse {
     const response = new DocumentListItemResponse();
@@ -41,6 +42,7 @@ export class DocumentListItemResponse {
     response.issuerName = item.issuerName;
     response.invoiceNumber = item.invoiceNumber;
     response.supplierId = item.supplierId;
+    response.staffMemberId = item.staffMemberId;
 
     return response;
   }
