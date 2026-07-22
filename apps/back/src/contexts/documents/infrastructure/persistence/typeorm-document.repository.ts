@@ -13,7 +13,7 @@ import { DocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentDirection } from '../../domain/document-direction';
 import { DocumentCurrency } from '../../domain/document-currency';
-import { todayIso } from '../../domain/effective-status';
+import { todayIso } from '../../../../shared/infrastructure/system-clock';
 import { DocumentOrmEntity } from './document.orm-entity';
 import { DocumentMapper } from './document.mapper';
 

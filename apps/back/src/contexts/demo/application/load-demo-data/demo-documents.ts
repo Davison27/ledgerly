@@ -1,4 +1,4 @@
-import { Document } from '../../../documents/domain/document';
+import { DocumentProps } from '../../../documents/domain/document';
 import { DocumentType } from '../../../documents/domain/document-type';
 import { DocumentStatus } from '../../../documents/domain/document-status';
 import { DocumentDirection } from '../../../documents/domain/document-direction';
@@ -136,19 +136,24 @@ function isoDateWithOffset(base: Date, offsetDays: number): string {
 }
 
 /**
- * Builds the sample documents for the demo project, computed relative to
- * "today" so the demo always feels current regardless of when it is loaded.
- * `staffMemberIds` are the ids of the demo staff members created by
- * `LoadDemoDataUseCase` (D4/U2.8): the `nomina` seeds above reference them by
- * index so every demo payroll is imputed to a staff member.
+ * Builds the primitives for the sample documents of the demo project,
+ * computed relative to `today` so the demo always feels current regardless
+ * of when it is loaded. `staffMemberIds` are the ids of the demo staff
+ * members created by `LoadDemoDataUseCase` (D4/U2.8): the `nomina` seeds
+ * above reference them by index so every demo payroll is imputed to a staff
+ * member.
+ *
+ * Returns primitives rather than `Document` instances: this is a pure
+ * function, and constructing (and validating) the actual entity is
+ * `LoadDemoDataUseCase`'s job, the same way it already owns creating the
+ * demo `Project`.
  */
 export function buildDemoDocuments(
   projectId: string,
   generateId: () => string,
   staffMemberIds: string[],
-): Document[] {
-  const today = new Date();
-
+  today: Date,
+): DocumentProps[] {
   return RAW_DOCUMENTS.map((seed) => {
     const date = isoDateWithOffset(today, seed.offsetDays);
     const month = Number(date.slice(5, 7));
@@ -163,7 +168,7 @@ export function buildDemoDocuments(
     const staffMemberId =
       seed.staffMemberIndex !== undefined ? staffMemberIds[seed.staffMemberIndex] : null;
 
-    return Document.create({
+    return {
       id: generateId(),
       projectId,
       name: seed.name,
@@ -184,6 +189,6 @@ export function buildDemoDocuments(
       currency: 'EUR',
       staffMemberId,
       direction: seed.direction,
-    });
+    };
   });
 }

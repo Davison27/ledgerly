@@ -1,4 +1,4 @@
-import { StaffMember } from '../../../staff/domain/staff-member';
+import { StaffMemberPrimitives } from '../../../staff/domain/staff-member';
 
 interface DemoStaffMemberSeed {
   firstName: string;
@@ -20,27 +20,31 @@ function isoDateWithOffset(base: Date, offsetDays: number): string {
 }
 
 /**
- * Builds the demo staff members (D4/U2.8): the demo loader stops creating
- * payrolls without a staff member, so it needs someone to imput them to.
- * The first two are referenced by `demo-documents.ts`'s `nomina` seeds via
- * `staffMemberIndex`; the third exists so the Personal section isn't a
- * one-row list.
+ * Builds the demo staff members' primitives (D4/U2.8): the demo loader stops
+ * creating payrolls without a staff member, so it needs someone to imput
+ * them to. The first two are referenced by `demo-documents.ts`'s `nomina`
+ * seeds via `staffMemberIndex`; the third exists so the Personal section
+ * isn't a one-row list.
+ *
+ * Returns primitives rather than `StaffMember` instances: this is a pure
+ * function, and constructing (and validating) the actual entity is
+ * `LoadDemoDataUseCase`'s job, the same way it already owns creating the
+ * demo `Project`.
  */
-export function buildDemoStaffMembers(generateId: () => string): StaffMember[] {
-  const today = new Date();
-
-  return RAW_STAFF_MEMBERS.map((seed) =>
-    StaffMember.create({
-      id: generateId(),
-      firstName: seed.firstName,
-      lastName: seed.lastName,
-      taxId: null,
-      email: null,
-      phone: null,
-      position: seed.position,
-      hireDate: isoDateWithOffset(today, seed.hireOffsetDays),
-      endDate: null,
-      notes: null,
-    }),
-  );
+export function buildDemoStaffMembers(
+  generateId: () => string,
+  today: Date,
+): StaffMemberPrimitives[] {
+  return RAW_STAFF_MEMBERS.map((seed) => ({
+    id: generateId(),
+    firstName: seed.firstName,
+    lastName: seed.lastName,
+    taxId: null,
+    email: null,
+    phone: null,
+    position: seed.position,
+    hireDate: isoDateWithOffset(today, seed.hireOffsetDays),
+    endDate: null,
+    notes: null,
+  }));
 }

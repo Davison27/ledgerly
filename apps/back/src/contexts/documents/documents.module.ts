@@ -38,6 +38,8 @@ import { DeleteHintUseCase } from './application/delete-hint/delete-hint.use-cas
 import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project.orm-entity';
 import { TypeOrmProjectRepository } from '../projects/infrastructure/persistence/typeorm-project.repository';
 import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
+import { PROJECT_NAME_PROVIDER } from './domain/project-name-provider.port';
+import { ProjectRepositoryNameProvider } from './infrastructure/projects/project-repository-name-provider';
 
 @Module({
   imports: [
@@ -66,6 +68,7 @@ import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
     DeleteHintUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+    { provide: PROJECT_NAME_PROVIDER, useClass: ProjectRepositoryNameProvider },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: SUPPLIER_EXISTENCE_CHECKER, useClass: TypeOrmSupplierExistenceChecker },
     { provide: STAFF_MEMBER_EXISTENCE_CHECKER, useClass: TypeOrmStaffMemberExistenceChecker },
