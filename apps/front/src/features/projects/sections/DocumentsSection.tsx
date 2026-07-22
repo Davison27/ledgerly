@@ -15,8 +15,12 @@ import {
 } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { deleteDocument } from '../../../data/api/documents.api';
-import type { DocumentStatus, DocumentType, ProjectDocument } from '../../../data/documents';
+import {
+  deleteDocument,
+  type DocumentStatus,
+  type DocumentType,
+  type ProjectDocument,
+} from '@/entities/document';
 import type { ProjectSectionProps } from './types';
 import { DocumentsListView } from './documents/DocumentsListView';
 import { DocumentsCardsView } from './documents/DocumentsCardsView';

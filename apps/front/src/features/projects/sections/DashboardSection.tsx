@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Flex } from 'antd';
 import type { ProjectSectionProps } from './types';
-import { PageContainer } from '../../../components/ui/PageContainer';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import { useProjectDocuments } from './documents/useProjectDocuments';
 import { deriveDashboardData } from './dashboard/data';
 import { KpiRow } from './dashboard/KpiRow';

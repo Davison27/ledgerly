@@ -1,4 +1,4 @@
-import type { ProjectDocument, DocumentType } from '../../../../data/documents';
+import type { ProjectDocument, DocumentType } from '@/entities/document';
 
 export interface AmountByStatus {
   pagado: number;

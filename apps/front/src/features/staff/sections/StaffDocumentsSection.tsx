@@ -7,12 +7,13 @@ import {
   listStaffDocumentTypes,
   listStaffDocuments,
   staffDocumentFileUrl,
-} from '../../../data/api/staff.api';
-import type { StaffDocumentDto, StaffDocumentTypeDto } from '../../../data/api/types';
-import { PageContainer } from '../../../components/ui/PageContainer';
-import { EmptyHint } from '../../../components/ui/EmptyHint';
-import { Numeric } from '../../../components/ui/Numeric';
-import { SemanticTag } from '../../../components/ui/SemanticTag';
+  type StaffDocumentDto,
+  type StaffDocumentTypeDto,
+} from '@/entities/staff-member';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { Numeric } from '@/shared/ui/Numeric';
+import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { AddStaffDocumentButton } from '../components/AddStaffDocumentButton';
 import { StaffDocumentEditModal } from '../components/StaffDocumentEditModal';
 import { getExpiryStatus, getExpiryTone } from './staffDocumentStatus';

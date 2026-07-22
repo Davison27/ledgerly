@@ -4,7 +4,7 @@ import { RouterProvider } from '@tanstack/react-router';
 
 import '@fontsource-variable/inter';
 import 'antd/dist/reset.css';
-import './i18n';
+import '@/shared/i18n';
 import './index.css';
 import { AppProviders } from './app/providers/AppProviders';
 import { router } from './app/router';

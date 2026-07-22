@@ -9,11 +9,11 @@ import {
   WalletOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
-import { TYPE } from '../../../../app/theme/tokens';
-import { Amount } from '../../../../components/ui/Amount';
-import { Numeric } from '../../../../components/ui/Numeric';
-import { EmptyHint } from '../../../../components/ui/EmptyHint';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { TYPE } from '@/shared/config/theme';
+import { Amount } from '@/shared/ui/Amount';
+import { Numeric } from '@/shared/ui/Numeric';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { formatPct } from './data';
 
 const { Text } = Typography;

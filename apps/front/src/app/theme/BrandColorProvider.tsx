@@ -6,7 +6,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { BRAND_DEFAULT } from './tokens';
+import { BRAND_DEFAULT } from '@/shared/config/theme';
 
 const STORAGE_KEY = 'ledgerly:brandColor';
 

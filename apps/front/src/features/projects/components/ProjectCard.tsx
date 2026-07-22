@@ -7,7 +7,7 @@ import {
   ProjectOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { Project } from '../../../data/company';
+import type { Project } from '@/entities/project';
 
 const { Meta } = Card;
 const { useToken } = theme;

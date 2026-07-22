@@ -13,8 +13,8 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { CompanyProvider, useCompany } from '../../app/providers/CompanyProvider';
-import { LAYOUT, SPACE } from '../../app/theme/tokens';
-import { companyNeedsSetup } from '../../data/company';
+import { LAYOUT, SPACE } from '@/shared/config/theme';
+import { companyNeedsSetup } from '@/entities/company';
 import { CommandPalette } from '../../features/command-palette/CommandPalette';
 import { useCommandPalette } from '../../features/command-palette/useCommandPalette';
 import { TopBar } from './TopBar';

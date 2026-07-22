@@ -1,6 +1,6 @@
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 
 const { useToken } = theme;
 

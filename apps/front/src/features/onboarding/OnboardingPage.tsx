@@ -17,10 +17,10 @@ import {
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
-import { SPACE } from '../../app/theme/tokens';
-import { companyNeedsSetup, fetchCompany, updateCompany } from '../../data/company';
+import { SPACE } from '@/shared/config/theme';
+import { companyNeedsSetup, fetchCompany, updateCompany } from '@/entities/company';
 import { loadDemoData } from '../../data/api/demo.api';
-import { listProjects } from '../../data/api/projects.api';
+import { listProjects } from '@/entities/project';
 
 const { Title, Text } = Typography;
 

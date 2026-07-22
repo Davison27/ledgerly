@@ -3,8 +3,8 @@ import { Alert, Button, Card, Empty, Flex, Select, Spin, Typography, theme } fro
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { useCompany } from '../../app/providers/CompanyProvider';
-import { SPACE } from '../../app/theme/tokens';
-import { PageContainer } from '../../components/ui/PageContainer';
+import { SPACE } from '@/shared/config/theme';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import { getCompanyDashboard } from '../../data/api/dashboard.api';
 import type { CompanyDashboardDto } from '../../data/api/types';
 import { KpiRow } from '../projects/sections/dashboard/KpiRow';

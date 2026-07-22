@@ -2,8 +2,8 @@ import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { FolderOpenOutlined } from '@ant-design/icons';
 import type { CompanyDashboardDto } from '../../data/api/types';
-import { Amount } from '../../components/ui/Amount';
-import { EmptyHint } from '../../components/ui/EmptyHint';
+import { Amount } from '@/shared/ui/Amount';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 
 const { Text } = Typography;
 const { useToken } = theme;

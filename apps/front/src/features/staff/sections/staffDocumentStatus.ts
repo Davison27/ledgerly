@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { SemanticTone } from '../../../components/ui/SemanticTag';
+import type { SemanticTone } from '@/shared/ui/SemanticTag';
 
 export type StaffDocumentExpiryStatus = 'valid' | 'expiring' | 'expired' | 'none';
 

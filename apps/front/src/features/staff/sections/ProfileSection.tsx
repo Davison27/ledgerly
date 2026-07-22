@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { App, Button, Descriptions, Flex } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { updateStaffMember } from '../../../data/api/staff.api';
-import { PageContainer } from '../../../components/ui/PageContainer';
-import { Numeric } from '../../../components/ui/Numeric';
-import { SemanticTag } from '../../../components/ui/SemanticTag';
+import { updateStaffMember } from '@/entities/staff-member';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { Numeric } from '@/shared/ui/Numeric';
+import { SemanticTag } from '@/shared/ui/SemanticTag';
 import {
   StaffMemberFormModal,
   type StaffMemberFormValues,

@@ -3,8 +3,7 @@ import { App, Button, DatePicker, Form, Input, Modal, Select, Upload } from 'ant
 import { InboxOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { createStaffDocument } from '../../../data/api/staff.api';
-import type { StaffDocumentTypeDto } from '../../../data/api/types';
+import { createStaffDocument, type StaffDocumentTypeDto } from '@/entities/staff-member';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;

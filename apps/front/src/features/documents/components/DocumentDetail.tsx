@@ -2,10 +2,14 @@ import { useEffect, useState } from 'react';
 import { Alert, Button, Flex, Popconfirm, Spin, Typography, theme } from 'antd';
 import { DeleteOutlined, DownloadOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { documentFileUrl } from '../../../data/api/documents.api';
-import type { ProjectDocument } from '../../../data/documents';
-import { formatEUR, useTypeLabel } from '../../projects/sections/documents/documentFormat';
-import { DirectionTag, StatusTag } from '../../projects/sections/documents/documentUi';
+import {
+  documentFileUrl,
+  formatEUR,
+  useTypeLabel,
+  DirectionTag,
+  StatusTag,
+  type ProjectDocument,
+} from '@/entities/document';
 
 const { Text, Title } = Typography;
 const { useToken } = theme;

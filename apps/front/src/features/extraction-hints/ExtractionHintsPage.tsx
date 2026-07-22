@@ -23,17 +23,15 @@ import { useTranslation } from 'react-i18next';
 import {
   deleteExtractionHint,
   listExtractionHints,
-} from '../../data/api/extraction-hints.api';
-import { getExtractionQuality } from '../../data/api/extraction-quality.api';
-import type {
-  ExtractInvoiceConfidence,
-  ExtractInvoiceSource,
-  ExtractionHintDto,
-  ExtractionQualityDto,
-} from '../../data/api/types';
-import { PageContainer } from '../../components/ui/PageContainer';
-import { Numeric } from '../../components/ui/Numeric';
-import { SemanticTag, type SemanticTone } from '../../components/ui/SemanticTag';
+  getExtractionQuality,
+  type ExtractInvoiceConfidence,
+  type ExtractInvoiceSource,
+  type ExtractionHintDto,
+  type ExtractionQualityDto,
+} from '@/entities/extraction-hint';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { Numeric } from '@/shared/ui/Numeric';
+import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 
 const { Title, Text } = Typography;
 

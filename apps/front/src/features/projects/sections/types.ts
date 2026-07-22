@@ -1,4 +1,4 @@
-import type { Project } from '../../../data/company';
+import type { Project } from '@/entities/project';
 
 export interface ProjectSectionProps {
   project: Project;

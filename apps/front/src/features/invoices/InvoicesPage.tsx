@@ -15,19 +15,20 @@ import {
 import { DeleteOutlined, DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
-import { companyNeedsSetup } from '../../data/company';
+import { companyNeedsSetup } from '@/entities/company';
 import {
   createInvoice,
   deleteInvoice,
   invoicePdfUrl,
   listInvoices,
-} from '../../data/api/invoices.api';
-import type { CreateInvoicePayload, InvoiceDto } from '../../data/api/types';
+  type CreateInvoicePayload,
+  type InvoiceDto,
+} from '@/entities/invoice';
 import { CompanySettingsModal } from '../../components/layout/CompanySettingsModal';
-import { PageContainer } from '../../components/ui/PageContainer';
-import { Amount } from '../../components/ui/Amount';
-import { Numeric } from '../../components/ui/Numeric';
-import { SemanticTag } from '../../components/ui/SemanticTag';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { Amount } from '@/shared/ui/Amount';
+import { Numeric } from '@/shared/ui/Numeric';
+import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { InvoiceFormModal } from './components/InvoiceFormModal';
 
 const { Title, Text } = Typography;

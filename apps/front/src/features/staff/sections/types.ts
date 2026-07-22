@@ -1,4 +1,4 @@
-import type { StaffMemberDto } from '../../../data/api/types';
+import type { StaffMemberDto } from '@/entities/staff-member';
 
 export interface StaffSectionProps {
   staffMember: StaffMemberDto;

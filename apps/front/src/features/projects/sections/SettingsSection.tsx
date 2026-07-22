@@ -4,9 +4,9 @@ import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from './types';
 import { useCompany } from '../../../app/providers/CompanyProvider';
-import { fetchProject, type Project, type ProjectFormValues } from '../../../data/company';
-import { ApiError } from '../../../data/api/httpClient';
-import { PageContainer } from '../../../components/ui/PageContainer';
+import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
+import { ApiError } from '@/shared/api/httpClient';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import {
   ProjectFormFields,
   type ProjectFormFieldValues,

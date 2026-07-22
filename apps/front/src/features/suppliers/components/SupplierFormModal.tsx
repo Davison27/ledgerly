@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Col, Form, Input, Modal, Row } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { SupplierDto } from '../../../data/api/types';
+import type { SupplierDto } from '@/entities/supplier';
 
 const { TextArea } = Input;
 

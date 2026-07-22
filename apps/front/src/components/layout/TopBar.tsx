@@ -23,7 +23,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
 import { useThemeMode } from '../../app/providers/ThemeModeProvider';
-import { LAYOUT, SPACE } from '../../app/theme/tokens';
+import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { CompanySettingsModal } from './CompanySettingsModal';
 import logoIconUrl from '../../assets/ledgerly-icon.svg';
 

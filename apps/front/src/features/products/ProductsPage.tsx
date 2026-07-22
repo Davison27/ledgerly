@@ -18,11 +18,11 @@ import {
   deleteProduct,
   listProducts,
   updateProduct,
-} from '../../data/api/products.api';
-import { ApiError } from '../../data/api/httpClient';
-import type { ProductDto } from '../../data/api/types';
-import { PageContainer } from '../../components/ui/PageContainer';
-import { Amount } from '../../components/ui/Amount';
+  type ProductDto,
+} from '@/entities/product';
+import { ApiError } from '@/shared/api/httpClient';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { Amount } from '@/shared/ui/Amount';
 import { ProductFormModal, type ProductFormValues } from './components/ProductFormModal';
 
 const { Title, Text } = Typography;

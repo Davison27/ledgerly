@@ -8,10 +8,12 @@ import {
   listStaffDocumentTypes,
   listStaffDocuments,
   staffDocumentFileUrl,
-} from '../../data/api/staff.api';
-import type { StaffDocumentDto, StaffDocumentTypeDto, StaffMemberDto } from '../../data/api/types';
-import { LAYOUT, SPACE } from '../../app/theme/tokens';
-import { PageContainer } from '../../components/ui/PageContainer';
+  type StaffDocumentDto,
+  type StaffDocumentTypeDto,
+  type StaffMemberDto,
+} from '@/entities/staff-member';
+import { LAYOUT, SPACE } from '@/shared/config/theme';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import { ProfileSection } from './sections/ProfileSection';
 import { StaffDocumentsSection } from './sections/StaffDocumentsSection';
 import { PayrollsSection } from './sections/PayrollsSection';
