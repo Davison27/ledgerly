@@ -1,11 +1,18 @@
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { TYPE } from '../../../../app/theme/tokens';
 import { formatPct } from './data';
 
 const { useToken } = theme;
 
 export interface MarginTrendChartProps {
   monthlyMargin: number[];
+  /**
+   * Kept for signature compatibility with `DashboardSection` (per-project
+   * dashboard), which still passes the section's brand colour. The trace
+   * below is coloured by profitability (income/expense) instead.
+   */
   color: string;
 }
 
@@ -18,12 +25,10 @@ const PAD_B = 30;
 const PLOT_W = W - PAD_L - PAD_R;
 const PLOT_H = H - PAD_T - PAD_B;
 
-export function MarginTrendChart({
-  monthlyMargin,
-  color,
-}: MarginTrendChartProps) {
+export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const min = Math.min(0, ...monthlyMargin);
@@ -39,6 +44,7 @@ export function MarginTrendChart({
 
   const lastIdx = monthlyMargin.length - 1;
   const lastValue = monthlyMargin[lastIdx];
+  const lineColor = lastValue >= 0 ? colors.income : colors.expense;
 
   return (
     <Card
@@ -65,21 +71,21 @@ export function MarginTrendChart({
             y1={zeroY}
             x2={PAD_L + PLOT_W}
             y2={zeroY}
-            stroke={token.colorBorder}
+            stroke={colors.gridLine}
             strokeWidth={1}
           />
 
           <polyline
             points={toPoints(monthlyMargin)}
             fill="none"
-            stroke={color}
+            stroke={lineColor}
             strokeWidth={2}
             strokeLinecap="round"
             strokeLinejoin="round"
           />
 
           {monthlyMargin.map((v, i) => (
-            <circle key={`pt-${i}`} cx={x(i)} cy={y(v)} r={2.5} fill={color} />
+            <circle key={`pt-${i}`} cx={x(i)} cy={y(v)} r={2.5} fill={lineColor} />
           ))}
 
           <text
@@ -89,6 +95,7 @@ export function MarginTrendChart({
             fontSize={11}
             fontWeight={600}
             fill={token.colorText}
+            style={TYPE.numeric}
           >
             {formatPct(lastValue)}
           </text>

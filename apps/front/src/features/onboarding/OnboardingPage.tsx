@@ -17,6 +17,7 @@ import {
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
+import { SPACE } from '../../app/theme/tokens';
 import { companyNeedsSetup, fetchCompany, updateCompany } from '../../data/company';
 import { loadDemoData } from '../../data/api/demo.api';
 import { listProjects } from '../../data/api/projects.api';
@@ -150,7 +151,7 @@ export function OnboardingPage() {
   }
 
   return (
-    <Flex align="center" justify="center" style={{ minHeight: '100vh', padding: 24 }}>
+    <Flex align="center" justify="center" style={{ minHeight: '100vh', padding: SPACE.xl }}>
       <Card style={{ width: '100%', maxWidth: 720 }}>
         <Flex vertical gap={4} style={{ marginBottom: 20 }}>
           <Title level={3} style={{ margin: 0 }}>

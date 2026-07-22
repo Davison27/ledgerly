@@ -69,6 +69,10 @@ export class UpdateCompanyUseCase {
       company.changeLogo(command.logo);
     }
 
+    if (command.brandColor !== undefined) {
+      company.changeBrandColor(command.brandColor);
+    }
+
     await this.repository.save(company);
 
     return company;

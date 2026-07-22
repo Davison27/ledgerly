@@ -40,4 +40,7 @@ export class CompanyOrmEntity {
 
   @Column({ type: 'text', nullable: true })
   logo: string | null;
+
+  @Column({ name: 'brand_color', type: 'varchar', length: 7, nullable: true })
+  brandColor: string | null;
 }

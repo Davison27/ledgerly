@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Flex } from 'antd';
 import type { ProjectSectionProps } from './types';
+import { PageContainer } from '../../../components/ui/PageContainer';
 import { useProjectDocuments } from './documents/useProjectDocuments';
 import { deriveDashboardData } from './dashboard/data';
 import { KpiRow } from './dashboard/KpiRow';
@@ -18,45 +19,47 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
   const data = useMemo(() => deriveDashboardData(documents), [documents]);
 
   return (
-    <Flex vertical gap={12} style={{ padding: 16 }}>
-      <KpiRow
-        income={data.income}
-        expenses={data.expenses}
-        pending={data.pending}
-        overdue={data.overdue}
-        profit={data.profit}
-        margin={data.margin}
-      />
-
-      <Flex gap={12} wrap align="stretch">
-        <MonthlyChart
-          income={data.monthlyIncome}
-          expenses={data.monthlyExpenses}
-          color={color}
-        />
-        <MonthlyProfitChart profit={data.monthlyProfit} />
-        <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
-        <MarginTrendChart monthlyMargin={data.monthlyMargin} color={color} />
-      </Flex>
-
-      <Flex gap={12} wrap align="stretch">
-        <CategoryDonut
-          categoryTotals={data.categoryTotals}
-          totalDocs={data.totalDocs}
-          color={color}
-        />
-        <StatusBreakdown
-          paid={data.paid}
+    <PageContainer>
+      <Flex vertical gap={12}>
+        <KpiRow
+          income={data.income}
+          expenses={data.expenses}
           pending={data.pending}
           overdue={data.overdue}
+          profit={data.profit}
+          margin={data.margin}
         />
-        <CashflowByStatus
-          pagado={data.amountByStatus.pagado}
-          pendiente={data.amountByStatus.pendiente}
-          vencido={data.amountByStatus.vencido}
-        />
-        <TopIssuers topIssuers={data.topIssuers} />
+
+        <Flex gap={12} wrap align="stretch">
+          <MonthlyChart
+            income={data.monthlyIncome}
+            expenses={data.monthlyExpenses}
+            color={color}
+          />
+          <MonthlyProfitChart profit={data.monthlyProfit} />
+          <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
+          <MarginTrendChart monthlyMargin={data.monthlyMargin} color={color} />
+        </Flex>
+
+        <Flex gap={12} wrap align="stretch">
+          <CategoryDonut
+            categoryTotals={data.categoryTotals}
+            totalDocs={data.totalDocs}
+            color={color}
+          />
+          <StatusBreakdown
+            paid={data.paid}
+            pending={data.pending}
+            overdue={data.overdue}
+          />
+          <CashflowByStatus
+            pagado={data.amountByStatus.pagado}
+            pendiente={data.amountByStatus.pendiente}
+            vencido={data.amountByStatus.vencido}
+          />
+          <TopIssuers topIssuers={data.topIssuers} />
+        </Flex>
       </Flex>
-    </Flex>
+    </PageContainer>
   );
 }

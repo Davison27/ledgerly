@@ -1,5 +1,6 @@
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -22,6 +23,7 @@ const PLOT_H = H - PAD_T - PAD_B;
 export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const max = Math.max(1, ...income, ...expenses);
@@ -32,15 +34,9 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
   const toPoints = (series: number[]) =>
     series.map((v, i) => `${x(i)},${y(v)}`).join(' ');
 
-  const expensesColor = token.colorTextTertiary;
-
   const legend = [
-    { key: 'income', label: t('projects.dashboard.legend.income'), color },
-    {
-      key: 'expenses',
-      label: t('projects.dashboard.legend.expenses'),
-      color: expensesColor,
-    },
+    { key: 'income', label: t('projects.dashboard.legend.income'), color: colors.income },
+    { key: 'expenses', label: t('projects.dashboard.legend.expenses'), color: colors.expense },
   ];
 
   return (
@@ -67,14 +63,14 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
           y1={PAD_T + PLOT_H}
           x2={PAD_L + PLOT_W}
           y2={PAD_T + PLOT_H}
-          stroke={token.colorBorderSecondary}
+          stroke={color}
           strokeWidth={1}
         />
 
         <polyline
           points={toPoints(expenses)}
           fill="none"
-          stroke={expensesColor}
+          stroke={colors.expense}
           strokeWidth={2}
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -82,14 +78,14 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         <polyline
           points={toPoints(income)}
           fill="none"
-          stroke={color}
+          stroke={colors.income}
           strokeWidth={2.5}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
 
         {income.map((v, i) => (
-          <circle key={`in-${i}`} cx={x(i)} cy={y(v)} r={2.5} fill={color} />
+          <circle key={`in-${i}`} cx={x(i)} cy={y(v)} r={2.5} fill={colors.income} />
         ))}
 
         {months.map((m, i) => (

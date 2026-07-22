@@ -2,6 +2,8 @@ import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../../data/api/types';
 import { formatEur } from '../projects/sections/dashboard/data';
+import { useSemanticColors } from '../../app/theme/useSemanticColors';
+import { TYPE } from '../../app/theme/tokens';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -23,9 +25,10 @@ const BAR_GAP = 4;
 export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
-  const outputColor = token.colorPrimary;
-  const inputColor = token.colorTextTertiary;
+  const outputColor = colors.income;
+  const inputColor = colors.expense;
 
   const max = Math.max(
     1,
@@ -72,7 +75,7 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
             y1={PAD_T + PLOT_H}
             x2={PAD_L + PLOT_W}
             y2={PAD_T + PLOT_H}
-            stroke={token.colorBorderSecondary}
+            stroke={colors.gridLine}
             strokeWidth={1}
           />
 
@@ -107,6 +110,7 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
                   fontSize={11}
                   fontWeight={600}
                   fill={balanceColor}
+                  style={TYPE.numeric}
                 >
                   <title>{t('dashboard.vat.balance')}</title>
                   {formatEur(q.balance)}

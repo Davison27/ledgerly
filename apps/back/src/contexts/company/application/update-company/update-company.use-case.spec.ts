@@ -66,4 +66,28 @@ describe('UpdateCompanyUseCase', () => {
     expect(updated.getId()).toBe(created.getId());
     expect(updated.getName()).toBe('Acme Corp Updated');
   });
+
+  it('persists the brand colour', async () => {
+    const repository = new InMemoryCompanyRepository();
+    const idGenerator = new SequentialIdGenerator();
+    const useCase = new UpdateCompanyUseCase(repository, idGenerator);
+
+    const company = await useCase.execute({ name: 'Acme Corp', brandColor: '#7A3FA0' });
+
+    expect(company.getBrandColor()).toBe('#7A3FA0');
+
+    const persisted = await repository.find();
+    expect(persisted?.getBrandColor()).toBe('#7A3FA0');
+  });
+
+  it('does not overwrite the brand colour when it is not part of the command', async () => {
+    const repository = new InMemoryCompanyRepository();
+    const idGenerator = new SequentialIdGenerator();
+    const useCase = new UpdateCompanyUseCase(repository, idGenerator);
+
+    await useCase.execute({ name: 'Acme Corp', brandColor: '#7A3FA0' });
+    const updated = await useCase.execute({ name: 'Acme Corp Updated' });
+
+    expect(updated.getBrandColor()).toBe('#7A3FA0');
+  });
 });

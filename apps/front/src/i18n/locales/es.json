@@ -72,7 +72,14 @@
       "noData": "— sin datos del año anterior",
       "up": "sube",
       "down": "baja",
-      "ariaLabel": "{{direction}} un {{pct}} respecto al año anterior"
+      "ariaLabel": "{{direction}} un {{pct}} respecto al año anterior",
+      "empty": {
+        "title": "Sin comparativa",
+        "hint": "Necesitas datos del año anterior para ver la variación."
+      }
+    },
+    "kpi": {
+      "emptyHint": "Todavía no hay movimientos registrados."
     },
     "budget": {
       "title": "Presupuesto vs. real por proyecto",
@@ -148,7 +155,8 @@
         "city": "Ciudad",
         "postalCode": "Código postal",
         "country": "País",
-        "logo": "Logotipo"
+        "logo": "Logotipo",
+        "brandColor": "Color de marca"
       },
       "placeholders": {
         "name": "Ej. Ledgerly",
@@ -166,6 +174,10 @@
       "logo": {
         "upload": "Subir logotipo",
         "hint": "PNG o JPG, tamaño recomendado 256x256 px"
+      },
+      "brandColor": {
+        "hint": "Define el color principal de la interfaz.",
+        "reset": "Restablecer"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio",

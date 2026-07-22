@@ -1,7 +1,8 @@
 import { Card, Empty, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { TopIssuer } from './data';
-import { formatEur } from './data';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { Amount } from '../../../../components/ui/Amount';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -10,20 +11,10 @@ export interface TopIssuersProps {
   topIssuers: TopIssuer[];
 }
 
-// Colorblind-safe categorical palette (dataviz skill reference palette, light-surface
-// slots 1-6, validated: worst adjacent CVD ΔE 9.1, worst adjacent normal-vision ΔE 19.6).
-const CATEGORICAL_PALETTE = [
-  '#2a78d6', // blue
-  '#008300', // green
-  '#e87ba4', // magenta
-  '#eda100', // yellow
-  '#1baf7a', // aqua
-  '#eb6834', // orange
-];
-
 export function TopIssuers({ topIssuers }: TopIssuersProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const max = Math.max(1, ...topIssuers.map((i) => i.total));
   let namedIndex = 0;
@@ -39,7 +30,7 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
       color = token.colorTextQuaternary;
     } else {
       label = issuer.name ?? issuer.key;
-      color = CATEGORICAL_PALETTE[namedIndex % CATEGORICAL_PALETTE.length];
+      color = colors.chartSeries[namedIndex % colors.chartSeries.length];
       namedIndex += 1;
     }
     return { ...issuer, label, color };
@@ -98,7 +89,7 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
                 strong
                 style={{ flex: 'none', width: 90, textAlign: 'right' }}
               >
-                {formatEur(row.total)}
+                <Amount value={row.total} />
               </Text>
             </Flex>
           ))}

@@ -12,15 +12,13 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { CompanyProvider, useCompany } from '../../app/providers/CompanyProvider';
+import { LAYOUT, SPACE } from '../../app/theme/tokens';
 import { companyNeedsSetup } from '../../data/company';
 import { CommandPalette } from '../../features/command-palette/CommandPalette';
 import { useCommandPalette } from '../../features/command-palette/useCommandPalette';
 import { TopBar } from './TopBar';
 
 const { useToken } = theme;
-
-// Must match TopBar.tsx's Layout.Header height, so the sider starts right below it.
-const TOPBAR_HEIGHT = 52;
 
 /**
  * Redirects to the onboarding wizard when there's no company data yet.
@@ -111,12 +109,12 @@ function AppSider({
       collapsible
       collapsed={collapsed}
       onCollapse={onCollapse}
-      collapsedWidth={64}
-      width={220}
+      collapsedWidth={LAYOUT.siderCollapsedWidth}
+      width={LAYOUT.siderWidth}
       style={{
-        height: `calc(100vh - ${TOPBAR_HEIGHT}px)`,
+        height: `calc(100vh - ${LAYOUT.topbarHeight}px)`,
         position: 'sticky',
-        top: TOPBAR_HEIGHT,
+        top: LAYOUT.topbarHeight,
         background: token.colorBgContainer,
         borderRight: `1px solid ${token.colorBorderSecondary}`,
       }}
@@ -160,8 +158,8 @@ export function AppLayout() {
           onClick={togglePalette}
           style={{
             position: 'fixed',
-            bottom: 20,
-            right: 20,
+            bottom: SPACE.xl,
+            right: SPACE.xl,
             zIndex: 100,
             boxShadow: token.boxShadowSecondary,
             background: token.colorBgContainer,

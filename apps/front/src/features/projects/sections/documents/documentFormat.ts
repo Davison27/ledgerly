@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { DocumentDirection, DocumentStatus, DocumentType } from '../../../../data/documents';
+import type { SemanticTone } from '../../../../components/ui/SemanticTag';
 
 export function formatEUR(n: number): string {
   return n.toLocaleString('es-ES', {
@@ -9,15 +10,15 @@ export function formatEUR(n: number): string {
   });
 }
 
-export const STATUS_COLOR: Record<DocumentStatus, string> = {
-  pagado: 'success',
-  pendiente: 'warning',
-  vencido: 'error',
+export const STATUS_TONE: Record<DocumentStatus, SemanticTone> = {
+  pagado: 'paid',
+  pendiente: 'pending',
+  vencido: 'overdue',
 };
 
-export const DIRECTION_COLOR: Record<DocumentDirection, string> = {
-  ingreso: 'success',
-  gasto: 'error',
+export const DIRECTION_TONE: Record<DocumentDirection, SemanticTone> = {
+  ingreso: 'income',
+  gasto: 'expense',
 };
 
 export function useTypeLabel() {

@@ -1,4 +1,4 @@
-import { Card, Flex, Typography } from 'antd';
+import { Card, Flex, theme, Typography } from 'antd';
 import type { ProjectDocument } from '../../../../data/documents';
 import { formatEUR, useTypeLabel } from './documentFormat';
 import { StatusTag } from './documentUi';
@@ -19,6 +19,7 @@ export function DocumentsCardsView({
   color,
 }: DocumentsCardsViewProps) {
   const typeLabel = useTypeLabel();
+  const { token } = theme.useToken();
 
   return (
     <div
@@ -38,7 +39,7 @@ export function DocumentsCardsView({
             onClick={() => onSelect(doc)}
             style={{
               borderColor: selected ? color : undefined,
-              background: selected ? `${color}14` : undefined,
+              background: selected ? token.controlItemBgActive : undefined,
             }}
             styles={{ body: { padding: 12 } }}
           >

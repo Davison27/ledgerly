@@ -21,14 +21,11 @@ import {
 } from '../../data/api/products.api';
 import { ApiError } from '../../data/api/httpClient';
 import type { ProductDto } from '../../data/api/types';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { Amount } from '../../components/ui/Amount';
 import { ProductFormModal, type ProductFormValues } from './components/ProductFormModal';
 
 const { Title, Text } = Typography;
-
-function formatPrice(price: number | null): string {
-  if (price === null) return '—';
-  return price.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
-}
 
 export function ProductsPage() {
   const { t } = useTranslation();
@@ -121,7 +118,7 @@ export function ProductsPage() {
       key: 'price',
       width: 160,
       align: 'right',
-      render: (price: number | null) => formatPrice(price),
+      render: (price: number | null) => (price === null ? '—' : <Amount value={price} />),
     },
     {
       title: t('products.columns.actions'),
@@ -158,7 +155,7 @@ export function ProductsPage() {
   ];
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
+    <PageContainer>
       <Flex align="center" justify="space-between">
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
           {t('products.title')}
@@ -178,7 +175,11 @@ export function ProductsPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('products.loadError')} />
       ) : products.length === 0 ? (
-        <Empty description={t('products.empty')} />
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('products.empty')}>
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            {t('products.add')}
+          </Button>
+        </Empty>
       ) : (
         <Table<ProductDto>
           columns={columns}
@@ -195,6 +196,6 @@ export function ProductsPage() {
         onSubmit={handleSubmit}
         submitting={submitting}
       />
-    </div>
+    </PageContainer>
   );
 }

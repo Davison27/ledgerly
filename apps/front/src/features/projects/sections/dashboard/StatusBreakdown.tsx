@@ -1,6 +1,8 @@
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentStatus } from '../../../../data/documents';
+import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { Numeric } from '../../../../components/ui/Numeric';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -14,11 +16,12 @@ export interface StatusBreakdownProps {
 export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const rows: { key: DocumentStatus; count: number; color: string }[] = [
-    { key: 'pagado', count: paid, color: token.colorSuccess },
-    { key: 'pendiente', count: pending, color: token.colorWarning },
-    { key: 'vencido', count: overdue, color: token.colorError },
+    { key: 'pagado', count: paid, color: colors.paid },
+    { key: 'pendiente', count: pending, color: colors.pending },
+    { key: 'vencido', count: overdue, color: colors.overdue },
   ];
 
   const max = Math.max(1, paid, pending, overdue);
@@ -59,7 +62,7 @@ export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps
               />
             </div>
             <Text strong style={{ flex: 'none', width: 28, textAlign: 'right' }}>
-              {row.count}
+              <Numeric>{row.count}</Numeric>
             </Text>
           </Flex>
         ))}

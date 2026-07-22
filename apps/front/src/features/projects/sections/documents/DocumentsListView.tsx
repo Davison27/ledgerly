@@ -1,7 +1,9 @@
-import { Table, Typography, type TableColumnsType } from 'antd';
+import { Table, theme, Typography, type TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ProjectDocument } from '../../../../data/documents';
-import { formatEUR, useTypeLabel } from './documentFormat';
+import { Amount } from '../../../../components/ui/Amount';
+import { Numeric } from '../../../../components/ui/Numeric';
+import { useTypeLabel } from './documentFormat';
 import { DirectionTag, StatusTag } from './documentUi';
 
 const { Text } = Typography;
@@ -20,6 +22,7 @@ export function DocumentsListView({
   color,
 }: DocumentsListViewProps) {
   const { t } = useTranslation();
+  const { token } = theme.useToken();
   const typeLabel = useTypeLabel();
 
   const columns: TableColumnsType<ProjectDocument> = [
@@ -42,6 +45,7 @@ export function DocumentsListView({
       dataIndex: 'date',
       key: 'date',
       width: 120,
+      render: (date: string) => <Numeric>{date}</Numeric>,
     },
     {
       title: t('projects.documents.columns.amount'),
@@ -49,7 +53,9 @@ export function DocumentsListView({
       key: 'amount',
       width: 120,
       align: 'right',
-      render: (amount: number) => formatEUR(amount),
+      render: (amount: number, record) => (
+        <Amount value={amount} tone={record.direction === 'ingreso' ? 'income' : 'expense'} />
+      ),
     },
     {
       title: t('projects.documents.columns.direction'),
@@ -79,7 +85,8 @@ export function DocumentsListView({
         onClick: () => onSelect(record),
         style: {
           cursor: 'pointer',
-          background: record.id === selectedId ? `${color}22` : undefined,
+          background: record.id === selectedId ? token.controlItemBgActive : undefined,
+          borderInlineStart: record.id === selectedId ? `2px solid ${color}` : undefined,
         },
       })}
     />

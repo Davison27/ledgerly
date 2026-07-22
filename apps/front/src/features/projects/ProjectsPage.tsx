@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchProject, type Project, type ProjectFormValues } from '../../data/company';
 import { ApiError } from '../../data/api/httpClient';
 import { useCompany } from '../../app/providers/CompanyProvider';
+import { PageContainer } from '../../components/ui/PageContainer';
 import { ProjectCard } from './components/ProjectCard';
 import { ProjectFormModal } from './components/ProjectFormModal';
 
@@ -91,7 +92,7 @@ export function ProjectsPage() {
   };
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
+    <PageContainer>
       <Flex align="center" justify="space-between">
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
           {t('projects.title')}
@@ -136,6 +137,6 @@ export function ProjectsPage() {
         onCancel={handleFormCancel}
         onSubmit={handleSubmit}
       />
-    </div>
+    </PageContainer>
   );
 }
