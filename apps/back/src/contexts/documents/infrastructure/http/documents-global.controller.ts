@@ -8,6 +8,7 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import { ListAllDocumentsUseCase } from '../../application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from '../../application/check-document-duplicate/check-document-duplicate.use-case';
@@ -65,6 +66,7 @@ export class DocumentsGlobalController {
   // payroll from the staff member side has no project chosen yet, and the
   // project-scoped route requires one the use case never even reads.
   @Post('extract')
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
