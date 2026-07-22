@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useSemanticColors } from '../../app/theme/useSemanticColors';
-import { Numeric } from '../../components/ui/Numeric';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { Numeric } from '@/shared/ui/Numeric';
 
 const { Text } = Typography;
 

@@ -1,4 +1,4 @@
-import { buildQueryString, get } from './httpClient';
+import { buildQueryString, get } from '@/shared/api/httpClient';
 import type { CompanyDashboardDto } from './types';
 
 export function getCompanyDashboard(year?: number): Promise<CompanyDashboardDto> {

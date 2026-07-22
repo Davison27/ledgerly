@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Col, DatePicker, Form, Input, Modal, Row } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import type { StaffMemberDto } from '../../../data/api/types';
+import type { StaffMemberDto } from '@/entities/staff-member';
 
 const { TextArea } = Input;
 

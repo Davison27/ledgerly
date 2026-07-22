@@ -1,7 +1,10 @@
 import { Card, Flex, theme, Typography } from 'antd';
-import type { ProjectDocument } from '../../../../data/documents';
-import { formatEUR, useTypeLabel } from './documentFormat';
-import { StatusTag } from './documentUi';
+import {
+  formatEUR,
+  useTypeLabel,
+  StatusTag,
+  type ProjectDocument,
+} from '@/entities/document';
 
 const { Text } = Typography;
 

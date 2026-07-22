@@ -20,24 +20,26 @@ import { EyeOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import type { Dayjs } from 'dayjs';
-import { deleteDocument, getDocument, listAllDocuments } from '../../data/api/documents.api';
-import { listProjects } from '../../data/api/projects.api';
-import { listSuppliers } from '../../data/api/suppliers.api';
-import { mapDocumentDto, type ProjectDocument } from '../../data/documents';
-import type {
-  DocumentDirectionDto,
-  DocumentListFiltersDto,
-  DocumentListItemDto,
-  DocumentStatusDto,
-  DocumentTypeDto,
-  ProjectSummaryDto,
-  SupplierDto,
-} from '../../data/api/types';
-import { useTypeLabel } from '../projects/sections/documents/documentFormat';
-import { DirectionTag, StatusTag } from '../projects/sections/documents/documentUi';
-import { PageContainer } from '../../components/ui/PageContainer';
-import { Amount } from '../../components/ui/Amount';
-import { Numeric } from '../../components/ui/Numeric';
+import {
+  deleteDocument,
+  getDocument,
+  listAllDocuments,
+  mapDocumentDto,
+  useTypeLabel,
+  DirectionTag,
+  StatusTag,
+  type DocumentDirectionDto,
+  type DocumentListFiltersDto,
+  type DocumentListItemDto,
+  type DocumentStatusDto,
+  type DocumentTypeDto,
+  type ProjectDocument,
+} from '@/entities/document';
+import { listProjects, type ProjectSummaryDto } from '@/entities/project';
+import { listSuppliers, type SupplierDto } from '@/entities/supplier';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { Amount } from '@/shared/ui/Amount';
+import { Numeric } from '@/shared/ui/Numeric';
 import { DocumentDetail } from './components/DocumentDetail';
 import { DocumentEditModal } from './components/DocumentEditModal';
 

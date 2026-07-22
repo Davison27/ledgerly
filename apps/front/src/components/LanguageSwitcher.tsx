@@ -1,6 +1,6 @@
 import { Segmented } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { supportedLngs, type Language } from '../i18n';
+import { supportedLngs, type Language } from '@/shared/i18n';
 
 export function LanguageSwitcher() {
   const { i18n } = useTranslation();

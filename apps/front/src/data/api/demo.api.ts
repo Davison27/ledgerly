@@ -1,4 +1,4 @@
-import { post } from './httpClient';
+import { post } from '@/shared/api/httpClient';
 
 export interface LoadDemoDataResult {
   created: boolean;

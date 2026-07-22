@@ -16,18 +16,17 @@ import {
 } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { updateDocument } from '../../../data/api/documents.api';
-import { listStaffMembers } from '../../../data/api/staff.api';
-import { listSuppliers } from '../../../data/api/suppliers.api';
-import { mapDocumentDto, type ProjectDocument } from '../../../data/documents';
-import type {
-  DocumentDirectionDto,
-  DocumentStatusDto,
-  DocumentTypeDto,
-  StaffMemberDto,
-  SupplierDto,
-  UpdateDocumentPayload,
-} from '../../../data/api/types';
+import {
+  updateDocument,
+  mapDocumentDto,
+  type DocumentDirectionDto,
+  type DocumentStatusDto,
+  type DocumentTypeDto,
+  type ProjectDocument,
+  type UpdateDocumentPayload,
+} from '@/entities/document';
+import { listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
+import { listSuppliers, type SupplierDto } from '@/entities/supplier';
 
 const { Text } = Typography;
 

@@ -1,7 +1,7 @@
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
-import { TYPE } from '../../../../app/theme/tokens';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { TYPE } from '@/shared/config/theme';
 import { formatPct } from './data';
 
 const { useToken } = theme;

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Form, Modal } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import type { Project, ProjectFormValues } from '../../../data/company';
+import type { Project, ProjectFormValues } from '@/entities/project';
 import { ProjectFormFields, type ProjectFormFieldValues } from './ProjectFormFields';
 
 interface ProjectFormModalProps {

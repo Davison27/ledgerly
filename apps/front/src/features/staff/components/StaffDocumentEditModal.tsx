@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { App, Button, DatePicker, Form, Input, Modal } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { updateStaffDocument } from '../../../data/api/staff.api';
-import type { StaffDocumentDto, StaffDocumentTypeDto } from '../../../data/api/types';
+import {
+  updateStaffDocument,
+  type StaffDocumentDto,
+  type StaffDocumentTypeDto,
+} from '@/entities/staff-member';
 
 const { TextArea } = Input;
 

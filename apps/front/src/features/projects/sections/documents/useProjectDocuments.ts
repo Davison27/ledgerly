@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { listDocuments } from '../../../../data/api/documents.api';
-import { mapDocumentDto, type ProjectDocument } from '../../../../data/documents';
+import { listDocuments, mapDocumentDto, type ProjectDocument } from '@/entities/document';
 
 interface UseProjectDocumentsResult {
   documents: ProjectDocument[];

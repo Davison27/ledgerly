@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { Form, Input, InputNumber, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { ProductDto } from '../../../data/api/types';
+import type { ProductDto } from '@/entities/product';
 
 export interface ProductFormValues {
   name: string;

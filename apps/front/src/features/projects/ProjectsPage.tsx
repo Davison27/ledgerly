@@ -3,10 +3,10 @@ import { useNavigate } from '@tanstack/react-router';
 import { App, Button, Flex, Spin, Typography, theme } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { fetchProject, type Project, type ProjectFormValues } from '../../data/company';
-import { ApiError } from '../../data/api/httpClient';
+import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
+import { ApiError } from '@/shared/api/httpClient';
 import { useCompany } from '../../app/providers/CompanyProvider';
-import { PageContainer } from '../../components/ui/PageContainer';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import { ProjectCard } from './components/ProjectCard';
 import { ProjectFormModal } from './components/ProjectFormModal';
 

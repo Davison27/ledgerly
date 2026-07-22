@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Dropdown, type MenuProps } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { StaffDocumentTypeDto } from '../../../data/api/types';
+import type { StaffDocumentTypeDto } from '@/entities/staff-member';
 import { DocumentUploadModal } from '../../projects/sections/documents/DocumentUploadModal';
 import { StaffDocumentUploadModal } from './StaffDocumentUploadModal';
 

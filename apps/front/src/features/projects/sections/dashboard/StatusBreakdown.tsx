@@ -1,8 +1,8 @@
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { DocumentStatus } from '../../../../data/documents';
-import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
-import { Numeric } from '../../../../components/ui/Numeric';
+import type { DocumentStatus } from '@/entities/document';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { Numeric } from '@/shared/ui/Numeric';
 
 const { Text } = Typography;
 const { useToken } = theme;

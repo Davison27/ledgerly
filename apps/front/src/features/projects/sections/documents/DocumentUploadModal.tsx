@@ -29,24 +29,20 @@ import {
   createDocument,
   extractInvoice,
   extractInvoiceStandalone,
-} from '../../../../data/api/documents.api';
-import { ApiError } from '../../../../data/api/httpClient';
-import { createStaffMember, listStaffMembers } from '../../../../data/api/staff.api';
-import { createSupplier, listSuppliers } from '../../../../data/api/suppliers.api';
+  formatEUR,
+  type CreateDocumentPayload,
+  type DocumentDirectionDto,
+  type DocumentDuplicateDto,
+  type DocumentStatusDto,
+  type DocumentTypeDto,
+  type ExtractInvoiceConfidence,
+  type ExtractInvoiceResult,
+} from '@/entities/document';
+import { ApiError } from '@/shared/api/httpClient';
+import { createStaffMember, listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
+import { createSupplier, listSuppliers, type SupplierDto } from '@/entities/supplier';
 import { useCompany } from '../../../../app/providers/CompanyProvider';
-import { SemanticTag, type SemanticTone } from '../../../../components/ui/SemanticTag';
-import type {
-  CreateDocumentPayload,
-  DocumentDirectionDto,
-  DocumentDuplicateDto,
-  DocumentStatusDto,
-  DocumentTypeDto,
-  ExtractInvoiceConfidence,
-  ExtractInvoiceResult,
-  StaffMemberDto,
-  SupplierDto,
-} from '../../../../data/api/types';
-import { formatEUR } from './documentFormat';
+import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 
 function normalize(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();

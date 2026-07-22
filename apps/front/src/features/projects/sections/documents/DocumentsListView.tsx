@@ -1,10 +1,13 @@
 import { Table, theme, Typography, type TableColumnsType } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { ProjectDocument } from '../../../../data/documents';
-import { Amount } from '../../../../components/ui/Amount';
-import { Numeric } from '../../../../components/ui/Numeric';
-import { useTypeLabel } from './documentFormat';
-import { DirectionTag, StatusTag } from './documentUi';
+import {
+  useTypeLabel,
+  DirectionTag,
+  StatusTag,
+  type ProjectDocument,
+} from '@/entities/document';
+import { Amount } from '@/shared/ui/Amount';
+import { Numeric } from '@/shared/ui/Numeric';
 
 const { Text } = Typography;
 

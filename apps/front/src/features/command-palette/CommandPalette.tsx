@@ -12,11 +12,10 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { SPACE } from '../../app/theme/tokens';
-import { listAllDocuments } from '../../data/api/documents.api';
-import { listProjects } from '../../data/api/projects.api';
-import { listSuppliers } from '../../data/api/suppliers.api';
-import type { DocumentListItemDto, ProjectSummaryDto, SupplierDto } from '../../data/api/types';
+import { SPACE } from '@/shared/config/theme';
+import { listAllDocuments, type DocumentListItemDto } from '@/entities/document';
+import { listProjects, type ProjectSummaryDto } from '@/entities/project';
+import { listSuppliers, type SupplierDto } from '@/entities/supplier';
 
 const { useToken } = theme;
 const { Text } = Typography;

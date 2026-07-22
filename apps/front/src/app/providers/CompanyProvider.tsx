@@ -7,17 +7,15 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { fetchCompany, updateCompany as updateCompanyApi, type Company } from '@/entities/company';
 import {
   addProject as addProjectApi,
-  fetchCompany,
   fetchProjects,
   removeProject as removeProjectApi,
-  updateCompany as updateCompanyApi,
   updateProject as updateProjectApi,
-  type Company,
   type Project,
   type ProjectFormValues,
-} from '../../data/company';
+} from '@/entities/project';
 import { useBrandColor } from '../theme/BrandColorProvider';
 
 const EMPTY_COMPANY: Company = { id: '', name: '' };

@@ -3,7 +3,7 @@ import { App as AntdApp, ConfigProvider } from 'antd';
 import esES from 'antd/locale/es_ES';
 import enUS from 'antd/locale/en_US';
 import { useTranslation } from 'react-i18next';
-import { buildThemeConfig } from '../theme/tokens';
+import { buildThemeConfig } from '@/shared/config/theme';
 import { BrandColorProvider, useBrandColor } from '../theme/BrandColorProvider';
 import { ThemeModeProvider, useThemeMode } from './ThemeModeProvider';
 

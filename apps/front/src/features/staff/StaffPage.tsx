@@ -18,13 +18,13 @@ import {
   deleteStaffMember,
   listStaffMembers,
   updateStaffMember,
-} from '../../data/api/staff.api';
-import { ApiError } from '../../data/api/httpClient';
-import type { StaffMemberDto } from '../../data/api/types';
-import { PageContainer } from '../../components/ui/PageContainer';
-import { EmptyHint } from '../../components/ui/EmptyHint';
-import { Numeric } from '../../components/ui/Numeric';
-import { SemanticTag } from '../../components/ui/SemanticTag';
+  type StaffMemberDto,
+} from '@/entities/staff-member';
+import { ApiError } from '@/shared/api/httpClient';
+import { PageContainer } from '@/shared/ui/PageContainer';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { Numeric } from '@/shared/ui/Numeric';
+import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { StaffMemberFormModal, type StaffMemberFormValues } from './components/StaffMemberFormModal';
 
 const { Title, Text, Link: TypographyLink } = Typography;

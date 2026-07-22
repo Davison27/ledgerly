@@ -2,8 +2,8 @@ import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../../data/api/types';
 import { formatEur } from '../projects/sections/dashboard/data';
-import { useSemanticColors } from '../../app/theme/useSemanticColors';
-import { TYPE } from '../../app/theme/tokens';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { TYPE } from '@/shared/config/theme';
 
 const { Text } = Typography;
 const { useToken } = theme;

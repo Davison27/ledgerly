@@ -2,7 +2,7 @@ import { Alert, Card, Flex } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { BulbOutlined } from '@ant-design/icons';
 import type { Tip } from './tips';
-import { EmptyHint } from '../../components/ui/EmptyHint';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 
 export interface TipsPanelProps {
   tips: Tip[];

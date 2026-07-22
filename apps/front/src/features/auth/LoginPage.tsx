@@ -3,9 +3,9 @@ import { Button, Flex, Grid, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { LanguageSwitcher } from '../../components/LanguageSwitcher';
-import { useSemanticColors } from '../../app/theme/useSemanticColors';
-import { SPACE } from '../../app/theme/tokens';
-import { companyNeedsSetup, fetchCompany } from '../../data/company';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { SPACE } from '@/shared/config/theme';
+import { companyNeedsSetup, fetchCompany } from '@/entities/company';
 import logoUrl from '../../assets/ledgerly-logo.svg';
 import iconUrl from '../../assets/ledgerly-icon.svg';
 

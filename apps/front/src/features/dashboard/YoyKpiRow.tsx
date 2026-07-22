@@ -2,7 +2,7 @@ import { Card, Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { MinusCircleOutlined } from '@ant-design/icons';
 import type { CompanyDashboardDto } from '../../data/api/types';
-import { EmptyHint } from '../../components/ui/EmptyHint';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { YoyDelta } from './YoyDelta';
 
 const { Text } = Typography;

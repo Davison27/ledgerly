@@ -1,6 +1,6 @@
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useSemanticColors } from '../../../../app/theme/useSemanticColors';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 
 const { Text } = Typography;
 const { useToken } = theme;

@@ -14,7 +14,7 @@ import {
 import { ProjectOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import type { ProjectCurrency, ProjectStatus, ProjectType } from '../../../data/company';
+import type { ProjectCurrency, ProjectStatus, ProjectType } from '@/entities/project';
 
 const { TextArea } = Input;
 const { Text } = Typography;

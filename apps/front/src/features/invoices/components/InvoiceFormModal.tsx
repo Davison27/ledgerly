@@ -14,15 +14,17 @@ import {
 } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { getProject, listProjects } from '../../../data/api/projects.api';
-import { listProducts } from '../../../data/api/products.api';
-import type {
-  CreateInvoiceLinePayload,
-  CreateInvoicePayload,
-  ProductDto,
-  ProjectSummaryDto,
-} from '../../../data/api/types';
-import { computeInvoiceTotals } from '../totals';
+import {
+  getProject,
+  listProjects,
+  type ProjectSummaryDto,
+} from '@/entities/project';
+import { listProducts, type ProductDto } from '@/entities/product';
+import {
+  computeInvoiceTotals,
+  type CreateInvoiceLinePayload,
+  type CreateInvoicePayload,
+} from '@/entities/invoice';
 
 const { TextArea } = Input;
 const { Text } = Typography;

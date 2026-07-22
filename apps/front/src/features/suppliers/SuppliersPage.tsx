@@ -18,10 +18,10 @@ import {
   deleteSupplier,
   listSuppliers,
   updateSupplier,
-} from '../../data/api/suppliers.api';
-import { ApiError } from '../../data/api/httpClient';
-import type { SupplierDto } from '../../data/api/types';
-import { PageContainer } from '../../components/ui/PageContainer';
+  type SupplierDto,
+} from '@/entities/supplier';
+import { ApiError } from '@/shared/api/httpClient';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import { SupplierFormModal, type SupplierFormValues } from './components/SupplierFormModal';
 
 const { Title, Text } = Typography;
