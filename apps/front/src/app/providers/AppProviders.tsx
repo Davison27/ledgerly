@@ -4,7 +4,7 @@ import esES from 'antd/locale/es_ES';
 import enUS from 'antd/locale/en_US';
 import { useTranslation } from 'react-i18next';
 import { buildThemeConfig } from '@/shared/config/theme';
-import { BrandColorProvider, useBrandColor } from '../theme/BrandColorProvider';
+import { BrandColorProvider, useBrandColor } from './BrandColorProvider';
 import { ThemeModeProvider, useThemeMode } from './ThemeModeProvider';
 
 const localeMap = { es: esES, en: enUS } as const;

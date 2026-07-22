@@ -16,7 +16,7 @@ import {
   type Project,
   type ProjectFormValues,
 } from '@/entities/project';
-import { useBrandColor } from '../theme/BrandColorProvider';
+import { useBrandColor } from './BrandColorProvider';
 
 const EMPTY_COMPANY: Company = { id: '', name: '' };
 
