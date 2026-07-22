@@ -8,7 +8,6 @@ import {
   Popconfirm,
   Spin,
   Table,
-  Tag,
   Tooltip,
   Typography,
   type TableColumnsType,
@@ -25,13 +24,13 @@ import {
 } from '../../data/api/invoices.api';
 import type { CreateInvoicePayload, InvoiceDto } from '../../data/api/types';
 import { CompanySettingsModal } from '../../components/layout/CompanySettingsModal';
+import { PageContainer } from '../../components/ui/PageContainer';
+import { Amount } from '../../components/ui/Amount';
+import { Numeric } from '../../components/ui/Numeric';
+import { SemanticTag } from '../../components/ui/SemanticTag';
 import { InvoiceFormModal } from './components/InvoiceFormModal';
 
 const { Title, Text } = Typography;
-
-function formatAmount(amount: number, currency: string): string {
-  return amount.toLocaleString('es-ES', { style: 'currency', currency });
-}
 
 export function InvoicesPage() {
   const { t } = useTranslation();
@@ -102,7 +101,7 @@ export function InvoicesPage() {
         <Flex align="center" gap={6}>
           <Text>{fullNumber}</Text>
           {record.documentId === null && (
-            <Tag color="warning">{t('invoices.noLedgerEntry')}</Tag>
+            <SemanticTag tone="pending">{t('invoices.noLedgerEntry')}</SemanticTag>
           )}
         </Flex>
       ),
@@ -112,6 +111,7 @@ export function InvoicesPage() {
       dataIndex: 'issueDate',
       key: 'issueDate',
       width: 120,
+      render: (issueDate: string) => <Numeric>{issueDate}</Numeric>,
     },
     {
       title: t('invoices.columns.customerName'),
@@ -124,7 +124,7 @@ export function InvoicesPage() {
       key: 'taxBase',
       width: 140,
       align: 'right',
-      render: (taxBase: number, record) => formatAmount(taxBase, record.currency),
+      render: (taxBase: number, record) => <Amount value={taxBase} currency={record.currency} />,
     },
     {
       title: t('invoices.columns.total'),
@@ -132,7 +132,7 @@ export function InvoicesPage() {
       key: 'total',
       width: 140,
       align: 'right',
-      render: (total: number, record) => formatAmount(total, record.currency),
+      render: (total: number, record) => <Amount value={total} currency={record.currency} />,
     },
     {
       title: t('invoices.columns.actions'),
@@ -170,7 +170,7 @@ export function InvoicesPage() {
   ];
 
   return (
-    <div style={{ width: '100%', maxWidth: '100%', padding: '56px 64px' }}>
+    <PageContainer>
       <Flex align="center" justify="space-between">
         <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
           {t('invoices.title')}
@@ -211,7 +211,18 @@ export function InvoicesPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('invoices.loadError')} />
       ) : invoices.length === 0 ? (
-        <Empty description={t('invoices.empty')} />
+        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('invoices.empty')}>
+          <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              disabled={companyIncomplete}
+              onClick={handleAdd}
+            >
+              {t('invoices.add')}
+            </Button>
+          </Tooltip>
+        </Empty>
       ) : (
         <Table<InvoiceDto>
           columns={columns}
@@ -232,6 +243,6 @@ export function InvoicesPage() {
         open={companySettingsOpen}
         onClose={() => setCompanySettingsOpen(false)}
       />
-    </div>
+    </PageContainer>
   );
 }

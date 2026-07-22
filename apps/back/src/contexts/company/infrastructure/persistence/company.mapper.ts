@@ -17,6 +17,7 @@ export class CompanyMapper {
       postalCode: orm.postalCode,
       country: orm.country,
       logo: orm.logo,
+      brandColor: orm.brandColor,
     });
   }
 
@@ -37,6 +38,7 @@ export class CompanyMapper {
     orm.postalCode = primitives.postalCode;
     orm.country = primitives.country;
     orm.logo = primitives.logo;
+    orm.brandColor = primitives.brandColor;
 
     return orm;
   }

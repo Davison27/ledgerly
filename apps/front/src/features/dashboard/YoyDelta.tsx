@@ -1,8 +1,9 @@
-import { Typography, theme } from 'antd';
+import { Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
+import { useSemanticColors } from '../../app/theme/useSemanticColors';
+import { Numeric } from '../../components/ui/Numeric';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 export interface YoyDeltaProps {
   /** Current-year value. */
@@ -15,11 +16,13 @@ export interface YoyDeltaProps {
 
 /**
  * Compact ▲/▼ % indicator comparing a KPI to the same metric a year ago.
- * Renders an em dash when there is no meaningful baseline (previous <= 0).
+ * Renders an em dash when there is no meaningful baseline (previous <= 0). This
+ * fallback is defensive only: `YoyKpiRow` already filters that case upstream
+ * and renders `EmptyHint` instead, so it is not reached from there.
  */
 export function YoyDelta({ current, previous, favorable }: YoyDeltaProps) {
   const { t } = useTranslation();
-  const { token } = useToken();
+  const colors = useSemanticColors();
 
   const deltaPct = previous && previous > 0 ? (current - previous) / previous : null;
 
@@ -35,11 +38,7 @@ export function YoyDelta({ current, previous, favorable }: YoyDeltaProps) {
   const isIncrease = deltaPct > 0;
   const isFavorable = isFlat ? null : favorable === 'up' ? isIncrease : !isIncrease;
 
-  const color = isFlat
-    ? token.colorTextTertiary
-    : isFavorable
-      ? token.colorSuccess
-      : token.colorError;
+  const color = isFlat ? colors.neutral : isFavorable ? colors.income : colors.overdue;
 
   const arrow = isFlat ? '→' : isIncrease ? '▲' : '▼';
   const pctLabel = `${Math.abs(deltaPct * 100).toFixed(1)}%`;
@@ -52,7 +51,7 @@ export function YoyDelta({ current, previous, favorable }: YoyDeltaProps) {
         pct: pctLabel,
       })}
     >
-      {arrow} {pctLabel}
+      {arrow} <Numeric>{pctLabel}</Numeric>
     </Text>
   );
 }

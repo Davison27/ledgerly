@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, Matches } from 'class-validator';
 
 export class UpdateCompanyDto {
   @IsOptional()
@@ -49,4 +49,8 @@ export class UpdateCompanyDto {
   @IsOptional()
   @IsString()
   logo?: string | null;
+
+  @IsOptional()
+  @Matches(/^#[0-9a-fA-F]{6}$/)
+  brandColor?: string | null;
 }

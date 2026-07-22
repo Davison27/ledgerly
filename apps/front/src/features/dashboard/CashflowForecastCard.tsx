@@ -1,7 +1,8 @@
 import { Card, Empty, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../../data/api/types';
-import { formatEur } from '../projects/sections/dashboard/data';
+import { useSemanticColors } from '../../app/theme/useSemanticColors';
+import { Amount } from '../../components/ui/Amount';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -29,6 +30,7 @@ function monthLabel(monthKey: string, monthsShort: string[]): string {
 export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   const monthsShort = t('projects.dashboard.monthsShort').split(',');
   const { overdue, months } = cashflowForecast;
@@ -56,22 +58,13 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
         </Text>
         <Flex gap={16} wrap align="baseline">
           <Text style={{ fontSize: 13 }}>
-            {t('dashboard.cashflow.inflow')}:{' '}
-            <Text strong style={{ color: token.colorSuccess }}>
-              {formatEur(overdue.inflow)}
-            </Text>
+            {t('dashboard.cashflow.inflow')}: <Amount value={overdue.inflow} tone="income" strong />
+          </Text>
+          <Text style={{ fontSize: 13, color: token.colorTextTertiary }}>
+            {t('dashboard.cashflow.outflow')}: <Amount value={overdue.outflow} strong />
           </Text>
           <Text style={{ fontSize: 13 }}>
-            {t('dashboard.cashflow.outflow')}:{' '}
-            <Text strong style={{ color: token.colorTextTertiary }}>
-              {formatEur(overdue.outflow)}
-            </Text>
-          </Text>
-          <Text style={{ fontSize: 13 }}>
-            {t('dashboard.cashflow.net')}:{' '}
-            <Text strong style={{ color: overdue.net >= 0 ? token.colorSuccess : token.colorError }}>
-              {formatEur(overdue.net)}
-            </Text>
+            {t('dashboard.cashflow.net')}: <Amount value={overdue.net} tone="auto" strong />
           </Text>
         </Flex>
       </Flex>
@@ -119,7 +112,7 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
                   height={Math.max(1, barH(m.net))}
                   rx={rMax}
                   ry={rMax}
-                  fill={isPositive ? token.colorSuccess : token.colorError}
+                  fill={isPositive ? colors.income : colors.expense}
                 />
               );
             })}

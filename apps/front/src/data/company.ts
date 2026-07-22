@@ -67,6 +67,7 @@ export interface Company {
   postalCode?: string;
   country?: string;
   logo?: string;
+  brandColor?: string;
 }
 
 function mapProjectSummary(dto: ProjectSummaryDto): Project {
@@ -121,6 +122,7 @@ function mapCompany(dto: CompanyDto): Company {
     postalCode: dto.postalCode ?? undefined,
     country: dto.country ?? undefined,
     logo: dto.logo ?? undefined,
+    brandColor: dto.brandColor ?? undefined,
   };
 }
 

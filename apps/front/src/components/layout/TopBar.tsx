@@ -23,6 +23,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useCompany } from '../../app/providers/CompanyProvider';
 import { useThemeMode } from '../../app/providers/ThemeModeProvider';
+import { LAYOUT, SPACE } from '../../app/theme/tokens';
 import { CompanySettingsModal } from './CompanySettingsModal';
 import logoIconUrl from '../../assets/ledgerly-icon.svg';
 
@@ -70,9 +71,9 @@ export function TopBar() {
     <Layout.Header
       style={{
         position: 'relative',
-        height: 52,
+        height: LAYOUT.topbarHeight,
         lineHeight: 'normal',
-        padding: '0 16px',
+        padding: `0 ${SPACE.lg}px`,
         background: token.colorBgContainer,
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
       }}
@@ -103,7 +104,7 @@ export function TopBar() {
           {company.name}
         </Text>
 
-        <Flex align="center" gap={4}>
+        <Flex align="center" gap={SPACE.xs}>
           <Tooltip title={themeToggleLabel}>
             <Button
               type="text"
@@ -138,7 +139,7 @@ export function TopBar() {
                 gap: 8,
               }}
             >
-              <SettingOutlined style={{ fontSize: 20 }} />
+              <SettingOutlined style={{ fontSize: 18 }} />
               {t('common.settings')}
             </Button>
           </Dropdown>

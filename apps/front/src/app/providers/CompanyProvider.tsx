@@ -18,6 +18,7 @@ import {
   type Project,
   type ProjectFormValues,
 } from '../../data/company';
+import { useBrandColor } from '../theme/BrandColorProvider';
 
 const EMPTY_COMPANY: Company = { id: '', name: '' };
 
@@ -48,6 +49,7 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
   const [companyLoading, setCompanyLoading] = useState(true);
   const [projects, setProjects] = useState<Project[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
+  const { setBrandColor } = useBrandColor();
 
   const reloadProjects = useCallback(async () => {
     const loaded = await fetchProjects();
@@ -60,7 +62,10 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     setCompanyLoading(true);
     fetchCompany()
       .then((loaded) => {
-        if (!cancelled) setCompany(loaded);
+        if (!cancelled) {
+          setCompany(loaded);
+          setBrandColor(loaded.brandColor);
+        }
       })
       .catch(() => {
         if (!cancelled) setCompany(EMPTY_COMPANY);
@@ -84,12 +89,16 @@ export function CompanyProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [setBrandColor]);
 
-  const updateCompany = useCallback(async (patch: Partial<Omit<Company, 'id'>>) => {
-    const updated = await updateCompanyApi(patch);
-    setCompany(updated);
-  }, []);
+  const updateCompany = useCallback(
+    async (patch: Partial<Omit<Company, 'id'>>) => {
+      const updated = await updateCompanyApi(patch);
+      setCompany(updated);
+      setBrandColor(updated.brandColor);
+    },
+    [setBrandColor],
+  );
 
   const addProject = useCallback(
     async (values: ProjectFormValues) => {

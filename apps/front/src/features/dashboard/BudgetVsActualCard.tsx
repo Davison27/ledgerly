@@ -1,6 +1,8 @@
 import { Card, Empty, Flex, Progress, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../../data/api/types';
+import { useSemanticColors } from '../../app/theme/useSemanticColors';
+import { Amount } from '../../components/ui/Amount';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -9,17 +11,10 @@ export interface BudgetVsActualCardProps {
   budgetVsActual: CompanyDashboardDto['budgetVsActual'];
 }
 
-function formatCurrency(n: number, currency: string): string {
-  return n.toLocaleString('es-ES', {
-    style: 'currency',
-    currency,
-    maximumFractionDigits: 0,
-  });
-}
-
 export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const colors = useSemanticColors();
 
   return (
     <Card
@@ -48,7 +43,7 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
                       style={{
                         flex: 'none',
                         fontSize: 12,
-                        color: isOverBudget ? token.colorError : token.colorTextSecondary,
+                        color: isOverBudget ? colors.overdue : token.colorTextSecondary,
                       }}
                     >
                       {t('dashboard.budget.consumed', { pct })}
@@ -69,7 +64,7 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
                   />
                 )}
                 {isOverBudget && (
-                  <Text style={{ fontSize: 11, color: token.colorError }}>
+                  <Text style={{ fontSize: 11, color: colors.overdue }}>
                     {t('dashboard.budget.overBudget')}
                   </Text>
                 )}
@@ -78,14 +73,16 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
                   {hasBudget && (
                     <Text type="secondary" style={{ fontSize: 12 }}>
                       {t('dashboard.budget.budget')}:{' '}
-                      {formatCurrency(entry.budget as number, entry.currency)}
+                      <Amount value={entry.budget as number} currency={entry.currency} />
                     </Text>
                   )}
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {t('dashboard.budget.income')}: {formatCurrency(entry.income, entry.currency)}
+                    {t('dashboard.budget.income')}:{' '}
+                    <Amount value={entry.income} currency={entry.currency} />
                   </Text>
                   <Text type="secondary" style={{ fontSize: 12 }}>
-                    {t('dashboard.budget.spent')}: {formatCurrency(entry.expenses, entry.currency)}
+                    {t('dashboard.budget.spent')}:{' '}
+                    <Amount value={entry.expenses} currency={entry.currency} />
                   </Text>
                 </Flex>
               </Flex>

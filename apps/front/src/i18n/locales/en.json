@@ -72,7 +72,14 @@
       "noData": "— no data for last year",
       "up": "is up",
       "down": "is down",
-      "ariaLabel": "{{direction}} {{pct}} compared to last year"
+      "ariaLabel": "{{direction}} {{pct}} compared to last year",
+      "empty": {
+        "title": "No comparison yet",
+        "hint": "Previous-year data is needed to show the change."
+      }
+    },
+    "kpi": {
+      "emptyHint": "No entries recorded yet."
     },
     "budget": {
       "title": "Budget vs. actual by project",
@@ -148,7 +155,8 @@
         "city": "City",
         "postalCode": "Postal code",
         "country": "Country",
-        "logo": "Logo"
+        "logo": "Logo",
+        "brandColor": "Brand colour"
       },
       "placeholders": {
         "name": "E.g. Ledgerly",
@@ -166,6 +174,10 @@
       "logo": {
         "upload": "Upload logo",
         "hint": "PNG or JPG, recommended size 256x256 px"
+      },
+      "brandColor": {
+        "hint": "Sets the interface's primary colour.",
+        "reset": "Reset"
       },
       "validation": {
         "nameRequired": "Name is required",
