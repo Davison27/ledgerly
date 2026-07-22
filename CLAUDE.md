@@ -137,6 +137,28 @@ decirlo. En caso de duda, aplicar el pipeline.
 
 # Convenciones del repo
 
+## Comentarios: NUNCA
+
+**No se escriben comentarios en el código. Ninguno.** Ni de línea, ni de bloque,
+ni JSDoc. Si el código necesita una explicación, el código está mal: renombra,
+extrae una función con nombre que diga la intención, o crea un tipo que haga el
+error imposible. Clean code y arquitectura limpia existen para que el código se
+explique solo.
+
+Único material exento, porque no es comentario sino **directiva**:
+`eslint-disable`, `@ts-expect-error` y similares — borrarlas rompe lint o build.
+
+Dónde va lo que antes ibas a comentar:
+
+- Una regla o un invariante → al dominio, en un nombre que se lea
+  (`isOverdue()`, `StaffMemberHasPayrollsException`).
+- El **porqué** de una decisión → al mensaje del commit y, si aplica a todo el
+  repo, a la skill `arquitectura-hexagonal` o a `docs/architecture/`.
+- Una advertencia de consecuencias → a la skill, que es donde la lee quien va a
+  tomar esa decisión, no enterrada en una línea que solo ve quien pasa por ahí.
+
+Esto aplica también a los subagentes: un `implementer` no añade comentarios.
+
 ## Commits
 
 Conventional Commits, idénticos a los que ya hay en `git log`:
