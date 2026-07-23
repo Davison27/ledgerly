@@ -17,11 +17,12 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { ProfileSection } from './ProfileSection';
 import { StaffDocumentsSection } from './StaffDocumentsSection';
 import { PayrollsSection } from './PayrollsSection';
+import { AgendaSection } from './AgendaSection';
 
 const { Text } = Typography;
 const { useToken } = theme;
 
-type Section = 'profile' | 'documents' | 'payrolls';
+type Section = 'profile' | 'documents' | 'payrolls' | 'schedule';
 
 const PHOTO_TYPE_CODE = 'foto';
 
@@ -103,6 +104,7 @@ export function StaffMemberDetailPage() {
     { label: t('staff.sections.profile'), value: 'profile' as const },
     { label: t('staff.sections.documents'), value: 'documents' as const },
     { label: t('staff.sections.payrolls'), value: 'payrolls' as const },
+    { label: t('staff.sections.schedule'), value: 'schedule' as const },
   ];
 
   const avatarSrc =
@@ -159,6 +161,13 @@ export function StaffMemberDetailPage() {
         )}
         {section === 'payrolls' && (
           <PayrollsSection
+            staffMember={staffMember}
+            onStaffMemberUpdated={loadStaffMember}
+            onDocumentsChanged={handleDocumentsChanged}
+          />
+        )}
+        {section === 'schedule' && (
+          <AgendaSection
             staffMember={staffMember}
             onStaffMemberUpdated={loadStaffMember}
             onDocumentsChanged={handleDocumentsChanged}

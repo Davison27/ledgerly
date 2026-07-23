@@ -8,12 +8,13 @@ import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { DocumentsSection } from './DocumentsSection';
 import { DashboardSection } from './DashboardSection';
+import { ScheduleSection } from './ScheduleSection';
 import { SettingsSection } from './SettingsSection';
 
 const { Text } = Typography;
 const { useToken } = theme;
 
-type Section = 'documents' | 'dashboard' | 'settings';
+type Section = 'documents' | 'dashboard' | 'schedule' | 'settings';
 
 export function ProjectDetailPage() {
   const { token } = useToken();
@@ -35,6 +36,7 @@ export function ProjectDetailPage() {
   const options = [
     { label: t('projects.sections.documents'), value: 'documents' as const },
     { label: t('projects.sections.dashboard'), value: 'dashboard' as const },
+    { label: t('projects.sections.schedule'), value: 'schedule' as const },
     { label: t('projects.sections.settings'), value: 'settings' as const },
   ];
 
@@ -85,6 +87,9 @@ export function ProjectDetailPage() {
         )}
         {section === 'dashboard' && (
           <DashboardSection project={project} color={token.colorPrimary} />
+        )}
+        {section === 'schedule' && (
+          <ScheduleSection project={project} color={token.colorPrimary} />
         )}
         {section === 'settings' && (
           <SettingsSection project={project} color={token.colorPrimary} />
