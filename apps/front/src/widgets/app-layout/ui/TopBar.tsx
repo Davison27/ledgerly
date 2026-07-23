@@ -71,6 +71,7 @@ export function TopBar() {
     <Layout.Header
       style={{
         position: 'relative',
+        flex: 'none',
         height: LAYOUT.topbarHeight,
         lineHeight: 'normal',
         padding: `0 ${SPACE.lg}px`,
