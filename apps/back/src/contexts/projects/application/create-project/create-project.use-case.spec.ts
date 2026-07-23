@@ -61,6 +61,7 @@ class InMemoryProjectRepository implements ProjectRepository {
       documentCount: 0,
       pendingCount: 0,
       image: project.image,
+      color: project.color,
     };
   }
 }
