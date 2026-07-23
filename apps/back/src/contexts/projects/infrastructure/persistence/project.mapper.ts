@@ -2,6 +2,7 @@ import { Project } from '../../domain/project';
 import { ProjectType } from '../../domain/project-type';
 import { ProjectStatus } from '../../domain/project-status';
 import { ProjectCurrency } from '../../domain/project-currency';
+import { ProjectColor } from '../../domain/project-color';
 import { ProjectOrmEntity } from './project.orm-entity';
 
 export class ProjectMapper {
@@ -26,6 +27,7 @@ export class ProjectMapper {
       fiscalYear: orm.fiscalYear,
       manager: orm.manager,
       image: orm.image,
+      color: orm.color as ProjectColor | null,
       isDemo: orm.isDemo,
     });
   }
@@ -53,6 +55,7 @@ export class ProjectMapper {
     orm.fiscalYear = primitives.fiscalYear;
     orm.manager = primitives.manager;
     orm.image = primitives.image;
+    orm.color = primitives.color;
     orm.isDemo = primitives.isDemo ?? false;
 
     return orm;

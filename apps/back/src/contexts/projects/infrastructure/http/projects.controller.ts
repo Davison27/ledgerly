@@ -57,6 +57,7 @@ export class ProjectsController {
       fiscalYear: dto.fiscalYear,
       manager: dto.manager,
       image: dto.image,
+      color: dto.color,
     });
 
     return ProjectResponse.fromDomain(project);
@@ -94,6 +95,7 @@ export class ProjectsController {
       fiscalYear: dto.fiscalYear,
       manager: dto.manager,
       image: dto.image,
+      color: dto.color,
     });
 
     return ProjectResponse.fromDomain(project);

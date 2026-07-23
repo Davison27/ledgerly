@@ -85,6 +85,7 @@ function buildProject(overrides: { id?: string; image?: string | null } = {}): P
     fiscalYear: null,
     manager: null,
     image: overrides.image ?? null,
+    color: null,
   });
 }
 
@@ -131,5 +132,17 @@ describe('UpdateProjectUseCase', () => {
     await expect(useCase.execute({ id: 'missing-id', image: null })).rejects.toThrow(
       ProjectNotFoundException,
     );
+  });
+
+  it('changes the project color', async () => {
+    const repository = new InMemoryProjectRepository();
+    await repository.save(buildProject());
+    const useCase = new UpdateProjectUseCase(repository);
+
+    const updated = await useCase.execute({ id: 'project-1', color: 'terracotta' });
+
+    expect(updated.color).toBe('terracotta');
+    const stored = await repository.findById('project-1');
+    expect(stored?.color).toBe('terracotta');
   });
 });

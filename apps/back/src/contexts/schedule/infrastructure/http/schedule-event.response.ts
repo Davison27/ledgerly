@@ -8,6 +8,7 @@ export class ScheduleEventProjectResponse {
   status: string;
   startDate: string | null;
   endDate: string | null;
+  color: string | null;
 }
 
 export class ScheduleEventDayResponse {
@@ -58,6 +59,7 @@ export class ScheduleEventResponse {
       status: view.project.status,
       startDate: view.project.startDate,
       endDate: view.project.endDate,
+      color: view.project.color,
     };
     response.days = view.event.days.map((day) => ({
       date: day.date,

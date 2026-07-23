@@ -55,6 +55,7 @@ export class CreateProjectUseCase {
       fiscalYear: command.fiscalYear ?? null,
       manager: command.manager ?? null,
       image: command.image ?? null,
+      color: command.color ?? null,
     });
 
     await this.projectRepository.save(project);

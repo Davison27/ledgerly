@@ -15,6 +15,7 @@ const ACTIVE_PROJECT: ScheduleProjectView = {
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
+  color: null,
 };
 
 const HIRED_STAFF: ScheduleStaffView = {

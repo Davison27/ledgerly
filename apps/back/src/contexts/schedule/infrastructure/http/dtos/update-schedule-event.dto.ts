@@ -33,7 +33,7 @@ export class UpdateScheduleEventDto {
 
   @IsOptional()
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsUUID(undefined, { each: true })
   staffMemberIds?: string[];
 
   @IsOptional()

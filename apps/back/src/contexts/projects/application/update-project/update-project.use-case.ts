@@ -102,6 +102,10 @@ export class UpdateProjectUseCase {
       project.changeImage(command.image);
     }
 
+    if (command.color !== undefined) {
+      project.changeColor(command.color);
+    }
+
     await this.projectRepository.save(project);
 
     return project;

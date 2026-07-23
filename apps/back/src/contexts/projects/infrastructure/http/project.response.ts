@@ -2,6 +2,7 @@ import { Project } from '../../domain/project';
 import { ProjectType } from '../../domain/project-type';
 import { ProjectStatus } from '../../domain/project-status';
 import { ProjectCurrency } from '../../domain/project-currency';
+import { ProjectColor } from '../../domain/project-color';
 
 export class ProjectResponse {
   id: string;
@@ -23,6 +24,7 @@ export class ProjectResponse {
   fiscalYear: string | null;
   manager: string | null;
   image: string | null;
+  color: ProjectColor | null;
   isDemo: boolean;
 
   static fromDomain(project: Project): ProjectResponse {
@@ -48,6 +50,7 @@ export class ProjectResponse {
     response.fiscalYear = primitives.fiscalYear;
     response.manager = primitives.manager;
     response.image = primitives.image;
+    response.color = primitives.color;
     response.isDemo = primitives.isDemo ?? false;
 
     return response;

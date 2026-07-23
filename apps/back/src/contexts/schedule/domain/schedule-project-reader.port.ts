@@ -8,9 +8,14 @@ export interface ScheduleProjectView {
   status: string;
   startDate: string | null;
   endDate: string | null;
+  color: string | null;
+}
+
+export interface SchedulableProjectView extends ScheduleProjectView {
+  hasEvents: boolean;
 }
 
 export interface ScheduleProjectReader {
-  findActive(): Promise<ScheduleProjectView[]>;
+  findActive(): Promise<SchedulableProjectView[]>;
   findByIds(ids: string[]): Promise<ScheduleProjectView[]>;
 }
