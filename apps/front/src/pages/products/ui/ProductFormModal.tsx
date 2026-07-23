@@ -6,6 +6,7 @@ import type { ProductDto } from '@/entities/product';
 export interface ProductFormValues {
   name: string;
   price?: number;
+  stock: number;
 }
 
 interface ProductFormModalProps {
@@ -32,6 +33,7 @@ export function ProductFormModal({
       form.setFieldsValue({
         name: product?.name ?? '',
         price: product?.price ?? undefined,
+        stock: product?.stock ?? 0,
       });
     }
   }, [open, product, form]);
@@ -75,13 +77,26 @@ export function ProductFormModal({
         <Form.Item
           name="price"
           label={t('products.fields.price')}
-          style={{ marginBottom: 0 }}
+          style={{ marginBottom: 12 }}
           extra={t('products.form.priceHelp')}
         >
           <InputNumber
             style={{ width: '100%' }}
             min={0}
             placeholder={t('products.form.placeholders.price')}
+          />
+        </Form.Item>
+        <Form.Item
+          name="stock"
+          label={t('products.fields.stock')}
+          style={{ marginBottom: 0 }}
+          extra={t('products.form.stockHelp')}
+        >
+          <InputNumber
+            style={{ width: '100%' }}
+            precision={0}
+            min={0}
+            placeholder={t('products.form.placeholders.stock')}
           />
         </Form.Item>
       </Form>

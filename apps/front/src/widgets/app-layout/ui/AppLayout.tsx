@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Layout, Menu, theme } from 'antd';
 import {
+  CalendarOutlined,
   DashboardOutlined,
   FileDoneOutlined,
   FileTextOutlined,
@@ -33,6 +34,7 @@ function CompanyGuard({ children }: { children: ReactNode }) {
 type NavKey =
   | 'dashboard'
   | 'projects'
+  | 'calendar'
   | 'documents'
   | 'suppliers'
   | 'invoices'
@@ -43,6 +45,7 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
   if (pathname.startsWith('/documents')) return 'documents';
   if (pathname.startsWith('/projects')) return 'projects';
+  if (pathname.startsWith('/calendar')) return 'calendar';
   if (pathname.startsWith('/suppliers')) return 'suppliers';
   if (pathname.startsWith('/invoices')) return 'invoices';
   if (pathname.startsWith('/products')) return 'products';
@@ -76,6 +79,12 @@ function AppSider({
         icon: <ProjectOutlined />,
         label: t('nav.projects'),
         onClick: () => void navigate({ to: '/projects' }),
+      },
+      {
+        key: 'calendar' satisfies NavKey,
+        icon: <CalendarOutlined />,
+        label: t('nav.calendar'),
+        onClick: () => void navigate({ to: '/calendar' }),
       },
       {
         key: 'documents' satisfies NavKey,

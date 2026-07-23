@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNod
 import { useNavigate } from '@tanstack/react-router';
 import { Empty, Input, List, Modal, Typography, theme } from 'antd';
 import {
+  CalendarOutlined,
   DashboardOutlined,
   FileDoneOutlined,
   FileTextOutlined,
@@ -136,6 +137,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         icon: <ProjectOutlined />,
         label: t('nav.projects'),
         onSelect: () => void navigate({ to: '/projects' }),
+      },
+      {
+        key: 'nav-calendar',
+        category: 'nav',
+        icon: <CalendarOutlined />,
+        label: t('nav.calendar'),
+        onSelect: () => void navigate({ to: '/calendar' }),
       },
       {
         key: 'nav-documents',

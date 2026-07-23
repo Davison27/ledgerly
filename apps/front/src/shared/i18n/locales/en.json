@@ -32,6 +32,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "projects": "Projects",
+    "calendar": "Calendar",
     "documents": "Documents",
     "suppliers": "Suppliers",
     "invoices": "Invoices",
@@ -53,6 +54,12 @@
       "empty": "No projects with documents yet.",
       "docCountOne": "{{count}} doc",
       "docCountOther": "{{count}} docs"
+    },
+    "upcomingSchedule": {
+      "title": "Upcoming events",
+      "empty": "No schedule blocks in the next 30 days.",
+      "error": "The upcoming events could not be loaded.",
+      "viewAll": "View all"
     },
     "tips": {
       "title": "Recommendations",
@@ -203,7 +210,20 @@
     "sections": {
       "documents": "Documents",
       "dashboard": "Dashboard",
+      "schedule": "Calendar",
       "settings": "Settings"
+    },
+    "schedule": {
+      "empty": "There are no schedule blocks for this project yet.",
+      "loadError": "The schedule blocks could not be loaded.",
+      "viewInCalendar": "View in calendar",
+      "noStaff": "No staff assigned",
+      "noProducts": "No products assigned",
+      "columns": {
+        "days": "Days",
+        "staff": "Staff",
+        "products": "Products"
+      }
     },
     "documents": {
       "search": "Search by name...",
@@ -751,13 +771,16 @@
     "deleted": "Product deleted",
     "fields": {
       "name": "Name",
-      "price": "Price"
+      "price": "Price",
+      "stock": "Stock"
     },
     "columns": {
       "name": "Name",
       "price": "Price",
+      "stock": "Stock",
       "actions": "Actions"
     },
+    "stockUnset": "not set",
     "form": {
       "createTitle": "New product",
       "editTitle": "Edit product",
@@ -769,9 +792,11 @@
       "updateError": "The product could not be updated. Please try again.",
       "duplicateName": "A product with that name already exists.",
       "priceHelp": "Leave it empty if you haven't decided yet.",
+      "stockHelp": "0 means the stock hasn't been set yet.",
       "placeholders": {
         "name": "E.g. Logo design",
-        "price": "E.g. 150"
+        "price": "E.g. 150",
+        "stock": "E.g. 10"
       },
       "validation": {
         "nameRequired": "Name is required"
@@ -782,6 +807,115 @@
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "ok": "Delete",
       "error": "The product could not be deleted. Please try again."
+    }
+  },
+  "calendar": {
+    "title": "Calendar",
+    "loadError": "The calendar could not be loaded. Please try again.",
+    "previous": "Previous",
+    "today": "Today",
+    "next": "Next",
+    "views": {
+      "month": "Month",
+      "week": "Week"
+    },
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "days": {
+      "range": "{{start}} – {{end}}",
+      "fullDay": "All day",
+      "mixedTimes": "Mixed time slots"
+    },
+    "panel": {
+      "title": "Active projects",
+      "search": "Search project...",
+      "empty": "There are no active projects to schedule."
+    },
+    "event": {
+      "resizeStart": "Adjust the block's start",
+      "resizeEnd": "Adjust the block's end",
+      "created": "Block created successfully",
+      "createError": "The block could not be created. Please try again.",
+      "moved": "Block moved successfully",
+      "moveError": "The block could not be moved. Please try again.",
+      "resized": "Block resized successfully",
+      "resizeError": "The block could not be resized. Please try again.",
+      "saved": "Block updated successfully",
+      "saveError": "The block could not be updated. Please try again.",
+      "deleted": "Block deleted",
+      "deleteError": "The block could not be deleted. Please try again."
+    },
+    "conflicts": {
+      "title": "Warnings",
+      "none": "No warnings for this period.",
+      "kind": {
+        "staff_not_hired": "Staff member not hired yet",
+        "outside_project_dates": "Outside the project's dates",
+        "staff_overlap": "Staff overlap",
+        "project_not_active": "Project not active",
+        "product_overallocated": "Product overallocated",
+        "product_stock_unset": "Product stock not set"
+      }
+    },
+    "editor": {
+      "title": "Edit block",
+      "save": "Save",
+      "delete": "Delete block",
+      "fields": {
+        "title": "Title",
+        "notes": "Notes",
+        "staff": "Staff"
+      },
+      "placeholders": {
+        "title": "E.g. Stage setup",
+        "notes": "Notes about this block...",
+        "staff": "Select the assigned staff",
+        "product": "Select a product",
+        "quantity": "Quantity"
+      },
+      "days": {
+        "title": "Days",
+        "fullDay": "All day",
+        "start": "Start",
+        "end": "End",
+        "add": "Add day",
+        "remove": "Remove day"
+      },
+      "products": {
+        "title": "Products",
+        "add": "Add product",
+        "remove": "Remove product"
+      },
+      "validation": {
+        "dateRequired": "Date is required",
+        "startRequired": "Start time is required",
+        "endRequired": "End time is required",
+        "productRequired": "Select a product",
+        "quantityRequired": "Quantity is required",
+        "quantityMin": "Quantity must be greater than 0"
+      },
+      "deleteConfirm": {
+        "title": "Delete block",
+        "content": "Are you sure you want to delete this schedule block? This action cannot be undone.",
+        "ok": "Delete"
+      }
+    },
+    "dnd": {
+      "announcements": {
+        "pickedUpProject": "Project {{name}} picked up. Use the arrow keys to choose a day and drop with the spacebar.",
+        "pickedUpEvent": "Block {{name}} picked up. Use the arrow keys to choose a day and drop with the spacebar.",
+        "pickedUpResize": "Adjusting block {{name}}. Use the arrow keys to choose a day and drop with the spacebar.",
+        "over": "Over day {{date}}.",
+        "dropped": "Dropped on day {{date}}.",
+        "cancelled": "Operation cancelled."
+      }
     }
   },
   "staff": {
@@ -852,7 +986,13 @@
     "sections": {
       "profile": "Profile",
       "documents": "Documents",
-      "payrolls": "Payrolls"
+      "payrolls": "Payrolls",
+      "schedule": "Schedule"
+    },
+    "schedule": {
+      "empty": "This staff member has no schedule blocks assigned yet.",
+      "loadError": "The schedule could not be loaded.",
+      "viewInCalendar": "View in calendar"
     },
     "documentTypes": {
       "dni": "National ID",

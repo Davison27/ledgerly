@@ -23,6 +23,7 @@ import {
 import { ApiError } from '@/shared/api/httpClient';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Amount } from '@/shared/ui/Amount';
+import { Numeric } from '@/shared/ui/Numeric';
 import { ProductFormModal, type ProductFormValues } from './ProductFormModal';
 
 const { Title, Text } = Typography;
@@ -119,6 +120,20 @@ export function ProductsPage() {
       width: 160,
       align: 'right',
       render: (price: number | null) => (price === null ? '—' : <Amount value={price} />),
+    },
+    {
+      title: t('products.columns.stock'),
+      dataIndex: 'stock',
+      key: 'stock',
+      width: 140,
+      align: 'right',
+      sorter: (a, b) => a.stock - b.stock,
+      render: (stock: number) =>
+        stock === 0 ? (
+          <Text type="secondary">{t('products.stockUnset')}</Text>
+        ) : (
+          <Numeric>{stock}</Numeric>
+        ),
     },
     {
       title: t('products.columns.actions'),

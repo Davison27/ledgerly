@@ -11,6 +11,7 @@ import { OnboardingPage } from '@/pages/onboarding';
 import { DashboardPage } from '@/pages/dashboard';
 import { ProjectsPage } from '@/pages/projects';
 import { ProjectDetailPage } from '@/pages/project-detail';
+import { CalendarPage } from '@/pages/calendar';
 import { ExtractionHintsPage } from '@/pages/extraction-hints';
 import { SuppliersPage } from '@/pages/suppliers';
 import { DocumentsPage } from '@/pages/documents';
@@ -55,6 +56,12 @@ const projectDetailRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/projects/$projectId',
   component: ProjectDetailPage,
+});
+
+const calendarRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/calendar',
+  component: CalendarPage,
 });
 
 const documentsRoute = createRoute({
@@ -106,6 +113,7 @@ const routeTree = rootRoute.addChildren([
     dashboardRoute,
     projectsRoute,
     projectDetailRoute,
+    calendarRoute,
     documentsRoute,
     extractionHintsRoute,
     suppliersRoute,

@@ -32,6 +32,7 @@
   "nav": {
     "dashboard": "Panel",
     "projects": "Proyectos",
+    "calendar": "Calendario",
     "documents": "Documentos",
     "suppliers": "Proveedores",
     "invoices": "Facturas",
@@ -53,6 +54,12 @@
       "empty": "No hay proyectos con documentos todavía.",
       "docCountOne": "{{count}} doc",
       "docCountOther": "{{count}} docs"
+    },
+    "upcomingSchedule": {
+      "title": "Próximos eventos",
+      "empty": "No hay bloques de agenda en los próximos 30 días.",
+      "error": "No se han podido cargar los próximos eventos.",
+      "viewAll": "Ver todos"
     },
     "tips": {
       "title": "Recomendaciones",
@@ -203,7 +210,20 @@
     "sections": {
       "documents": "Documentos",
       "dashboard": "Panel",
+      "schedule": "Calendario",
       "settings": "Configuración"
+    },
+    "schedule": {
+      "empty": "Todavía no hay bloques de agenda para este proyecto.",
+      "loadError": "No se han podido cargar los bloques de agenda.",
+      "viewInCalendar": "Ver en el calendario",
+      "noStaff": "Sin personal asignado",
+      "noProducts": "Sin productos asignados",
+      "columns": {
+        "days": "Días",
+        "staff": "Personal",
+        "products": "Productos"
+      }
     },
     "documents": {
       "search": "Buscar por nombre...",
@@ -751,13 +771,16 @@
     "deleted": "Producto eliminado",
     "fields": {
       "name": "Nombre",
-      "price": "Precio"
+      "price": "Precio",
+      "stock": "Stock"
     },
     "columns": {
       "name": "Nombre",
       "price": "Precio",
+      "stock": "Stock",
       "actions": "Acciones"
     },
+    "stockUnset": "sin configurar",
     "form": {
       "createTitle": "Nuevo producto",
       "editTitle": "Editar producto",
@@ -769,9 +792,11 @@
       "updateError": "No se ha podido actualizar el producto. Inténtalo de nuevo.",
       "duplicateName": "Ya existe un producto con ese nombre.",
       "priceHelp": "Déjalo vacío si aún no lo has decidido.",
+      "stockHelp": "0 significa que el stock todavía no se ha configurado.",
       "placeholders": {
         "name": "Ej. Diseño de logotipo",
-        "price": "Ej. 150"
+        "price": "Ej. 150",
+        "stock": "Ej. 10"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio"
@@ -782,6 +807,115 @@
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
       "ok": "Eliminar",
       "error": "No se ha podido eliminar el producto. Inténtalo de nuevo."
+    }
+  },
+  "calendar": {
+    "title": "Calendario",
+    "loadError": "No se ha podido cargar el calendario. Inténtalo de nuevo.",
+    "previous": "Anterior",
+    "today": "Hoy",
+    "next": "Siguiente",
+    "views": {
+      "month": "Mes",
+      "week": "Semana"
+    },
+    "weekdays": {
+      "mon": "Lun",
+      "tue": "Mar",
+      "wed": "Mié",
+      "thu": "Jue",
+      "fri": "Vie",
+      "sat": "Sáb",
+      "sun": "Dom"
+    },
+    "days": {
+      "range": "{{start}} – {{end}}",
+      "fullDay": "Todo el día",
+      "mixedTimes": "Franjas variables"
+    },
+    "panel": {
+      "title": "Proyectos activos",
+      "search": "Buscar proyecto...",
+      "empty": "No hay proyectos activos que planificar."
+    },
+    "event": {
+      "resizeStart": "Ajustar inicio del bloque",
+      "resizeEnd": "Ajustar fin del bloque",
+      "created": "Bloque creado correctamente",
+      "createError": "No se ha podido crear el bloque. Inténtalo de nuevo.",
+      "moved": "Bloque movido correctamente",
+      "moveError": "No se ha podido mover el bloque. Inténtalo de nuevo.",
+      "resized": "Bloque redimensionado correctamente",
+      "resizeError": "No se ha podido redimensionar el bloque. Inténtalo de nuevo.",
+      "saved": "Bloque actualizado correctamente",
+      "saveError": "No se ha podido actualizar el bloque. Inténtalo de nuevo.",
+      "deleted": "Bloque eliminado",
+      "deleteError": "No se ha podido eliminar el bloque. Inténtalo de nuevo."
+    },
+    "conflicts": {
+      "title": "Avisos",
+      "none": "No hay avisos en este periodo.",
+      "kind": {
+        "staff_not_hired": "Trabajador no dado de alta",
+        "outside_project_dates": "Fuera de las fechas del proyecto",
+        "staff_overlap": "Solape de personal",
+        "project_not_active": "Proyecto no activo",
+        "product_overallocated": "Producto sobreasignado",
+        "product_stock_unset": "Stock de producto sin configurar"
+      }
+    },
+    "editor": {
+      "title": "Editar bloque",
+      "save": "Guardar",
+      "delete": "Eliminar bloque",
+      "fields": {
+        "title": "Título",
+        "notes": "Notas",
+        "staff": "Personal"
+      },
+      "placeholders": {
+        "title": "Ej. Montaje del escenario",
+        "notes": "Notas sobre este bloque...",
+        "staff": "Selecciona el personal asignado",
+        "product": "Selecciona un producto",
+        "quantity": "Cantidad"
+      },
+      "days": {
+        "title": "Días",
+        "fullDay": "Todo el día",
+        "start": "Inicio",
+        "end": "Fin",
+        "add": "Añadir día",
+        "remove": "Eliminar día"
+      },
+      "products": {
+        "title": "Productos",
+        "add": "Añadir producto",
+        "remove": "Eliminar producto"
+      },
+      "validation": {
+        "dateRequired": "La fecha es obligatoria",
+        "startRequired": "La hora de inicio es obligatoria",
+        "endRequired": "La hora de fin es obligatoria",
+        "productRequired": "Selecciona un producto",
+        "quantityRequired": "La cantidad es obligatoria",
+        "quantityMin": "La cantidad debe ser mayor que 0"
+      },
+      "deleteConfirm": {
+        "title": "Eliminar bloque",
+        "content": "¿Seguro que quieres eliminar este bloque de agenda? Esta acción no se puede deshacer.",
+        "ok": "Eliminar"
+      }
+    },
+    "dnd": {
+      "announcements": {
+        "pickedUpProject": "Proyecto {{name}} recogido. Usa las flechas para elegir un día y suelta con la barra espaciadora.",
+        "pickedUpEvent": "Bloque {{name}} recogido. Usa las flechas para elegir un día y suelta con la barra espaciadora.",
+        "pickedUpResize": "Ajustando el bloque {{name}}. Usa las flechas para elegir un día y suelta con la barra espaciadora.",
+        "over": "Sobre el día {{date}}.",
+        "dropped": "Soltado en el día {{date}}.",
+        "cancelled": "Operación cancelada."
+      }
     }
   },
   "staff": {
@@ -852,7 +986,13 @@
     "sections": {
       "profile": "Perfil",
       "documents": "Documentos",
-      "payrolls": "Nóminas"
+      "payrolls": "Nóminas",
+      "schedule": "Agenda"
+    },
+    "schedule": {
+      "empty": "Este trabajador todavía no tiene bloques de agenda asignados.",
+      "loadError": "No se ha podido cargar la agenda.",
+      "viewInCalendar": "Ver en el calendario"
     },
     "documentTypes": {
       "dni": "DNI",

@@ -19,6 +19,7 @@ import {
   TopIssuers,
 } from '@/widgets/dashboard-charts';
 import { TopProjectsCard } from './TopProjectsCard';
+import { UpcomingScheduleCard } from './UpcomingScheduleCard';
 import { TipsPanel } from './TipsPanel';
 import { deriveTips } from '../model/tips';
 import { YoyKpiRow } from './YoyKpiRow';
@@ -191,6 +192,7 @@ export function DashboardPage() {
 
             <Flex gap={12} wrap align="stretch">
               <TopProjectsCard topProjects={data.topProjects} />
+              <UpcomingScheduleCard />
               <TipsPanel tips={tips} />
             </Flex>
           </>
