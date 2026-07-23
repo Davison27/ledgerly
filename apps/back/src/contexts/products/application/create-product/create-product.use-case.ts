@@ -31,6 +31,7 @@ export class CreateProductUseCase {
       id: this.idGenerator.generate(),
       name: command.name,
       price: command.price ?? null,
+      stock: command.stock ?? 0,
     });
 
     await this.productRepository.save(product);

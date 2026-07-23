@@ -68,6 +68,24 @@ describe('CreateProductUseCase', () => {
     expect(await repository.findAll()).toHaveLength(1);
   });
 
+  it('creates a product with stock left at zero by default', async () => {
+    const repository = new InMemoryProductRepository();
+    const useCase = new CreateProductUseCase(repository, new SequentialIdGenerator());
+
+    const product = await useCase.execute({ name: 'Consultoría' });
+
+    expect(product.stock).toBe(0);
+  });
+
+  it('creates a product with the given stock', async () => {
+    const repository = new InMemoryProductRepository();
+    const useCase = new CreateProductUseCase(repository, new SequentialIdGenerator());
+
+    const product = await useCase.execute({ name: 'Diseño web', price: 500, stock: 12 });
+
+    expect(product.stock).toBe(12);
+  });
+
   it('throws ProductNameAlreadyExistsException when the name is already used', async () => {
     const repository = new InMemoryProductRepository();
     const useCase = new CreateProductUseCase(repository, new SequentialIdGenerator());

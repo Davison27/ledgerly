@@ -5,6 +5,7 @@ const BASE_PRIMITIVES = {
   id: 'product-1',
   name: 'Diseño web',
   price: 500,
+  stock: 10,
 };
 
 describe('Product', () => {
@@ -19,9 +20,28 @@ describe('Product', () => {
       id: 'product-2',
       name: 'Consultoría',
       price: null,
+      stock: 0,
     });
 
     expect(product.price).toBeNull();
+  });
+
+  it('allows the stock to be zero', () => {
+    const product = Product.create({ ...BASE_PRIMITIVES, stock: 0 });
+
+    expect(product.stock).toBe(0);
+  });
+
+  it('throws when the stock is negative', () => {
+    expect(() => Product.create({ ...BASE_PRIMITIVES, stock: -1 })).toThrow(
+      InvalidValueException,
+    );
+  });
+
+  it('throws when the stock is not an integer', () => {
+    expect(() => Product.create({ ...BASE_PRIMITIVES, stock: 1.5 })).toThrow(
+      InvalidValueException,
+    );
   });
 
   it('throws when the name is empty', () => {
@@ -70,5 +90,19 @@ describe('Product', () => {
     const product = Product.create(BASE_PRIMITIVES);
 
     expect(() => product.changePrice(-10)).toThrow(InvalidValueException);
+  });
+
+  it('changes the stock', () => {
+    const product = Product.create(BASE_PRIMITIVES);
+
+    product.changeStock(25);
+
+    expect(product.stock).toBe(25);
+  });
+
+  it('throws when changing to a negative stock', () => {
+    const product = Product.create(BASE_PRIMITIVES);
+
+    expect(() => product.changeStock(-1)).toThrow(InvalidValueException);
   });
 });

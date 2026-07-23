@@ -38,6 +38,7 @@ export class ProductsController {
     const product = await this.createProductUseCase.execute({
       name: dto.name,
       price: dto.price,
+      stock: dto.stock,
     });
 
     return ProductResponse.fromDomain(product);
@@ -52,6 +53,7 @@ export class ProductsController {
       id,
       name: dto.name,
       price: dto.price ?? null,
+      stock: dto.stock,
     });
 
     return ProductResponse.fromDomain(product);

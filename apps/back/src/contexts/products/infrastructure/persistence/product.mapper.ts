@@ -7,6 +7,7 @@ export class ProductMapper {
       id: orm.id,
       name: orm.name,
       price: orm.price === null ? null : Number(orm.price),
+      stock: orm.stock,
     });
   }
 
@@ -17,6 +18,7 @@ export class ProductMapper {
     orm.id = primitives.id;
     orm.name = primitives.name;
     orm.price = primitives.price?.toString() ?? null;
+    orm.stock = primitives.stock;
 
     return orm;
   }
