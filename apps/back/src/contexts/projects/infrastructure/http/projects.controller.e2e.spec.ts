@@ -51,6 +51,7 @@ function buildSummary(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
     documentCount: overrides.documentCount ?? 0,
     pendingCount: overrides.pendingCount ?? 0,
     image: overrides.image ?? null,
+    color: overrides.color ?? null,
   };
 }
 
@@ -119,9 +120,19 @@ describe('ProjectsController (HTTP, no DB)', () => {
           documentCount: 0,
           pendingCount: 0,
           image: 'data:image/png;base64,abc',
+          color: null,
           isDemo: false,
         },
       ]);
+    });
+
+    it('returns the color assigned to the project', async () => {
+      listExecute.mockResolvedValueOnce([buildSummary({ color: 'terracotta' })]);
+
+      const response = await request(httpServer).get('/projects');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toMatchObject([{ color: 'terracotta' }]);
     });
   });
 

@@ -18,12 +18,12 @@ export class TypeOrmProjectRepository implements ProjectRepository {
 
   async findAllSummaries(): Promise<ProjectSummary[]> {
     const rows: ProjectSummary[] = await this.repository.manager.query(`
-      SELECT p.id, p.name, p.code, p.image, p.is_demo AS "isDemo",
+      SELECT p.id, p.name, p.code, p.image, p.color, p.is_demo AS "isDemo",
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id
-      GROUP BY p.id, p.name, p.code, p.image, p.is_demo
+      GROUP BY p.id, p.name, p.code, p.image, p.color, p.is_demo
       ORDER BY p.name ASC
     `);
 
@@ -33,13 +33,13 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   async findSummaryById(id: string): Promise<ProjectSummary | null> {
     const rows: ProjectSummary[] = await this.repository.manager.query(
       `
-      SELECT p.id, p.name, p.code, p.image, p.is_demo AS "isDemo",
+      SELECT p.id, p.name, p.code, p.image, p.color, p.is_demo AS "isDemo",
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id
       WHERE p.id = $1
-      GROUP BY p.id, p.name, p.code, p.image, p.is_demo
+      GROUP BY p.id, p.name, p.code, p.image, p.color, p.is_demo
       ORDER BY p.name ASC
     `,
       [id],
