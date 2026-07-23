@@ -19,6 +19,7 @@ export interface ProjectSummaryDto {
   documentCount: number;
   pendingCount: number;
   image?: string | null;
+  color?: ProjectColorToken | null;
 }
 
 export interface ProjectDto {

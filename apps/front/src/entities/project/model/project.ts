@@ -62,6 +62,7 @@ function mapProjectSummary(dto: ProjectSummaryDto): Project {
     documentCount: dto.documentCount,
     pendingCount: dto.pendingCount,
     image: dto.image ?? undefined,
+    color: dto.color ?? undefined,
   };
 }
 

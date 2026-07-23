@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { App, Button, Flex, Spin, Typography, theme } from 'antd';
+import { App, Button, Flex, Spin, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
 import { useCompany } from '@/entities/company';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { resolveProjectColor } from '@/shared/lib/palette';
+import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectCard } from './ProjectCard';
 import { ProjectFormModal } from './ProjectFormModal';
 
@@ -16,7 +18,8 @@ export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
-  const { token } = theme.useToken();
+  const { mode } = useThemeMode();
+  const isDark = mode === 'dark';
   const { projects, projectsLoading, addProject, updateProject, removeProject } = useCompany();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -121,7 +124,7 @@ export function ProjectsPage() {
             <ProjectCard
               key={project.id}
               project={project}
-              color={token.colorPrimary}
+              color={resolveProjectColor(project.color ?? null, project.id, isDark)}
               editLoading={loadingEditId === project.id}
               onOpen={handleOpen}
               onEdit={handleEdit}
