@@ -6,6 +6,8 @@ import { useTranslation } from 'react-i18next';
 import { useCompany } from '@/entities/company';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { resolveProjectColor } from '@/shared/lib/palette';
+import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { DocumentsSection } from './DocumentsSection';
 import { DashboardSection } from './DashboardSection';
 import { ScheduleSection } from './ScheduleSection';
@@ -22,6 +24,8 @@ export function ProjectDetailPage() {
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const { projects } = useCompany();
   const project = projects.find((p) => p.id === projectId);
+  const { mode } = useThemeMode();
+  const isDark = mode === 'dark';
 
   const [section, setSection] = useState<Section>('documents');
 
@@ -61,7 +65,7 @@ export function ProjectDetailPage() {
             <Avatar
               shape="square"
               size={28}
-              style={{ backgroundColor: token.colorPrimary }}
+              style={{ backgroundColor: resolveProjectColor(project.color ?? null, project.id, isDark) }}
               icon={<ProjectOutlined />}
             />
           )}
