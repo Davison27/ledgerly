@@ -36,6 +36,10 @@ export class UpdateProductUseCase {
 
     product.changePrice(command.price);
 
+    if (command.stock !== undefined) {
+      product.changeStock(command.stock);
+    }
+
     await this.productRepository.save(product);
 
     return product;

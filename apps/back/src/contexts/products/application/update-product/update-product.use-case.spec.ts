@@ -44,7 +44,7 @@ class InMemoryProductRepository implements ProductRepository {
 describe('UpdateProductUseCase', () => {
   it('renames the product and changes its price', async () => {
     const repository = new InMemoryProductRepository([
-      Product.create({ id: 'product-1', name: 'Diseño web', price: 500 }),
+      Product.create({ id: 'product-1', name: 'Diseño web', price: 500, stock: 10 }),
     ]);
     const useCase = new UpdateProductUseCase(repository);
 
@@ -56,13 +56,35 @@ describe('UpdateProductUseCase', () => {
 
   it('clears the price when it is set to null', async () => {
     const repository = new InMemoryProductRepository([
-      Product.create({ id: 'product-1', name: 'Diseño web', price: 500 }),
+      Product.create({ id: 'product-1', name: 'Diseño web', price: 500, stock: 10 }),
     ]);
     const useCase = new UpdateProductUseCase(repository);
 
     const product = await useCase.execute({ id: 'product-1', price: null });
 
     expect(product.price).toBeNull();
+  });
+
+  it('changes the stock when it is given', async () => {
+    const repository = new InMemoryProductRepository([
+      Product.create({ id: 'product-1', name: 'Diseño web', price: 500, stock: 10 }),
+    ]);
+    const useCase = new UpdateProductUseCase(repository);
+
+    const product = await useCase.execute({ id: 'product-1', price: 500, stock: 30 });
+
+    expect(product.stock).toBe(30);
+  });
+
+  it('leaves the stock untouched when it is omitted', async () => {
+    const repository = new InMemoryProductRepository([
+      Product.create({ id: 'product-1', name: 'Diseño web', price: 500, stock: 10 }),
+    ]);
+    const useCase = new UpdateProductUseCase(repository);
+
+    const product = await useCase.execute({ id: 'product-1', price: 500 });
+
+    expect(product.stock).toBe(10);
   });
 
   it('throws ProductNotFoundException when the product does not exist', async () => {
@@ -76,8 +98,8 @@ describe('UpdateProductUseCase', () => {
 
   it('throws ProductNameAlreadyExistsException when renaming to a name already in use', async () => {
     const repository = new InMemoryProductRepository([
-      Product.create({ id: 'product-1', name: 'Diseño web', price: 500 }),
-      Product.create({ id: 'product-2', name: 'Consultoría', price: null }),
+      Product.create({ id: 'product-1', name: 'Diseño web', price: 500, stock: 10 }),
+      Product.create({ id: 'product-2', name: 'Consultoría', price: null, stock: 0 }),
     ]);
     const useCase = new UpdateProductUseCase(repository);
 

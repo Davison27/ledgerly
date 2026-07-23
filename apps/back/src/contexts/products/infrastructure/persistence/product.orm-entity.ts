@@ -11,6 +11,9 @@ export class ProductOrmEntity {
   @Column({ type: 'numeric', precision: 12, scale: 2, nullable: true })
   price: string | null;
 
+  @Column({ type: 'integer' })
+  stock: number;
+
   @Column({ name: 'created_at', type: 'timestamptz' })
   createdAt: Date;
 }

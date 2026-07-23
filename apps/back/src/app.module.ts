@@ -17,6 +17,7 @@ import { ProductsModule } from './contexts/products/products.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
 import { DemoModule } from './contexts/demo/demo.module';
 import { StaffModule } from './contexts/staff/staff.module';
+import { ScheduleModule } from './contexts/schedule/schedule.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { StaffModule } from './contexts/staff/staff.module';
     DashboardModule,
     DemoModule,
     StaffModule,
+    ScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

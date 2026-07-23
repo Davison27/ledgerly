@@ -18,6 +18,7 @@ function buildProduct(overrides: Partial<CreateProductCommand> & { id?: string }
     id: overrides.id ?? 'product-1',
     name: overrides.name ?? 'Diseño web',
     price: overrides.price ?? null,
+    stock: overrides.stock ?? 0,
   });
 }
 
@@ -77,6 +78,7 @@ describe('ProductsController (HTTP, no DB)', () => {
           id: 'product-1',
           name: 'Diseño web',
           price: null,
+          stock: 0,
         },
       ]);
       expect(listExecute).toHaveBeenCalledTimes(1);
