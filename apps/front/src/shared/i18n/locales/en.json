@@ -499,12 +499,25 @@
         "currency": "Currency",
         "fiscalYear": "Fiscal year",
         "manager": "Manager",
-        "image": "Project image"
+        "image": "Project image",
+        "color": "Color"
       },
       "image": {
         "upload": "Upload image",
         "hint": "PNG or JPG, recommended size 256x256 px",
         "remove": "Remove image"
+      },
+      "colors": {
+        "brand": "Brand",
+        "green": "Green",
+        "terracotta": "Terracotta",
+        "amber": "Amber",
+        "violet": "Violet",
+        "slate": "Slate",
+        "teal": "Teal",
+        "rose": "Rose",
+        "indigo": "Indigo",
+        "olive": "Olive"
       },
       "placeholders": {
         "name": "E.g. La que se avecina",
@@ -833,10 +846,22 @@
       "fullDay": "All day",
       "mixedTimes": "Mixed time slots"
     },
+    "moreEvents": "+{{count}} more",
     "panel": {
       "title": "Active projects",
       "search": "Search project...",
       "empty": "There are no active projects to schedule."
+    },
+    "staffPanel": {
+      "title": "Staff",
+      "search": "Search staff member...",
+      "empty": "There are no staff members to assign."
+    },
+    "derived": {
+      "badge": "Not scheduled",
+      "tooLong": "The project's date range is too long to schedule automatically.",
+      "materialized": "Block created from the project's dates",
+      "materializeError": "The block could not be created. Please try again."
     },
     "event": {
       "resizeStart": "Adjust the block's start",
@@ -850,7 +875,10 @@
       "saved": "Block updated successfully",
       "saveError": "The block could not be updated. Please try again.",
       "deleted": "Block deleted",
-      "deleteError": "The block could not be deleted. Please try again."
+      "deleteError": "The block could not be deleted. Please try again.",
+      "staffAssigned": "Staff member assigned",
+      "staffAssignError": "The staff member could not be assigned. Please try again.",
+      "staffAlreadyAssigned": "This staff member is already assigned to this block"
     },
     "conflicts": {
       "title": "Warnings",
@@ -891,7 +919,8 @@
       "products": {
         "title": "Products",
         "add": "Add product",
-        "remove": "Remove product"
+        "remove": "Remove product",
+        "noneAvailable": "There are no products registered yet."
       },
       "validation": {
         "dateRequired": "Date is required",
@@ -899,7 +928,9 @@
         "endRequired": "End time is required",
         "productRequired": "Select a product",
         "quantityRequired": "Quantity is required",
-        "quantityMin": "Quantity must be greater than 0"
+        "quantityMin": "Quantity must be greater than 0",
+        "formInvalid": "Check the fields highlighted in red before saving",
+        "duplicateDate": "You can't repeat the same date in the block"
       },
       "deleteConfirm": {
         "title": "Delete block",
@@ -912,8 +943,10 @@
         "pickedUpProject": "Project {{name}} picked up. Use the arrow keys to choose a day and drop with the spacebar.",
         "pickedUpEvent": "Block {{name}} picked up. Use the arrow keys to choose a day and drop with the spacebar.",
         "pickedUpResize": "Adjusting block {{name}}. Use the arrow keys to choose a day and drop with the spacebar.",
+        "pickedUpStaff": "{{name}} picked up. Drop them on a block to assign.",
         "over": "Over day {{date}}.",
         "dropped": "Dropped on day {{date}}.",
+        "droppedOnEvent": "Dropped on the selected block.",
         "cancelled": "Operation cancelled."
       }
     }

@@ -91,7 +91,7 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
         requiredMark={false}
         initialValues={{ status: 'active', currency: 'EUR' }}
       >
-        <ProjectFormFields image={image} onImageChange={setImage} />
+        <ProjectFormFields image={image} onImageChange={setImage} colorSeed={project?.id} />
       </Form>
     </Modal>
   );

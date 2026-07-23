@@ -1,3 +1,5 @@
+import type { ProjectColorToken } from '@/shared/config/theme';
+
 export type ProjectTypeDto =
   | 'client'
   | 'internal'
@@ -39,6 +41,7 @@ export interface ProjectDto {
   fiscalYear?: string | null;
   manager?: string | null;
   image?: string | null;
+  color?: ProjectColorToken | null;
 }
 
 export interface CreateProjectPayload {
@@ -60,6 +63,7 @@ export interface CreateProjectPayload {
   fiscalYear?: string;
   manager?: string;
   image?: string;
+  color?: ProjectColorToken;
 }
 
 export interface UpdateProjectPayload {
@@ -81,4 +85,5 @@ export interface UpdateProjectPayload {
   fiscalYear?: string;
   manager?: string;
   image?: string;
+  color?: ProjectColorToken;
 }

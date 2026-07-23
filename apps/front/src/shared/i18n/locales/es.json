@@ -499,12 +499,25 @@
         "currency": "Moneda",
         "fiscalYear": "Ejercicio fiscal",
         "manager": "Responsable",
-        "image": "Imagen del proyecto"
+        "image": "Imagen del proyecto",
+        "color": "Color"
       },
       "image": {
         "upload": "Subir imagen",
         "hint": "PNG o JPG, tamaño recomendado 256x256 px",
         "remove": "Quitar imagen"
+      },
+      "colors": {
+        "brand": "Marca",
+        "green": "Verde",
+        "terracotta": "Terracota",
+        "amber": "Ámbar",
+        "violet": "Violeta",
+        "slate": "Pizarra",
+        "teal": "Verde azulado",
+        "rose": "Rosa",
+        "indigo": "Índigo",
+        "olive": "Oliva"
       },
       "placeholders": {
         "name": "Ej. La que se avecina",
@@ -833,10 +846,22 @@
       "fullDay": "Todo el día",
       "mixedTimes": "Franjas variables"
     },
+    "moreEvents": "+{{count}} más",
     "panel": {
       "title": "Proyectos activos",
       "search": "Buscar proyecto...",
       "empty": "No hay proyectos activos que planificar."
+    },
+    "staffPanel": {
+      "title": "Personal",
+      "search": "Buscar trabajador...",
+      "empty": "No hay personal que asignar."
+    },
+    "derived": {
+      "badge": "Sin planificar",
+      "tooLong": "El rango de fechas del proyecto es demasiado largo para planificarlo automáticamente.",
+      "materialized": "Bloque creado a partir de las fechas del proyecto",
+      "materializeError": "No se ha podido crear el bloque. Inténtalo de nuevo."
     },
     "event": {
       "resizeStart": "Ajustar inicio del bloque",
@@ -850,7 +875,10 @@
       "saved": "Bloque actualizado correctamente",
       "saveError": "No se ha podido actualizar el bloque. Inténtalo de nuevo.",
       "deleted": "Bloque eliminado",
-      "deleteError": "No se ha podido eliminar el bloque. Inténtalo de nuevo."
+      "deleteError": "No se ha podido eliminar el bloque. Inténtalo de nuevo.",
+      "staffAssigned": "Trabajador asignado",
+      "staffAssignError": "No se ha podido asignar al trabajador. Inténtalo de nuevo.",
+      "staffAlreadyAssigned": "Este trabajador ya está asignado a este bloque"
     },
     "conflicts": {
       "title": "Avisos",
@@ -891,7 +919,8 @@
       "products": {
         "title": "Productos",
         "add": "Añadir producto",
-        "remove": "Eliminar producto"
+        "remove": "Eliminar producto",
+        "noneAvailable": "No hay productos dados de alta todavía."
       },
       "validation": {
         "dateRequired": "La fecha es obligatoria",
@@ -899,7 +928,9 @@
         "endRequired": "La hora de fin es obligatoria",
         "productRequired": "Selecciona un producto",
         "quantityRequired": "La cantidad es obligatoria",
-        "quantityMin": "La cantidad debe ser mayor que 0"
+        "quantityMin": "La cantidad debe ser mayor que 0",
+        "formInvalid": "Revisa los campos marcados en rojo antes de guardar",
+        "duplicateDate": "No puedes repetir la misma fecha en el bloque"
       },
       "deleteConfirm": {
         "title": "Eliminar bloque",
@@ -912,8 +943,10 @@
         "pickedUpProject": "Proyecto {{name}} recogido. Usa las flechas para elegir un día y suelta con la barra espaciadora.",
         "pickedUpEvent": "Bloque {{name}} recogido. Usa las flechas para elegir un día y suelta con la barra espaciadora.",
         "pickedUpResize": "Ajustando el bloque {{name}}. Usa las flechas para elegir un día y suelta con la barra espaciadora.",
+        "pickedUpStaff": "{{name}} recogido. Suéltalo sobre un bloque para asignarlo.",
         "over": "Sobre el día {{date}}.",
         "dropped": "Soltado en el día {{date}}.",
+        "droppedOnEvent": "Soltado sobre el bloque seleccionado.",
         "cancelled": "Operación cancelada."
       }
     }

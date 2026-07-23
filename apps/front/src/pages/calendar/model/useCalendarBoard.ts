@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import dayjs, { type Dayjs } from 'dayjs';
 import {
   createScheduleEvent,
+  daysBetween,
   deleteScheduleEvent,
   getScheduleBoard,
   listSchedulableProjects,
@@ -15,6 +16,7 @@ import {
 } from '@/entities/schedule-event';
 import { listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
 import { listProducts, type ProductDto } from '@/entities/product';
+import { deriveProjectRange, DerivedRangeTooLongError, MAX_DERIVED_RANGE_DAYS } from './derivedRanges';
 
 export type CalendarView = 'month' | 'week';
 
@@ -50,19 +52,31 @@ export function useCalendarBoard() {
     setLoading(true);
     setLoadError(false);
     return getScheduleBoard(range.from, range.to)
-      .then(setBoard)
-      .catch(() => setLoadError(true))
+      .then((fetched) => {
+        setBoard(fetched);
+        return fetched;
+      })
+      .catch(() => {
+        setLoadError(true);
+        return null;
+      })
       .finally(() => setLoading(false));
   }, [range.from, range.to]);
+
+  const loadProjects = useCallback(
+    () => listSchedulableProjects().then(setProjects).catch(() => setProjects([])),
+    [],
+  );
 
   useEffect(() => {
     loadBoard();
   }, [loadBoard]);
 
   useEffect(() => {
-    listSchedulableProjects()
-      .then(setProjects)
-      .catch(() => setProjects([]));
+    loadProjects();
+  }, [loadProjects]);
+
+  useEffect(() => {
     listStaffMembers()
       .then(setStaffMembers)
       .catch(() => setStaffMembers([]));
@@ -132,6 +146,50 @@ export function useCalendarBoard() {
     [loadBoard],
   );
 
+  const materializeDerivedRange = useCallback(
+    (project: SchedulableProjectDto, offsetInDays: number) => {
+      const derivedRange = deriveProjectRange(project);
+      if (!derivedRange) return Promise.reject(new Error('Project has no derivable range'));
+
+      const shiftedStart = dayjs(derivedRange.startDate).add(offsetInDays, 'day').format(DATE_FORMAT);
+      const shiftedEnd = dayjs(derivedRange.endDate).add(offsetInDays, 'day').format(DATE_FORMAT);
+      const shiftedDays = daysBetween(shiftedStart, shiftedEnd);
+      if (shiftedDays.length > MAX_DERIVED_RANGE_DAYS) {
+        return Promise.reject(new DerivedRangeTooLongError());
+      }
+
+      return createScheduleEvent({
+        projectId: project.id,
+        days: shiftedDays.map((date) => ({ date })),
+        staffMemberIds: [],
+        products: [],
+      }).then((created) => {
+        void loadBoard();
+        void loadProjects();
+        return created;
+      });
+    },
+    [loadBoard, loadProjects],
+  );
+
+  const assignStaffToEvent = useCallback(
+    (event: ScheduleEventDto, staffMemberId: string) => {
+      if (event.staff.some((member) => member.id === staffMemberId)) {
+        return Promise.resolve({ status: 'already-assigned' as const });
+      }
+      return updateScheduleEvent(event.id, {
+        staffMemberIds: [...event.staff.map((member) => member.id), staffMemberId],
+      }).then((updated) =>
+        loadBoard().then((freshBoard) => ({
+          status: 'assigned' as const,
+          updated,
+          board: freshBoard,
+        })),
+      );
+    },
+    [loadBoard],
+  );
+
   return {
     view,
     setView,
@@ -151,6 +209,8 @@ export function useCalendarBoard() {
     resizeEvent,
     saveEvent,
     removeEvent,
+    materializeDerivedRange,
+    assignStaffToEvent,
   };
 }
 

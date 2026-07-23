@@ -110,7 +110,7 @@ export function SettingsSection({ project }: ProjectSectionProps) {
         </Button>
       </Flex>
       <Form<ProjectFormFieldValues> form={form} layout="vertical" requiredMark={false}>
-        <ProjectFormFields image={image} onImageChange={setImage} />
+        <ProjectFormFields image={image} onImageChange={setImage} colorSeed={fullProject.id} />
       </Form>
     </PageContainer>
   );

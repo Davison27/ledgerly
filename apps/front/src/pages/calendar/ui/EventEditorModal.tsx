@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import {
+  App,
   Button,
   Col,
   DatePicker,
@@ -70,10 +71,12 @@ export function EventEditorModal({
   deleting,
 }: EventEditorModalProps) {
   const { t } = useTranslation();
+  const { message } = App.useApp();
   const [form] = Form.useForm<EventEditorFormValues>();
 
   useEffect(() => {
     if (open && event) {
+      form.resetFields();
       form.setFieldsValue({
         title: event.title ?? '',
         notes: event.notes ?? '',
@@ -91,6 +94,12 @@ export function EventEditorModal({
       });
     }
   }, [open, event, form]);
+
+  useEffect(() => {
+    if (!open) {
+      form.resetFields();
+    }
+  }, [open, form]);
 
   const handleCancel = () => {
     form.resetFields();
@@ -116,9 +125,14 @@ export function EventEditorModal({
             quantity: product.quantity!,
           })),
         };
-        void onSave(event.id, payload);
+        return onSave(event.id, payload);
       })
-      .catch(() => {});
+      .catch((errorInfo: { errorFields?: { name: (string | number)[] }[] }) => {
+        if (errorInfo?.errorFields && errorInfo.errorFields.length > 0) {
+          form.scrollToField(errorInfo.errorFields[0].name);
+          void message.error(t('calendar.editor.validation.formInvalid'));
+        }
+      });
   };
 
   const handleDelete = () => {
@@ -177,14 +191,28 @@ export function EventEditorModal({
         <Text strong style={{ fontSize: 13 }}>
           {t('calendar.editor.days.title')}
         </Text>
-        <Form.List name="days">
-          {(fields, { add, remove }) => (
+        <Form.List
+          name="days"
+          rules={[
+            {
+              validator: async (_rule, days: DayFieldValue[] = []) => {
+                const dates = days
+                  .map((day) => day?.date)
+                  .filter((date): date is Dayjs => Boolean(date))
+                  .map((date) => date.format('YYYY-MM-DD'));
+                if (new Set(dates).size !== dates.length) {
+                  throw new Error(t('calendar.editor.validation.duplicateDate'));
+                }
+              },
+            },
+          ]}
+        >
+          {(fields, { add, remove }, { errors }) => (
             <Flex vertical gap={4} style={{ marginTop: 8, marginBottom: 8 }}>
               {fields.map((field) => (
                 <Row gutter={8} key={field.key} align="middle">
                   <Col flex="0 0 150px">
                     <Form.Item
-                      {...field}
                       name={[field.name, 'date']}
                       style={{ marginBottom: 8 }}
                       rules={[{ required: true, message: t('calendar.editor.validation.dateRequired') }]}
@@ -194,7 +222,6 @@ export function EventEditorModal({
                   </Col>
                   <Col flex="0 0 130px">
                     <Form.Item
-                      {...field}
                       name={[field.name, 'fullDay']}
                       valuePropName="checked"
                       style={{ marginBottom: 8 }}
@@ -213,7 +240,6 @@ export function EventEditorModal({
                         <>
                           <Col flex="0 0 110px">
                             <Form.Item
-                              {...field}
                               name={[field.name, 'startTime']}
                               style={{ marginBottom: 8 }}
                               rules={[
@@ -229,7 +255,6 @@ export function EventEditorModal({
                           </Col>
                           <Col flex="0 0 110px">
                             <Form.Item
-                              {...field}
                               name={[field.name, 'endTime']}
                               style={{ marginBottom: 8 }}
                               rules={[
@@ -263,10 +288,16 @@ export function EventEditorModal({
                 type="dashed"
                 block
                 icon={<PlusOutlined />}
-                onClick={() => add({ date: dayjs(), fullDay: true })}
+                onClick={() => {
+                  const currentDays = (form.getFieldValue('days') as DayFieldValue[] | undefined) ?? [];
+                  const lastDate = currentDays[currentDays.length - 1]?.date;
+                  const nextDate = lastDate ? dayjs(lastDate).add(1, 'day') : dayjs();
+                  add({ date: nextDate, fullDay: true });
+                }}
               >
                 {t('calendar.editor.days.add')}
               </Button>
+              <Form.ErrorList errors={errors} />
             </Flex>
           )}
         </Form.List>
@@ -297,7 +328,6 @@ export function EventEditorModal({
                 <Row gutter={8} key={field.key} align="middle">
                   <Col flex="auto">
                     <Form.Item
-                      {...field}
                       name={[field.name, 'productId']}
                       style={{ marginBottom: 8 }}
                       rules={[
@@ -319,7 +349,6 @@ export function EventEditorModal({
                   </Col>
                   <Col flex="0 0 120px">
                     <Form.Item
-                      {...field}
                       name={[field.name, 'quantity']}
                       style={{ marginBottom: 8 }}
                       rules={[
@@ -350,10 +379,16 @@ export function EventEditorModal({
                 type="dashed"
                 block
                 icon={<PlusOutlined />}
+                disabled={products.length === 0}
                 onClick={() => add({ quantity: 1 })}
               >
                 {t('calendar.editor.products.add')}
               </Button>
+              {products.length === 0 && (
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  {t('calendar.editor.products.noneAvailable')}
+                </Text>
+              )}
             </Flex>
           )}
         </Form.List>

@@ -31,3 +31,22 @@ export function formatDayTime(day: ScheduleEventDayDto): string | null {
   if (!day.startTime || !day.endTime) return null;
   return `${day.startTime}–${day.endTime}`;
 }
+
+export function contiguousRuns(days: ScheduleEventDayDto[]): ScheduleEventDayDto[][] {
+  const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
+  const runs: ScheduleEventDayDto[][] = [];
+
+  for (const day of sorted) {
+    const currentRun = runs[runs.length - 1];
+    const previousDay = currentRun?.[currentRun.length - 1];
+    const isConsecutive = previousDay && dayjs(day.date).diff(dayjs(previousDay.date), 'day') === 1;
+
+    if (isConsecutive) {
+      currentRun.push(day);
+    } else {
+      runs.push([day]);
+    }
+  }
+
+  return runs;
+}
