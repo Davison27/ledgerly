@@ -1,5 +1,4 @@
 import { useDraggable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import { Tag, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto } from '@/entities/schedule-event';
@@ -18,7 +17,7 @@ export function DerivedRangeBar({ project, rowKey, color, onSelect }: DerivedRan
   const { t } = useTranslation();
   const { token } = theme.useToken();
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `derived-drag-${project.id}-${rowKey}`,
     data: { kind: 'derived', project } satisfies DerivedProjectDragData,
   });
@@ -30,7 +29,6 @@ export function DerivedRangeBar({ project, rowKey, color, onSelect }: DerivedRan
       {...attributes}
       onClick={() => onSelect(project)}
       style={{
-        transform: CSS.Translate.toString(transform),
         height: '100%',
         display: 'flex',
         alignItems: 'center',

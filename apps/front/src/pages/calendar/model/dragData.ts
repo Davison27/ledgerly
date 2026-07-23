@@ -1,9 +1,9 @@
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import type { StaffMemberDto } from '@/entities/staff-member';
 
 export interface ProjectDragData {
   kind: 'project';
-  projectId: string;
-  projectName: string;
+  project: SchedulableProjectDto;
 }
 
 export interface DerivedProjectDragData {
@@ -27,6 +27,7 @@ export interface StaffDragData {
   kind: 'staff';
   staffMemberId: string;
   name: string;
+  staffMember: StaffMemberDto;
 }
 
 export type CalendarDragData =

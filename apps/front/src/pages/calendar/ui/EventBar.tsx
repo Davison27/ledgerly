@@ -1,12 +1,14 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { CSS } from '@dnd-kit/utilities';
 import { Flex, Tag, Tooltip, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ScheduleConflictDto, ScheduleEventDto } from '@/entities/schedule-event';
-import { ScheduleDaysSummary } from '@/entities/schedule-event';
+import { summarizeDayTimes } from '@/entities/schedule-event';
 import { StaffAvatar } from '@/entities/staff-member';
 import { hasErrorConflict, hasInfoConflict } from '../model/conflictIndex';
 import type { EventDragData, EventDropData, ResizeDragData } from '../model/dragData';
+import { eventContentDensity, WEEK_BAR_HEIGHT } from '../model/eventDensity';
+import { staffDisplay } from '../model/staffDisplay';
+import { ScheduleEventContent } from './ScheduleEventContent';
 
 const { Text } = Typography;
 
@@ -54,7 +56,7 @@ export function EventBar({
     data: { kind: 'event', eventId: event.id } satisfies EventDropData,
   });
 
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `event-drag-${instanceKey}`,
     data: { kind: 'event', event, date: segmentStart } satisfies EventDragData,
   });
@@ -76,8 +78,14 @@ export function EventBar({
   const borderColor = hasError ? token.colorError : hasInfo ? token.colorWarning : 'transparent';
   const segmentDays = event.days.filter((day) => day.date >= segmentStart && day.date <= segmentEnd);
 
-  const visibleStaff = event.staff.slice(0, 3);
-  const hiddenStaff = event.staff.slice(3);
+  const monthStaff = staffDisplay(event.staff, 3);
+  const monthStaffNames = event.staff.map((member) => `${member.firstName} ${member.lastName}`).join(', ');
+
+  const daySummary = segmentDays.length > 0 ? summarizeDayTimes(segmentDays) : null;
+  const scheduleLabel =
+    daySummary?.kind === 'mixed'
+      ? t('calendar.days.mixedTimes')
+      : (daySummary?.label ?? t('calendar.days.fullDay'));
 
   return (
     <Flex
@@ -103,12 +111,11 @@ export function EventBar({
         {...attributes}
         onClick={() => onSelect(event)}
         style={{
-          transform: CSS.Translate.toString(transform),
           flex: 1,
           minWidth: 0,
           display: 'flex',
           flexDirection: 'column',
-          justifyContent: 'center',
+          justifyContent: variant === 'week' ? 'flex-start' : 'center',
           gap: 2,
           background: `${color}${isInactive ? '40' : '26'}`,
           borderInlineStart: `${ownsStartHandle ? 3 : 1}px solid ${color}`,
@@ -124,58 +131,41 @@ export function EventBar({
           overflow: 'hidden',
         }}
       >
-        <Flex align="center" gap={4} wrap justify="space-between">
-          <Flex align="center" gap={4} wrap style={{ minWidth: 0 }}>
-            <Text ellipsis style={{ fontSize: variant === 'month' ? 12 : 13, fontWeight: 500 }}>
-              {title}
-            </Text>
-            {isInactive && (
-              <Tag style={{ marginInlineEnd: 0, fontSize: 10, lineHeight: '16px' }}>
-                {t(`projects.form.statuses.${event.project.status}`)}
-              </Tag>
-            )}
-          </Flex>
-          {variant === 'month' && span >= 2 && event.staff.length > 0 && (
-            <Flex flex="none">
-              {visibleStaff.map((staffMember, index) => (
-                <div key={staffMember.id} style={{ marginInlineStart: index === 0 ? 0 : -6 }}>
-                  <StaffAvatar staffMember={staffMember} size={16} />
-                </div>
-              ))}
-              {hiddenStaff.length > 0 && (
-                <Tooltip title={hiddenStaff.map((member) => `${member.firstName} ${member.lastName}`).join(', ')}>
-                  <Text style={{ fontSize: 10, marginInlineStart: 2 }}>+{hiddenStaff.length}</Text>
-                </Tooltip>
+        {variant === 'month' && (
+          <Flex align="center" gap={4} wrap justify="space-between" style={{ flex: 'none' }}>
+            <Flex align="center" gap={4} wrap style={{ minWidth: 0 }}>
+              <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>
+                {title}
+              </Text>
+              {isInactive && (
+                <Tag style={{ marginInlineEnd: 0, fontSize: 10, lineHeight: '16px' }}>
+                  {t(`projects.form.statuses.${event.project.status}`)}
+                </Tag>
               )}
             </Flex>
-          )}
-        </Flex>
+            {span >= 2 && event.staff.length > 0 && (
+              <Tooltip title={monthStaffNames}>
+                <Flex flex="none">
+                  {monthStaff.visible.map((staffMember, index) => (
+                    <div key={staffMember.id} style={{ marginInlineStart: index === 0 ? 0 : -6 }}>
+                      <StaffAvatar staffMember={staffMember} size={18} />
+                    </div>
+                  ))}
+                  {monthStaff.hidden.length > 0 && (
+                    <Text style={{ fontSize: 10, marginInlineStart: 2 }}>+{monthStaff.hidden.length}</Text>
+                  )}
+                </Flex>
+              </Tooltip>
+            )}
+          </Flex>
+        )}
 
         {variant === 'week' && (
-          <>
-            <ScheduleDaysSummary days={segmentDays} />
-            {event.staff.length > 0 && (
-              <Flex gap={6} wrap align="center">
-                {event.staff.map((staffMember) => (
-                  <Flex key={staffMember.id} align="center" gap={4}>
-                    <StaffAvatar staffMember={staffMember} size={20} />
-                    <Text style={{ fontSize: 11 }}>
-                      {staffMember.firstName} {staffMember.lastName}
-                    </Text>
-                  </Flex>
-                ))}
-              </Flex>
-            )}
-            {event.products.length > 0 && (
-              <Flex gap={4} wrap>
-                {event.products.map((product) => (
-                  <Tag key={product.productId} color="blue" style={{ fontSize: 11, marginInlineEnd: 0 }}>
-                    {product.name} ×{product.quantity}
-                  </Tag>
-                ))}
-              </Flex>
-            )}
-          </>
+          <ScheduleEventContent
+            event={event}
+            scheduleLabel={scheduleLabel}
+            density={eventContentDensity(WEEK_BAR_HEIGHT, span)}
+          />
         )}
       </div>
 

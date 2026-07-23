@@ -25,6 +25,14 @@ export type {
   UpdateScheduleEventPayload,
   ScheduleEventListFilter,
 } from './api/types';
-export { daysBetween, shiftDays, eventCoversDate, formatDayTime, contiguousRuns } from './lib/days';
+export {
+  daysBetween,
+  shiftDays,
+  eventCoversDate,
+  formatDayTime,
+  contiguousRuns,
+  summarizeDayTimes,
+} from './lib/days';
+export type { DayTimesKind } from './lib/days';
 export { ScheduleDaysSummary } from './ui/ScheduleDaysSummary';
 export type { ScheduleDaysSummaryProps } from './ui/ScheduleDaysSummary';

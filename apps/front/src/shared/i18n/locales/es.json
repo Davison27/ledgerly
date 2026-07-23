@@ -832,6 +832,10 @@
       "month": "Mes",
       "week": "Semana"
     },
+    "week": {
+      "allDay": "Todo el día",
+      "now": "Hora actual"
+    },
     "weekdays": {
       "mon": "Lun",
       "tue": "Mar",
@@ -842,7 +846,6 @@
       "sun": "Dom"
     },
     "days": {
-      "range": "{{start}} – {{end}}",
       "fullDay": "Todo el día",
       "mixedTimes": "Franjas variables"
     },
@@ -908,13 +911,20 @@
         "product": "Selecciona un producto",
         "quantity": "Cantidad"
       },
-      "days": {
-        "title": "Días",
+      "schedule": {
+        "title": "Fechas",
+        "modeSingle": "Un día",
+        "modeRange": "Rango de días",
+        "date": "Fecha",
+        "from": "Desde",
+        "to": "Hasta",
         "fullDay": "Todo el día",
         "start": "Inicio",
-        "end": "Fin",
-        "add": "Añadir día",
-        "remove": "Eliminar día"
+        "end": "Fin"
+      },
+      "legacy": {
+        "gaps": "Este bloque tiene días sueltos. Al guardar se convertirá en un rango continuo.",
+        "mixedTimes": "Este bloque tenía franjas horarias distintas por día. Al guardar se aplicará una sola franja a todos los días."
       },
       "products": {
         "title": "Productos",
@@ -926,11 +936,13 @@
         "dateRequired": "La fecha es obligatoria",
         "startRequired": "La hora de inicio es obligatoria",
         "endRequired": "La hora de fin es obligatoria",
+        "rangeRequired": "La fecha es obligatoria",
+        "endAfterStart": "La hora de fin debe ser posterior a la de inicio",
+        "rangeTooLong": "El rango es demasiado largo",
         "productRequired": "Selecciona un producto",
         "quantityRequired": "La cantidad es obligatoria",
         "quantityMin": "La cantidad debe ser mayor que 0",
-        "formInvalid": "Revisa los campos marcados en rojo antes de guardar",
-        "duplicateDate": "No puedes repetir la misma fecha en el bloque"
+        "formInvalid": "Revisa los campos marcados en rojo antes de guardar"
       },
       "deleteConfirm": {
         "title": "Eliminar bloque",
@@ -1025,7 +1037,25 @@
     "schedule": {
       "empty": "Este trabajador todavía no tiene bloques de agenda asignados.",
       "loadError": "No se ha podido cargar la agenda.",
-      "viewInCalendar": "Ver en el calendario"
+      "viewInCalendar": "Ver en el calendario",
+      "sections": {
+        "current": "En curso",
+        "upcoming": "Próximos",
+        "past": "Pasados"
+      },
+      "stats": {
+        "blocks": "Bloques",
+        "days": "Días",
+        "projects": "Proyectos"
+      },
+      "dayCountOne": "{{count}} día",
+      "dayCountOther": "{{count}} días",
+      "status": {
+        "current": "En curso",
+        "upcoming": "Próximo",
+        "past": "Pasado"
+      },
+      "coworkers": "Compañeros"
     },
     "documentTypes": {
       "dni": "DNI",

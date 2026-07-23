@@ -58,7 +58,7 @@ export function MonthGrid({
           </Text>
         ))}
       </div>
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
         {weeks.map((weekDates) => (
           <WeekRow
             key={weekDates[0]}

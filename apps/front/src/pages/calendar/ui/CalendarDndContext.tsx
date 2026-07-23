@@ -1,6 +1,7 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   DndContext,
+  DragOverlay,
   KeyboardSensor,
   PointerSensor,
   pointerWithin,
@@ -10,14 +11,17 @@ import {
   type Announcements,
   type CollisionDetection,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { CalendarDragData, CalendarDropData } from '../model/dragData';
+import { CalendarDragPreview } from './CalendarDragPreview';
 
 export interface CalendarDndContextProps {
   children: ReactNode;
+  colorForProject: (projectId: string, color: string | null) => string;
   onDropProject: (projectId: string, date: string) => void;
   onDropDerivedProject: (project: SchedulableProjectDto, offsetInDays: number) => void;
   onMoveEvent: (event: ScheduleEventDto, offsetInDays: number) => void;
@@ -45,6 +49,7 @@ const collisionDetection: CollisionDetection = (args) => {
 
 export function CalendarDndContext({
   children,
+  colorForProject,
   onDropProject,
   onDropDerivedProject,
   onMoveEvent,
@@ -52,19 +57,24 @@ export function CalendarDndContext({
   onAssignStaff,
 }: CalendarDndContextProps) {
   const { t } = useTranslation();
+  const [active, setActive] = useState<CalendarDragData | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
     useSensor(KeyboardSensor),
   );
 
+  const handleDragStart = ({ active: activeDraggable }: DragStartEvent) => {
+    setActive((activeDraggable.data.current as CalendarDragData | undefined) ?? null);
+  };
+
   const announcements: Announcements = {
-    onDragStart({ active }) {
-      const data = active.data.current as CalendarDragData | undefined;
+    onDragStart({ active: activeDraggable }) {
+      const data = activeDraggable.data.current as CalendarDragData | undefined;
       if (!data) return undefined;
       switch (data.kind) {
         case 'project':
-          return t('calendar.dnd.announcements.pickedUpProject', { name: data.projectName });
+          return t('calendar.dnd.announcements.pickedUpProject', { name: data.project.name });
         case 'derived':
           return t('calendar.dnd.announcements.pickedUpProject', { name: data.project.name });
         case 'event':
@@ -81,8 +91,8 @@ export function CalendarDndContext({
       const data = over?.data.current as CalendarDropData | undefined;
       return data?.kind === 'day' ? t('calendar.dnd.announcements.over', { date: data.date }) : undefined;
     },
-    onDragEnd({ active, over }) {
-      const data = active.data.current as CalendarDragData | undefined;
+    onDragEnd({ active: activeDraggable, over }) {
+      const data = activeDraggable.data.current as CalendarDragData | undefined;
       const dropData = over?.data.current as CalendarDropData | undefined;
       if (!data || !dropData) return t('calendar.dnd.announcements.cancelled');
       return dropData.kind === 'day'
@@ -95,38 +105,42 @@ export function CalendarDndContext({
   };
 
   const handleDragEnd = (dragEndEvent: DragEndEvent) => {
-    const { active, over } = dragEndEvent;
-    if (!over) return;
+    try {
+      const { active: activeDraggable, over } = dragEndEvent;
+      if (!over) return;
 
-    const data = active.data.current as CalendarDragData | undefined;
-    const dropData = over.data.current as CalendarDropData | undefined;
-    if (!data || !dropData) return;
+      const data = activeDraggable.data.current as CalendarDragData | undefined;
+      const dropData = over.data.current as CalendarDropData | undefined;
+      if (!data || !dropData) return;
 
-    if (data.kind === 'staff') {
-      if (dropData.kind === 'event') onAssignStaff(dropData.eventId, data.staffMemberId);
-      return;
+      if (data.kind === 'staff') {
+        if (dropData.kind === 'event') onAssignStaff(dropData.eventId, data.staffMemberId);
+        return;
+      }
+
+      if (dropData.kind !== 'day') return;
+
+      if (data.kind === 'project') {
+        onDropProject(data.project.id, dropData.date);
+        return;
+      }
+
+      if (data.kind === 'derived') {
+        const offset = dayjs(dropData.date).diff(dayjs(data.project.startDate ?? data.project.endDate ?? dropData.date), 'day');
+        onDropDerivedProject(data.project, offset);
+        return;
+      }
+
+      if (data.kind === 'event') {
+        const offset = dayjs(dropData.date).diff(dayjs(data.date), 'day');
+        if (offset !== 0) onMoveEvent(data.event, offset);
+        return;
+      }
+
+      onResizeEvent(data.event, data.edge, dropData.date);
+    } finally {
+      setActive(null);
     }
-
-    if (dropData.kind !== 'day') return;
-
-    if (data.kind === 'project') {
-      onDropProject(data.projectId, dropData.date);
-      return;
-    }
-
-    if (data.kind === 'derived') {
-      const offset = dayjs(dropData.date).diff(dayjs(data.project.startDate ?? data.project.endDate ?? dropData.date), 'day');
-      onDropDerivedProject(data.project, offset);
-      return;
-    }
-
-    if (data.kind === 'event') {
-      const offset = dayjs(dropData.date).diff(dayjs(data.date), 'day');
-      if (offset !== 0) onMoveEvent(data.event, offset);
-      return;
-    }
-
-    onResizeEvent(data.event, data.edge, dropData.date);
   };
 
   return (
@@ -134,9 +148,14 @@ export function CalendarDndContext({
       sensors={sensors}
       collisionDetection={collisionDetection}
       accessibility={{ announcements }}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={() => setActive(null)}
     >
       {children}
+      <DragOverlay dropAnimation={null}>
+        {active ? <CalendarDragPreview data={active} colorForProject={colorForProject} /> : null}
+      </DragOverlay>
     </DndContext>
   );
 }

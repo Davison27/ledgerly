@@ -1,8 +1,8 @@
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { Numeric } from '@/shared/ui/Numeric';
+import { formatDateRange } from '@/shared/lib/dates';
 import type { ScheduleEventDayDto } from '../api/types';
-import { formatDayTime } from '../lib/days';
+import { summarizeDayTimes } from '../lib/days';
 
 const { Text } = Typography;
 
@@ -11,23 +11,21 @@ export interface ScheduleDaysSummaryProps {
 }
 
 export function ScheduleDaysSummary({ days }: ScheduleDaysSummaryProps) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   if (days.length === 0) return null;
 
   const start = days[0].date;
   const end = days[days.length - 1].date;
-  const rangeLabel = start === end ? start : t('calendar.days.range', { start, end });
+  const rangeLabel = formatDateRange(start, end, i18n.language);
 
-  const firstTime = formatDayTime(days[0]);
-  const sameTimeEveryDay = days.every((day) => formatDayTime(day) === firstTime);
-  const timeLabel = sameTimeEveryDay
-    ? (firstTime ?? t('calendar.days.fullDay'))
-    : t('calendar.days.mixedTimes');
+  const daySummary = summarizeDayTimes(days);
+  const timeLabel =
+    daySummary.kind === 'mixed' ? t('calendar.days.mixedTimes') : (daySummary.label ?? t('calendar.days.fullDay'));
 
   return (
     <Flex gap={6} align="baseline" wrap>
-      <Numeric>{rangeLabel}</Numeric>
+      <Text>{rangeLabel}</Text>
       <Text type="secondary" style={{ fontSize: 12 }}>
         {timeLabel}
       </Text>

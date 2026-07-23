@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { ConflictIndex } from '../model/conflictIndex';
 import { conflictsForEventInRange } from '../model/conflictIndex';
+import { WEEK_BAR_HEIGHT } from '../model/eventDensity';
 import { layoutWeek, type CalendarBar, type LaneItem } from '../model/lanes';
 import { DayCell } from './DayCell';
 import { EventBar } from './EventBar';
@@ -14,11 +15,10 @@ const { Text } = Typography;
 const MONTH_HEADER_HEIGHT = 22;
 const WEEK_HEADER_HEIGHT = 4;
 const BAR_GAP = 3;
-const MONTH_BAR_HEIGHT = 20;
-const WEEK_BAR_HEIGHT = 60;
+const MONTH_BAR_HEIGHT = 24;
 const MONTH_MAX_LANES = 3;
 const MONTH_MIN_HEIGHT = 88;
-const WEEK_MIN_HEIGHT = 120;
+const WEEK_MIN_HEIGHT = 140;
 
 export type CalendarRowVariant = 'month' | 'week';
 
@@ -86,7 +86,7 @@ export function WeekRow({
   const rowKey = weekDates[0];
 
   return (
-    <div style={{ position: 'relative', flex: 'none', height: rowHeight }}>
+    <div style={{ position: 'relative', flex: 1, minHeight: rowHeight }}>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', height: '100%' }}>
         {weekDates.map((date, index) => (
           <DayCell key={date} date={date} header={dayHeaders[index]} muted={mutedDays?.[index]} />

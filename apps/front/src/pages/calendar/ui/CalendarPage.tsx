@@ -251,6 +251,7 @@ export function CalendarPage() {
           />
         ) : (
           <CalendarDndContext
+            colorForProject={colorForProject}
             onDropProject={handleDropProject}
             onDropDerivedProject={handleDropDerivedProject}
             onMoveEvent={handleMoveEvent}
