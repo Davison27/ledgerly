@@ -1,7 +1,11 @@
 import { CreateScheduleEventUseCase } from './create-schedule-event.use-case';
 import { ScheduleEvent } from '../../domain/schedule-event';
 import { ScheduleEventRepository } from '../../domain/schedule-event.repository';
-import { ScheduleProjectReader, ScheduleProjectView } from '../../domain/schedule-project-reader.port';
+import {
+  ScheduleProjectReader,
+  ScheduleProjectView,
+  SchedulableProjectView,
+} from '../../domain/schedule-project-reader.port';
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
 import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
@@ -39,9 +43,9 @@ class InMemoryScheduleEventRepository implements ScheduleEventRepository {
 }
 
 class FakeScheduleProjectReader implements ScheduleProjectReader {
-  constructor(private readonly projects: ScheduleProjectView[]) {}
+  constructor(private readonly projects: SchedulableProjectView[]) {}
 
-  findActive(): Promise<ScheduleProjectView[]> {
+  findActive(): Promise<SchedulableProjectView[]> {
     return Promise.resolve(this.projects.filter((project) => project.status === 'active'));
   }
 
@@ -74,7 +78,7 @@ class SequentialIdGenerator implements IdGenerator {
   }
 }
 
-const PROJECT: ScheduleProjectView = {
+const PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
@@ -82,6 +86,8 @@ const PROJECT: ScheduleProjectView = {
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
+  color: null,
+  hasEvents: false,
 };
 
 const STAFF_MEMBER: ScheduleStaffView = {

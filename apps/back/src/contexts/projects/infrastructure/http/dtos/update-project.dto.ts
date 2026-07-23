@@ -11,6 +11,7 @@ import {
 import { PROJECT_TYPES, ProjectType } from '../../../domain/project-type';
 import { PROJECT_STATUSES, ProjectStatus } from '../../../domain/project-status';
 import { PROJECT_CURRENCIES, ProjectCurrency } from '../../../domain/project-currency';
+import { PROJECT_COLORS, ProjectColor } from '../../../domain/project-color';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -89,4 +90,8 @@ export class UpdateProjectDto {
   @IsOptional()
   @IsString()
   image?: string | null;
+
+  @IsOptional()
+  @IsIn(PROJECT_COLORS)
+  color?: ProjectColor | null;
 }

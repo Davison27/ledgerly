@@ -87,6 +87,7 @@ describe('GetProjectUseCase', () => {
       fiscalYear: null,
       manager: null,
       image: 'data:image/png;base64,abc',
+      color: null,
     });
     await repository.save(project);
 

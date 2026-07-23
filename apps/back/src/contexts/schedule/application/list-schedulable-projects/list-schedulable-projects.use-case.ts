@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import {
   SCHEDULE_PROJECT_READER,
   ScheduleProjectReader,
-  ScheduleProjectView,
+  SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class ListSchedulableProjectsUseCase {
     private readonly projectReader: ScheduleProjectReader,
   ) {}
 
-  execute(): Promise<ScheduleProjectView[]> {
+  execute(): Promise<SchedulableProjectView[]> {
     return this.projectReader.findActive();
   }
 }

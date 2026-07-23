@@ -3,8 +3,9 @@ import { Email } from './value-objects/email';
 import { PROJECT_TYPES, ProjectType } from './project-type';
 import { PROJECT_STATUSES, ProjectStatus } from './project-status';
 import { PROJECT_CURRENCIES, ProjectCurrency } from './project-currency';
+import { PROJECT_COLORS, ProjectColor } from './project-color';
 
-export type { ProjectType, ProjectStatus, ProjectCurrency };
+export type { ProjectType, ProjectStatus, ProjectCurrency, ProjectColor };
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -23,6 +24,12 @@ function assertValidStatus(status: ProjectStatus): void {
 function assertValidCurrency(currency: ProjectCurrency): void {
   if (!PROJECT_CURRENCIES.includes(currency)) {
     throw new InvalidValueException(`Invalid project currency: ${currency}`);
+  }
+}
+
+function assertValidColor(color: ProjectColor | null): void {
+  if (color !== null && !PROJECT_COLORS.includes(color)) {
+    throw new InvalidValueException(`Invalid project color: ${color}`);
   }
 }
 
@@ -58,6 +65,7 @@ export interface ProjectPrimitives {
   fiscalYear: string | null;
   manager: string | null;
   image: string | null;
+  color: ProjectColor | null;
   isDemo?: boolean;
 }
 
@@ -81,6 +89,7 @@ interface ProjectProps {
   fiscalYear: string | null;
   manager: string | null;
   image: string | null;
+  color: ProjectColor | null;
   isDemo: boolean;
 }
 
@@ -104,6 +113,7 @@ export class Project {
   private fiscalYear_: string | null;
   private manager_: string | null;
   private image_: string | null;
+  private color_: ProjectColor | null;
   private isDemo_: boolean;
 
   private constructor(props: ProjectProps) {
@@ -126,6 +136,7 @@ export class Project {
     this.fiscalYear_ = props.fiscalYear;
     this.manager_ = props.manager;
     this.image_ = props.image;
+    this.color_ = props.color;
     this.isDemo_ = props.isDemo;
   }
 
@@ -136,6 +147,7 @@ export class Project {
     assertValidDate(params.startDate, 'startDate');
     assertValidDate(params.endDate, 'endDate');
     assertValidBudget(params.budget);
+    assertValidColor(params.color);
 
     const contactEmail =
       params.contactEmail !== null ? Email.create(params.contactEmail) : null;
@@ -160,6 +172,7 @@ export class Project {
       fiscalYear: params.fiscalYear,
       manager: params.manager,
       image: params.image,
+      color: params.color,
       isDemo: params.isDemo ?? false,
     });
   }
@@ -242,6 +255,11 @@ export class Project {
     this.image_ = image;
   }
 
+  changeColor(color: ProjectColor | null): void {
+    assertValidColor(color);
+    this.color_ = color;
+  }
+
   get id(): string {
     return this.id_;
   }
@@ -318,6 +336,10 @@ export class Project {
     return this.image_;
   }
 
+  get color(): ProjectColor | null {
+    return this.color_;
+  }
+
   get isDemo(): boolean {
     return this.isDemo_;
   }
@@ -343,6 +365,7 @@ export class Project {
       fiscalYear: this.fiscalYear_,
       manager: this.manager_,
       image: this.image_,
+      color: this.color_,
       isDemo: this.isDemo_,
     };
   }

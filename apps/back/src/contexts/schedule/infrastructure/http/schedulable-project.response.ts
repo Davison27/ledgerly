@@ -1,4 +1,4 @@
-import { ScheduleProjectView } from '../../domain/schedule-project-reader.port';
+import { SchedulableProjectView } from '../../domain/schedule-project-reader.port';
 
 export class SchedulableProjectResponse {
   id: string;
@@ -8,8 +8,10 @@ export class SchedulableProjectResponse {
   status: string;
   startDate: string | null;
   endDate: string | null;
+  color: string | null;
+  hasEvents: boolean;
 
-  static fromView(project: ScheduleProjectView): SchedulableProjectResponse {
+  static fromView(project: SchedulableProjectView): SchedulableProjectResponse {
     const response = new SchedulableProjectResponse();
 
     response.id = project.id;
@@ -19,6 +21,8 @@ export class SchedulableProjectResponse {
     response.status = project.status;
     response.startDate = project.startDate;
     response.endDate = project.endDate;
+    response.color = project.color;
+    response.hasEvents = project.hasEvents;
 
     return response;
   }

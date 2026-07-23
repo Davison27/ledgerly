@@ -1,10 +1,14 @@
 import { ListSchedulableProjectsUseCase } from './list-schedulable-projects.use-case';
-import { ScheduleProjectReader, ScheduleProjectView } from '../../domain/schedule-project-reader.port';
+import {
+  ScheduleProjectReader,
+  ScheduleProjectView,
+  SchedulableProjectView,
+} from '../../domain/schedule-project-reader.port';
 
 class FakeScheduleProjectReader implements ScheduleProjectReader {
-  constructor(private readonly projects: ScheduleProjectView[]) {}
+  constructor(private readonly projects: SchedulableProjectView[]) {}
 
-  findActive(): Promise<ScheduleProjectView[]> {
+  findActive(): Promise<SchedulableProjectView[]> {
     return Promise.resolve(this.projects.filter((project) => project.status === 'active'));
   }
 
@@ -13,7 +17,7 @@ class FakeScheduleProjectReader implements ScheduleProjectReader {
   }
 }
 
-const ACTIVE_PROJECT: ScheduleProjectView = {
+const ACTIVE_PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
@@ -21,9 +25,11 @@ const ACTIVE_PROJECT: ScheduleProjectView = {
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
+  color: null,
+  hasEvents: false,
 };
 
-const COMPLETED_PROJECT: ScheduleProjectView = { ...ACTIVE_PROJECT, id: 'project-2', status: 'completed' };
+const COMPLETED_PROJECT: SchedulableProjectView = { ...ACTIVE_PROJECT, id: 'project-2', status: 'completed' };
 
 describe('ListSchedulableProjectsUseCase', () => {
   it('returns only active projects', async () => {

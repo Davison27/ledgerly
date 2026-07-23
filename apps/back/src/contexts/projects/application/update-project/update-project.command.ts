@@ -1,6 +1,7 @@
 import { ProjectType } from '../../domain/project-type';
 import { ProjectStatus } from '../../domain/project-status';
 import { ProjectCurrency } from '../../domain/project-currency';
+import { ProjectColor } from '../../domain/project-color';
 
 export interface UpdateProjectCommand {
   id: string;
@@ -22,4 +23,5 @@ export interface UpdateProjectCommand {
   fiscalYear?: string | null;
   manager?: string | null;
   image?: string | null;
+  color?: ProjectColor | null;
 }

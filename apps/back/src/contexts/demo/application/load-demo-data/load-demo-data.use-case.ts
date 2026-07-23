@@ -64,6 +64,7 @@ export class LoadDemoDataUseCase {
       fiscalYear,
       manager: null,
       image: null,
+      color: null,
       isDemo: true,
     });
 

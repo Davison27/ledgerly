@@ -1,7 +1,11 @@
 import { UpdateScheduleEventUseCase } from './update-schedule-event.use-case';
 import { ScheduleEvent } from '../../domain/schedule-event';
 import { ScheduleEventRepository } from '../../domain/schedule-event.repository';
-import { ScheduleProjectReader, ScheduleProjectView } from '../../domain/schedule-project-reader.port';
+import {
+  ScheduleProjectReader,
+  ScheduleProjectView,
+  SchedulableProjectView,
+} from '../../domain/schedule-project-reader.port';
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
 import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
 import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-event-not-found.exception';
@@ -39,9 +43,9 @@ class InMemoryScheduleEventRepository implements ScheduleEventRepository {
 }
 
 class FakeScheduleProjectReader implements ScheduleProjectReader {
-  constructor(private readonly projects: ScheduleProjectView[]) {}
+  constructor(private readonly projects: SchedulableProjectView[]) {}
 
-  findActive(): Promise<ScheduleProjectView[]> {
+  findActive(): Promise<SchedulableProjectView[]> {
     return Promise.resolve(this.projects.filter((project) => project.status === 'active'));
   }
 
@@ -66,7 +70,7 @@ class FakeScheduleProductReader implements ScheduleProductReader {
   }
 }
 
-const PROJECT: ScheduleProjectView = {
+const PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
@@ -74,9 +78,11 @@ const PROJECT: ScheduleProjectView = {
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
+  color: null,
+  hasEvents: false,
 };
 
-const OTHER_PROJECT: ScheduleProjectView = { ...PROJECT, id: 'project-2', code: 'FM-02' };
+const OTHER_PROJECT: SchedulableProjectView = { ...PROJECT, id: 'project-2', code: 'FM-02' };
 
 const STAFF_MEMBER: ScheduleStaffView = {
   id: 'staff-1',
