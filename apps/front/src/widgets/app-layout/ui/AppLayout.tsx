@@ -128,9 +128,7 @@ function AppSider({
       collapsedWidth={LAYOUT.siderCollapsedWidth}
       width={LAYOUT.siderWidth}
       style={{
-        height: `calc(100vh - ${LAYOUT.topbarHeight}px)`,
-        position: 'sticky',
-        top: LAYOUT.topbarHeight,
+        height: '100%',
         background: token.colorBgContainer,
         borderRight: `1px solid ${token.colorBorderSecondary}`,
       }}
@@ -140,7 +138,7 @@ function AppSider({
         inlineCollapsed={collapsed}
         selectedKeys={selectedKey ? [selectedKey] : []}
         items={items}
-        style={{ borderInlineEnd: 'none' }}
+        style={{ borderInlineEnd: 'none', overflow: 'auto' }}
       />
     </Layout.Sider>
   );
@@ -156,12 +154,17 @@ export function AppLayout({ commandPalette }: AppLayoutProps) {
   return (
     <CompanyProvider>
       <CompanyGuard>
-        <Layout style={{ minHeight: '100vh' }}>
+        <Layout style={{ height: '100vh', overflow: 'hidden' }}>
           <TopBar />
-          <Layout hasSider>
+          <Layout hasSider style={{ flex: 1, minHeight: 0 }}>
             <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
             <Layout.Content
-              style={{ display: 'flex', flexDirection: 'column', minHeight: 0 }}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                minHeight: 0,
+                overflow: 'auto',
+              }}
             >
               <Outlet />
             </Layout.Content>

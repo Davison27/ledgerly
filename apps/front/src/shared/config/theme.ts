@@ -180,6 +180,8 @@ export function buildThemeConfig(mode: 'light' | 'dark', brandColor?: string): T
         headerBg: derived.colorBgContainer,
         siderBg: derived.colorBgContainer,
         bodyBg: derived.colorBgLayout,
+        triggerBg: primary,
+        triggerColor: '#fff',
       },
       Segmented: {
         itemSelectedBg: derived.colorBgContainer,
