@@ -832,6 +832,10 @@
       "month": "Month",
       "week": "Week"
     },
+    "week": {
+      "allDay": "All day",
+      "now": "Current time"
+    },
     "weekdays": {
       "mon": "Mon",
       "tue": "Tue",
@@ -842,7 +846,6 @@
       "sun": "Sun"
     },
     "days": {
-      "range": "{{start}} – {{end}}",
       "fullDay": "All day",
       "mixedTimes": "Mixed time slots"
     },
@@ -908,13 +911,20 @@
         "product": "Select a product",
         "quantity": "Quantity"
       },
-      "days": {
-        "title": "Days",
+      "schedule": {
+        "title": "Dates",
+        "modeSingle": "One day",
+        "modeRange": "Range of days",
+        "date": "Date",
+        "from": "From",
+        "to": "To",
         "fullDay": "All day",
         "start": "Start",
-        "end": "End",
-        "add": "Add day",
-        "remove": "Remove day"
+        "end": "End"
+      },
+      "legacy": {
+        "gaps": "This block has scattered days. Saving will turn it into a continuous range.",
+        "mixedTimes": "This block had different time slots per day. Saving will apply a single slot to every day."
       },
       "products": {
         "title": "Products",
@@ -926,11 +936,13 @@
         "dateRequired": "Date is required",
         "startRequired": "Start time is required",
         "endRequired": "End time is required",
+        "rangeRequired": "Date is required",
+        "endAfterStart": "End time must be after the start time",
+        "rangeTooLong": "The range is too long",
         "productRequired": "Select a product",
         "quantityRequired": "Quantity is required",
         "quantityMin": "Quantity must be greater than 0",
-        "formInvalid": "Check the fields highlighted in red before saving",
-        "duplicateDate": "You can't repeat the same date in the block"
+        "formInvalid": "Check the fields highlighted in red before saving"
       },
       "deleteConfirm": {
         "title": "Delete block",
@@ -1025,7 +1037,25 @@
     "schedule": {
       "empty": "This staff member has no schedule blocks assigned yet.",
       "loadError": "The schedule could not be loaded.",
-      "viewInCalendar": "View in calendar"
+      "viewInCalendar": "View in calendar",
+      "sections": {
+        "current": "Current",
+        "upcoming": "Upcoming",
+        "past": "Past"
+      },
+      "stats": {
+        "blocks": "Blocks",
+        "days": "Days",
+        "projects": "Projects"
+      },
+      "dayCountOne": "{{count}} day",
+      "dayCountOther": "{{count}} days",
+      "status": {
+        "current": "Current",
+        "upcoming": "Upcoming",
+        "past": "Past"
+      },
+      "coworkers": "Coworkers"
     },
     "documentTypes": {
       "dni": "National ID",

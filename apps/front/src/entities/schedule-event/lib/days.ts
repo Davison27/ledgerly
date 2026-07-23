@@ -32,6 +32,17 @@ export function formatDayTime(day: ScheduleEventDayDto): string | null {
   return `${day.startTime}–${day.endTime}`;
 }
 
+export type DayTimesKind = 'fullDay' | 'uniform' | 'mixed';
+
+export function summarizeDayTimes(days: ScheduleEventDayDto[]): { kind: DayTimesKind; label: string | null } {
+  const firstTime = formatDayTime(days[0]);
+  const sameTimeEveryDay = days.every((day) => formatDayTime(day) === firstTime);
+
+  if (!sameTimeEveryDay) return { kind: 'mixed', label: null };
+  if (firstTime === null) return { kind: 'fullDay', label: null };
+  return { kind: 'uniform', label: firstTime };
+}
+
 export function contiguousRuns(days: ScheduleEventDayDto[]): ScheduleEventDayDto[][] {
   const sorted = [...days].sort((a, b) => a.date.localeCompare(b.date));
   const runs: ScheduleEventDayDto[][] = [];
