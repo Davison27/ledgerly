@@ -1,4 +1,4 @@
-import type { ScheduleConflictDto } from '@/entities/schedule-event';
+import type { ScheduleBoardDto, ScheduleConflictDto } from '@/entities/schedule-event';
 
 export interface ConflictIndex {
   byEvent: Map<string, ScheduleConflictDto[]>;
@@ -26,13 +26,30 @@ export function conflictsForEvent(
   return index.byEvent.get(eventId) ?? [];
 }
 
-export function conflictsForEventOnDate(
+export function conflictsForEventInRange(
   index: ConflictIndex,
   eventId: string,
-  date: string,
+  fromDate: string,
+  toDate: string,
 ): ScheduleConflictDto[] {
   return conflictsForEvent(index, eventId).filter(
-    (conflict) => conflict.date === null || conflict.date === date,
+    (conflict) => conflict.date === null || (conflict.date >= fromDate && conflict.date <= toDate),
+  );
+}
+
+const STAFF_ASSIGNMENT_CONFLICT_KINDS = ['staff_not_hired', 'staff_overlap'] as const;
+
+export function staffAssignmentConflicts(
+  board: ScheduleBoardDto | null,
+  eventId: string,
+  staffMemberId: string,
+): ScheduleConflictDto[] {
+  if (!board) return [];
+  return board.conflicts.filter(
+    (conflict) =>
+      conflict.eventId === eventId &&
+      conflict.staffMemberId === staffMemberId &&
+      (STAFF_ASSIGNMENT_CONFLICT_KINDS as readonly string[]).includes(conflict.kind),
   );
 }
 

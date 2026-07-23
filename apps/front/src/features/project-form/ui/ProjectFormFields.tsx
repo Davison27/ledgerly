@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import {
   Button,
   Col,
   DatePicker,
   Divider,
+  Flex,
   Form,
   Input,
   InputNumber,
@@ -10,11 +12,15 @@ import {
   Select,
   Typography,
   Upload,
+  theme,
 } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectCurrency, ProjectStatus, ProjectType } from '@/entities/project';
+import { PROJECT_COLOR_TOKENS, PROJECT_PALETTE, type ProjectColorToken } from '@/shared/config/theme';
+import { deriveColorToken } from '@/shared/lib/palette';
+import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -37,6 +43,47 @@ export interface ProjectFormFieldValues {
   currency?: ProjectCurrency;
   fiscalYear?: string;
   manager?: string;
+  color?: ProjectColorToken;
+}
+
+interface ProjectColorPickerProps {
+  value?: ProjectColorToken;
+  onChange?: (value: ProjectColorToken) => void;
+}
+
+function ProjectColorPicker({ value, onChange }: ProjectColorPickerProps) {
+  const { t } = useTranslation();
+  const { mode } = useThemeMode();
+  const { token } = theme.useToken();
+  const isDark = mode === 'dark';
+
+  return (
+    <Flex gap={8} wrap>
+      {PROJECT_COLOR_TOKENS.map((colorToken) => {
+        const hex = PROJECT_PALETTE[colorToken][isDark ? 'dark' : 'light'];
+        const selected = value === colorToken;
+        return (
+          <button
+            key={colorToken}
+            type="button"
+            aria-label={t(`projects.form.colors.${colorToken}`)}
+            aria-pressed={selected}
+            onClick={() => onChange?.(colorToken)}
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: '50%',
+              border: selected ? `2px solid ${token.colorText}` : '2px solid transparent',
+              boxShadow: selected ? `0 0 0 2px ${hex}` : 'none',
+              background: hex,
+              padding: 0,
+              cursor: 'pointer',
+            }}
+          />
+        );
+      })}
+    </Flex>
+  );
 }
 
 const PROJECT_TYPES: ProjectType[] = [
@@ -55,10 +102,18 @@ const PROJECT_CURRENCIES: ProjectCurrency[] = ['EUR', 'USD', 'GBP'];
 interface ProjectFormFieldsProps {
   image?: string;
   onImageChange: (image: string | undefined) => void;
+  colorSeed?: string;
 }
 
-export function ProjectFormFields({ image, onImageChange }: ProjectFormFieldsProps) {
+export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFormFieldsProps) {
   const { t } = useTranslation();
+  const form = Form.useFormInstance<ProjectFormFieldValues>();
+
+  useEffect(() => {
+    if (!colorSeed) return;
+    if (form.getFieldValue('color')) return;
+    form.setFieldValue('color', deriveColorToken(colorSeed));
+  }, [colorSeed, form]);
 
   return (
     <>
@@ -109,6 +164,13 @@ export function ProjectFormFields({ image, onImageChange }: ProjectFormFieldsPro
           <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
             {t('projects.form.image.hint')}
           </Text>
+          <Form.Item
+            name="color"
+            label={t('projects.form.fields.color')}
+            style={{ marginTop: 8, marginBottom: 0 }}
+          >
+            <ProjectColorPicker />
+          </Form.Item>
         </Col>
 
         <Col xs={24} sm={16} md={20}>

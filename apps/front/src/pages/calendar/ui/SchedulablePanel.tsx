@@ -56,7 +56,7 @@ function SchedulableProjectItem({ project, color }: SchedulableProjectItemProps)
 
 export interface SchedulablePanelProps {
   projects: SchedulableProjectDto[];
-  colorForProject: (projectId: string) => string;
+  colorForProject: (projectId: string, color: string | null) => string;
 }
 
 export function SchedulablePanel({ projects, colorForProject }: SchedulablePanelProps) {
@@ -90,7 +90,7 @@ export function SchedulablePanel({ projects, colorForProject }: SchedulablePanel
             <SchedulableProjectItem
               key={project.id}
               project={project}
-              color={colorForProject(project.id)}
+              color={colorForProject(project.id, project.color)}
             />
           ))
         )}

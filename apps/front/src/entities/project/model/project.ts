@@ -11,6 +11,9 @@ import type {
   ProjectSummaryDto,
   UpdateProjectPayload,
 } from '../api/types';
+import type { ProjectColorToken } from '@/shared/config/theme';
+
+export type { ProjectColorToken };
 
 export type ProjectType =
   | 'client'
@@ -46,6 +49,7 @@ export interface Project {
   fiscalYear?: string;
   manager?: string;
   image?: string;
+  color?: ProjectColorToken;
 }
 
 export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingCount'>;
@@ -84,6 +88,7 @@ function mapProject(dto: ProjectDto): Project {
     fiscalYear: dto.fiscalYear ?? undefined,
     manager: dto.manager ?? undefined,
     image: dto.image ?? undefined,
+    color: dto.color ?? undefined,
   };
 }
 
@@ -117,6 +122,7 @@ export async function addProject(values: ProjectFormValues): Promise<Project> {
     fiscalYear: values.fiscalYear,
     manager: values.manager,
     image: values.image,
+    color: values.color,
   };
   const dto = await createProject(payload);
   return mapProject(dto);
@@ -145,6 +151,7 @@ export async function updateProject(
     fiscalYear: values.fiscalYear,
     manager: values.manager,
     image: values.image,
+    color: values.color,
   };
   const dto = await updateProjectRequest(projectId, payload);
   return mapProject(dto);

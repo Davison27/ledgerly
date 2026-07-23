@@ -42,6 +42,7 @@ export interface ScheduleEventProjectDto {
   status: ScheduleProjectStatus;
   startDate: string | null;
   endDate: string | null;
+  color: string | null;
 }
 
 export interface ScheduleEventStaffDto {
@@ -84,6 +85,8 @@ export interface SchedulableProjectDto {
   status: ScheduleProjectStatus;
   startDate: string | null;
   endDate: string | null;
+  color: string | null;
+  hasEvents: boolean;
 }
 
 export interface ScheduleEventDayPayload {

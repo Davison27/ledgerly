@@ -63,6 +63,34 @@ export const CHART_SERIES_DARK: readonly string[] = [
   '#94A3B8',
 ];
 
+export const PROJECT_COLOR_TOKENS = [
+  'brand',
+  'green',
+  'terracotta',
+  'amber',
+  'violet',
+  'slate',
+  'teal',
+  'rose',
+  'indigo',
+  'olive',
+] as const;
+
+export type ProjectColorToken = (typeof PROJECT_COLOR_TOKENS)[number];
+
+export const PROJECT_PALETTE: Record<ProjectColorToken, { light: string; dark: string }> = {
+  brand: { light: '#00609C', dark: '#4A9FD4' },
+  green: { light: '#2E7D5B', dark: '#4CA57E' },
+  terracotta: { light: '#C1633F', dark: '#E08A5E' },
+  amber: { light: '#C98A21', dark: '#E0A93E' },
+  violet: { light: '#6B5CA5', dark: '#8E7FC7' },
+  slate: { light: '#64748B', dark: '#94A3B8' },
+  teal: { light: '#0F766E', dark: '#3FBFAF' },
+  rose: { light: '#A83E62', dark: '#D98099' },
+  indigo: { light: '#3B5BA5', dark: '#7C97D9' },
+  olive: { light: '#6B7A2E', dark: '#A3B356' },
+};
+
 export const TYPE: {
   kpiValue: CSSProperties;
   kpiValueSm: CSSProperties;

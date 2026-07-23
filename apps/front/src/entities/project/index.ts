@@ -13,4 +13,5 @@ export type {
   ProjectStatus,
   ProjectCurrency,
   ProjectFormValues,
+  ProjectColorToken,
 } from './model/project';

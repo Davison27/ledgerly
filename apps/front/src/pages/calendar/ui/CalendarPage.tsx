@@ -4,13 +4,17 @@ import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons
 import { useTranslation } from 'react-i18next';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
-import type { ScheduleEventDto } from '@/entities/schedule-event';
+import { resolveProjectColor } from '@/shared/lib/palette';
+import { ApiError } from '@/shared/api/httpClient';
+import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import { useCalendarBoard, type CalendarView } from '../model/useCalendarBoard';
-import { buildConflictIndex } from '../model/conflictIndex';
-import { projectColor } from '../model/projectColor';
+import { buildConflictIndex, staffAssignmentConflicts } from '../model/conflictIndex';
+import { deriveProjectRanges, DerivedRangeTooLongError } from '../model/derivedRanges';
+import { buildDerivedLaneItems, buildEventLaneItems } from '../model/lanes';
 import { resizeEventDays } from '../model/resizeDays';
 import { CalendarDndContext } from './CalendarDndContext';
 import { SchedulablePanel } from './SchedulablePanel';
+import { StaffPanel } from './StaffPanel';
 import { MonthGrid } from './MonthGrid';
 import { WeekGrid } from './WeekGrid';
 import { ConflictSummary } from './ConflictSummary';
@@ -44,6 +48,8 @@ export function CalendarPage() {
     resizeEvent,
     saveEvent,
     removeEvent,
+    materializeDerivedRange,
+    assignStaffToEvent,
   } = useCalendarBoard();
 
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEventDto | null>(null);
@@ -55,27 +61,96 @@ export function CalendarPage() {
     [board?.conflicts],
   );
 
+  const eventsById = useMemo(
+    () => new Map((board?.events ?? []).map((event) => [event.id, event])),
+    [board?.events],
+  );
+  const projectsById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
+  const derivedRanges = useMemo(() => deriveProjectRanges(projects), [projects]);
+  const laneItems = useMemo(
+    () => [...buildEventLaneItems(board?.events ?? []), ...buildDerivedLaneItems(derivedRanges)],
+    [board?.events, derivedRanges],
+  );
+
   const colorForProject = useCallback(
-    (projectId: string) => projectColor(projectId, isDark),
+    (projectId: string, color: string | null) => resolveProjectColor(color, projectId, isDark),
     [isDark],
   );
 
   const handleDropProject = (projectId: string, date: string) => {
     createFromDrop(projectId, date)
       .then(() => void message.success(t('calendar.event.created')))
-      .catch(() => void message.error(t('calendar.event.createError')));
+      .catch((error: unknown) =>
+        void message.error(
+          error instanceof ApiError && error.message ? error.message : t('calendar.event.createError'),
+        ),
+      );
+  };
+
+  const handleMaterialize = (project: SchedulableProjectDto, offsetInDays: number, openEditor: boolean) => {
+    materializeDerivedRange(project, offsetInDays)
+      .then((created) => {
+        void message.success(t('calendar.derived.materialized'));
+        if (openEditor) setSelectedEvent(created);
+      })
+      .catch((error: unknown) => {
+        if (error instanceof DerivedRangeTooLongError) {
+          void message.warning(t('calendar.derived.tooLong'));
+          return;
+        }
+        void message.error(
+          error instanceof ApiError && error.message ? error.message : t('calendar.derived.materializeError'),
+        );
+      });
+  };
+
+  const handleDropDerivedProject = (project: SchedulableProjectDto, offsetInDays: number) => {
+    handleMaterialize(project, offsetInDays, false);
+  };
+
+  const handleSelectDerived = (project: SchedulableProjectDto) => {
+    handleMaterialize(project, 0, true);
   };
 
   const handleMoveEvent = (event: ScheduleEventDto, offsetInDays: number) => {
     moveEvent(event, offsetInDays)
       .then(() => void message.success(t('calendar.event.moved')))
-      .catch(() => void message.error(t('calendar.event.moveError')));
+      .catch((error: unknown) =>
+        void message.error(
+          error instanceof ApiError && error.message ? error.message : t('calendar.event.moveError'),
+        ),
+      );
   };
 
   const handleResizeEvent = (event: ScheduleEventDto, edge: 'start' | 'end', date: string) => {
     resizeEvent(event, resizeEventDays(event.days, edge, date))
       .then(() => void message.success(t('calendar.event.resized')))
-      .catch(() => void message.error(t('calendar.event.resizeError')));
+      .catch((error: unknown) =>
+        void message.error(
+          error instanceof ApiError && error.message ? error.message : t('calendar.event.resizeError'),
+        ),
+      );
+  };
+
+  const handleAssignStaff = (eventId: string, staffMemberId: string) => {
+    const event = eventsById.get(eventId);
+    if (!event) return;
+
+    assignStaffToEvent(event, staffMemberId)
+      .then((result) => {
+        if (result.status === 'already-assigned') {
+          void message.info(t('calendar.event.staffAlreadyAssigned'));
+          return;
+        }
+        void message.success(t('calendar.event.staffAssigned'));
+        const newConflicts = staffAssignmentConflicts(result.board, eventId, staffMemberId);
+        newConflicts.forEach((conflict) => void message.warning(t(`calendar.conflicts.kind.${conflict.kind}`)));
+      })
+      .catch((error: unknown) =>
+        void message.error(
+          error instanceof ApiError && error.message ? error.message : t('calendar.event.staffAssignError'),
+        ),
+      );
   };
 
   const handleSave = async (eventId: string, payload: Parameters<typeof saveEvent>[1]) => {
@@ -84,8 +159,10 @@ export function CalendarPage() {
       await saveEvent(eventId, payload);
       void message.success(t('calendar.event.saved'));
       setSelectedEvent(null);
-    } catch {
-      void message.error(t('calendar.event.saveError'));
+    } catch (error) {
+      void message.error(
+        error instanceof ApiError && error.message ? error.message : t('calendar.event.saveError'),
+      );
     } finally {
       setSaving(false);
     }
@@ -97,8 +174,10 @@ export function CalendarPage() {
       await removeEvent(eventId);
       void message.success(t('calendar.event.deleted'));
       setSelectedEvent(null);
-    } catch {
-      void message.error(t('calendar.event.deleteError'));
+    } catch (error) {
+      void message.error(
+        error instanceof ApiError && error.message ? error.message : t('calendar.event.deleteError'),
+      );
     } finally {
       setDeleting(false);
     }
@@ -173,39 +252,59 @@ export function CalendarPage() {
         ) : (
           <CalendarDndContext
             onDropProject={handleDropProject}
+            onDropDerivedProject={handleDropDerivedProject}
             onMoveEvent={handleMoveEvent}
             onResizeEvent={handleResizeEvent}
+            onAssignStaff={handleAssignStaff}
           >
             <Flex style={{ height: '100%', minHeight: 0 }}>
-              <div
+              <Flex
+                vertical
                 style={{
                   flex: 'none',
                   width: 280,
                   height: '100%',
-                  padding: SPACE.lg,
-                  overflow: 'auto',
                   borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
                 }}
               >
-                <SchedulablePanel projects={projects} colorForProject={colorForProject} />
-              </div>
+                <div
+                  style={{
+                    flex: 1,
+                    minHeight: 0,
+                    padding: SPACE.lg,
+                    overflow: 'auto',
+                    borderBottom: `1px solid ${token.colorBorderSecondary}`,
+                  }}
+                >
+                  <SchedulablePanel projects={projects} colorForProject={colorForProject} />
+                </div>
+                <div style={{ flex: 1, minHeight: 0, padding: SPACE.lg, overflow: 'auto' }}>
+                  <StaffPanel staffMembers={staffMembers} />
+                </div>
+              </Flex>
 
               <div style={{ flex: 1, minHeight: 0, padding: SPACE.lg }}>
                 {view === 'month' ? (
                   <MonthGrid
                     cursor={cursor}
-                    events={board?.events ?? []}
+                    items={laneItems}
+                    eventsById={eventsById}
+                    projectsById={projectsById}
                     conflictIndex={conflictIndex}
                     colorForProject={colorForProject}
                     onSelectEvent={setSelectedEvent}
+                    onSelectDerived={handleSelectDerived}
                   />
                 ) : (
                   <WeekGrid
                     cursor={cursor}
-                    events={board?.events ?? []}
+                    items={laneItems}
+                    eventsById={eventsById}
+                    projectsById={projectsById}
                     conflictIndex={conflictIndex}
                     colorForProject={colorForProject}
                     onSelectEvent={setSelectedEvent}
+                    onSelectDerived={handleSelectDerived}
                   />
                 )}
               </div>

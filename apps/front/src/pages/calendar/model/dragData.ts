@@ -1,9 +1,14 @@
-import type { ScheduleEventDto } from '@/entities/schedule-event';
+import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 
 export interface ProjectDragData {
   kind: 'project';
   projectId: string;
   projectName: string;
+}
+
+export interface DerivedProjectDragData {
+  kind: 'derived';
+  project: SchedulableProjectDto;
 }
 
 export interface EventDragData {
@@ -18,8 +23,27 @@ export interface ResizeDragData {
   edge: 'start' | 'end';
 }
 
-export type CalendarDragData = ProjectDragData | EventDragData | ResizeDragData;
+export interface StaffDragData {
+  kind: 'staff';
+  staffMemberId: string;
+  name: string;
+}
+
+export type CalendarDragData =
+  | ProjectDragData
+  | DerivedProjectDragData
+  | EventDragData
+  | ResizeDragData
+  | StaffDragData;
 
 export interface DayDropData {
+  kind: 'day';
   date: string;
 }
+
+export interface EventDropData {
+  kind: 'event';
+  eventId: string;
+}
+
+export type CalendarDropData = DayDropData | EventDropData;
