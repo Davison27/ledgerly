@@ -1,10 +1,9 @@
-import { useState, type ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { App, Button, Flex, Layout, Tooltip, theme } from 'antd';
 import { BellOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
-import { CompanySettingsModal } from '@/features/company-settings';
 import { useCompany } from '@/entities/company';
 
 const { useToken } = theme;
@@ -18,7 +17,6 @@ export function TopBar({ search }: TopBarProps) {
   const { message } = App.useApp();
   const { t } = useTranslation();
   const { mode, toggle } = useThemeMode();
-  const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const themeToggleLabel = mode === 'dark' ? t('theme.toggleLight') : t('theme.toggleDark');
   const { company } = useCompany();
 
@@ -87,8 +85,6 @@ export function TopBar({ search }: TopBarProps) {
           </div>
         </Flex>
       </Flex>
-
-      <CompanySettingsModal open={companyModalOpen} onClose={() => setCompanyModalOpen(false)} />
     </Layout.Header>
   );
 }
