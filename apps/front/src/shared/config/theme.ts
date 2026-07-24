@@ -4,11 +4,11 @@ import { theme, type ThemeConfig } from 'antd';
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
 
 export const LAYOUT = {
-  topbarHeight: 52,
-  siderWidth: 220,
+  topbarHeight: 60,
+  siderWidth: 232,
   siderCollapsedWidth: 64,
   sectionHeaderHeight: 56,
-  pagePaddingBlock: 32,
+  pagePaddingBlock: 24,
   pagePaddingInline: 32,
   contentMaxWidth: 1440,
 } as const;
@@ -63,6 +63,34 @@ export const CHART_SERIES_DARK: readonly string[] = [
   '#94A3B8',
 ];
 
+export interface VividPalette {
+  income: string;
+  expense: string;
+  pending: string;
+  overdue: string;
+  accentCool: string;
+}
+
+export const CHART_VIVID_LIGHT: VividPalette = {
+  income: '#1C9A64',
+  expense: '#D9663B',
+  pending: '#DB9A1E',
+  overdue: '#D6413A',
+  accentCool: '#7A63C9',
+};
+
+export const CHART_VIVID_DARK: VividPalette = {
+  income: '#3FCE8E',
+  expense: '#F0955F',
+  pending: '#F0C24C',
+  overdue: '#F0685C',
+  accentCool: '#A491E0',
+};
+
+export function chartAreaFill(color: string): string {
+  return `linear-gradient(180deg, ${color}47 0%, ${color}00 100%)`;
+}
+
 export const PROJECT_COLOR_TOKENS = [
   'brand',
   'green',
@@ -99,7 +127,7 @@ export const TYPE: {
   caption: CSSProperties;
   numeric: CSSProperties;
 } = {
-  kpiValue: { fontSize: 28, lineHeight: 1.15, fontWeight: 650, letterSpacing: '-0.01em' },
+  kpiValue: { fontSize: 30, lineHeight: 1.15, fontWeight: 650, letterSpacing: '-0.01em' },
   kpiValueSm: { fontSize: 22, lineHeight: 1.15, fontWeight: 650, letterSpacing: '-0.01em' },
   kpiLabel: { fontSize: 12, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' },
   cardTitle: { fontSize: 14, fontWeight: 600 },
@@ -122,20 +150,20 @@ export function buildThemeConfig(mode: 'light' | 'dark', brandColor?: string): T
     colorWarning: SEMANTIC_LIGHT.pending,
     colorError: SEMANTIC_LIGHT.overdue,
     fontFamily: FONT_FAMILY,
-    borderRadius: 8,
-    borderRadiusLG: 12,
-    borderRadiusSM: 6,
+    borderRadius: 10,
+    borderRadiusLG: 16,
+    borderRadiusSM: 8,
     borderRadiusXS: 4,
     controlHeight: 36,
     boxShadow: isDark
-      ? '0 1px 2px rgba(0, 0, 0, 0.32), 0 1px 3px rgba(0, 0, 0, 0.36)'
-      : '0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06)',
+      ? '0 1px 2px rgba(0, 0, 0, 0.24), 0 1px 2px rgba(0, 0, 0, 0.28)'
+      : '0 1px 2px rgba(16, 24, 40, 0.03), 0 1px 2px rgba(16, 24, 40, 0.04)',
     boxShadowSecondary: isDark
-      ? '0 4px 10px rgba(0, 0, 0, 0.36), 0 2px 4px rgba(0, 0, 0, 0.28)'
-      : '0 4px 10px rgba(16, 24, 40, 0.06), 0 2px 4px rgba(16, 24, 40, 0.04)',
+      ? '0 8px 20px rgba(0, 0, 0, 0.32), 0 2px 6px rgba(0, 0, 0, 0.24)'
+      : '0 8px 20px rgba(16, 24, 40, 0.08), 0 2px 6px rgba(16, 24, 40, 0.04)',
     boxShadowTertiary: isDark
-      ? '0 2px 4px rgba(0, 0, 0, 0.28)'
-      : '0 2px 4px rgba(16, 24, 40, 0.04)',
+      ? '0 2px 4px rgba(0, 0, 0, 0.24)'
+      : '0 2px 4px rgba(16, 24, 40, 0.03)',
     wireframe: false,
     ...(isDark ? { colorBorderSecondary: 'rgba(255, 255, 255, 0.16)' } : {}),
   };
@@ -161,15 +189,20 @@ export function buildThemeConfig(mode: 'light' | 'dark', brandColor?: string): T
         headerPadding: SPACE.lg,
         headerFontSize: 14,
         headerBg: 'transparent',
+        borderRadiusLG: 16,
       },
       Tag: {
         defaultBg: derived.colorFillTertiary,
         defaultColor: derived.colorText,
       },
       Menu: {
-        itemBorderRadius: 8,
+        itemBorderRadius: 10,
         itemMarginInline: 8,
         itemHeight: 40,
+        itemSelectedBg: isDark ? `${primary}29` : `${primary}14`,
+        itemSelectedColor: primary,
+        itemColor: derived.colorTextSecondary,
+        itemHoverBg: isDark ? 'rgba(255, 255, 255, 0.06)' : derived.colorFillTertiary,
       },
       Button: {
         primaryShadow: 'none',

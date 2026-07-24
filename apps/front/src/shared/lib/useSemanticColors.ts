@@ -3,8 +3,11 @@ import { useThemeMode } from './theme-mode/ThemeModeProvider';
 import {
   CHART_SERIES_DARK,
   CHART_SERIES_LIGHT,
+  CHART_VIVID_DARK,
+  CHART_VIVID_LIGHT,
   SEMANTIC_DARK,
   SEMANTIC_LIGHT,
+  chartAreaFill,
   type SemanticPalette,
 } from '../config/theme';
 
@@ -20,6 +23,8 @@ export interface SemanticColors extends SemanticPalette {
   neutral: string;
   gridLine: string;
   chartSeries: readonly string[];
+  chartVivid: readonly string[];
+  areaFill: (color: string) => string;
   mode: 'light' | 'dark';
 }
 
@@ -37,6 +42,7 @@ export function useSemanticColors(): SemanticColors {
   const isDark = mode === 'dark';
   const palette = isDark ? SEMANTIC_DARK : SEMANTIC_LIGHT;
   const baseSeries = isDark ? CHART_SERIES_DARK : CHART_SERIES_LIGHT;
+  const vivid = isDark ? CHART_VIVID_DARK : CHART_VIVID_LIGHT;
 
   return {
     ...palette,
@@ -49,6 +55,8 @@ export function useSemanticColors(): SemanticColors {
     neutral: token.colorTextTertiary,
     gridLine: token.colorBorderSecondary,
     chartSeries: [token.colorPrimary, ...baseSeries.slice(1)],
+    chartVivid: [token.colorPrimary, vivid.income, vivid.expense, vivid.pending, vivid.accentCool, baseSeries[5]],
+    areaFill: chartAreaFill,
     mode,
   };
 }
