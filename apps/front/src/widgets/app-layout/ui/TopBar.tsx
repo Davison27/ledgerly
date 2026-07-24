@@ -1,20 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { App, Button, Dropdown, Flex, Layout, Tooltip, theme, type MenuProps } from 'antd';
-import {
-  BellOutlined,
-  BulbOutlined,
-  IdcardOutlined,
-  MoonOutlined,
-  PoweroffOutlined,
-  SettingOutlined,
-  ShopOutlined,
-  SunOutlined,
-} from '@ant-design/icons';
+import { App, Button, Dropdown, Flex, Layout, Tooltip, theme } from 'antd';
+import { BellOutlined, MoonOutlined, SettingOutlined, SunOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { CompanySettingsModal } from '@/features/company-settings';
+import { useSettingsMenuItems } from '../model/useSettingsMenuItems';
 
 const { useToken } = theme;
 
@@ -25,38 +16,13 @@ export interface TopBarProps {
 export function TopBar({ search }: TopBarProps) {
   const { token } = useToken();
   const { message } = App.useApp();
-  const navigate = useNavigate();
   const { t } = useTranslation();
   const { mode, toggle } = useThemeMode();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const themeToggleLabel = mode === 'dark' ? t('theme.toggleLight') : t('theme.toggleDark');
-
-  const settingsMenu: MenuProps['items'] = [
-    {
-      key: 'company',
-      label: t('company.settings.title'),
-      icon: <ShopOutlined style={{ fontSize: 18 }} />,
-      onClick: () => setCompanyModalOpen(true),
-    },
-    {
-      key: 'extraction-hints',
-      label: t('extractionHints.navLabel'),
-      icon: <BulbOutlined style={{ fontSize: 18 }} />,
-      onClick: () => void navigate({ to: '/extraction-hints' }),
-    },
-    {
-      key: 'profile',
-      label: t('common.profile'),
-      icon: <IdcardOutlined style={{ fontSize: 18 }} />,
-      onClick: () => void message.info(t('common.comingSoon')),
-    },
-    {
-      key: 'signout',
-      label: t('common.signOut'),
-      icon: <PoweroffOutlined style={{ fontSize: 18 }} />,
-      onClick: () => void navigate({ to: '/' }),
-    },
-  ];
+  const settingsMenu = useSettingsMenuItems({
+    onCompanySettings: () => setCompanyModalOpen(true),
+  });
 
   return (
     <Layout.Header
@@ -134,10 +100,7 @@ export function TopBar({ search }: TopBarProps) {
         </Flex>
       </Flex>
 
-      <CompanySettingsModal
-        open={companyModalOpen}
-        onClose={() => setCompanyModalOpen(false)}
-      />
+      <CompanySettingsModal open={companyModalOpen} onClose={() => setCompanyModalOpen(false)} />
     </Layout.Header>
   );
 }

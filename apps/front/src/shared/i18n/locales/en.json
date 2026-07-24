@@ -40,6 +40,10 @@
     "products": "Products",
     "staff": "Staff"
   },
+  "sider": {
+    "collapse": "Collapse menu",
+    "expand": "Expand menu"
+  },
   "dashboard": {
     "title": "Dashboard",
     "greeting": {
