@@ -1,22 +1,9 @@
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
-import { Layout, Menu, theme } from 'antd';
-import {
-  CalendarOutlined,
-  DashboardOutlined,
-  FileDoneOutlined,
-  FileTextOutlined,
-  IdcardOutlined,
-  ProjectOutlined,
-  ShoppingOutlined,
-  TeamOutlined,
-} from '@ant-design/icons';
-import { useTranslation } from 'react-i18next';
+import { useEffect, useState, type ReactNode } from 'react';
+import { Outlet, useNavigate } from '@tanstack/react-router';
+import { Layout } from 'antd';
 import { CompanyProvider, companyNeedsSetup, useCompany } from '@/entities/company';
-import { LAYOUT } from '@/shared/config/theme';
+import { AppSider } from './AppSider';
 import { TopBar } from './TopBar';
-
-const { useToken } = theme;
 
 function CompanyGuard({ children }: { children: ReactNode }) {
   const { company, companyLoading } = useCompany();
@@ -31,133 +18,20 @@ function CompanyGuard({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
-type NavKey =
-  | 'dashboard'
-  | 'projects'
-  | 'calendar'
-  | 'documents'
-  | 'suppliers'
-  | 'invoices'
-  | 'products'
-  | 'staff';
-
-function getSelectedKey(pathname: string): NavKey | undefined {
-  if (pathname.startsWith('/dashboard')) return 'dashboard';
-  if (pathname.startsWith('/documents')) return 'documents';
-  if (pathname.startsWith('/projects')) return 'projects';
-  if (pathname.startsWith('/calendar')) return 'calendar';
-  if (pathname.startsWith('/suppliers')) return 'suppliers';
-  if (pathname.startsWith('/invoices')) return 'invoices';
-  if (pathname.startsWith('/products')) return 'products';
-  if (pathname.startsWith('/staff')) return 'staff';
-  return undefined;
-}
-
-function AppSider({
-  collapsed,
-  onCollapse,
-}: {
-  collapsed: boolean;
-  onCollapse: (collapsed: boolean) => void;
-}) {
-  const { token } = useToken();
-  const { t } = useTranslation();
-  const navigate = useNavigate();
-  const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const selectedKey = getSelectedKey(pathname);
-
-  const items = useMemo(
-    () => [
-      {
-        key: 'dashboard' satisfies NavKey,
-        icon: <DashboardOutlined />,
-        label: t('nav.dashboard'),
-        onClick: () => void navigate({ to: '/dashboard' }),
-      },
-      {
-        key: 'projects' satisfies NavKey,
-        icon: <ProjectOutlined />,
-        label: t('nav.projects'),
-        onClick: () => void navigate({ to: '/projects' }),
-      },
-      {
-        key: 'calendar' satisfies NavKey,
-        icon: <CalendarOutlined />,
-        label: t('nav.calendar'),
-        onClick: () => void navigate({ to: '/calendar' }),
-      },
-      {
-        key: 'documents' satisfies NavKey,
-        icon: <FileTextOutlined />,
-        label: t('nav.documents'),
-        onClick: () => void navigate({ to: '/documents' }),
-      },
-      {
-        key: 'suppliers' satisfies NavKey,
-        icon: <TeamOutlined />,
-        label: t('nav.suppliers'),
-        onClick: () => void navigate({ to: '/suppliers' }),
-      },
-      {
-        key: 'invoices' satisfies NavKey,
-        icon: <FileDoneOutlined />,
-        label: t('nav.invoices'),
-        onClick: () => void navigate({ to: '/invoices' }),
-      },
-      {
-        key: 'products' satisfies NavKey,
-        icon: <ShoppingOutlined />,
-        label: t('nav.products'),
-        onClick: () => void navigate({ to: '/products' }),
-      },
-      {
-        key: 'staff' satisfies NavKey,
-        icon: <IdcardOutlined />,
-        label: t('nav.staff'),
-        onClick: () => void navigate({ to: '/staff' }),
-      },
-    ],
-    [t, navigate],
-  );
-
-  return (
-    <Layout.Sider
-      collapsible
-      collapsed={collapsed}
-      onCollapse={onCollapse}
-      collapsedWidth={LAYOUT.siderCollapsedWidth}
-      width={LAYOUT.siderWidth}
-      style={{
-        height: '100%',
-        background: token.colorBgContainer,
-        borderRight: `1px solid ${token.colorBorderSecondary}`,
-      }}
-    >
-      <Menu
-        mode="inline"
-        inlineCollapsed={collapsed}
-        selectedKeys={selectedKey ? [selectedKey] : []}
-        items={items}
-        style={{ borderInlineEnd: 'none', overflow: 'auto' }}
-      />
-    </Layout.Sider>
-  );
-}
-
 export interface AppLayoutProps {
-  commandPalette?: ReactNode;
+  search?: ReactNode;
 }
 
-export function AppLayout({ commandPalette }: AppLayoutProps) {
+export function AppLayout({ search }: AppLayoutProps) {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
     <CompanyProvider>
       <CompanyGuard>
-        <Layout style={{ height: '100vh', overflow: 'hidden' }}>
-          <TopBar />
-          <Layout hasSider style={{ flex: 1, minHeight: 0 }}>
-            <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
+        <Layout hasSider style={{ height: '100vh', overflow: 'hidden' }}>
+          <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
+          <Layout style={{ minHeight: 0 }}>
+            <TopBar search={search} />
             <Layout.Content
               style={{
                 display: 'flex',
@@ -170,8 +44,6 @@ export function AppLayout({ commandPalette }: AppLayoutProps) {
             </Layout.Content>
           </Layout>
         </Layout>
-
-        {commandPalette}
       </CompanyGuard>
     </CompanyProvider>
   );

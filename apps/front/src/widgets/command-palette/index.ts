@@ -1,3 +1,3 @@
 export { CommandPalette } from './ui/CommandPalette';
-export { CommandPaletteLauncher } from './ui/CommandPaletteLauncher';
+export { CommandPaletteSearch } from './ui/CommandPaletteSearch';
 export { useCommandPalette } from './model/useCommandPalette';

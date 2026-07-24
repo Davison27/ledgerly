@@ -1,17 +1,8 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { App, Button, Dropdown, Flex, Layout, Tooltip, theme, type MenuProps } from 'antd';
 import {
-  App,
-  Button,
-  Dropdown,
-  Flex,
-  Layout,
-  Tooltip,
-  Typography,
-  theme,
-  type MenuProps,
-} from 'antd';
-import {
+  BellOutlined,
   BulbOutlined,
   IdcardOutlined,
   MoonOutlined,
@@ -21,21 +12,21 @@ import {
   SunOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '@/entities/company';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { CompanySettingsModal } from '@/features/company-settings';
-import logoIconUrl from '../../../assets/ledgerly-icon.svg';
 
 const { useToken } = theme;
-const { Text } = Typography;
 
-export function TopBar() {
+export interface TopBarProps {
+  search?: ReactNode;
+}
+
+export function TopBar({ search }: TopBarProps) {
   const { token } = useToken();
   const { message } = App.useApp();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { company } = useCompany();
   const { mode, toggle } = useThemeMode();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const themeToggleLabel = mode === 'dark' ? t('theme.toggleLight') : t('theme.toggleDark');
@@ -79,33 +70,29 @@ export function TopBar() {
         borderBottom: `1px solid ${token.colorBorderSecondary}`,
       }}
     >
-      <Flex align="center" justify="space-between" style={{ height: '100%' }}>
-        <Button
-          type="text"
-          aria-label={t('common.appName')}
-          style={{ height: 40, padding: '0 8px' }}
-          onClick={() => void navigate({ to: '/dashboard' })}
-        >
-          <img
-            src={company.logo || logoIconUrl}
-            alt={t('common.appName')}
-            style={{ height: 28, display: 'block', objectFit: 'contain' }}
-          />
-        </Button>
+      <Flex align="center" justify="space-between" gap={SPACE.md} style={{ height: '100%' }}>
+        <Flex align="center" style={{ flex: 1, minWidth: 0 }}>
+          {search}
+        </Flex>
 
-        <Text
-          strong
-          style={{
-            maxWidth: '50%',
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-          }}
-        >
-          {company.name}
-        </Text>
+        <Flex align="center" gap={SPACE.xs} style={{ flex: 'none' }}>
+          <Tooltip title={t('topbar.notifications')}>
+            <Button
+              type="text"
+              aria-label={t('topbar.notifications')}
+              onClick={() => void message.info(t('common.comingSoon'))}
+              style={{
+                height: 40,
+                width: 40,
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <BellOutlined style={{ fontSize: 18 }} />
+            </Button>
+          </Tooltip>
 
-        <Flex align="center" gap={SPACE.xs}>
           <Tooltip title={themeToggleLabel}>
             <Button
               type="text"
