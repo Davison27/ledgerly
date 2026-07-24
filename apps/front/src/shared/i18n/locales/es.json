@@ -40,6 +40,10 @@
     "products": "Productos",
     "staff": "Personal"
   },
+  "sider": {
+    "collapse": "Contraer menú",
+    "expand": "Expandir menú"
+  },
   "dashboard": {
     "title": "Panel",
     "greeting": {

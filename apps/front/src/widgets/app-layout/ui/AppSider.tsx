@@ -1,21 +1,24 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Avatar, Button, Flex, Layout, Menu, Tooltip, Typography, theme } from 'antd';
+import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography, theme } from 'antd';
 import {
   CalendarOutlined,
   DashboardOutlined,
+  DownOutlined,
   FileDoneOutlined,
   FileTextOutlined,
   IdcardOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
   ProjectOutlined,
-  SettingOutlined,
   ShoppingOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '@/entities/company';
+import { useCompany, type Company } from '@/entities/company';
 import { CompanySettingsModal } from '@/features/company-settings';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
+import { useSettingsMenuItems } from '../model/useSettingsMenuItems';
 import logoUrl from '../../../assets/ledgerly-logo.svg';
 import iconUrl from '../../../assets/ledgerly-icon.svg';
 
@@ -44,6 +47,40 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   return undefined;
 }
 
+function CompanyMark({ company, size }: { company: Company; size: number }) {
+  const { token } = useToken();
+
+  if (company.logo) {
+    return (
+      <div
+        style={{
+          width: size,
+          height: size,
+          flex: 'none',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: token.borderRadius,
+          background: token.colorFillTertiary,
+          overflow: 'hidden',
+        }}
+      >
+        <img
+          src={company.logo}
+          alt={company.name}
+          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+        />
+      </div>
+    );
+  }
+
+  return (
+    <Avatar shape="square" size={size} style={{ background: token.colorPrimary, flex: 'none' }}>
+      {company.name ? company.name.charAt(0).toUpperCase() : undefined}
+    </Avatar>
+  );
+}
+
 export function AppSider({
   collapsed,
   onCollapse,
@@ -58,7 +95,10 @@ export function AppSider({
   const selectedKey = getSelectedKey(pathname);
   const { company } = useCompany();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
-  const companyInitial = company.name ? company.name.charAt(0).toUpperCase() : undefined;
+  const collapseLabel = collapsed ? t('sider.expand') : t('sider.collapse');
+  const settingsItems = useSettingsMenuItems({
+    onCompanySettings: () => setCompanyModalOpen(true),
+  });
 
   const items = useMemo(
     () => [
@@ -117,6 +157,7 @@ export function AppSider({
   return (
     <Layout.Sider
       collapsible
+      trigger={null}
       collapsed={collapsed}
       onCollapse={onCollapse}
       collapsedWidth={LAYOUT.siderCollapsedWidth}
@@ -130,11 +171,14 @@ export function AppSider({
       }}
     >
       <Flex
+        vertical={collapsed}
         align="center"
+        justify={collapsed ? 'center' : 'space-between'}
+        gap={collapsed ? SPACE.xs : 0}
         style={{
           flex: 'none',
-          height: LAYOUT.topbarHeight,
-          padding: `0 ${SPACE.lg}px`,
+          minHeight: LAYOUT.topbarHeight,
+          padding: collapsed ? `${SPACE.sm}px 0` : `0 ${SPACE.lg}px`,
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
@@ -150,6 +194,15 @@ export function AppSider({
             style={{ height: 28, display: 'block', objectFit: 'contain' }}
           />
         </Button>
+
+        <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
+          <Button
+            type="text"
+            aria-label={collapseLabel}
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => onCollapse(!collapsed)}
+          />
+        </Tooltip>
       </Flex>
 
       <Menu
@@ -174,49 +227,43 @@ export function AppSider({
       >
         {collapsed ? (
           <Flex justify="center">
-            <Tooltip title={company.name} placement="right">
-              <Avatar
-                shape="square"
-                size={36}
-                src={company.logo}
-                style={{ cursor: 'pointer', background: token.colorPrimary, flex: 'none' }}
-                onClick={() => setCompanyModalOpen(true)}
-              >
-                {companyInitial}
-              </Avatar>
-            </Tooltip>
+            <Dropdown
+              menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
+              trigger={['click']}
+            >
+              <Tooltip title={company.name} placement="right">
+                <div style={{ cursor: 'pointer' }}>
+                  <CompanyMark company={company} size={36} />
+                </div>
+              </Tooltip>
+            </Dropdown>
           </Flex>
         ) : (
-          <Flex align="center" justify="space-between" gap={SPACE.sm}>
-            <Flex align="center" gap={SPACE.sm} style={{ minWidth: 0 }}>
-              <Avatar
-                shape="square"
-                size={36}
-                src={company.logo}
-                style={{ background: token.colorPrimary, flex: 'none' }}
+          <Dropdown
+            menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
+            trigger={['click']}
+          >
+            <Flex align="center" gap={SPACE.sm} style={{ cursor: 'pointer', minWidth: 0 }}>
+              <CompanyMark company={company} size={36} />
+              <Flex
+                align="center"
+                justify="space-between"
+                gap={SPACE.sm}
+                style={{ flex: 1, minWidth: 0 }}
               >
-                {companyInitial}
-              </Avatar>
-              <Text strong ellipsis style={{ minWidth: 0 }}>
-                {company.name}
-              </Text>
+                <Text strong ellipsis style={{ minWidth: 0 }}>
+                  {company.name}
+                </Text>
+                <DownOutlined
+                  style={{ fontSize: 12, color: token.colorTextTertiary, flex: 'none' }}
+                />
+              </Flex>
             </Flex>
-            <Tooltip title={t('company.settings.title')}>
-              <Button
-                type="text"
-                aria-label={t('company.settings.title')}
-                icon={<SettingOutlined />}
-                onClick={() => setCompanyModalOpen(true)}
-              />
-            </Tooltip>
-          </Flex>
+          </Dropdown>
         )}
       </div>
 
-      <CompanySettingsModal
-        open={companyModalOpen}
-        onClose={() => setCompanyModalOpen(false)}
-      />
+      <CompanySettingsModal open={companyModalOpen} onClose={() => setCompanyModalOpen(false)} />
     </Layout.Sider>
   );
 }
