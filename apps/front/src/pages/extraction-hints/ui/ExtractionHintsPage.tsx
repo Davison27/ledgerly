@@ -11,7 +11,7 @@ import {
   Popconfirm,
   Progress,
   Row,
-  Spin,
+  Skeleton,
   Statistic,
   Table,
   Tabs,
@@ -30,10 +30,11 @@ import {
   type ExtractionQualityDto,
 } from '@/entities/extraction-hint';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const QUALITY_SOURCES: ExtractInvoiceSource[] = ['facturae', 'facturx', 'ubl', 'heuristic'];
 const QUALITY_CONFIDENCES: ExtractInvoiceConfidence[] = ['high', 'partial', 'low'];
@@ -80,11 +81,7 @@ function QualityPanel() {
   }, []);
 
   if (loading) {
-    return (
-      <Flex justify="center" style={{ padding: '48px 0' }}>
-        <Spin />
-      </Flex>
-    );
+    return <Skeleton active paragraph={{ rows: 6 }} />;
   }
 
   if (loadError || !quality) {
@@ -313,12 +310,7 @@ export function ExtractionHintsPage() {
 
   return (
     <PageContainer>
-      <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-        {t('extractionHints.title')}
-      </Title>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 36 }}>
-        {t('extractionHints.subtitle')}
-      </Text>
+      <PageHeader title={t('extractionHints.title')} subtitle={t('extractionHints.subtitle')} />
 
       <Tabs
         items={[
@@ -326,9 +318,7 @@ export function ExtractionHintsPage() {
             key: 'hints',
             label: t('extractionHints.tabs.hints'),
             children: loading ? (
-              <Flex justify="center" style={{ padding: '48px 0' }}>
-                <Spin />
-              </Flex>
+              <Skeleton active paragraph={{ rows: 6 }} />
             ) : loadError ? (
               <Alert type="error" showIcon message={t('extractionHints.loadError')} />
             ) : groups.length === 0 ? (

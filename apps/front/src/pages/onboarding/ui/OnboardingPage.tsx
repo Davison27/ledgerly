@@ -9,10 +9,11 @@ import {
   Form,
   Input,
   Row,
-  Spin,
+  Skeleton,
   Steps,
   Typography,
   Upload,
+  theme,
 } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -48,6 +49,7 @@ export function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message } = App.useApp();
+  const { token } = theme.useToken();
   const [form] = Form.useForm<CompanyFormFields>();
   const [current, setCurrent] = useState(0);
   const [logo, setLogo] = useState<string | undefined>(undefined);
@@ -137,15 +139,17 @@ export function OnboardingPage() {
 
   if (checkingExisting) {
     return (
-      <Flex align="center" justify="center" style={{ minHeight: '100vh' }}>
-        <Spin size="large" />
+      <Flex align="center" justify="center" style={{ minHeight: '100vh', padding: SPACE.xl }}>
+        <Card style={{ width: '100%', maxWidth: 720, boxShadow: token.boxShadowSecondary }}>
+          <Skeleton active paragraph={{ rows: 8 }} />
+        </Card>
       </Flex>
     );
   }
 
   return (
     <Flex align="center" justify="center" style={{ minHeight: '100vh', padding: SPACE.xl }}>
-      <Card style={{ width: '100%', maxWidth: 720 }}>
+      <Card style={{ width: '100%', maxWidth: 720, boxShadow: token.boxShadowSecondary }}>
         <Flex vertical gap={4} style={{ marginBottom: 20 }}>
           <Title level={3} style={{ margin: 0 }}>
             {t('onboarding.title')}

@@ -9,7 +9,7 @@ import {
   InputNumber,
   Segmented,
   Select,
-  Spin,
+  Skeleton,
   Typography,
   theme,
 } from 'antd';
@@ -203,10 +203,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
 
         <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
           {documentsLoading ? (
-            <Flex vertical align="center" justify="center" gap={8} style={{ height: '100%' }}>
-              <Spin />
-              <Text type="secondary">{t('projects.documents.loading')}</Text>
-            </Flex>
+            <Skeleton active paragraph={{ rows: 8 }} />
           ) : documentsError ? (
             <Empty description={t('projects.documents.loadError')} />
           ) : count === 0 ? (

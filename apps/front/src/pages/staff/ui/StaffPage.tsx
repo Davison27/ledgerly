@@ -6,7 +6,7 @@ import {
   Button,
   Flex,
   Popconfirm,
-  Spin,
+  Skeleton,
   Table,
   Typography,
   type TableColumnsType,
@@ -22,12 +22,13 @@ import {
 } from '@/entities/staff-member';
 import { ApiError } from '@/shared/api/httpClient';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { StaffMemberFormModal, type StaffMemberFormValues } from '@/features/staff-member-form';
 
-const { Title, Text, Link: TypographyLink } = Typography;
+const { Text, Link: TypographyLink } = Typography;
 
 export function StaffPage() {
   const { t } = useTranslation();
@@ -197,22 +198,18 @@ export function StaffPage() {
 
   return (
     <PageContainer>
-      <Flex align="center" justify="space-between">
-        <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-          {t('staff.title')}
-        </Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          {t('staff.add')}
-        </Button>
-      </Flex>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 36 }}>
-        {t('staff.subtitle')}
-      </Text>
+      <PageHeader
+        title={t('staff.title')}
+        subtitle={t('staff.subtitle')}
+        actions={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            {t('staff.add')}
+          </Button>
+        }
+      />
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('staff.loadError')} />
       ) : staffMembers.length === 0 ? (

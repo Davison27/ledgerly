@@ -33,10 +33,6 @@ export function ProjectCard({
   const { token } = useToken();
 
   const styles: CardProps['styles'] = {
-    root: {
-      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)',
-      borderRadius: token.borderRadius,
-    },
     header: { borderBottom: 'none', paddingBottom: 8 },
   };
 
@@ -74,7 +70,7 @@ export function ProjectCard({
   ];
 
   return (
-    <Card styles={styles} actions={actions}>
+    <Card hoverable styles={styles} actions={actions}>
       <Meta
         avatar={
           project.image ? (

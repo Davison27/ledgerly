@@ -6,7 +6,7 @@ import {
   Empty,
   Flex,
   Popconfirm,
-  Spin,
+  Skeleton,
   Table,
   Typography,
   type TableColumnsType,
@@ -22,11 +22,12 @@ import {
 } from '@/entities/product';
 import { ApiError } from '@/shared/api/httpClient';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { ProductFormModal, type ProductFormValues } from './ProductFormModal';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export function ProductsPage() {
   const { t } = useTranslation();
@@ -171,22 +172,18 @@ export function ProductsPage() {
 
   return (
     <PageContainer>
-      <Flex align="center" justify="space-between">
-        <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-          {t('products.title')}
-        </Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          {t('products.add')}
-        </Button>
-      </Flex>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 36 }}>
-        {t('products.subtitle')}
-      </Text>
+      <PageHeader
+        title={t('products.title')}
+        subtitle={t('products.subtitle')}
+        actions={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            {t('products.add')}
+          </Button>
+        }
+      />
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('products.loadError')} />
       ) : products.length === 0 ? (

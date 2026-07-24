@@ -6,9 +6,8 @@ import {
   Empty,
   Flex,
   Popconfirm,
-  Spin,
+  Skeleton,
   Table,
-  Typography,
   type TableColumnsType,
 } from 'antd';
 import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
@@ -22,9 +21,8 @@ import {
 } from '@/entities/supplier';
 import { ApiError } from '@/shared/api/httpClient';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { SupplierFormModal, type SupplierFormValues } from './SupplierFormModal';
-
-const { Title, Text } = Typography;
 
 export function SuppliersPage() {
   const { t } = useTranslation();
@@ -167,22 +165,18 @@ export function SuppliersPage() {
 
   return (
     <PageContainer>
-      <Flex align="center" justify="space-between">
-        <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-          {t('suppliers.title')}
-        </Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-          {t('suppliers.add')}
-        </Button>
-      </Flex>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 36 }}>
-        {t('suppliers.subtitle')}
-      </Text>
+      <PageHeader
+        title={t('suppliers.title')}
+        subtitle={t('suppliers.subtitle')}
+        actions={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+            {t('suppliers.add')}
+          </Button>
+        }
+      />
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('suppliers.loadError')} />
       ) : suppliers.length === 0 ? (

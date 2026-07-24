@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { App, Button, Flex, Form, Spin, Typography } from 'antd';
+import { App, Button, Flex, Form, Skeleton, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from '../model/types';
@@ -93,9 +93,9 @@ export function SettingsSection({ project }: ProjectSectionProps) {
 
   if (loading || !fullProject) {
     return (
-      <Flex justify="center" style={{ padding: '48px 0' }}>
-        <Spin />
-      </Flex>
+      <PageContainer maxWidth={1080}>
+        <Skeleton active paragraph={{ rows: 8 }} />
+      </PageContainer>
     );
   }
 
