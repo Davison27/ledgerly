@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Button, Card, Flex, Typography } from 'antd';
+import { Button, Card, Flex, Typography, theme } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -8,6 +8,7 @@ import { listScheduleEvents, ScheduleDaysSummary, type ScheduleEventDto } from '
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 
 const { Text } = Typography;
+const { useToken } = theme;
 
 const UPCOMING_WINDOW_DAYS = 30;
 const MAX_ITEMS = 5;
@@ -15,6 +16,7 @@ const MAX_ITEMS = 5;
 export function UpcomingScheduleCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { token } = useToken();
   const [events, setEvents] = useState<ScheduleEventDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -34,6 +36,7 @@ export function UpcomingScheduleCard() {
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
     .slice(0, MAX_ITEMS);
 
+  const monthsShort = t('projects.dashboard.monthsShort').split(',');
   const goToCalendar = () => void navigate({ to: '/calendar' });
 
   return (
@@ -53,15 +56,49 @@ export function UpcomingScheduleCard() {
       ) : !loading && upcoming.length === 0 ? (
         <EmptyHint icon={<CalendarOutlined />} title={t('dashboard.upcomingSchedule.empty')} />
       ) : (
-        <Flex vertical gap={8}>
-          {upcoming.map((event) => (
-            <Flex key={event.id} vertical gap={2} style={{ cursor: 'pointer' }} onClick={goToCalendar}>
-              <Text strong ellipsis>
-                {event.title?.trim() || event.project.name}
-              </Text>
-              <ScheduleDaysSummary days={event.days} />
-            </Flex>
-          ))}
+        <Flex vertical gap={10}>
+          {upcoming.map((event) => {
+            const start = dayjs(event.startDate);
+            return (
+              <Flex
+                key={event.id}
+                align="center"
+                gap={12}
+                style={{ cursor: 'pointer' }}
+                onClick={goToCalendar}
+              >
+                <Flex
+                  vertical
+                  align="center"
+                  justify="center"
+                  style={{
+                    flex: 'none',
+                    width: 44,
+                    height: 44,
+                    borderRadius: token.borderRadius,
+                    background: token.colorFillTertiary,
+                  }}
+                >
+                  <Text strong style={{ fontSize: 15, lineHeight: 1.1 }}>
+                    {start.date()}
+                  </Text>
+                  <Text
+                    type="secondary"
+                    style={{ fontSize: 10, letterSpacing: '0.04em', textTransform: 'uppercase' }}
+                  >
+                    {monthsShort[start.month()]}
+                  </Text>
+                </Flex>
+
+                <Flex vertical gap={2} style={{ flex: '1 1 auto', minWidth: 0 }}>
+                  <Text strong ellipsis>
+                    {event.title?.trim() || event.project.name}
+                  </Text>
+                  <ScheduleDaysSummary days={event.days} />
+                </Flex>
+              </Flex>
+            );
+          })}
         </Flex>
       )}
     </Card>

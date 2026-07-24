@@ -1,4 +1,5 @@
 import type { ProjectDocument, DocumentType } from '@/entities/document';
+import { CHART_VIVID_DARK, CHART_VIVID_LIGHT } from '@/shared/config/theme';
 
 export interface AmountByStatus {
   pagado: number;
@@ -130,6 +131,10 @@ export function deriveDashboardData(docs: ProjectDocument[]): DashboardData {
     amountByStatus,
     topIssuers,
   };
+}
+
+export function vividOverdue(mode: 'light' | 'dark'): string {
+  return mode === 'dark' ? CHART_VIVID_DARK.overdue : CHART_VIVID_LIGHT.overdue;
 }
 
 export function formatEur(n: number): string {

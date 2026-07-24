@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../api/types';
@@ -26,9 +27,10 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hoverQuarter, setHoverQuarter] = useState<number | null>(null);
 
-  const outputColor = colors.income;
-  const inputColor = colors.expense;
+  const outputColor = colors.chartVivid[1];
+  const inputColor = colors.chartVivid[2];
 
   const max = Math.max(
     1,
@@ -83,8 +85,15 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
             const rOut = Math.min(4, Math.max(0, barH(q.outputVat)));
             const rIn = Math.min(4, Math.max(0, barH(q.inputVat)));
             const balanceColor = q.balance >= 0 ? token.colorText : token.colorTextSecondary;
+            const isDimmed = hoverQuarter !== null && hoverQuarter !== q.quarter;
             return (
-              <g key={q.quarter}>
+              <g
+                key={q.quarter}
+                opacity={isDimmed ? 0.45 : 1}
+                onMouseEnter={() => setHoverQuarter(q.quarter)}
+                onMouseLeave={() => setHoverQuarter(null)}
+                style={{ cursor: 'pointer' }}
+              >
                 <rect
                   x={x(i, 0)}
                   y={barY(q.outputVat)}

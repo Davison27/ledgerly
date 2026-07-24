@@ -7,5 +7,5 @@ export { CategoryDonut } from './ui/CategoryDonut';
 export { StatusBreakdown } from './ui/StatusBreakdown';
 export { CashflowByStatus } from './ui/CashflowByStatus';
 export { TopIssuers } from './ui/TopIssuers';
-export { deriveDashboardData, formatEur, formatPct } from './model/data';
+export { deriveDashboardData, formatEur, formatPct, vividOverdue } from './model/data';
 export type { DashboardData, AmountByStatus, TopIssuer } from './model/data';
