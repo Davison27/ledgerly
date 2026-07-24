@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useParams } from '@tanstack/react-router';
-import { Avatar, Flex, Segmented, Spin, Typography, theme } from 'antd';
+import { Avatar, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
 import { IdcardOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
@@ -85,9 +85,7 @@ export function StaffMemberDetailPage() {
   if (loading) {
     return (
       <PageContainer>
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active avatar paragraph={{ rows: 6 }} />
       </PageContainer>
     );
   }

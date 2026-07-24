@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Alert, Button, Flex, Spin, Table, Tag, Typography, type TableColumnsType } from 'antd';
+import { Alert, Button, Flex, Skeleton, Table, Tag, Typography, type TableColumnsType } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { listScheduleEvents, ScheduleDaysSummary, type ScheduleEventDto } from '@/entities/schedule-event';
@@ -79,9 +79,7 @@ export function ScheduleSection({ project }: ProjectSectionProps) {
       </Flex>
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 6 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('projects.schedule.loadError')} />
       ) : events.length === 0 ? (

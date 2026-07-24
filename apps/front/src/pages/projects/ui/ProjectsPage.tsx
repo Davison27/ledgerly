@@ -1,18 +1,19 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { App, Button, Flex, Spin, Typography } from 'antd';
+import { App, Button, Card } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
 import { useCompany } from '@/entities/company';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectCard } from './ProjectCard';
 import { ProjectFormModal } from './ProjectFormModal';
 
-const { Title, Text } = Typography;
+const SKELETON_CARD_COUNT = 6;
 
 export function ProjectsPage() {
   const { t } = useTranslation();
@@ -96,31 +97,29 @@ export function ProjectsPage() {
 
   return (
     <PageContainer>
-      <Flex align="center" justify="space-between">
-        <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-          {t('projects.title')}
-        </Title>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-          {t('common.add')}
-        </Button>
-      </Flex>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 36 }}>
-        {t('projects.subtitle')}
-      </Text>
+      <PageHeader
+        title={t('projects.title')}
+        subtitle={t('projects.subtitle')}
+        actions={
+          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+            {t('common.add')}
+          </Button>
+        }
+      />
 
-      {projectsLoading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
-      ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-            gap: 20,
-          }}
-        >
-          {projects.map((project) => (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+          gap: 20,
+        }}
+      >
+        {projectsLoading ? (
+          Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+            <Card key={index} loading />
+          ))
+        ) : (
+          projects.map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
@@ -130,9 +129,9 @@ export function ProjectsPage() {
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-          ))}
-        </div>
-      )}
+          ))
+        )}
+      </div>
 
       <ProjectFormModal
         open={isFormOpen}

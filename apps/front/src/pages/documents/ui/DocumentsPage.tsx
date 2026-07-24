@@ -10,7 +10,7 @@ import {
   Input,
   InputNumber,
   Select,
-  Spin,
+  Skeleton,
   Table,
   Tooltip,
   Typography,
@@ -38,11 +38,12 @@ import {
 import { listProjects, type ProjectSummaryDto } from '@/entities/project';
 import { listSuppliers, type SupplierDto } from '@/entities/supplier';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { DocumentDetail, DocumentEditModal } from '@/features/document-detail';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 const { RangePicker } = DatePicker;
 
 const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
@@ -281,12 +282,7 @@ export function DocumentsPage() {
 
   return (
     <PageContainer>
-      <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-        {t('documents.title')}
-      </Title>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
-        {t('documents.subtitle')}
-      </Text>
+      <PageHeader title={t('documents.title')} subtitle={t('documents.subtitle')} />
 
       <Flex gap={12} wrap style={{ marginBottom: 24 }}>
         <Input
@@ -372,9 +368,7 @@ export function DocumentsPage() {
       </Flex>
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('documents.loadError')} />
       ) : documents.length === 0 ? (
@@ -401,9 +395,7 @@ export function DocumentsPage() {
         styles={{ body: { display: 'flex', flexDirection: 'column' } }}
       >
         {detailLoading ? (
-          <Flex justify="center" style={{ padding: '48px 0' }}>
-            <Spin />
-          </Flex>
+          <Skeleton active paragraph={{ rows: 6 }} />
         ) : detailError ? (
           <Alert type="error" showIcon message={t('documents.detail.loadError')} />
         ) : (

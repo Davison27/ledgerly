@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { Alert, Button, Flex, Spin, Typography } from 'antd';
+import { Alert, Button, Flex, Skeleton, Typography } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
@@ -57,9 +57,7 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
       </Flex>
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 6 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('staff.schedule.loadError')} />
       ) : events.length === 0 ? (

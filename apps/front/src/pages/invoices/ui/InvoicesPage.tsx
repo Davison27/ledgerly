@@ -6,7 +6,7 @@ import {
   Empty,
   Flex,
   Popconfirm,
-  Spin,
+  Skeleton,
   Table,
   Tooltip,
   Typography,
@@ -25,12 +25,13 @@ import {
 } from '@/entities/invoice';
 import { CompanySettingsModal } from '@/features/company-settings';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { InvoiceFormModal } from './InvoiceFormModal';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 export function InvoicesPage() {
   const { t } = useTranslation();
@@ -169,24 +170,22 @@ export function InvoicesPage() {
 
   return (
     <PageContainer>
-      <Flex align="center" justify="space-between">
-        <Title level={2} style={{ marginTop: 0, marginBottom: 6 }}>
-          {t('invoices.title')}
-        </Title>
-        <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
-          <Button
-            type="primary"
-            icon={<PlusOutlined />}
-            disabled={companyIncomplete}
-            onClick={handleAdd}
-          >
-            {t('invoices.add')}
-          </Button>
-        </Tooltip>
-      </Flex>
-      <Text type="secondary" style={{ display: 'block', marginBottom: 24 }}>
-        {t('invoices.subtitle')}
-      </Text>
+      <PageHeader
+        title={t('invoices.title')}
+        subtitle={t('invoices.subtitle')}
+        actions={
+          <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              disabled={companyIncomplete}
+              onClick={handleAdd}
+            >
+              {t('invoices.add')}
+            </Button>
+          </Tooltip>
+        }
+      />
 
       {companyIncomplete && (
         <Alert
@@ -203,9 +202,7 @@ export function InvoicesPage() {
       )}
 
       {loading ? (
-        <Flex justify="center" style={{ padding: '48px 0' }}>
-          <Spin />
-        </Flex>
+        <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('invoices.loadError')} />
       ) : invoices.length === 0 ? (

@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
-import { App, Button, Flex, Segmented, Spin, Alert, Typography, theme } from 'antd';
+import { App, Button, Flex, Segmented, Skeleton, Alert, Typography, theme } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
@@ -239,9 +239,7 @@ export function CalendarPage() {
 
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
         {loading ? (
-          <Flex justify="center" style={{ padding: '48px 0' }}>
-            <Spin />
-          </Flex>
+          <Skeleton active paragraph={{ rows: 8 }} style={{ padding: SPACE.lg }} />
         ) : loadError ? (
           <Alert
             type="error"
