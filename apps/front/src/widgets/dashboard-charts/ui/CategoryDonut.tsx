@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentType } from '@/entities/document';
@@ -14,6 +15,7 @@ export interface CategoryDonutProps {
 }
 
 const ORDER: DocumentType[] = ['factura', 'nomina', 'impuesto'];
+const DIMMED_ALPHA = '33';
 
 export function CategoryDonut({
   categoryTotals,
@@ -23,11 +25,12 @@ export function CategoryDonut({
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hovered, setHovered] = useState<DocumentType | null>(null);
 
   const palette: Record<DocumentType, string> = {
     factura: color,
-    nomina: colors.chartSeries[1],
-    impuesto: colors.chartSeries[2],
+    nomina: colors.chartVivid[1],
+    impuesto: colors.chartVivid[2],
   };
 
   const total = ORDER.reduce((acc, key) => acc + categoryTotals[key], 0);
@@ -37,7 +40,9 @@ export function CategoryDonut({
     const start = total > 0 ? (acc / total) * 360 : 0;
     acc += categoryTotals[key];
     const end = total > 0 ? (acc / total) * 360 : 0;
-    return `${palette[key]} ${start}deg ${end}deg`;
+    const dimmed = hovered !== null && hovered !== key;
+    const segmentColor = dimmed ? `${palette[key]}${DIMMED_ALPHA}` : palette[key];
+    return `${segmentColor} ${start}deg ${end}deg`;
   });
 
   const background =
@@ -59,6 +64,7 @@ export function CategoryDonut({
             height: 120,
             borderRadius: '50%',
             background,
+            transition: 'background 0.15s ease',
             flex: 'none',
           }}
         >
@@ -83,7 +89,14 @@ export function CategoryDonut({
           {ORDER.map((key) => {
             const pct = total > 0 ? Math.round((categoryTotals[key] / total) * 100) : 0;
             return (
-              <Flex key={key} align="center" gap={8}>
+              <Flex
+                key={key}
+                align="center"
+                gap={8}
+                style={{ cursor: 'default', opacity: hovered !== null && hovered !== key ? 0.5 : 1 }}
+                onMouseEnter={() => setHovered(key)}
+                onMouseLeave={() => setHovered(null)}
+              >
                 <span
                   style={{
                     width: 12,

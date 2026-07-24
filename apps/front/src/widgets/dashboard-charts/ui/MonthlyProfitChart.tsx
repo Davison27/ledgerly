@@ -1,7 +1,10 @@
-import { Card, theme } from 'antd';
+import { useState, type MouseEvent } from 'react';
+import { Card, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { Amount } from '@/shared/ui/Amount';
 
+const { Text } = Typography;
 const { useToken } = theme;
 
 export interface MonthlyProfitChartProps {
@@ -23,6 +26,7 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const maxAbs = Math.max(1, ...profit.map((v) => Math.abs(v)));
@@ -36,17 +40,29 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
   const barY = (v: number) => (v >= 0 ? zeroY - (v / maxAbs) * halfH : zeroY);
   const barH = (v: number) => Math.abs(v / maxAbs) * halfH;
 
+  const incomeVivid = colors.chartVivid[1];
+  const expenseVivid = colors.chartVivid[2];
+
+  const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const idx = Math.floor((ratio * W) / slotW);
+    setHoverIdx(Math.min(11, Math.max(0, idx)));
+  };
+
   return (
     <Card
       title={t('projects.dashboard.monthlyProfit.title')}
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', position: 'relative' }}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           role="img"
           aria-label={t('projects.dashboard.monthlyProfit.title')}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoverIdx(null)}
           style={{
             display: 'block',
             width: '100%',
@@ -54,6 +70,7 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
             maxWidth: '100%',
             minWidth: 0,
             maxHeight: 170,
+            cursor: 'crosshair',
           }}
         >
           <line
@@ -61,13 +78,14 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
             y1={zeroY}
             x2={PAD_L + PLOT_W}
             y2={zeroY}
-            stroke={token.colorBorder}
+            stroke={colors.gridLine}
             strokeWidth={1}
           />
 
           {profit.map((v, i) => {
             const isPositive = v >= 0;
             const rMax = Math.min(4, Math.max(0, barH(v)));
+            const isHovered = hoverIdx === i;
             return (
               <rect
                 key={`bar-${i}`}
@@ -77,7 +95,8 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
                 height={Math.max(1, barH(v))}
                 rx={rMax}
                 ry={rMax}
-                fill={isPositive ? colors.income : colors.expense}
+                fill={isPositive ? incomeVivid : expenseVivid}
+                opacity={hoverIdx === null || isHovered ? 1 : 0.45}
               />
             );
           })}
@@ -95,6 +114,29 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
             </text>
           ))}
         </svg>
+
+        {hoverIdx !== null && (
+          <div
+            style={{
+              position: 'absolute',
+              left: `${((PAD_L + slotW * hoverIdx + slotW / 2) / W) * 100}%`,
+              top: `${(barY(profit[hoverIdx]) / H) * 100}%`,
+              transform: 'translate(-50%, -115%)',
+              background: token.colorBgElevated,
+              border: `1px solid ${token.colorBorderSecondary}`,
+              borderRadius: token.borderRadiusSM,
+              boxShadow: token.boxShadowSecondary,
+              padding: '6px 10px',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+              zIndex: 1,
+            }}
+          >
+            <Text strong style={{ fontSize: 12 }}>
+              {months[hoverIdx]}: <Amount value={profit[hoverIdx]} tone="auto" />
+            </Text>
+          </div>
+        )}
       </div>
     </Card>
   );

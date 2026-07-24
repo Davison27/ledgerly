@@ -1,7 +1,10 @@
-import { Card, theme } from 'antd';
+import { useId, useState, type MouseEvent } from 'react';
+import { Card, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { Amount } from '@/shared/ui/Amount';
 
+const { Text } = Typography;
 const { useToken } = theme;
 
 export interface CumulativeProfitChartProps {
@@ -23,6 +26,8 @@ export function CumulativeProfitChart({
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+  const gradientId = useId();
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const min = Math.min(0, ...cumulativeProfit);
@@ -30,7 +35,7 @@ export function CumulativeProfitChart({
   const range = max - min || 1;
 
   const isPositive = cumulativeProfit[cumulativeProfit.length - 1] >= 0;
-  const lineColor = isPositive ? colors.income : colors.expense;
+  const lineColor = isPositive ? colors.chartVivid[1] : colors.chartVivid[2];
 
   const x = (i: number) => PAD_L + (PLOT_W * i) / 11;
   const y = (v: number) => PAD_T + PLOT_H * (1 - (v - min) / range);
@@ -43,17 +48,27 @@ export function CumulativeProfitChart({
     .map((v, i) => `${x(i)},${y(v)}`)
     .join(' L ')} L ${x(cumulativeProfit.length - 1)},${zeroY} Z`;
 
+  const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const chartX = ratio * W;
+    const idx = Math.round(((chartX - PAD_L) / PLOT_W) * 11);
+    setHoverIdx(Math.min(11, Math.max(0, idx)));
+  };
+
   return (
     <Card
       title={t('projects.dashboard.cumulativeProfit.title')}
       style={{ flex: '1 1 320px', minWidth: 300 }}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', position: 'relative' }}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           role="img"
           aria-label={t('projects.dashboard.cumulativeProfit.title')}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoverIdx(null)}
           style={{
             display: 'block',
             width: '100%',
@@ -61,18 +76,26 @@ export function CumulativeProfitChart({
             maxWidth: '100%',
             minWidth: 0,
             maxHeight: 170,
+            cursor: 'crosshair',
           }}
         >
+          <defs>
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={lineColor} stopOpacity={0.28} />
+              <stop offset="100%" stopColor={lineColor} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+
           <line
             x1={PAD_L}
             y1={zeroY}
             x2={PAD_L + PLOT_W}
             y2={zeroY}
-            stroke={token.colorBorder}
+            stroke={colors.gridLine}
             strokeWidth={1}
           />
 
-          <path d={areaPath} fill={lineColor} fillOpacity={0.1} stroke="none" />
+          <path d={areaPath} fill={`url(#${gradientId})`} stroke="none" />
 
           <polyline
             points={toPoints(cumulativeProfit)}
@@ -88,7 +111,7 @@ export function CumulativeProfitChart({
               key={`pt-${i}`}
               cx={x(i)}
               cy={y(v)}
-              r={2.5}
+              r={hoverIdx === i ? 4 : 2.5}
               fill={lineColor}
             />
           ))}
@@ -106,6 +129,29 @@ export function CumulativeProfitChart({
             </text>
           ))}
         </svg>
+
+        {hoverIdx !== null && (
+          <div
+            style={{
+              position: 'absolute',
+              left: `${(x(hoverIdx) / W) * 100}%`,
+              top: `${(y(cumulativeProfit[hoverIdx]) / H) * 100}%`,
+              transform: 'translate(-50%, -115%)',
+              background: token.colorBgElevated,
+              border: `1px solid ${token.colorBorderSecondary}`,
+              borderRadius: token.borderRadiusSM,
+              boxShadow: token.boxShadowSecondary,
+              padding: '6px 10px',
+              pointerEvents: 'none',
+              whiteSpace: 'nowrap',
+              zIndex: 1,
+            }}
+          >
+            <Text strong style={{ fontSize: 12 }}>
+              {months[hoverIdx]}: <Amount value={cumulativeProfit[hoverIdx]} tone="auto" />
+            </Text>
+          </div>
+        )}
       </div>
     </Card>
   );

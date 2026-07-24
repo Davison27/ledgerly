@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { FolderOpenOutlined } from '@ant-design/icons';
@@ -15,6 +16,7 @@ export interface TopProjectsCardProps {
 export function TopProjectsCard({ topProjects }: TopProjectsCardProps) {
   const { t } = useTranslation();
   const { token } = useToken();
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const max = Math.max(1, ...topProjects.map((p) => p.total));
 
@@ -29,7 +31,20 @@ export function TopProjectsCard({ topProjects }: TopProjectsCardProps) {
       ) : (
         <Flex vertical gap={8}>
           {topProjects.map((project) => (
-            <Flex key={project.id} align="center" gap={12}>
+            <Flex
+              key={project.id}
+              align="center"
+              gap={12}
+              style={{
+                borderRadius: token.borderRadiusSM,
+                padding: '4px 6px',
+                marginInline: -6,
+                background: hovered === project.id ? token.colorFillTertiary : 'transparent',
+                transition: 'background 0.15s ease',
+              }}
+              onMouseEnter={() => setHovered(project.id)}
+              onMouseLeave={() => setHovered(null)}
+            >
               <Text
                 ellipsis
                 style={{ flex: '0 1 140px', minWidth: 80 }}

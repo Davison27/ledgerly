@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, Empty, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { TopIssuer } from '../model/data';
@@ -15,6 +16,7 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hovered, setHovered] = useState<string | null>(null);
 
   const max = Math.max(1, ...topIssuers.map((i) => i.total));
   let namedIndex = 0;
@@ -50,7 +52,20 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
       ) : (
         <Flex vertical gap={8}>
           {rows.map((row) => (
-            <Flex key={row.key} align="center" gap={12}>
+            <Flex
+              key={row.key}
+              align="center"
+              gap={12}
+              style={{
+                borderRadius: token.borderRadiusSM,
+                padding: '4px 6px',
+                marginInline: -6,
+                background: hovered === row.key ? token.colorFillTertiary : 'transparent',
+                transition: 'background 0.15s ease',
+              }}
+              onMouseEnter={() => setHovered(row.key)}
+              onMouseLeave={() => setHovered(null)}
+            >
               <span
                 style={{
                   width: 10,

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../api/types';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
+import { vividOverdue } from '@/widgets/dashboard-charts';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -15,6 +16,7 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const overdueVivid = vividOverdue(colors.mode);
 
   return (
     <Card
@@ -43,7 +45,7 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
                       style={{
                         flex: 'none',
                         fontSize: 12,
-                        color: isOverBudget ? colors.overdue : token.colorTextSecondary,
+                        color: isOverBudget ? overdueVivid : token.colorTextSecondary,
                       }}
                     >
                       {t('dashboard.budget.consumed', { pct })}
@@ -61,10 +63,11 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
                     showInfo={false}
                     size="small"
                     status={isOverBudget ? 'exception' : 'normal'}
+                    strokeColor={isOverBudget ? overdueVivid : token.colorPrimary}
                   />
                 )}
                 {isOverBudget && (
-                  <Text style={{ fontSize: 11, color: colors.overdue }}>
+                  <Text style={{ fontSize: 11, color: overdueVivid }}>
                     {t('dashboard.budget.overBudget')}
                   </Text>
                 )}

@@ -22,7 +22,8 @@
     "tagline": "Gestiona tus proyectos, documentos y finanzas en un solo lugar."
   },
   "topbar": {
-    "newTab": "Nueva pestaña"
+    "newTab": "Nueva pestaña",
+    "notifications": "Notificaciones"
   },
   "theme": {
     "toggleLight": "Activar modo claro",
@@ -41,7 +42,11 @@
   },
   "dashboard": {
     "title": "Panel",
-    "greeting": "Hola, {{name}}",
+    "greeting": {
+      "morning": "Buenos días, {{name}} 👋",
+      "afternoon": "Buenas tardes, {{name}} ☀️",
+      "evening": "Buenas noches, {{name}} 🌙"
+    },
     "subtitle": "Este es el resumen de la actividad de tu empresa.",
     "loadError": "No se ha podido cargar el panel. Inténtalo de nuevo.",
     "empty": {
@@ -76,19 +81,11 @@
     "yearSelector": {
       "label": "Ejercicio"
     },
-    "yoy": {
-      "label": "vs {{year}}",
-      "noData": "— sin datos del año anterior",
-      "up": "sube",
-      "down": "baja",
-      "ariaLabel": "{{direction}} un {{pct}} respecto al año anterior",
-      "empty": {
-        "title": "Sin comparativa",
-        "hint": "Necesitas datos del año anterior para ver la variación."
-      }
-    },
     "kpi": {
       "emptyHint": "Todavía no hay movimientos registrados."
+    },
+    "detail": {
+      "title": "Detalle financiero"
     },
     "budget": {
       "title": "Presupuesto vs. real por proyecto",
@@ -428,7 +425,7 @@
         "expenses": "Gastos"
       },
       "category": "Distribución por categoría",
-      "statusBreakdown": "Pendiente vs pagado vs vencido",
+      "statusBreakdown": "Documentos por estado",
       "documentsCount": "{{count}} documentos",
       "profit": {
         "headline": "Rentabilidad",

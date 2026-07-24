@@ -1,3 +1,4 @@
+import { useState, type MouseEvent } from 'react';
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
@@ -24,6 +25,7 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   const months = t('projects.dashboard.monthsShort').split(',');
   const min = Math.min(0, ...monthlyMargin);
@@ -39,7 +41,15 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
 
   const lastIdx = monthlyMargin.length - 1;
   const lastValue = monthlyMargin[lastIdx];
-  const lineColor = lastValue >= 0 ? colors.income : colors.expense;
+  const lineColor = lastValue >= 0 ? colors.chartVivid[1] : colors.chartVivid[2];
+
+  const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const chartX = ratio * W;
+    const idx = Math.round(((chartX - PAD_L) / PLOT_W) * 11);
+    setHoverIdx(Math.min(11, Math.max(0, idx)));
+  };
 
   return (
     <Card
@@ -52,6 +62,8 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
           width="100%"
           role="img"
           aria-label={t('projects.dashboard.marginTrend.title')}
+          onMouseMove={handleMouseMove}
+          onMouseLeave={() => setHoverIdx(null)}
           style={{
             display: 'block',
             width: '100%',
@@ -59,6 +71,7 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
             maxWidth: '100%',
             minWidth: 0,
             maxHeight: 170,
+            cursor: 'crosshair',
           }}
         >
           <line
@@ -80,20 +93,42 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
           />
 
           {monthlyMargin.map((v, i) => (
-            <circle key={`pt-${i}`} cx={x(i)} cy={y(v)} r={2.5} fill={lineColor} />
+            <circle
+              key={`pt-${i}`}
+              cx={x(i)}
+              cy={y(v)}
+              r={hoverIdx === i ? 4 : 2.5}
+              fill={lineColor}
+            />
           ))}
 
-          <text
-            x={x(lastIdx)}
-            y={y(lastValue) - 10}
-            textAnchor="end"
-            fontSize={11}
-            fontWeight={600}
-            fill={token.colorText}
-            style={TYPE.numeric}
-          >
-            {formatPct(lastValue)}
-          </text>
+          {hoverIdx !== null && (
+            <text
+              x={x(hoverIdx)}
+              y={y(monthlyMargin[hoverIdx]) - 10}
+              textAnchor="middle"
+              fontSize={11}
+              fontWeight={600}
+              fill={token.colorText}
+              style={TYPE.numeric}
+            >
+              {formatPct(monthlyMargin[hoverIdx])}
+            </text>
+          )}
+
+          {hoverIdx === null && (
+            <text
+              x={x(lastIdx)}
+              y={y(lastValue) - 10}
+              textAnchor="end"
+              fontSize={11}
+              fontWeight={600}
+              fill={token.colorText}
+              style={TYPE.numeric}
+            >
+              {formatPct(lastValue)}
+            </text>
+          )}
 
           {months.map((m, i) => (
             <text

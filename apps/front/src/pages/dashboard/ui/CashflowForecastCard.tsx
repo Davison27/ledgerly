@@ -1,3 +1,4 @@
+import { useState, type MouseEvent } from 'react';
 import { Card, Empty, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../api/types';
@@ -31,6 +32,7 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
   const { t } = useTranslation();
   const { token } = useToken();
   const colors = useSemanticColors();
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
   const monthsShort = t('projects.dashboard.monthsShort').split(',');
   const { overdue, months } = cashflowForecast;
@@ -45,6 +47,16 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
   const x = (i: number) => PAD_L + slotW * i + slotW / 2 - barW / 2;
   const barY = (v: number) => (v >= 0 ? zeroY - (v / maxAbs) * halfH : zeroY);
   const barH = (v: number) => Math.abs(v / maxAbs) * halfH;
+
+  const incomeVivid = colors.chartVivid[1];
+  const expenseVivid = colors.chartVivid[2];
+
+  const handleMouseMove = (event: MouseEvent<SVGSVGElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    const ratio = (event.clientX - rect.left) / rect.width;
+    const idx = Math.floor((ratio * W) / slotW);
+    setHoverIdx(Math.min(months.length - 1, Math.max(0, idx)));
+  };
 
   return (
     <Card
@@ -76,12 +88,14 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
       {months.length === 0 ? (
         <Empty description={t('dashboard.cashflow.empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
-        <div style={{ overflowX: 'auto' }}>
+        <div style={{ overflowX: 'auto', position: 'relative' }}>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             width="100%"
             role="img"
             aria-label={t('dashboard.cashflow.title')}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={() => setHoverIdx(null)}
             style={{
               display: 'block',
               width: '100%',
@@ -89,6 +103,7 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
               maxWidth: '100%',
               minWidth: 0,
               maxHeight: 170,
+              cursor: 'crosshair',
             }}
           >
             <line
@@ -112,7 +127,8 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
                   height={Math.max(1, barH(m.net))}
                   rx={rMax}
                   ry={rMax}
-                  fill={isPositive ? colors.income : colors.expense}
+                  fill={isPositive ? incomeVivid : expenseVivid}
+                  opacity={hoverIdx === null || hoverIdx === i ? 1 : 0.45}
                 />
               );
             })}
@@ -130,6 +146,29 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
               </text>
             ))}
           </svg>
+
+          {hoverIdx !== null && months[hoverIdx] && (
+            <div
+              style={{
+                position: 'absolute',
+                left: `${((PAD_L + slotW * hoverIdx + slotW / 2) / W) * 100}%`,
+                top: `${(barY(months[hoverIdx].net) / H) * 100}%`,
+                transform: 'translate(-50%, -115%)',
+                background: token.colorBgElevated,
+                border: `1px solid ${token.colorBorderSecondary}`,
+                borderRadius: token.borderRadiusSM,
+                boxShadow: token.boxShadowSecondary,
+                padding: '6px 10px',
+                pointerEvents: 'none',
+                whiteSpace: 'nowrap',
+                zIndex: 1,
+              }}
+            >
+              <Text strong style={{ fontSize: 12 }}>
+                {monthLabel(months[hoverIdx].month, monthsShort)}: <Amount value={months[hoverIdx].net} tone="auto" />
+              </Text>
+            </div>
+          )}
         </div>
       )}
     </Card>

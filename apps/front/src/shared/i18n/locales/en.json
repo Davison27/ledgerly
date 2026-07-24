@@ -22,7 +22,8 @@
     "tagline": "Manage your projects, documents and finances in one place."
   },
   "topbar": {
-    "newTab": "New tab"
+    "newTab": "New tab",
+    "notifications": "Notifications"
   },
   "theme": {
     "toggleLight": "Switch to light mode",
@@ -41,7 +42,11 @@
   },
   "dashboard": {
     "title": "Dashboard",
-    "greeting": "Hello, {{name}}",
+    "greeting": {
+      "morning": "Good morning, {{name}} 👋",
+      "afternoon": "Good afternoon, {{name}} ☀️",
+      "evening": "Good evening, {{name}} 🌙"
+    },
     "subtitle": "Here's a summary of your company's activity.",
     "loadError": "The dashboard could not be loaded. Please try again.",
     "empty": {
@@ -76,19 +81,11 @@
     "yearSelector": {
       "label": "Year"
     },
-    "yoy": {
-      "label": "vs {{year}}",
-      "noData": "— no data for last year",
-      "up": "is up",
-      "down": "is down",
-      "ariaLabel": "{{direction}} {{pct}} compared to last year",
-      "empty": {
-        "title": "No comparison yet",
-        "hint": "Previous-year data is needed to show the change."
-      }
-    },
     "kpi": {
       "emptyHint": "No entries recorded yet."
+    },
+    "detail": {
+      "title": "Financial detail"
     },
     "budget": {
       "title": "Budget vs. actual by project",
@@ -428,7 +425,7 @@
         "expenses": "Expenses"
       },
       "category": "Distribution by category",
-      "statusBreakdown": "Pending vs paid vs overdue",
+      "statusBreakdown": "Documents by status",
       "documentsCount": "{{count}} documents",
       "profit": {
         "headline": "Profitability",
