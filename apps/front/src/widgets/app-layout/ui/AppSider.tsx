@@ -182,18 +182,13 @@ export function AppSider({
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
         }}
       >
-        <Button
-          type="text"
-          aria-label={t('common.appName')}
-          style={{ height: 40, padding: 0 }}
-          onClick={() => void navigate({ to: '/dashboard' })}
-        >
+        <div>
           <img
-            src={company.logo || (collapsed ? iconUrl : logoUrl)}
+            src={(collapsed ? iconUrl : logoUrl)}
             alt={t('common.appName')}
             style={{ height: 28, display: 'block', objectFit: 'contain' }}
           />
-        </Button>
+        </div>
 
         <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
           <Button

@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react';
-import { App, Button, Dropdown, Flex, Layout, Tooltip, theme } from 'antd';
-import { BellOutlined, MoonOutlined, SettingOutlined, SunOutlined } from '@ant-design/icons';
+import { App, Button, Flex, Layout, Tooltip, theme } from 'antd';
+import { BellOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { CompanySettingsModal } from '@/features/company-settings';
-import { useSettingsMenuItems } from '../model/useSettingsMenuItems';
+import { useCompany } from '@/entities/company';
 
 const { useToken } = theme;
 
@@ -20,9 +20,7 @@ export function TopBar({ search }: TopBarProps) {
   const { mode, toggle } = useThemeMode();
   const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const themeToggleLabel = mode === 'dark' ? t('theme.toggleLight') : t('theme.toggleDark');
-  const settingsMenu = useSettingsMenuItems({
-    onCompanySettings: () => setCompanyModalOpen(true),
-  });
+  const { company } = useCompany();
 
   return (
     <Layout.Header
@@ -80,23 +78,13 @@ export function TopBar({ search }: TopBarProps) {
             </Button>
           </Tooltip>
 
-          <Dropdown
-            menu={{ items: settingsMenu, style: { minWidth: 150, padding: 10 } }}
-            trigger={['click']}
-          >
-            <Button
-              type="text"
-              style={{
-                height: 40,
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <SettingOutlined style={{ fontSize: 18 }} />
-              {t('common.settings')}
-            </Button>
-          </Dropdown>
+          <div aria-label={t('common.appName')}>
+            <img
+              src={company.logo}
+              alt={t('common.appName')}
+              style={{ height: 28, display: 'block', objectFit: 'contain' }}
+            />
+          </div>
         </Flex>
       </Flex>
 
