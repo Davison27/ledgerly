@@ -17,6 +17,7 @@ export type {
   DocumentDirectionDto,
   DocumentStatusDto,
   DocumentTypeDto,
+  DuplicateCheckParams,
   CreateDocumentPayload,
   UpdateDocumentPayload,
   ExtractInvoiceResult,

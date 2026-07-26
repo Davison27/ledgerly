@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -25,23 +26,23 @@ import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
-  checkDuplicate,
   createDocument,
+  documentQueries,
   extractInvoice,
   extractInvoiceStandalone,
   formatEUR,
   type CreateDocumentPayload,
   type DocumentDirectionDto,
-  type DocumentDuplicateDto,
   type DocumentStatusDto,
   type DocumentTypeDto,
+  type DuplicateCheckParams,
   type ExtractInvoiceConfidence,
   type ExtractInvoiceResult,
 } from '@/entities/document';
 import { ApiError } from '@/shared/api/httpClient';
-import { createStaffMember, listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
-import { createSupplier, listSuppliers, type SupplierDto } from '@/entities/supplier';
-import { useCompany } from '@/entities/company';
+import { createStaffMember, staffQueries } from '@/entities/staff-member';
+import { createSupplier, supplierQueries, type SupplierDto } from '@/entities/supplier';
+import { projectQueries } from '@/entities/project';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 
 function normalize(value: string | null | undefined): string {
@@ -139,7 +140,9 @@ export function DocumentUploadModal({
   const { t } = useTranslation();
   const { message } = App.useApp();
   const { token } = useToken();
-  const { projects } = useCompany();
+  const queryClient = useQueryClient();
+  const { data: projectsData } = useQuery(projectQueries.list());
+  const projects = projectsData ?? [];
   const screens = useBreakpoint();
   const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
@@ -163,11 +166,16 @@ export function DocumentUploadModal({
   const [submitting, setSubmitting] = useState(false);
   const extractionTokenRef = useRef(0);
 
-  const [duplicateMatches, setDuplicateMatches] = useState<DocumentDuplicateDto[]>([]);
-  const duplicateCheckTokenRef = useRef(0);
+  const [duplicateCheckParams, setDuplicateCheckParams] = useState<DuplicateCheckParams | null>(
+    null,
+  );
 
-  const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
-  const [suppliersLoaded, setSuppliersLoaded] = useState(false);
+  const { data: suppliersData, isPending: suppliersPending } = useQuery({
+    ...supplierQueries.list(),
+    enabled: open,
+  });
+  const suppliers = useMemo(() => suppliersData ?? [], [suppliersData]);
+  const suppliersLoaded = !suppliersPending;
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [autoMatchAttempted, setAutoMatchAttempted] = useState(false);
   const [creatingSupplier, setCreatingSupplier] = useState(false);
@@ -175,7 +183,11 @@ export function DocumentUploadModal({
   const [newSupplierTaxId, setNewSupplierTaxId] = useState('');
   const [creatingSupplierSubmitting, setCreatingSupplierSubmitting] = useState(false);
 
-  const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
+  const { data: staffMembersData } = useQuery({
+    ...staffQueries.list(),
+    enabled: open && context.kind === 'project',
+  });
+  const staffMembers = staffMembersData ?? [];
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [staffMemberError, setStaffMemberError] = useState(false);
   const [creatingStaffMember, setCreatingStaffMember] = useState(false);
@@ -197,7 +209,6 @@ export function DocumentUploadModal({
     setStep('idle');
     setProgress(0);
     setAutoMatchAttempted(false);
-    setDuplicateMatches([]);
     setSupplierId(null);
     setCreatingSupplier(false);
     setNewSupplierName('');
@@ -300,23 +311,14 @@ export function DocumentUploadModal({
       setSubmitting(false);
       extractionTokenRef.current += 1;
 
-      setDuplicateMatches([]);
-      duplicateCheckTokenRef.current += 1;
+      setDuplicateCheckParams(null);
 
-      setSuppliers([]);
-      setSuppliersLoaded(false);
       setSupplierId(null);
       setAutoMatchAttempted(false);
       setCreatingSupplier(false);
       setNewSupplierName('');
       setNewSupplierTaxId('');
 
-      listSuppliers()
-        .then(setSuppliers)
-        .catch(() => setSuppliers([]))
-        .finally(() => setSuppliersLoaded(true));
-
-      setStaffMembers([]);
       setStaffMemberId(null);
       setStaffMemberError(false);
       setCreatingStaffMember(false);
@@ -325,12 +327,6 @@ export function DocumentUploadModal({
 
       setSelectedProjectId(null);
       setProjectError(false);
-
-      if (context.kind === 'project') {
-        listStaffMembers()
-          .then(setStaffMembers)
-          .catch(() => setStaffMembers([]));
-      }
     }
   }, [open, form, context.kind, lockedType]);
 
@@ -383,32 +379,28 @@ export function DocumentUploadModal({
     Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) > AMOUNT_MISMATCH_TOLERANCE;
 
   useEffect(() => {
-    const requestToken = ++duplicateCheckTokenRef.current;
-
     if (!open || !invoiceNumberWatch || amountWatch === undefined || amountWatch === null) {
-      setDuplicateMatches([]);
+      setDuplicateCheckParams(null);
       return;
     }
 
     const handle = setTimeout(() => {
-      checkDuplicate({
+      setDuplicateCheckParams({
         issuerName: issuerNameWatch || undefined,
         issuerTaxId: issuerTaxIdWatch || undefined,
         invoiceNumber: invoiceNumberWatch,
         amount: amountWatch,
-      })
-        .then((result) => {
-          if (duplicateCheckTokenRef.current !== requestToken) return;
-          setDuplicateMatches(result.matches);
-        })
-        .catch(() => {
-          if (duplicateCheckTokenRef.current !== requestToken) return;
-          setDuplicateMatches([]);
-        });
+      });
     }, 500);
 
     return () => clearTimeout(handle);
   }, [open, invoiceNumberWatch, amountWatch, issuerNameWatch, issuerTaxIdWatch]);
+
+  const { data: duplicateCheckResult } = useQuery({
+    ...documentQueries.duplicateCheck(duplicateCheckParams ?? { invoiceNumber: '', amount: 0 }),
+    enabled: duplicateCheckParams !== null,
+  });
+  const duplicateMatches = duplicateCheckResult?.matches ?? [];
 
   const handleCancel = () => {
     form.resetFields();
@@ -477,7 +469,7 @@ export function DocumentUploadModal({
         name,
         taxId: newSupplierTaxId.trim() || undefined,
       });
-      setSuppliers((prev) => [...prev, created].sort((a, b) => a.name.localeCompare(b.name)));
+      await queryClient.invalidateQueries({ queryKey: supplierQueries.all });
       setSupplierId(created.id);
       form.setFieldsValue({
         issuerName: created.name,
@@ -532,11 +524,7 @@ export function DocumentUploadModal({
     setCreatingStaffMemberSubmitting(true);
     try {
       const created = await createStaffMember({ firstName, lastName });
-      setStaffMembers((prev) =>
-        [...prev, created].sort((a, b) =>
-          `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
-        ),
-      );
+      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
       setStaffMemberId(created.id);
       setStaffMemberError(false);
       handleCancelCreateStaffMember();
@@ -587,8 +575,10 @@ export function DocumentUploadModal({
         setSubmitting(true);
 
         createDocument(projectId, payload, currentFile ?? undefined)
-          .then(() => {
+          .then(async () => {
             void message.success(t('projects.documents.upload.created'));
+            await queryClient.invalidateQueries({ queryKey: documentQueries.all });
+            await queryClient.invalidateQueries({ queryKey: projectQueries.all });
             if (isLastInQueue) {
               finishQueue();
             } else {

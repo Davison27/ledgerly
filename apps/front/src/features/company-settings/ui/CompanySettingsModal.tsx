@@ -15,7 +15,8 @@ import {
 import type { Color } from 'antd/es/color-picker';
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '@/entities/company';
+import { useQueryClient } from '@tanstack/react-query';
+import { companyQueries, updateCompany, useCompany } from '@/entities/company';
 import { BRAND_DEFAULT } from '@/shared/config/theme';
 
 const { Text } = Typography;
@@ -42,7 +43,8 @@ interface CompanyFormFields {
 
 export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProps) {
   const { t } = useTranslation();
-  const { company, updateCompany } = useCompany();
+  const { company } = useCompany();
+  const queryClient = useQueryClient();
   const { message } = App.useApp();
   const [form] = Form.useForm<CompanyFormFields>();
   const [logo, setLogo] = useState<string | undefined>(company.logo);
@@ -65,6 +67,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
       .then(async (values) => {
         try {
           await updateCompany({ ...values, logo });
+          await queryClient.invalidateQueries({ queryKey: companyQueries.singleton().queryKey });
           void message.success(t('company.settings.saved'));
           onClose();
         } catch {

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Button, Card, Empty, Flex, Select, Skeleton, Typography, theme } from 'antd';
 import {
   ArrowDownOutlined,
@@ -8,14 +8,14 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { useCompany } from '@/entities/company';
 import { SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
-import { getCompanyDashboard } from '../api/dashboard.api';
-import type { CompanyDashboardDto } from '../api/types';
+import { dashboardQueries } from '../api/dashboard.queries';
 import {
   MonthlyChart,
   MonthlyProfitChart,
@@ -64,33 +64,11 @@ export function DashboardPage() {
   const { token } = useToken();
 
   const [year, setYear] = useState<number | undefined>(undefined);
-  const [data, setData] = useState<CompanyDashboardDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    setError(false);
-
-    getCompanyDashboard(year)
-      .then((loaded) => {
-        if (!cancelled) setData(loaded);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setData(null);
-          setError(true);
-        }
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [year]);
+  const {
+    data,
+    isPending: loading,
+    isError: error,
+  } = useQuery(dashboardQueries.company(year));
 
   const tips = useMemo(() => (data ? deriveTips(data) : []), [data]);
 

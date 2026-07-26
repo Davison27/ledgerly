@@ -1,11 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { fetchProject, type Project, type ProjectFormValues } from '@/entities/project';
+import {
+  addProject,
+  projectQueries,
+  removeProject,
+  updateProject,
+  type Project,
+  type ProjectFormValues,
+} from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
-import { useCompany } from '@/entities/company';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { resolveProjectColor } from '@/shared/lib/palette';
@@ -21,7 +28,8 @@ export function ProjectsPage() {
   const { message, modal } = App.useApp();
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
-  const { projects, projectsLoading, addProject, updateProject, removeProject } = useCompany();
+  const queryClient = useQueryClient();
+  const { data: projects, isPending: projectsLoading } = useQuery(projectQueries.list());
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
@@ -41,7 +49,7 @@ export function ProjectsPage() {
   const handleEdit = async (project: Project) => {
     setLoadingEditId(project.id);
     try {
-      const full = await fetchProject(project.id);
+      const full = await queryClient.fetchQuery(projectQueries.detail(project.id));
       setEditingProject(full);
       setIsFormOpen(true);
     } catch {
@@ -61,6 +69,7 @@ export function ProjectsPage() {
       onOk: async () => {
         try {
           await removeProject(project.id);
+          await queryClient.invalidateQueries({ queryKey: projectQueries.all });
         } catch {
           void message.error(t('projects.deleteConfirm.error'));
         }
@@ -82,6 +91,7 @@ export function ProjectsPage() {
         await addProject(values);
         void message.success(t('projects.form.created'));
       }
+      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
       setIsFormOpen(false);
       setEditingProject(null);
     } catch (error) {
@@ -119,7 +129,7 @@ export function ProjectsPage() {
             <Card key={index} loading />
           ))
         ) : (
-          projects.map((project) => (
+          (projects ?? []).map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
