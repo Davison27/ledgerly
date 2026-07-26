@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Button,
@@ -17,10 +18,12 @@ import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   deleteDocument,
+  documentQueries,
   type DocumentStatus,
   type DocumentType,
   type ProjectDocument,
 } from '@/entities/document';
+import { projectQueries } from '@/entities/project';
 import type { ProjectSectionProps } from '../model/types';
 import { DocumentsListView } from './DocumentsListView';
 import { DocumentsCardsView } from './DocumentsCardsView';
@@ -39,12 +42,12 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const { t } = useTranslation();
   const { token } = useToken();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
 
   const {
     documents,
     loading: documentsLoading,
     error: documentsError,
-    reload: reloadDocuments,
   } = useProjectDocuments(project.id);
 
   useEffect(() => {
@@ -68,7 +71,6 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
 
   const handleDocumentCreated = () => {
     setUploadOpen(false);
-    reloadDocuments();
   };
 
   const handleEdit = (doc: ProjectDocument) => {
@@ -77,7 +79,6 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
 
   const handleDocumentUpdated = () => {
     setEditing(null);
-    reloadDocuments();
   };
 
   const handleDelete = async (doc: ProjectDocument) => {
@@ -88,7 +89,8 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
       if (selectedId === doc.id) {
         setSelectedId(null);
       }
-      reloadDocuments();
+      await queryClient.invalidateQueries({ queryKey: documentQueries.all });
+      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
     } catch {
       void message.error(t('projects.documents.delete.error'));
     } finally {

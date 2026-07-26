@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useParams } from '@tanstack/react-router';
-import { Avatar, Flex, Segmented, Typography, theme } from 'antd';
+import { useQuery } from '@tanstack/react-query';
+import { Avatar, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany } from '@/entities/company';
+import { projectQueries } from '@/entities/project';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { resolveProjectColor } from '@/shared/lib/palette';
@@ -22,12 +23,20 @@ export function ProjectDetailPage() {
   const { token } = useToken();
   const { t } = useTranslation();
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
-  const { projects } = useCompany();
-  const project = projects.find((p) => p.id === projectId);
+  const { data: projects, isPending } = useQuery(projectQueries.list());
+  const project = projects?.find((p) => p.id === projectId);
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
 
   const [section, setSection] = useState<Section>('documents');
+
+  if (isPending) {
+    return (
+      <PageContainer>
+        <Skeleton active paragraph={{ rows: 8 }} />
+      </PageContainer>
+    );
+  }
 
   if (!project) {
     return (

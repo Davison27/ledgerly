@@ -1,4 +1,3 @@
-export { fetchCompany, updateCompany, companyNeedsSetup } from './model/company';
+export { updateCompany, companyNeedsSetup } from './model/company';
 export type { Company } from './model/company';
-export { CompanyProvider, useCompany } from './model/CompanyProvider';
-export { companyQueries } from './api/company.queries';
+export { companyQueries, useCompany } from './api/company.queries';

@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Card, Flex, Typography, theme } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import { listScheduleEvents, ScheduleDaysSummary, type ScheduleEventDto } from '@/entities/schedule-event';
+import { scheduleQueries, ScheduleDaysSummary } from '@/entities/schedule-event';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 
 const { Text } = Typography;
@@ -17,22 +18,20 @@ export function UpcomingScheduleCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { token } = useToken();
-  const [events, setEvents] = useState<ScheduleEventDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const range = useMemo(
+    () => ({
+      from: dayjs().format('YYYY-MM-DD'),
+      to: dayjs().add(UPCOMING_WINDOW_DAYS, 'day').format('YYYY-MM-DD'),
+    }),
+    [],
+  );
+  const {
+    data: events,
+    isPending: loading,
+    isError: error,
+  } = useQuery(scheduleQueries.events(range));
 
-  useEffect(() => {
-    const from = dayjs().format('YYYY-MM-DD');
-    const to = dayjs().add(UPCOMING_WINDOW_DAYS, 'day').format('YYYY-MM-DD');
-    setLoading(true);
-    setError(false);
-    listScheduleEvents({ from, to })
-      .then(setEvents)
-      .catch(() => setError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  const upcoming = [...events]
+  const upcoming = [...(events ?? [])]
     .sort((a, b) => a.startDate.localeCompare(b.startDate))
     .slice(0, MAX_ITEMS);
 

@@ -1,11 +1,10 @@
-import { useEffect, useState } from 'react';
 import { Button, Flex, Grid, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { LanguageSwitcher } from './LanguageSwitcher';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { SPACE } from '@/shared/config/theme';
-import { companyNeedsSetup, fetchCompany } from '@/entities/company';
+import { companyNeedsSetup, useCompany } from '@/entities/company';
 import logoUrl from '../../../assets/ledgerly-logo.svg';
 import iconUrl from '../../../assets/ledgerly-icon.svg';
 
@@ -18,30 +17,8 @@ export function LoginPage() {
   const { token } = theme.useToken();
   const colors = useSemanticColors();
   const screens = useBreakpoint();
-  const [companyLogo, setCompanyLogo] = useState<string | undefined>(undefined);
-  const [checking, setChecking] = useState(true);
-  const [needsSetup, setNeedsSetup] = useState(true);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchCompany()
-      .then((company) => {
-        if (cancelled) return;
-        setCompanyLogo(company.logo);
-        setNeedsSetup(companyNeedsSetup(company));
-      })
-      .catch(() => {
-        if (!cancelled) setNeedsSetup(true);
-      })
-      .finally(() => {
-        if (!cancelled) setChecking(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { company, isLoading: checking } = useCompany();
+  const needsSetup = companyNeedsSetup(company);
 
   const handleEnter = () => {
     void navigate({ to: needsSetup ? '/onboarding' : '/dashboard' });
@@ -69,7 +46,7 @@ export function LoginPage() {
 
         <Flex vertical align="center" gap={20} style={{ width: '100%', maxWidth: 340 }}>
           <img
-            src={companyLogo || logoUrl}
+            src={company.logo || logoUrl}
             alt={t('common.appName')}
             style={{ width: 200, maxWidth: '100%' }}
           />

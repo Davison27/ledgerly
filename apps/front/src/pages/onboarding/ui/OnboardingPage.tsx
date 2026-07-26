@@ -18,10 +18,11 @@ import {
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { SPACE } from '@/shared/config/theme';
-import { companyNeedsSetup, fetchCompany, updateCompany } from '@/entities/company';
+import { companyNeedsSetup, companyQueries, updateCompany, useCompany } from '@/entities/company';
 import { loadDemoData } from '../api/demo.api';
-import { listProjects } from '@/entities/project';
+import { projectQueries } from '@/entities/project';
 
 const { Title, Text } = Typography;
 
@@ -50,55 +51,31 @@ export function OnboardingPage() {
   const navigate = useNavigate();
   const { message } = App.useApp();
   const { token } = theme.useToken();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm<CompanyFormFields>();
   const [current, setCurrent] = useState(0);
   const [logo, setLogo] = useState<string | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
-  const [checkingExisting, setCheckingExisting] = useState(true);
-  const [demoAvailable, setDemoAvailable] = useState(false);
   const [loadingDemo, setLoadingDemo] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchCompany()
-      .then((company) => {
-        if (cancelled) return;
-        if (!companyNeedsSetup(company)) {
-          void navigate({ to: '/dashboard' });
-          return;
-        }
-        setCheckingExisting(false);
-      })
-      .catch(() => {
-        if (!cancelled) setCheckingExisting(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [navigate]);
+  const { company, isLoading: companyLoading } = useCompany();
+  const needsSetup = companyNeedsSetup(company);
+  const checkingExisting = companyLoading || !needsSetup;
 
   useEffect(() => {
-    let cancelled = false;
+    if (!companyLoading && !needsSetup) {
+      void navigate({ to: '/dashboard' });
+    }
+  }, [companyLoading, needsSetup, navigate]);
 
-    listProjects()
-      .then((projects) => {
-        if (!cancelled) setDemoAvailable(projects.length === 0);
-      })
-      .catch(() => {
-        if (!cancelled) setDemoAvailable(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { data: projects, isPending: projectsLoading } = useQuery(projectQueries.list());
+  const demoAvailable = !projectsLoading && (projects?.length ?? 0) === 0;
 
   const handleLoadDemoData = async () => {
     setLoadingDemo(true);
     try {
       await loadDemoData();
+      await queryClient.invalidateQueries();
       void message.success(t('onboarding.demo.success'));
       void navigate({ to: '/dashboard' });
     } catch {
@@ -126,6 +103,7 @@ export function OnboardingPage() {
         setSubmitting(true);
         try {
           await updateCompany({ ...values, logo });
+          await queryClient.invalidateQueries({ queryKey: companyQueries.singleton().queryKey });
           void message.success(t('onboarding.success'));
           void navigate({ to: '/dashboard' });
         } catch {
