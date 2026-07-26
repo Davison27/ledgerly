@@ -15,3 +15,4 @@ export type {
   ProjectFormValues,
   ProjectColorToken,
 } from './model/project';
+export { projectQueries } from './api/project.queries';
