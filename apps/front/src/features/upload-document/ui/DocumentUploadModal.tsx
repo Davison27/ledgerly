@@ -5,6 +5,7 @@ import {
   App,
   Button,
   Col,
+  ConfigProvider,
   DatePicker,
   Flex,
   Form,
@@ -21,7 +22,12 @@ import {
   Upload,
   theme,
 } from 'antd';
-import { ExclamationCircleOutlined, InboxOutlined, PlusOutlined, SwapOutlined } from '@ant-design/icons';
+import {
+  ExclamationCircleOutlined,
+  InboxOutlined,
+  PlusOutlined,
+  SwapOutlined,
+} from '@ant-design/icons';
 import type { RcFile } from 'antd/es/upload';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -44,6 +50,7 @@ import { createStaffMember, staffQueries } from '@/entities/staff-member';
 import { createSupplier, supplierQueries, type SupplierDto } from '@/entities/supplier';
 import { projectQueries } from '@/entities/project';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
+import { SPACE } from '@/shared/config/theme';
 
 function normalize(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -78,8 +85,7 @@ const { useToken } = theme;
 const MAX_QUEUE_FILES = 20;
 
 export type DocumentUploadContext =
-  | { kind: 'project'; projectId: string }
-  | { kind: 'staffPayroll'; staffMemberId: string };
+  { kind: 'project'; projectId: string } | { kind: 'staffPayroll'; staffMemberId: string };
 
 interface DocumentUploadModalProps {
   open: boolean;
@@ -119,8 +125,6 @@ const CONFIDENCE_TONE: Record<ExtractInvoiceConfidence, SemanticTone> = {
   partial: 'pending',
   low: 'overdue',
 };
-
-const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
 
 const AMOUNT_MISMATCH_TOLERANCE = 0.02;
 
@@ -245,7 +249,7 @@ export function DocumentUploadModal({
         setStep('done');
         form.setFieldsValue({
           name: result.fields.name,
-          type: lockedType ?? (result.fields.type ?? 'factura'),
+          type: lockedType ?? result.fields.type ?? 'factura',
           date: result.fields.date ? dayjs(result.fields.date) : undefined,
           dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
           amount: result.fields.amount,
@@ -376,7 +380,8 @@ export function DocumentUploadModal({
     taxBaseWatch != null &&
     taxAmountWatch != null &&
     irpfAmountWatch != null &&
-    Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) > AMOUNT_MISMATCH_TOLERANCE;
+    Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) >
+      AMOUNT_MISMATCH_TOLERANCE;
 
   useEffect(() => {
     if (!open || !invoiceNumberWatch || amountWatch === undefined || amountWatch === null) {
@@ -611,7 +616,9 @@ export function DocumentUploadModal({
 
   const confidenceTag = extractResult && (
     <SemanticTag tone={CONFIDENCE_TONE[extractResult.confidence]}>
-      {extractResult.warnings.length > 0 && <ExclamationCircleOutlined style={{ marginInlineEnd: 4 }} />}
+      {extractResult.warnings.length > 0 && (
+        <ExclamationCircleOutlined style={{ marginInlineEnd: 4 }} />
+      )}
       {t(`projects.documents.upload.extraction.confidence.${extractResult.confidence}`)}
     </SemanticTag>
   );
@@ -719,11 +726,7 @@ export function DocumentUploadModal({
         </Button>,
       ]}
     >
-      <Flex
-        gap={20}
-        style={{ height: isDesktop ? '100%' : 'auto' }}
-        vertical={!isDesktop}
-      >
+      <Flex gap={20} style={{ height: isDesktop ? '100%' : 'auto' }} vertical={!isDesktop}>
         <div style={leftPanelStyle}>
           {!currentFile ? (
             <Dragger
@@ -733,7 +736,12 @@ export function DocumentUploadModal({
               showUploadList={false}
               disabled={isBusy}
               beforeUpload={handleFilesSelected}
-              style={{ flex: '1 1 auto', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}
+              style={{
+                flex: '1 1 auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+              }}
             >
               <p className="ant-upload-drag-icon" style={{ marginBottom: 4 }}>
                 <InboxOutlined />
@@ -754,15 +762,26 @@ export function DocumentUploadModal({
                 </Text>
               )}
               <Flex justify="space-between" align="center" gap={8}>
-                <Text ellipsis title={fileName ?? undefined} style={{ flex: '1 1 auto', minWidth: 0 }}>
+                <Text
+                  ellipsis
+                  title={fileName ?? undefined}
+                  style={{ flex: '1 1 auto', minWidth: 0 }}
+                >
                   {fileName}
                 </Text>
-                <Button size="small" icon={<SwapOutlined />} disabled={isBusy} onClick={handleRemoveFile}>
+                <Button
+                  size="small"
+                  icon={<SwapOutlined />}
+                  disabled={isBusy}
+                  onClick={handleRemoveFile}
+                >
                   {t('projects.documents.upload.dropzone.changeFile')}
                 </Button>
               </Flex>
 
-              {isBusy && <Progress percent={progressPercent} status={progressStatus} size="small" />}
+              {isBusy && (
+                <Progress percent={progressPercent} status={progressStatus} size="small" />
+              )}
 
               {extractResult && (
                 <Flex vertical gap={4}>
@@ -827,356 +846,347 @@ export function DocumentUploadModal({
         </div>
 
         <div style={rightPanelStyle}>
-          <Form<DocumentFormFields>
-            form={form}
-            layout="vertical"
-            size="small"
-            requiredMark={false}
-            initialValues={FORM_INITIAL_VALUES}
-          >
-            {duplicateMatches.length > 0 && (
-              <Alert
-                type="warning"
-                showIcon
-                message={t('projects.documents.upload.duplicate.title')}
-                description={
-                  <ul style={{ margin: 0, paddingInlineStart: 18 }}>
-                    {duplicateMatches.map((match) => (
-                      <li key={match.id}>
-                        {t('projects.documents.upload.duplicate.match', {
-                          project: match.projectName,
-                          name: match.name,
-                          date: match.date,
-                          amount: formatEUR(match.amount),
-                        })}
-                      </li>
-                    ))}
-                  </ul>
-                }
-                style={{ marginBottom: 12 }}
-              />
-            )}
+          <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
+            <Form<DocumentFormFields>
+              form={form}
+              layout="vertical"
+              size="small"
+              requiredMark={false}
+              initialValues={FORM_INITIAL_VALUES}
+            >
+              {duplicateMatches.length > 0 && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  message={t('projects.documents.upload.duplicate.title')}
+                  description={
+                    <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+                      {duplicateMatches.map((match) => (
+                        <li key={match.id}>
+                          {t('projects.documents.upload.duplicate.match', {
+                            project: match.projectName,
+                            name: match.name,
+                            date: match.date,
+                            amount: formatEUR(match.amount),
+                          })}
+                        </li>
+                      ))}
+                    </ul>
+                  }
+                  style={{ marginBottom: 12 }}
+                />
+              )}
 
-            <Text strong style={{ fontSize: 13 }}>
-              {t('projects.documents.upload.sections.document')}
-            </Text>
-            <Row gutter={12} style={{ marginTop: 8 }}>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item
-                  name="name"
-                  label={t('projects.documents.upload.fields.name')}
-                  style={FORM_ITEM_STYLE}
-                  rules={[
-                    { required: true, message: t('projects.documents.upload.validation.nameRequired') },
-                  ]}
-                >
-                  <Input placeholder={t('projects.documents.upload.placeholders.name')} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item name="type" label={t('projects.documents.upload.fields.type')} style={FORM_ITEM_STYLE}>
-                  <Select
-                    disabled={Boolean(lockedType)}
-                    options={DOCUMENT_TYPES.map((type) => ({
-                      value: type,
-                      label: t(`projects.documents.types.${type}`),
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item
-                  name="status"
-                  label={t('projects.documents.upload.fields.status')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Select
-                    options={DOCUMENT_STATUSES.map((status) => ({
-                      value: status,
-                      label: t(`projects.documents.statuses.${status}`),
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={12}>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item
-                  name="date"
-                  label={t('projects.documents.upload.fields.date')}
-                  style={FORM_ITEM_STYLE}
-                  rules={[
-                    { required: true, message: t('projects.documents.upload.validation.dateRequired') },
-                  ]}
-                >
-                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item
-                  name="dueDate"
-                  label={t('projects.documents.upload.fields.dueDate')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={8}>
-                <Form.Item
-                  name="invoiceNumber"
-                  label={t('projects.documents.upload.fields.invoiceNumber')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Input placeholder={t('projects.documents.upload.placeholders.invoiceNumber')} />
-                </Form.Item>
-              </Col>
-            </Row>
-
-            {(showStaffSelect || showProjectSelect) && (
-              <Row gutter={12} align="top">
-                {showStaffSelect && (
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      label={t('projects.documents.upload.staffMember.label')}
-                      style={FORM_ITEM_STYLE}
-                      validateStatus={staffMemberError ? 'error' : undefined}
-                      help={
-                        staffMemberError
-                          ? t('projects.documents.upload.staffMember.required')
-                          : t('projects.documents.upload.staffMember.hint')
-                      }
-                    >
-                      <Select
-                        showSearch
-                        value={staffMemberId ?? undefined}
-                        onChange={handleSelectStaffMember}
-                        placeholder={t('projects.documents.upload.staffMember.placeholder')}
-                        filterOption={(input, option) =>
-                          (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                        }
-                        options={staffMembers.map((member) => ({
-                          value: member.id,
-                          label: `${member.firstName} ${member.lastName}`,
-                        }))}
-                      />
-                    </Form.Item>
-                    <Popover
-                      trigger="click"
-                      open={creatingStaffMember}
-                      onOpenChange={handleCreateStaffMemberPopoverOpenChange}
-                      placement="bottomLeft"
-                      content={createStaffMemberPopoverContent}
-                    >
-                      <Button
-                        type="link"
-                        size="small"
-                        icon={<PlusOutlined />}
-                        style={{ paddingInlineStart: 0, marginTop: -4 }}
-                      >
-                        {t('projects.documents.upload.staffMember.createNew')}
-                      </Button>
-                    </Popover>
-                  </Col>
-                )}
-                {showProjectSelect && (
-                  <Col xs={24} md={8}>
-                    <Form.Item
-                      label={t('projects.documents.upload.project.label')}
-                      style={FORM_ITEM_STYLE}
-                      validateStatus={projectError ? 'error' : undefined}
-                      help={projectError ? t('projects.documents.upload.project.required') : undefined}
-                    >
-                      <Select
-                        showSearch
-                        value={selectedProjectId ?? undefined}
-                        onChange={handleSelectProject}
-                        placeholder={t('projects.documents.upload.project.placeholder')}
-                        filterOption={(input, option) =>
-                          (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                        }
-                        options={projects.map((project) => ({
-                          value: project.id,
-                          label: project.name,
-                        }))}
-                      />
-                    </Form.Item>
-                  </Col>
-                )}
-              </Row>
-            )}
-
-            <Text strong style={{ fontSize: 13 }}>
-              {t('projects.documents.upload.sections.supplier')}
-            </Text>
-            <Row gutter={12} style={{ marginTop: 8 }} align="top">
-              <Col xs={24} md={8}>
-                <Form.Item label={t('projects.documents.upload.supplier.label')} style={FORM_ITEM_STYLE}>
-                  <Select
-                    showSearch
-                    allowClear
-                    value={supplierId ?? undefined}
-                    onChange={handleSelectSupplier}
-                    onClear={() => handleSelectSupplier(undefined)}
-                    placeholder={t('projects.documents.upload.supplier.placeholder')}
-                    filterOption={(input, option) =>
-                      (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={suppliers.map((supplier) => ({
-                      value: supplier.id,
-                      label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
-                    }))}
-                  />
-                </Form.Item>
-                <Popover
-                  trigger="click"
-                  open={creatingSupplier}
-                  onOpenChange={handleCreateSupplierPopoverOpenChange}
-                  placement="bottomLeft"
-                  content={createSupplierPopoverContent}
-                >
-                  <Button
-                    type="link"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    style={{ paddingInlineStart: 0, marginTop: -4 }}
+              <Text strong style={{ fontSize: 13 }}>
+                {t('projects.documents.upload.sections.document')}
+              </Text>
+              <Row gutter={12} style={{ marginTop: 8 }}>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item
+                    name="name"
+                    label={t('projects.documents.upload.fields.name')}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('projects.documents.upload.validation.nameRequired'),
+                      },
+                    ]}
                   >
-                    {t('projects.documents.upload.supplier.createNew')}
-                  </Button>
-                </Popover>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item
-                  name="issuerName"
-                  label={t('projects.documents.upload.fields.issuerName')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Input
-                    disabled={Boolean(supplierId)}
-                    placeholder={t('projects.documents.upload.placeholders.issuerName')}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={8}>
-                <Form.Item
-                  name="issuerTaxId"
-                  label={t('projects.documents.upload.fields.issuerTaxId')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Input
-                    disabled={Boolean(supplierId)}
-                    placeholder={t('projects.documents.upload.placeholders.issuerTaxId')}
-                  />
-                </Form.Item>
-                {supplierId && (
-                  <Text type="secondary" style={{ fontSize: 11 }}>
-                    {t('projects.documents.upload.supplier.autofillNote')}
-                  </Text>
-                )}
-              </Col>
-            </Row>
+                    <Input placeholder={t('projects.documents.upload.placeholders.name')} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item name="type" label={t('projects.documents.upload.fields.type')}>
+                    <Select
+                      disabled={Boolean(lockedType)}
+                      options={DOCUMENT_TYPES.map((type) => ({
+                        value: type,
+                        label: t(`projects.documents.types.${type}`),
+                      }))}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item name="status" label={t('projects.documents.upload.fields.status')}>
+                    <Select
+                      options={DOCUMENT_STATUSES.map((status) => ({
+                        value: status,
+                        label: t(`projects.documents.statuses.${status}`),
+                      }))}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={12}>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item
+                    name="date"
+                    label={t('projects.documents.upload.fields.date')}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('projects.documents.upload.validation.dateRequired'),
+                      },
+                    ]}
+                  >
+                    <DatePicker format="YYYY-MM-DD" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item name="dueDate" label={t('projects.documents.upload.fields.dueDate')}>
+                    <DatePicker format="YYYY-MM-DD" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={8}>
+                  <Form.Item
+                    name="invoiceNumber"
+                    label={t('projects.documents.upload.fields.invoiceNumber')}
+                  >
+                    <Input
+                      placeholder={t('projects.documents.upload.placeholders.invoiceNumber')}
+                    />
+                  </Form.Item>
+                </Col>
+              </Row>
 
-            <Text strong style={{ fontSize: 13 }}>
-              {t('projects.documents.upload.sections.amounts')}
-            </Text>
-            <Row gutter={12} style={{ marginTop: 8 }}>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="amount"
-                  label={t('projects.documents.upload.fields.amount')}
-                  style={FORM_ITEM_STYLE}
-                  rules={[
-                    { required: true, message: t('projects.documents.upload.validation.amountRequired') },
-                    {
-                      type: 'number',
-                      min: 0,
-                      message: t('projects.documents.upload.validation.amountMin'),
-                    },
-                  ]}
-                >
-                  <InputNumber style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="currency"
-                  label={t('projects.documents.upload.fields.currency')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Select options={CURRENCIES.map((currency) => ({ value: currency, label: currency }))} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="taxBase"
-                  label={t('projects.documents.upload.fields.taxBase')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <InputNumber style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="taxRate"
-                  label={t('projects.documents.upload.fields.taxRate')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={12}>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="direction"
-                  label={t('projects.documents.upload.fields.direction')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <Segmented<DocumentDirectionDto>
-                    block
-                    options={DOCUMENT_DIRECTIONS.map((direction) => ({
-                      value: direction,
-                      label: t(`projects.documents.directions.${direction}`),
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="taxAmount"
-                  label={t('projects.documents.upload.fields.taxAmount')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <InputNumber style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="irpfRate"
-                  label={t('projects.documents.upload.fields.irpfRate')}
-                  style={FORM_ITEM_STYLE}
-                >
-                  <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
-                </Form.Item>
-              </Col>
-              <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="irpfAmount"
-                  label={t('projects.documents.upload.fields.irpfAmount')}
-                  style={{ marginBottom: 0 }}
-                >
-                  <InputNumber style={{ width: '100%' }} min={0} />
-                </Form.Item>
-              </Col>
-            </Row>
-            {amountMismatch && (
-              <Alert
-                type="warning"
-                showIcon
-                message={t('projects.documents.upload.validation.amountMismatch')}
-                style={{ marginTop: 8 }}
-              />
-            )}
-          </Form>
+              {(showStaffSelect || showProjectSelect) && (
+                <Row gutter={12} align="top">
+                  {showStaffSelect && (
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label={t('projects.documents.upload.staffMember.label')}
+                        validateStatus={staffMemberError ? 'error' : undefined}
+                        help={
+                          staffMemberError
+                            ? t('projects.documents.upload.staffMember.required')
+                            : t('projects.documents.upload.staffMember.hint')
+                        }
+                      >
+                        <Select
+                          showSearch
+                          value={staffMemberId ?? undefined}
+                          onChange={handleSelectStaffMember}
+                          placeholder={t('projects.documents.upload.staffMember.placeholder')}
+                          filterOption={(input, option) =>
+                            (option?.label ?? '')
+                              .toString()
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={staffMembers.map((member) => ({
+                            value: member.id,
+                            label: `${member.firstName} ${member.lastName}`,
+                          }))}
+                        />
+                      </Form.Item>
+                      <Popover
+                        trigger="click"
+                        open={creatingStaffMember}
+                        onOpenChange={handleCreateStaffMemberPopoverOpenChange}
+                        placement="bottomLeft"
+                        content={createStaffMemberPopoverContent}
+                      >
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          style={{ paddingInlineStart: 0, marginTop: -4 }}
+                        >
+                          {t('projects.documents.upload.staffMember.createNew')}
+                        </Button>
+                      </Popover>
+                    </Col>
+                  )}
+                  {showProjectSelect && (
+                    <Col xs={24} md={8}>
+                      <Form.Item
+                        label={t('projects.documents.upload.project.label')}
+                        validateStatus={projectError ? 'error' : undefined}
+                        help={
+                          projectError ? t('projects.documents.upload.project.required') : undefined
+                        }
+                      >
+                        <Select
+                          showSearch
+                          value={selectedProjectId ?? undefined}
+                          onChange={handleSelectProject}
+                          placeholder={t('projects.documents.upload.project.placeholder')}
+                          filterOption={(input, option) =>
+                            (option?.label ?? '')
+                              .toString()
+                              .toLowerCase()
+                              .includes(input.toLowerCase())
+                          }
+                          options={projects.map((project) => ({
+                            value: project.id,
+                            label: project.name,
+                          }))}
+                        />
+                      </Form.Item>
+                    </Col>
+                  )}
+                </Row>
+              )}
+
+              <Text strong style={{ fontSize: 13 }}>
+                {t('projects.documents.upload.sections.supplier')}
+              </Text>
+              <Row gutter={12} style={{ marginTop: 8 }} align="top">
+                <Col xs={24} md={8}>
+                  <Form.Item label={t('projects.documents.upload.supplier.label')}>
+                    <Select
+                      showSearch
+                      allowClear
+                      value={supplierId ?? undefined}
+                      onChange={handleSelectSupplier}
+                      onClear={() => handleSelectSupplier(undefined)}
+                      placeholder={t('projects.documents.upload.supplier.placeholder')}
+                      filterOption={(input, option) =>
+                        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                      }
+                      options={suppliers.map((supplier) => ({
+                        value: supplier.id,
+                        label: supplier.taxId
+                          ? `${supplier.name} (${supplier.taxId})`
+                          : supplier.name,
+                      }))}
+                    />
+                  </Form.Item>
+                  <Popover
+                    trigger="click"
+                    open={creatingSupplier}
+                    onOpenChange={handleCreateSupplierPopoverOpenChange}
+                    placement="bottomLeft"
+                    content={createSupplierPopoverContent}
+                  >
+                    <Button
+                      type="link"
+                      size="small"
+                      icon={<PlusOutlined />}
+                      style={{ paddingInlineStart: 0, marginTop: -4 }}
+                    >
+                      {t('projects.documents.upload.supplier.createNew')}
+                    </Button>
+                  </Popover>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    name="issuerName"
+                    label={t('projects.documents.upload.fields.issuerName')}
+                  >
+                    <Input
+                      disabled={Boolean(supplierId)}
+                      placeholder={t('projects.documents.upload.placeholders.issuerName')}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} md={8}>
+                  <Form.Item
+                    name="issuerTaxId"
+                    label={t('projects.documents.upload.fields.issuerTaxId')}
+                  >
+                    <Input
+                      disabled={Boolean(supplierId)}
+                      placeholder={t('projects.documents.upload.placeholders.issuerTaxId')}
+                    />
+                  </Form.Item>
+                  {supplierId && (
+                    <Text type="secondary" style={{ fontSize: 11 }}>
+                      {t('projects.documents.upload.supplier.autofillNote')}
+                    </Text>
+                  )}
+                </Col>
+              </Row>
+
+              <Text strong style={{ fontSize: 13 }}>
+                {t('projects.documents.upload.sections.amounts')}
+              </Text>
+              <Row gutter={12} style={{ marginTop: 8 }}>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item
+                    name="amount"
+                    label={t('projects.documents.upload.fields.amount')}
+                    rules={[
+                      {
+                        required: true,
+                        message: t('projects.documents.upload.validation.amountRequired'),
+                      },
+                      {
+                        type: 'number',
+                        min: 0,
+                        message: t('projects.documents.upload.validation.amountMin'),
+                      },
+                    ]}
+                  >
+                    <InputNumber min={0} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item name="currency" label={t('projects.documents.upload.fields.currency')}>
+                    <Select
+                      options={CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item name="taxBase" label={t('projects.documents.upload.fields.taxBase')}>
+                    <InputNumber min={0} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item name="taxRate" label={t('projects.documents.upload.fields.taxRate')}>
+                    <InputNumber min={0} max={100} suffix="%" />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={12}>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item
+                    name="direction"
+                    label={t('projects.documents.upload.fields.direction')}
+                  >
+                    <Segmented<DocumentDirectionDto>
+                      block
+                      options={DOCUMENT_DIRECTIONS.map((direction) => ({
+                        value: direction,
+                        label: t(`projects.documents.directions.${direction}`),
+                      }))}
+                    />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item
+                    name="taxAmount"
+                    label={t('projects.documents.upload.fields.taxAmount')}
+                  >
+                    <InputNumber min={0} />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item name="irpfRate" label={t('projects.documents.upload.fields.irpfRate')}>
+                    <InputNumber min={0} max={100} suffix="%" />
+                  </Form.Item>
+                </Col>
+                <Col xs={24} sm={12} md={6}>
+                  <Form.Item
+                    name="irpfAmount"
+                    label={t('projects.documents.upload.fields.irpfAmount')}
+                    style={{ marginBottom: 0 }}
+                  >
+                    <InputNumber min={0} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              {amountMismatch && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  message={t('projects.documents.upload.validation.amountMismatch')}
+                  style={{ marginTop: 8 }}
+                />
+              )}
+            </Form>
+          </ConfigProvider>
         </div>
       </Flex>
     </Modal>

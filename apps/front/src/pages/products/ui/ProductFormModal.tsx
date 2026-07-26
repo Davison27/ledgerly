@@ -69,7 +69,6 @@ export function ProductFormModal({
         <Form.Item
           name="name"
           label={t('products.fields.name')}
-          style={{ marginBottom: 12 }}
           rules={[{ required: true, message: t('products.form.validation.nameRequired') }]}
         >
           <Input placeholder={t('products.form.placeholders.name')} />
@@ -77,14 +76,9 @@ export function ProductFormModal({
         <Form.Item
           name="price"
           label={t('products.fields.price')}
-          style={{ marginBottom: 12 }}
           extra={t('products.form.priceHelp')}
         >
-          <InputNumber
-            style={{ width: '100%' }}
-            min={0}
-            placeholder={t('products.form.placeholders.price')}
-          />
+          <InputNumber min={0} placeholder={t('products.form.placeholders.price')} />
         </Form.Item>
         <Form.Item
           name="stock"
@@ -92,12 +86,7 @@ export function ProductFormModal({
           style={{ marginBottom: 0 }}
           extra={t('products.form.stockHelp')}
         >
-          <InputNumber
-            style={{ width: '100%' }}
-            precision={0}
-            min={0}
-            placeholder={t('products.form.placeholders.stock')}
-          />
+          <InputNumber precision={0} min={0} placeholder={t('products.form.placeholders.stock')} />
         </Form.Item>
       </Form>
     </Modal>

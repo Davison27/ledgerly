@@ -81,18 +81,13 @@ export function SupplierFormModal({
             <Form.Item
               name="name"
               label={t('suppliers.fields.name')}
-              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('suppliers.form.validation.nameRequired') }]}
             >
               <Input placeholder={t('suppliers.form.placeholders.name')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item
-              name="taxId"
-              label={t('suppliers.fields.taxId')}
-              style={{ marginBottom: 12 }}
-            >
+            <Form.Item name="taxId" label={t('suppliers.fields.taxId')}>
               <Input placeholder={t('suppliers.form.placeholders.taxId')} />
             </Form.Item>
           </Col>
@@ -102,34 +97,25 @@ export function SupplierFormModal({
             <Form.Item
               name="email"
               label={t('suppliers.fields.email')}
-              style={{ marginBottom: 12 }}
               rules={[{ type: 'email', message: t('suppliers.form.validation.emailInvalid') }]}
             >
               <Input type="email" placeholder={t('suppliers.form.placeholders.email')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item
-              name="phone"
-              label={t('suppliers.fields.phone')}
-              style={{ marginBottom: 12 }}
-            >
+            <Form.Item name="phone" label={t('suppliers.fields.phone')}>
               <Input placeholder={t('suppliers.form.placeholders.phone')} />
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item
-              name="address"
-              label={t('suppliers.fields.address')}
-              style={{ marginBottom: 12 }}
-            >
+            <Form.Item name="address" label={t('suppliers.fields.address')}>
               <Input placeholder={t('suppliers.form.placeholders.address')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item name="iban" label={t('suppliers.fields.iban')} style={{ marginBottom: 12 }}>
+            <Form.Item name="iban" label={t('suppliers.fields.iban')}>
               <Input placeholder={t('suppliers.form.placeholders.iban')} />
             </Form.Item>
           </Col>
