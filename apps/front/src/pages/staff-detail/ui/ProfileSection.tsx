@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, Descriptions, Flex } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { updateStaffMember } from '@/entities/staff-member';
+import { staffQueries, updateStaffMember } from '@/entities/staff-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
@@ -12,9 +13,10 @@ import {
 } from '@/features/staff-member-form';
 import type { StaffSectionProps } from '../model/types';
 
-export function ProfileSection({ staffMember, onStaffMemberUpdated }: StaffSectionProps) {
+export function ProfileSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,7 +26,7 @@ export function ProfileSection({ staffMember, onStaffMemberUpdated }: StaffSecti
       await updateStaffMember(staffMember.id, values);
       void message.success(t('staff.form.updated'));
       setIsFormOpen(false);
-      onStaffMemberUpdated();
+      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
     } catch {
       void message.error(t('staff.form.updateError'));
     } finally {

@@ -1,9 +1,8 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Table, type TableColumnsType } from 'antd';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { listAllDocuments, STATUS_TONE, type DocumentListItemDto } from '@/entities/document';
-import { listStaffDocumentTypes, type StaffDocumentTypeDto } from '@/entities/staff-member';
+import { documentQueries, STATUS_TONE, type DocumentListItemDto } from '@/entities/document';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Amount } from '@/shared/ui/Amount';
@@ -12,34 +11,11 @@ import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { AddStaffDocumentButton } from './AddStaffDocumentButton';
 import type { StaffSectionProps } from '../model/types';
 
-export function PayrollsSection({ staffMember, onDocumentsChanged }: StaffSectionProps) {
+export function PayrollsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
-  const [payrolls, setPayrolls] = useState<DocumentListItemDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [documentTypes, setDocumentTypes] = useState<StaffDocumentTypeDto[]>([]);
-
-  const loadPayrolls = useCallback(() => {
-    setLoading(true);
-    listAllDocuments({ staffMemberId: staffMember.id })
-      .then(setPayrolls)
-      .catch(() => setPayrolls([]))
-      .finally(() => setLoading(false));
-  }, [staffMember.id]);
-
-  useEffect(() => {
-    loadPayrolls();
-  }, [loadPayrolls]);
-
-  useEffect(() => {
-    listStaffDocumentTypes()
-      .then(setDocumentTypes)
-      .catch(() => setDocumentTypes([]));
-  }, []);
-
-  const handleCreated = () => {
-    loadPayrolls();
-    onDocumentsChanged();
-  };
+  const { data: payrolls = [], isPending: loading } = useQuery(
+    documentQueries.list({ staffMemberId: staffMember.id }),
+  );
 
   const columns: TableColumnsType<DocumentListItemDto> = [
     {
@@ -83,11 +59,7 @@ export function PayrollsSection({ staffMember, onDocumentsChanged }: StaffSectio
   return (
     <PageContainer>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <AddStaffDocumentButton
-          staffMemberId={staffMember.id}
-          documentTypes={documentTypes}
-          onCreated={handleCreated}
-        />
+        <AddStaffDocumentButton staffMemberId={staffMember.id} />
       </div>
 
       {!loading && payrolls.length === 0 ? (

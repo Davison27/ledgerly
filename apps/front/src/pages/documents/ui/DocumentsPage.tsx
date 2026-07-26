@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -22,9 +23,7 @@ import { useTranslation } from 'react-i18next';
 import type { Dayjs } from 'dayjs';
 import {
   deleteDocument,
-  getDocument,
-  listAllDocuments,
-  mapDocumentDto,
+  documentQueries,
   useTypeLabel,
   DirectionTag,
   StatusTag,
@@ -35,8 +34,8 @@ import {
   type DocumentTypeDto,
   type ProjectDocument,
 } from '@/entities/document';
-import { listProjects, type ProjectSummaryDto } from '@/entities/project';
-import { listSuppliers, type SupplierDto } from '@/entities/supplier';
+import { projectQueries } from '@/entities/project';
+import { supplierQueries } from '@/entities/supplier';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
@@ -61,6 +60,7 @@ export function DocumentsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const typeLabel = useTypeLabel();
 
   const [searchInput, setSearchInput] = useState('');
@@ -74,17 +74,7 @@ export function DocumentsPage() {
   const [projectId, setProjectId] = useState<string | undefined>();
   const [supplierId, setSupplierId] = useState<string | undefined>();
 
-  const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
-  const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
-
-  const [documents, setDocuments] = useState<DocumentListItemDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<ProjectDocument | null>(null);
-  const [detailLoading, setDetailLoading] = useState(false);
-  const [detailError, setDetailError] = useState(false);
+  const [selected, setSelected] = useState<{ projectId: string; id: string } | null>(null);
   const [editing, setEditing] = useState<ProjectDocument | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -93,14 +83,8 @@ export function DocumentsPage() {
     return () => clearTimeout(handle);
   }, [searchInput]);
 
-  useEffect(() => {
-    listProjects()
-      .then(setProjects)
-      .catch(() => setProjects([]));
-    listSuppliers()
-      .then(setSuppliers)
-      .catch(() => setSuppliers([]));
-  }, []);
+  const { data: projects = [] } = useQuery(projectQueries.list());
+  const { data: suppliers = [] } = useQuery(supplierQueries.list());
 
   const filters: DocumentListFiltersDto = useMemo(
     () => ({
@@ -118,51 +102,39 @@ export function DocumentsPage() {
     [search, type, status, direction, dateRange, amountMin, amountMax, projectId, supplierId],
   );
 
-  const loadDocuments = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listAllDocuments(filters)
-      .then(setDocuments)
-      .catch(() => {
-        setDocuments([]);
-        setLoadError(true);
-      })
-      .finally(() => setLoading(false));
-  }, [filters]);
+  const {
+    data: documents = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery({ ...documentQueries.list(filters), placeholderData: keepPreviousData });
 
-  useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
+  const {
+    data: selectedDocument,
+    isPending: detailLoading,
+    isError: detailError,
+  } = useQuery({
+    ...documentQueries.detail(selected?.projectId ?? '', selected?.id ?? ''),
+    enabled: selected !== null,
+  });
 
   const goToProject = (projectId: string) => {
     void navigate({ to: '/projects/$projectId', params: { projectId } });
   };
 
-  const openDocument = useCallback((record: DocumentListItemDto) => {
-    setDrawerOpen(true);
-    setSelectedDocument(null);
-    setDetailLoading(true);
-    setDetailError(false);
-    getDocument(record.projectId, record.id)
-      .then((dto) => setSelectedDocument(mapDocumentDto(dto)))
-      .catch(() => setDetailError(true))
-      .finally(() => setDetailLoading(false));
-  }, []);
+  const openDocument = (record: DocumentListItemDto) => {
+    setSelected({ projectId: record.projectId, id: record.id });
+  };
 
   const closeDrawer = () => {
-    setDrawerOpen(false);
-    setSelectedDocument(null);
-    setDetailError(false);
+    setSelected(null);
   };
 
   const handleEdit = (doc: ProjectDocument) => {
     setEditing(doc);
   };
 
-  const handleDocumentUpdated = (updated: ProjectDocument) => {
+  const handleDocumentUpdated = () => {
     setEditing(null);
-    setSelectedDocument(updated);
-    loadDocuments();
   };
 
   const handleDelete = async (doc: ProjectDocument) => {
@@ -171,7 +143,8 @@ export function DocumentsPage() {
       await deleteDocument(doc.projectId, doc.id);
       void message.success(t('projects.documents.delete.deleted'));
       closeDrawer();
-      loadDocuments();
+      await queryClient.invalidateQueries({ queryKey: documentQueries.all });
+      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
     } catch {
       void message.error(t('projects.documents.delete.error'));
     } finally {
@@ -387,7 +360,7 @@ export function DocumentsPage() {
       )}
 
       <Drawer
-        open={drawerOpen}
+        open={selected !== null}
         onClose={closeDrawer}
         title={t('documents.detail.title')}
         width="min(900px, 96vw)"
@@ -400,7 +373,7 @@ export function DocumentsPage() {
           <Alert type="error" showIcon message={t('documents.detail.loadError')} />
         ) : (
           <DocumentDetail
-            document={selectedDocument}
+            document={selectedDocument ?? null}
             onEdit={handleEdit}
             onDelete={(doc) => void handleDelete(doc)}
             onGoToProject={(doc) => goToProject(doc.projectId)}

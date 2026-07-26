@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
@@ -15,7 +16,7 @@ import { useTranslation } from 'react-i18next';
 import {
   createSupplier,
   deleteSupplier,
-  listSuppliers,
+  supplierQueries,
   updateSupplier,
   type SupplierDto,
 } from '@/entities/supplier';
@@ -27,26 +28,16 @@ import { SupplierFormModal, type SupplierFormValues } from './SupplierFormModal'
 export function SuppliersPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const queryClient = useQueryClient();
+  const {
+    data: suppliers = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(supplierQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<SupplierDto | null>(null);
-
-  const loadSuppliers = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listSuppliers()
-      .then(setSuppliers)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    loadSuppliers();
-  }, [loadSuppliers]);
 
   const handleAdd = () => {
     setEditingSupplier(null);
@@ -75,7 +66,7 @@ export function SuppliersPage() {
       }
       setIsFormOpen(false);
       setEditingSupplier(null);
-      loadSuppliers();
+      await queryClient.invalidateQueries({ queryKey: supplierQueries.all });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         void message.error(t('suppliers.form.duplicateTaxId'));
@@ -94,7 +85,7 @@ export function SuppliersPage() {
     try {
       await deleteSupplier(supplier.id);
       void message.success(t('suppliers.deleted'));
-      loadSuppliers();
+      await queryClient.invalidateQueries({ queryKey: supplierQueries.all });
     } catch {
       void message.error(t('suppliers.deleteConfirm.error'));
     } finally {

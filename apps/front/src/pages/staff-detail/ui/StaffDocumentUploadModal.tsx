@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, DatePicker, Form, Input, Modal, Select, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import { createStaffDocument, type StaffDocumentTypeDto } from '@/entities/staff-member';
+import { createStaffDocument, staffQueries, type StaffDocumentTypeDto } from '@/entities/staff-member';
+import { documentQueries } from '@/entities/document';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -41,6 +43,7 @@ export function StaffDocumentUploadModal({
 }: StaffDocumentUploadModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm<StaffDocumentFormFields>();
   const [file, setFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -104,8 +107,10 @@ export function StaffDocumentUploadModal({
           },
           file,
         )
-          .then(() => {
+          .then(async () => {
             void message.success(t('staff.documents.upload.created'));
+            await queryClient.invalidateQueries({ queryKey: staffQueries.all });
+            await queryClient.invalidateQueries({ queryKey: documentQueries.all });
             onCreated();
           })
           .catch(() => {

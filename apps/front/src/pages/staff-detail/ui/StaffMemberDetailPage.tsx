@@ -1,16 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { Avatar, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
 import { IdcardOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
-  getStaffMember,
-  listStaffDocumentTypes,
-  listStaffDocuments,
   staffDocumentFileUrl,
-  type StaffDocumentDto,
-  type StaffDocumentTypeDto,
-  type StaffMemberDto,
+  staffDocumentTypeQueries,
+  staffQueries,
 } from '@/entities/staff-member';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -30,57 +27,33 @@ export function StaffMemberDetailPage() {
   const { token } = useToken();
   const { t } = useTranslation();
   const { staffMemberId } = useParams({ strict: false }) as { staffMemberId?: string };
-
-  const [staffMember, setStaffMember] = useState<StaffMemberDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
   const [section, setSection] = useState<Section>('profile');
 
-  const [documentTypes, setDocumentTypes] = useState<StaffDocumentTypeDto[]>([]);
-  const [photoDocuments, setPhotoDocuments] = useState<StaffDocumentDto[]>([]);
-  const [documentsVersion, setDocumentsVersion] = useState(0);
+  const {
+    data: staffMember,
+    isPending: loading,
+    isError: loadError,
+  } = useQuery({
+    ...staffQueries.detail(staffMemberId ?? ''),
+    enabled: Boolean(staffMemberId),
+  });
 
-  const loadStaffMember = useCallback(() => {
-    if (!staffMemberId) return;
-    setLoading(true);
-    setLoadError(false);
-    getStaffMember(staffMemberId)
-      .then(setStaffMember)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, [staffMemberId]);
-
-  useEffect(() => {
-    loadStaffMember();
-  }, [loadStaffMember]);
-
-  useEffect(() => {
-    listStaffDocumentTypes()
-      .then(setDocumentTypes)
-      .catch(() => setDocumentTypes([]));
-  }, []);
+  const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
 
   const photoTypeId = useMemo(
     () => documentTypes.find((type) => type.code === PHOTO_TYPE_CODE)?.id,
     [documentTypes],
   );
 
-  useEffect(() => {
-    if (!staffMemberId || !photoTypeId) {
-      setPhotoDocuments([]);
-      return;
-    }
-    listStaffDocuments(staffMemberId, photoTypeId)
-      .then(setPhotoDocuments)
-      .catch(() => setPhotoDocuments([]));
-  }, [staffMemberId, photoTypeId, documentsVersion]);
+  const { data: photoDocuments = [] } = useQuery({
+    ...staffQueries.documents(staffMemberId ?? '', photoTypeId),
+    enabled: Boolean(staffMemberId) && Boolean(photoTypeId),
+  });
 
   const latestPhoto = useMemo(() => {
     if (photoDocuments.length === 0) return null;
     return [...photoDocuments].sort((a, b) => b.issueDate.localeCompare(a.issueDate))[0];
   }, [photoDocuments]);
-
-  const handleDocumentsChanged = () => setDocumentsVersion((v) => v + 1);
 
   if (loading) {
     return (
@@ -143,34 +116,10 @@ export function StaffMemberDetailPage() {
       </div>
 
       <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
-        {section === 'profile' && (
-          <ProfileSection
-            staffMember={staffMember}
-            onStaffMemberUpdated={loadStaffMember}
-            onDocumentsChanged={handleDocumentsChanged}
-          />
-        )}
-        {section === 'documents' && (
-          <StaffDocumentsSection
-            staffMember={staffMember}
-            onStaffMemberUpdated={loadStaffMember}
-            onDocumentsChanged={handleDocumentsChanged}
-          />
-        )}
-        {section === 'payrolls' && (
-          <PayrollsSection
-            staffMember={staffMember}
-            onStaffMemberUpdated={loadStaffMember}
-            onDocumentsChanged={handleDocumentsChanged}
-          />
-        )}
-        {section === 'schedule' && (
-          <AgendaSection
-            staffMember={staffMember}
-            onStaffMemberUpdated={loadStaffMember}
-            onDocumentsChanged={handleDocumentsChanged}
-          />
-        )}
+        {section === 'profile' && <ProfileSection staffMember={staffMember} />}
+        {section === 'documents' && <StaffDocumentsSection staffMember={staffMember} />}
+        {section === 'payrolls' && <PayrollsSection staffMember={staffMember} />}
+        {section === 'schedule' && <AgendaSection staffMember={staffMember} />}
       </div>
     </Flex>
   );

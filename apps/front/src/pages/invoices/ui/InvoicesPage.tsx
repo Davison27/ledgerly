@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
@@ -19,10 +20,11 @@ import {
   createInvoice,
   deleteInvoice,
   invoicePdfUrl,
-  listInvoices,
+  invoiceQueries,
   type CreateInvoicePayload,
   type InvoiceDto,
 } from '@/entities/invoice';
+import { documentQueries } from '@/entities/document';
 import { CompanySettingsModal } from '@/features/company-settings';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -37,28 +39,18 @@ export function InvoicesPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const { company } = useCompany();
-  const [invoices, setInvoices] = useState<InvoiceDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const queryClient = useQueryClient();
+  const {
+    data: invoices = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(invoiceQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [companySettingsOpen, setCompanySettingsOpen] = useState(false);
 
   const companyIncomplete = companyNeedsSetup(company) || !company.taxId;
-
-  const loadInvoices = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listInvoices()
-      .then(setInvoices)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    loadInvoices();
-  }, [loadInvoices]);
 
   const handleAdd = () => setIsFormOpen(true);
 
@@ -70,7 +62,8 @@ export function InvoicesPage() {
       await createInvoice(payload);
       void message.success(t('invoices.form.created'));
       setIsFormOpen(false);
-      loadInvoices();
+      await queryClient.invalidateQueries({ queryKey: invoiceQueries.all });
+      await queryClient.invalidateQueries({ queryKey: documentQueries.all });
     } catch {
       void message.error(t('invoices.form.createError'));
     } finally {
@@ -83,7 +76,8 @@ export function InvoicesPage() {
     try {
       await deleteInvoice(invoice.id);
       void message.success(t('invoices.deleted'));
-      loadInvoices();
+      await queryClient.invalidateQueries({ queryKey: invoiceQueries.all });
+      await queryClient.invalidateQueries({ queryKey: documentQueries.all });
     } catch {
       void message.error(t('invoices.deleteConfirm.error'));
     } finally {
