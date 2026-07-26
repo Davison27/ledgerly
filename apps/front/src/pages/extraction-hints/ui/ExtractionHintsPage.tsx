@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
@@ -22,12 +23,10 @@ import { DeleteOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   deleteExtractionHint,
-  listExtractionHints,
-  getExtractionQuality,
+  extractionHintQueries,
   type ExtractInvoiceConfidence,
   type ExtractInvoiceSource,
   type ExtractionHintDto,
-  type ExtractionQualityDto,
 } from '@/entities/extraction-hint';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -67,18 +66,11 @@ function groupByIssuer(hints: ExtractionHintDto[]): IssuerGroup[] {
 
 function QualityPanel() {
   const { t } = useTranslation();
-  const [quality, setQuality] = useState<ExtractionQualityDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-
-  useEffect(() => {
-    setLoading(true);
-    setLoadError(false);
-    getExtractionQuality()
-      .then(setQuality)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
+  const {
+    data: quality,
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(extractionHintQueries.quality());
 
   if (loading) {
     return <Skeleton active paragraph={{ rows: 6 }} />;
@@ -209,23 +201,13 @@ function QualityPanel() {
 export function ExtractionHintsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const [hints, setHints] = useState<ExtractionHintDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const queryClient = useQueryClient();
+  const {
+    data: hints = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(extractionHintQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const loadHints = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listExtractionHints()
-      .then(setHints)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    loadHints();
-  }, [loadHints]);
 
   const groups = useMemo(() => groupByIssuer(hints), [hints]);
 
@@ -234,7 +216,7 @@ export function ExtractionHintsPage() {
     try {
       await deleteExtractionHint(id);
       void message.success(t('extractionHints.deleted'));
-      loadHints();
+      await queryClient.invalidateQueries({ queryKey: extractionHintQueries.all });
     } catch {
       void message.error(t('extractionHints.deleteError'));
     } finally {

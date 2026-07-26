@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Empty, Input, List, Modal, Typography, theme } from 'antd';
 import {
@@ -14,9 +15,9 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { SPACE } from '@/shared/config/theme';
-import { listAllDocuments, type DocumentListItemDto } from '@/entities/document';
-import { listProjects, type ProjectSummaryDto } from '@/entities/project';
-import { listSuppliers, type SupplierDto } from '@/entities/supplier';
+import { documentQueries } from '@/entities/document';
+import { projectQueries } from '@/entities/project';
+import { supplierQueries } from '@/entities/supplier';
 
 const { useToken } = theme;
 const { Text } = Typography;
@@ -65,9 +66,6 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
-  const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
-  const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
-  const [documents, setDocuments] = useState<DocumentListItemDto[]>([]);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -77,15 +75,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
     setQuery('');
     setDebouncedQuery('');
-    setDocuments([]);
     setActiveIndex(0);
-
-    listProjects()
-      .then(setProjects)
-      .catch(() => setProjects([]));
-    listSuppliers()
-      .then(setSuppliers)
-      .catch(() => setSuppliers([]));
   }, [open]);
 
   useEffect(() => {
@@ -94,28 +84,15 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   }, [query]);
 
   useEffect(() => {
-    if (!open || !debouncedQuery) {
-      setDocuments([]);
-      return;
-    }
-
-    let cancelled = false;
-    listAllDocuments({ search: debouncedQuery })
-      .then((result) => {
-        if (!cancelled) setDocuments(result);
-      })
-      .catch(() => {
-        if (!cancelled) setDocuments([]);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [open, debouncedQuery]);
-
-  useEffect(() => {
     setActiveIndex(0);
   }, [debouncedQuery]);
+
+  const { data: projects = [] } = useQuery({ ...projectQueries.list(), enabled: open });
+  const { data: suppliers = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
+  const { data: documents = [] } = useQuery({
+    ...documentQueries.list({ search: debouncedQuery }),
+    enabled: open && Boolean(debouncedQuery),
+  });
 
   const handleSelect = (item: PaletteItem) => {
     item.onSelect();

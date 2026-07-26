@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import { Alert, Button, Flex, Skeleton, Typography } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
-import { listScheduleEvents, type ScheduleEventDto } from '@/entities/schedule-event';
+import { scheduleQueries } from '@/entities/schedule-event';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { TYPE } from '@/shared/config/theme';
@@ -23,22 +24,11 @@ const SECTION_TITLE_KEY: Record<AgendaStatus, string> = {
 export function AgendaSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [events, setEvents] = useState<ScheduleEventDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-
-  const loadEvents = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listScheduleEvents({ staffMemberId: staffMember.id })
-      .then(setEvents)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, [staffMember.id]);
-
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+  const {
+    data: events = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(scheduleQueries.events({ staffMemberId: staffMember.id }));
 
   const goToCalendar = () => void navigate({ to: '/calendar' });
   const goToProject = (projectId: string) =>

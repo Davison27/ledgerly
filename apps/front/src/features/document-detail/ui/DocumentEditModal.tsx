@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Alert,
   App,
@@ -18,6 +19,7 @@ import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
   updateDocument,
+  documentQueries,
   mapDocumentDto,
   type DocumentDirectionDto,
   type DocumentStatusDto,
@@ -25,8 +27,9 @@ import {
   type ProjectDocument,
   type UpdateDocumentPayload,
 } from '@/entities/document';
-import { listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
-import { listSuppliers, type SupplierDto } from '@/entities/supplier';
+import { projectQueries } from '@/entities/project';
+import { staffQueries } from '@/entities/staff-member';
+import { supplierQueries } from '@/entities/supplier';
 
 const { Text } = Typography;
 
@@ -71,26 +74,19 @@ function blankToNull(value: string | undefined): string | null {
 export function DocumentEditModal({ open, document, onCancel, onUpdated }: DocumentEditModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm<DocumentEditFormFields>();
   const [submitting, setSubmitting] = useState(false);
 
-  const [suppliers, setSuppliers] = useState<SupplierDto[]>([]);
+  const { data: suppliers = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
-  const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
+  const { data: staffMembers = [] } = useQuery({ ...staffQueries.list(), enabled: open });
   const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
   const [staffMemberError, setStaffMemberError] = useState(false);
 
   useEffect(() => {
     if (!open || !document) return;
-
-    listSuppliers()
-      .then(setSuppliers)
-      .catch(() => setSuppliers([]));
-
-    listStaffMembers()
-      .then(setStaffMembers)
-      .catch(() => setStaffMembers([]));
 
     setSupplierId(document.supplierId ?? null);
 
@@ -187,8 +183,10 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
 
         setSubmitting(true);
         updateDocument(document.projectId, document.id, payload)
-          .then((updatedDto) => {
+          .then(async (updatedDto) => {
             void message.success(t('projects.documents.edit.saved'));
+            await queryClient.invalidateQueries({ queryKey: documentQueries.all });
+            await queryClient.invalidateQueries({ queryKey: projectQueries.all });
             onUpdated(mapDocumentDto(updatedDto));
           })
           .catch(() => {

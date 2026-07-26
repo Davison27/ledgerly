@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   AutoComplete,
   Button,
@@ -14,12 +15,8 @@ import {
 } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import {
-  getProject,
-  listProjects,
-  type ProjectSummaryDto,
-} from '@/entities/project';
-import { listProducts, type ProductDto } from '@/entities/product';
+import { projectQueries } from '@/entities/project';
+import { productQueries } from '@/entities/product';
 import {
   computeInvoiceTotals,
   type CreateInvoiceLinePayload,
@@ -66,20 +63,17 @@ interface InvoiceFormModalProps {
 
 export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: InvoiceFormModalProps) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm<InvoiceFormFields>();
-  const [projects, setProjects] = useState<ProjectSummaryDto[]>([]);
-  const [products, setProducts] = useState<ProductDto[]>([]);
+  const { data: projectsData } = useQuery({ ...projectQueries.list(), enabled: open });
+  const projects = projectsData ?? [];
+  const { data: productsData } = useQuery({ ...productQueries.list(), enabled: open });
+  const products = productsData ?? [];
   const [loadingProject, setLoadingProject] = useState(false);
 
   useEffect(() => {
     if (open) {
       form.resetFields();
-      listProjects()
-        .then(setProjects)
-        .catch(() => setProjects([]));
-      listProducts()
-        .then(setProducts)
-        .catch(() => setProducts([]));
     }
   }, [open, form]);
 
@@ -109,7 +103,7 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
   const handleProjectChange = async (projectId: string) => {
     setLoadingProject(true);
     try {
-      const project = await getProject(projectId);
+      const project = await queryClient.fetchQuery(projectQueries.detail(projectId));
       form.setFieldsValue({
         customerName: project.clientCompany ?? '',
         customerTaxId: project.clientTaxId ?? undefined,

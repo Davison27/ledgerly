@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { Alert, Button, Flex, Skeleton, Table, Tag, Typography, type TableColumnsType } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { listScheduleEvents, ScheduleDaysSummary, type ScheduleEventDto } from '@/entities/schedule-event';
+import { scheduleQueries, ScheduleDaysSummary, type ScheduleEventDto } from '@/entities/schedule-event';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import type { ProjectSectionProps } from '../model/types';
@@ -13,22 +13,11 @@ const { Text } = Typography;
 export function ScheduleSection({ project }: ProjectSectionProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const [events, setEvents] = useState<ScheduleEventDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-
-  const loadEvents = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listScheduleEvents({ projectId: project.id })
-      .then(setEvents)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, [project.id]);
-
-  useEffect(() => {
-    loadEvents();
-  }, [loadEvents]);
+  const {
+    data: events = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(scheduleQueries.events({ projectId: project.id }));
 
   const columns: TableColumnsType<ScheduleEventDto> = [
     {

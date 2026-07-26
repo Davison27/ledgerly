@@ -1,25 +1,21 @@
 import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Button, Dropdown, type MenuProps } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { StaffDocumentTypeDto } from '@/entities/staff-member';
+import { staffDocumentTypeQueries } from '@/entities/staff-member';
 import { DocumentUploadModal } from '@/features/upload-document';
 import { StaffDocumentUploadModal } from './StaffDocumentUploadModal';
 
 interface AddStaffDocumentButtonProps {
   staffMemberId: string;
-  documentTypes: StaffDocumentTypeDto[];
-  onCreated: () => void;
 }
 
 const PAYROLL_MENU_KEY = 'payroll';
 
-export function AddStaffDocumentButton({
-  staffMemberId,
-  documentTypes,
-  onCreated,
-}: AddStaffDocumentButtonProps) {
+export function AddStaffDocumentButton({ staffMemberId }: AddStaffDocumentButtonProps) {
   const { t } = useTranslation();
+  const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
   const [payrollModalOpen, setPayrollModalOpen] = useState(false);
 
@@ -54,20 +50,14 @@ export function AddStaffDocumentButton({
         documentTypes={documentTypes}
         initialTypeId={selectedTypeId ?? undefined}
         onCancel={() => setSelectedTypeId(null)}
-        onCreated={() => {
-          setSelectedTypeId(null);
-          onCreated();
-        }}
+        onCreated={() => setSelectedTypeId(null)}
       />
 
       <DocumentUploadModal
         open={payrollModalOpen}
         context={{ kind: 'staffPayroll', staffMemberId }}
         onCancel={() => setPayrollModalOpen(false)}
-        onCreated={() => {
-          setPayrollModalOpen(false);
-          onCreated();
-        }}
+        onCreated={() => setPayrollModalOpen(false)}
       />
     </>
   );

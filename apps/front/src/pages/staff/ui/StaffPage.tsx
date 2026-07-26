@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import {
   App,
@@ -16,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import {
   createStaffMember,
   deleteStaffMember,
-  listStaffMembers,
+  staffQueries,
   updateStaffMember,
   type StaffMemberDto,
 } from '@/entities/staff-member';
@@ -34,26 +35,16 @@ export function StaffPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = App.useApp();
-  const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const queryClient = useQueryClient();
+  const {
+    data: staffMembers = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(staffQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaffMember, setEditingStaffMember] = useState<StaffMemberDto | null>(null);
-
-  const loadStaffMembers = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listStaffMembers()
-      .then(setStaffMembers)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    loadStaffMembers();
-  }, [loadStaffMembers]);
 
   const handleAdd = () => {
     setEditingStaffMember(null);
@@ -86,7 +77,7 @@ export function StaffPage() {
       }
       setIsFormOpen(false);
       setEditingStaffMember(null);
-      loadStaffMembers();
+      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
     } catch {
       void message.error(
         editingStaffMember ? t('staff.form.updateError') : t('staff.form.createError'),
@@ -101,7 +92,7 @@ export function StaffPage() {
     try {
       await deleteStaffMember(staffMember.id);
       void message.success(t('staff.deleted'));
-      loadStaffMembers();
+      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         modal.confirm({

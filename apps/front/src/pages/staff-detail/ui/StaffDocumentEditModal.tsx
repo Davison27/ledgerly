@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { App, Button, DatePicker, Form, Input, Modal } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import {
+  staffQueries,
   updateStaffDocument,
   type StaffDocumentDto,
   type StaffDocumentTypeDto,
 } from '@/entities/staff-member';
+import { documentQueries } from '@/entities/document';
 
 const { TextArea } = Input;
 
@@ -36,6 +39,7 @@ export function StaffDocumentEditModal({
 }: StaffDocumentEditModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
   const [form] = Form.useForm<StaffDocumentEditFormFields>();
   const [submitting, setSubmitting] = useState(false);
 
@@ -70,8 +74,10 @@ export function StaffDocumentEditModal({
           expiryDate: values.expiryDate ? values.expiryDate.format('YYYY-MM-DD') : null,
           notes: values.notes ?? null,
         })
-          .then(() => {
+          .then(async () => {
             void message.success(t('staff.documents.edit.saved'));
+            await queryClient.invalidateQueries({ queryKey: staffQueries.all });
+            await queryClient.invalidateQueries({ queryKey: documentQueries.all });
             onUpdated();
           })
           .catch(() => {

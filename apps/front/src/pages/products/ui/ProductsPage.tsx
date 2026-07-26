@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
@@ -16,7 +17,7 @@ import { useTranslation } from 'react-i18next';
 import {
   createProduct,
   deleteProduct,
-  listProducts,
+  productQueries,
   updateProduct,
   type ProductDto,
 } from '@/entities/product';
@@ -32,26 +33,16 @@ const { Text } = Typography;
 export function ProductsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const [products, setProducts] = useState<ProductDto[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
+  const queryClient = useQueryClient();
+  const {
+    data: products = [],
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(productQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductDto | null>(null);
-
-  const loadProducts = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    listProducts()
-      .then(setProducts)
-      .catch(() => setLoadError(true))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    loadProducts();
-  }, [loadProducts]);
 
   const handleAdd = () => {
     setEditingProduct(null);
@@ -80,7 +71,7 @@ export function ProductsPage() {
       }
       setIsFormOpen(false);
       setEditingProduct(null);
-      loadProducts();
+      await queryClient.invalidateQueries({ queryKey: productQueries.all });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         void message.error(t('products.form.duplicateName'));
@@ -99,7 +90,7 @@ export function ProductsPage() {
     try {
       await deleteProduct(product.id);
       void message.success(t('products.deleted'));
-      loadProducts();
+      await queryClient.invalidateQueries({ queryKey: productQueries.all });
     } catch {
       void message.error(t('products.deleteConfirm.error'));
     } finally {

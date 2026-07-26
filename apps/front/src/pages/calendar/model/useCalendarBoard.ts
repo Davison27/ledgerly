@@ -1,21 +1,20 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs, { type Dayjs } from 'dayjs';
 import {
   createScheduleEvent,
   daysBetween,
   deleteScheduleEvent,
-  getScheduleBoard,
-  listSchedulableProjects,
+  scheduleQueries,
   shiftDays,
   updateScheduleEvent,
   type SchedulableProjectDto,
-  type ScheduleBoardDto,
   type ScheduleEventDayPayload,
   type ScheduleEventDto,
   type UpdateScheduleEventPayload,
 } from '@/entities/schedule-event';
-import { listStaffMembers, type StaffMemberDto } from '@/entities/staff-member';
-import { listProducts, type ProductDto } from '@/entities/product';
+import { staffQueries } from '@/entities/staff-member';
+import { productQueries } from '@/entities/product';
 import { deriveProjectRange, DerivedRangeTooLongError, MAX_DERIVED_RANGE_DAYS } from './derivedRanges';
 
 export type CalendarView = 'month' | 'week';
@@ -37,53 +36,21 @@ function computeRange(view: CalendarView, cursor: string): { from: string; to: s
 }
 
 export function useCalendarBoard() {
+  const queryClient = useQueryClient();
   const [view, setView] = useState<CalendarView>('month');
   const [cursor, setCursor] = useState(() => dayjs().format(DATE_FORMAT));
-  const [board, setBoard] = useState<ScheduleBoardDto | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [loadError, setLoadError] = useState(false);
-  const [projects, setProjects] = useState<SchedulableProjectDto[]>([]);
-  const [staffMembers, setStaffMembers] = useState<StaffMemberDto[]>([]);
-  const [products, setProducts] = useState<ProductDto[]>([]);
 
   const range = useMemo(() => computeRange(view, cursor), [view, cursor]);
 
-  const loadBoard = useCallback(() => {
-    setLoading(true);
-    setLoadError(false);
-    return getScheduleBoard(range.from, range.to)
-      .then((fetched) => {
-        setBoard(fetched);
-        return fetched;
-      })
-      .catch(() => {
-        setLoadError(true);
-        return null;
-      })
-      .finally(() => setLoading(false));
-  }, [range.from, range.to]);
+  const {
+    data: board = null,
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(scheduleQueries.board(range.from, range.to));
 
-  const loadProjects = useCallback(
-    () => listSchedulableProjects().then(setProjects).catch(() => setProjects([])),
-    [],
-  );
-
-  useEffect(() => {
-    loadBoard();
-  }, [loadBoard]);
-
-  useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
-
-  useEffect(() => {
-    listStaffMembers()
-      .then(setStaffMembers)
-      .catch(() => setStaffMembers([]));
-    listProducts()
-      .then(setProducts)
-      .catch(() => setProducts([]));
-  }, []);
+  const { data: projects = [] } = useQuery(scheduleQueries.schedulableProjects());
+  const { data: staffMembers = [] } = useQuery(staffQueries.list());
+  const { data: products = [] } = useQuery(productQueries.list());
 
   const goToday = useCallback(() => setCursor(dayjs().format(DATE_FORMAT)), []);
 
@@ -102,48 +69,48 @@ export function useCalendarBoard() {
         days: [{ date }],
         staffMemberIds: [],
         products: [],
-      }).then((created) => {
-        void loadBoard();
+      }).then(async (created) => {
+        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
         return created;
       }),
-    [loadBoard],
+    [queryClient],
   );
 
   const moveEvent = useCallback(
     (event: ScheduleEventDto, offsetInDays: number) =>
       updateScheduleEvent(event.id, { days: shiftDays(event.days, offsetInDays) }).then(
-        (updated) => {
-          void loadBoard();
+        async (updated) => {
+          await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
           return updated;
         },
       ),
-    [loadBoard],
+    [queryClient],
   );
 
   const resizeEvent = useCallback(
     (event: ScheduleEventDto, days: ScheduleEventDayPayload[]) =>
-      updateScheduleEvent(event.id, { days }).then((updated) => {
-        void loadBoard();
+      updateScheduleEvent(event.id, { days }).then(async (updated) => {
+        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
         return updated;
       }),
-    [loadBoard],
+    [queryClient],
   );
 
   const saveEvent = useCallback(
     (eventId: string, payload: UpdateScheduleEventPayload) =>
-      updateScheduleEvent(eventId, payload).then((updated) => {
-        void loadBoard();
+      updateScheduleEvent(eventId, payload).then(async (updated) => {
+        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
         return updated;
       }),
-    [loadBoard],
+    [queryClient],
   );
 
   const removeEvent = useCallback(
     (eventId: string) =>
-      deleteScheduleEvent(eventId).then(() => {
-        void loadBoard();
+      deleteScheduleEvent(eventId).then(async () => {
+        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
       }),
-    [loadBoard],
+    [queryClient],
   );
 
   const materializeDerivedRange = useCallback(
@@ -163,13 +130,12 @@ export function useCalendarBoard() {
         days: shiftedDays.map((date) => ({ date })),
         staffMemberIds: [],
         products: [],
-      }).then((created) => {
-        void loadBoard();
-        void loadProjects();
+      }).then(async (created) => {
+        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
         return created;
       });
     },
-    [loadBoard, loadProjects],
+    [queryClient],
   );
 
   const assignStaffToEvent = useCallback(
@@ -179,15 +145,18 @@ export function useCalendarBoard() {
       }
       return updateScheduleEvent(event.id, {
         staffMemberIds: [...event.staff.map((member) => member.id), staffMemberId],
-      }).then((updated) =>
-        loadBoard().then((freshBoard) => ({
+      }).then(async (updated) => {
+        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
+        const freshBoard =
+          queryClient.getQueryData(scheduleQueries.board(range.from, range.to).queryKey) ?? null;
+        return {
           status: 'assigned' as const,
           updated,
           board: freshBoard,
-        })),
-      );
+        };
+      });
     },
-    [loadBoard],
+    [queryClient, range.from, range.to],
   );
 
   return {

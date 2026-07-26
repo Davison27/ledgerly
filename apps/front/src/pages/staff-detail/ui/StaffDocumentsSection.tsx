@@ -1,14 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Popconfirm, Table, Tabs, type TableColumnsType } from 'antd';
 import { DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   deleteStaffDocument,
-  listStaffDocumentTypes,
-  listStaffDocuments,
   staffDocumentFileUrl,
+  staffDocumentTypeQueries,
+  staffQueries,
   type StaffDocumentDto,
-  type StaffDocumentTypeDto,
 } from '@/entities/staff-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
@@ -21,64 +21,40 @@ import type { StaffSectionProps } from '../model/types';
 
 const PAYROLL_TYPE_CODE = 'nomina';
 
-export function StaffDocumentsSection({
-  staffMember,
-  onDocumentsChanged,
-}: StaffSectionProps) {
+export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const queryClient = useQueryClient();
 
-  const [documentTypes, setDocumentTypes] = useState<StaffDocumentTypeDto[]>([]);
-  const [typesLoaded, setTypesLoaded] = useState(false);
+  const { data: allDocumentTypes = [], isPending: typesLoading } = useQuery(
+    staffDocumentTypeQueries.list(),
+  );
+  const documentTypes = useMemo(
+    () => allDocumentTypes.filter((type) => type.code !== PAYROLL_TYPE_CODE),
+    [allDocumentTypes],
+  );
   const [activeTypeId, setActiveTypeId] = useState<string | null>(null);
 
-  const [documents, setDocuments] = useState<StaffDocumentDto[]>([]);
-  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (activeTypeId === null && documentTypes.length > 0) {
+      setActiveTypeId(documentTypes[0].id);
+    }
+  }, [documentTypes, activeTypeId]);
+
+  const { data: documents = [], isPending: loading } = useQuery({
+    ...staffQueries.documents(staffMember.id, activeTypeId ?? undefined),
+    enabled: Boolean(activeTypeId),
+  });
+
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingDocument, setEditingDocument] = useState<StaffDocumentDto | null>(null);
-
-  useEffect(() => {
-    listStaffDocumentTypes()
-      .then((types) => {
-        const catalogue = types.filter((type) => type.code !== PAYROLL_TYPE_CODE);
-        setDocumentTypes(catalogue);
-        setActiveTypeId(catalogue[0]?.id ?? null);
-      })
-      .catch(() => setDocumentTypes([]))
-      .finally(() => setTypesLoaded(true));
-  }, []);
-
-  const loadDocuments = useCallback(() => {
-    if (!activeTypeId) return;
-    setLoading(true);
-    listStaffDocuments(staffMember.id, activeTypeId)
-      .then(setDocuments)
-      .catch(() => setDocuments([]))
-      .finally(() => setLoading(false));
-  }, [staffMember.id, activeTypeId]);
-
-  useEffect(() => {
-    loadDocuments();
-  }, [loadDocuments]);
-
-  const handleCreated = () => {
-    loadDocuments();
-    onDocumentsChanged();
-  };
-
-  const handleUpdated = () => {
-    setEditingDocument(null);
-    loadDocuments();
-    onDocumentsChanged();
-  };
 
   const handleDelete = async (document: StaffDocumentDto) => {
     setDeletingId(document.id);
     try {
       await deleteStaffDocument(staffMember.id, document.id);
       void message.success(t('staff.documents.deleted'));
-      loadDocuments();
-      onDocumentsChanged();
+      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
     } catch {
       void message.error(t('staff.documents.deleteConfirm.error'));
     } finally {
@@ -160,14 +136,10 @@ export function StaffDocumentsSection({
   return (
     <PageContainer>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
-        <AddStaffDocumentButton
-          staffMemberId={staffMember.id}
-          documentTypes={documentTypes}
-          onCreated={handleCreated}
-        />
+        <AddStaffDocumentButton staffMemberId={staffMember.id} />
       </div>
 
-      {typesLoaded && documentTypes.length === 0 ? (
+      {!typesLoading && documentTypes.length === 0 ? (
         <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.noTypes')} />
       ) : (
         <Tabs
@@ -197,7 +169,7 @@ export function StaffDocumentsSection({
         document={editingDocument}
         documentTypes={documentTypes}
         onCancel={() => setEditingDocument(null)}
-        onUpdated={handleUpdated}
+        onUpdated={() => setEditingDocument(null)}
       />
     </PageContainer>
   );
