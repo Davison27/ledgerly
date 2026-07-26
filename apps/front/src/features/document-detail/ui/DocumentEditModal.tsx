@@ -5,6 +5,7 @@ import {
   App,
   Button,
   Col,
+  ConfigProvider,
   DatePicker,
   Form,
   InputNumber,
@@ -30,6 +31,7 @@ import {
 import { projectQueries } from '@/entities/project';
 import { staffQueries } from '@/entities/staff-member';
 import { supplierQueries } from '@/entities/supplier';
+import { SPACE } from '@/shared/config/theme';
 
 const { Text } = Typography;
 
@@ -64,7 +66,6 @@ const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'
 const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 
-const FORM_ITEM_STYLE: React.CSSProperties = { marginBottom: 8 };
 const AMOUNT_MISMATCH_TOLERANCE = 0.02;
 
 function blankToNull(value: string | undefined): string | null {
@@ -147,7 +148,8 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     taxBaseWatch != null &&
     taxAmountWatch != null &&
     irpfAmountWatch != null &&
-    Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) > AMOUNT_MISMATCH_TOLERANCE;
+    Math.abs(amountWatch - (taxBaseWatch + taxAmountWatch - irpfAmountWatch)) >
+      AMOUNT_MISMATCH_TOLERANCE;
 
   const handleOk = () => {
     if (!document) return;
@@ -224,268 +226,244 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
         />
       )}
 
-      <Form<DocumentEditFormFields> form={form} layout="vertical" size="small" requiredMark={false}>
-        <Text strong style={{ fontSize: 13 }}>
-          {t('projects.documents.upload.sections.document')}
-        </Text>
-        <Row gutter={12} style={{ marginTop: 8 }}>
-          <Col xs={24} sm={12} md={8}>
-            <Form.Item
-              name="name"
-              label={t('projects.documents.upload.fields.name')}
-              style={FORM_ITEM_STYLE}
-              rules={[
-                { required: true, message: t('projects.documents.upload.validation.nameRequired') },
-              ]}
-            >
-              <Input placeholder={t('projects.documents.upload.placeholders.name')} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <Form.Item name="type" label={t('projects.documents.upload.fields.type')} style={FORM_ITEM_STYLE}>
-              <Select
-                options={DOCUMENT_TYPES.map((type) => ({
-                  value: type,
-                  label: t(`projects.documents.types.${type}`),
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <Form.Item
-              name="status"
-              label={t('projects.documents.upload.fields.status')}
-              style={FORM_ITEM_STYLE}
-            >
-              <Select
-                options={DOCUMENT_STATUSES.map((status) => ({
-                  value: status,
-                  label: t(`projects.documents.statuses.${status}`),
-                }))}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={12}>
-          <Col xs={24} sm={12} md={8}>
-            <Form.Item
-              name="date"
-              label={t('projects.documents.upload.fields.date')}
-              style={FORM_ITEM_STYLE}
-              rules={[
-                { required: true, message: t('projects.documents.upload.validation.dateRequired') },
-              ]}
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <Form.Item
-              name="dueDate"
-              label={t('projects.documents.upload.fields.dueDate')}
-              style={FORM_ITEM_STYLE}
-            >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={8}>
-            <Form.Item
-              name="invoiceNumber"
-              label={t('projects.documents.upload.fields.invoiceNumber')}
-              style={FORM_ITEM_STYLE}
-            >
-              <Input placeholder={t('projects.documents.upload.placeholders.invoiceNumber')} />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        {showStaffSelect && (
-          <Row gutter={12}>
-            <Col xs={24} md={8}>
+      <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
+        <Form<DocumentEditFormFields>
+          form={form}
+          layout="vertical"
+          size="small"
+          requiredMark={false}
+        >
+          <Text strong style={{ fontSize: 13 }}>
+            {t('projects.documents.upload.sections.document')}
+          </Text>
+          <Row gutter={12} style={{ marginTop: 8 }}>
+            <Col xs={24} sm={12} md={8}>
               <Form.Item
-                label={t('projects.documents.upload.staffMember.label')}
-                style={FORM_ITEM_STYLE}
-                validateStatus={staffMemberError ? 'error' : undefined}
-                help={
-                  staffMemberError
-                    ? t('projects.documents.upload.staffMember.required')
-                    : t('projects.documents.upload.staffMember.hint')
-                }
+                name="name"
+                label={t('projects.documents.upload.fields.name')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('projects.documents.upload.validation.nameRequired'),
+                  },
+                ]}
               >
+                <Input placeholder={t('projects.documents.upload.placeholders.name')} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="type" label={t('projects.documents.upload.fields.type')}>
                 <Select
-                  showSearch
-                  value={staffMemberId ?? undefined}
-                  onChange={handleSelectStaffMember}
-                  placeholder={t('projects.documents.upload.staffMember.placeholder')}
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={staffMembers.map((member) => ({
-                    value: member.id,
-                    label: `${member.firstName} ${member.lastName}`,
+                  options={DOCUMENT_TYPES.map((type) => ({
+                    value: type,
+                    label: t(`projects.documents.types.${type}`),
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="status" label={t('projects.documents.upload.fields.status')}>
+                <Select
+                  options={DOCUMENT_STATUSES.map((status) => ({
+                    value: status,
+                    label: t(`projects.documents.statuses.${status}`),
                   }))}
                 />
               </Form.Item>
             </Col>
           </Row>
-        )}
+          <Row gutter={12}>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item
+                name="date"
+                label={t('projects.documents.upload.fields.date')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('projects.documents.upload.validation.dateRequired'),
+                  },
+                ]}
+              >
+                <DatePicker format="YYYY-MM-DD" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item name="dueDate" label={t('projects.documents.upload.fields.dueDate')}>
+                <DatePicker format="YYYY-MM-DD" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={8}>
+              <Form.Item
+                name="invoiceNumber"
+                label={t('projects.documents.upload.fields.invoiceNumber')}
+              >
+                <Input placeholder={t('projects.documents.upload.placeholders.invoiceNumber')} />
+              </Form.Item>
+            </Col>
+          </Row>
 
-        <Text strong style={{ fontSize: 13 }}>
-          {t('projects.documents.upload.sections.supplier')}
-        </Text>
-        <Row gutter={12} style={{ marginTop: 8 }} align="top">
-          <Col xs={24} md={8}>
-            <Form.Item label={t('projects.documents.upload.supplier.label')} style={FORM_ITEM_STYLE}>
-              <Select
-                showSearch
-                allowClear
-                value={supplierId ?? undefined}
-                onChange={handleSelectSupplier}
-                onClear={() => handleSelectSupplier(undefined)}
-                placeholder={t('projects.documents.upload.supplier.placeholder')}
-                filterOption={(input, option) =>
-                  (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                }
-                options={suppliers.map((supplier) => ({
-                  value: supplier.id,
-                  label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item
-              name="issuerName"
-              label={t('projects.documents.upload.fields.issuerName')}
-              style={FORM_ITEM_STYLE}
-            >
-              <Input
-                disabled={Boolean(supplierId)}
-                placeholder={t('projects.documents.upload.placeholders.issuerName')}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item
-              name="issuerTaxId"
-              label={t('projects.documents.upload.fields.issuerTaxId')}
-              style={FORM_ITEM_STYLE}
-            >
-              <Input
-                disabled={Boolean(supplierId)}
-                placeholder={t('projects.documents.upload.placeholders.issuerTaxId')}
-              />
-            </Form.Item>
-            {supplierId && (
-              <Text type="secondary" style={{ fontSize: 11 }}>
-                {t('projects.documents.upload.supplier.autofillNote')}
-              </Text>
-            )}
-          </Col>
-        </Row>
+          {showStaffSelect && (
+            <Row gutter={12}>
+              <Col xs={24} md={8}>
+                <Form.Item
+                  label={t('projects.documents.upload.staffMember.label')}
+                  validateStatus={staffMemberError ? 'error' : undefined}
+                  help={
+                    staffMemberError
+                      ? t('projects.documents.upload.staffMember.required')
+                      : t('projects.documents.upload.staffMember.hint')
+                  }
+                >
+                  <Select
+                    showSearch
+                    value={staffMemberId ?? undefined}
+                    onChange={handleSelectStaffMember}
+                    placeholder={t('projects.documents.upload.staffMember.placeholder')}
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={staffMembers.map((member) => ({
+                      value: member.id,
+                      label: `${member.firstName} ${member.lastName}`,
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+            </Row>
+          )}
 
-        <Text strong style={{ fontSize: 13 }}>
-          {t('projects.documents.upload.sections.amounts')}
-        </Text>
-        <Row gutter={12} style={{ marginTop: 8 }}>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="amount"
-              label={t('projects.documents.upload.fields.amount')}
-              style={FORM_ITEM_STYLE}
-              rules={[
-                { required: true, message: t('projects.documents.upload.validation.amountRequired') },
-                {
-                  type: 'number',
-                  min: 0,
-                  message: t('projects.documents.upload.validation.amountMin'),
-                },
-              ]}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="currency"
-              label={t('projects.documents.upload.fields.currency')}
-              style={FORM_ITEM_STYLE}
-            >
-              <Select options={CURRENCIES.map((currency) => ({ value: currency, label: currency }))} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="taxBase"
-              label={t('projects.documents.upload.fields.taxBase')}
-              style={FORM_ITEM_STYLE}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="taxRate"
-              label={t('projects.documents.upload.fields.taxRate')}
-              style={FORM_ITEM_STYLE}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
-            </Form.Item>
-          </Col>
-        </Row>
-        <Row gutter={12}>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="direction"
-              label={t('projects.documents.upload.fields.direction')}
-              style={FORM_ITEM_STYLE}
-            >
-              <Segmented<DocumentDirectionDto>
-                block
-                options={DOCUMENT_DIRECTIONS.map((direction) => ({
-                  value: direction,
-                  label: t(`projects.documents.directions.${direction}`),
-                }))}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="taxAmount"
-              label={t('projects.documents.upload.fields.taxAmount')}
-              style={FORM_ITEM_STYLE}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="irpfRate"
-              label={t('projects.documents.upload.fields.irpfRate')}
-              style={FORM_ITEM_STYLE}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} sm={12} md={6}>
-            <Form.Item
-              name="irpfAmount"
-              label={t('projects.documents.upload.fields.irpfAmount')}
-              style={{ marginBottom: 0 }}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} />
-            </Form.Item>
-          </Col>
-        </Row>
-        {amountMismatch && (
-          <Alert
-            type="warning"
-            showIcon
-            message={t('projects.documents.upload.validation.amountMismatch')}
-            style={{ marginTop: 8 }}
-          />
-        )}
-      </Form>
+          <Text strong style={{ fontSize: 13 }}>
+            {t('projects.documents.upload.sections.supplier')}
+          </Text>
+          <Row gutter={12} style={{ marginTop: 8 }} align="top">
+            <Col xs={24} md={8}>
+              <Form.Item label={t('projects.documents.upload.supplier.label')}>
+                <Select
+                  showSearch
+                  allowClear
+                  value={supplierId ?? undefined}
+                  onChange={handleSelectSupplier}
+                  onClear={() => handleSelectSupplier(undefined)}
+                  placeholder={t('projects.documents.upload.supplier.placeholder')}
+                  filterOption={(input, option) =>
+                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                  }
+                  options={suppliers.map((supplier) => ({
+                    value: supplier.id,
+                    label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item name="issuerName" label={t('projects.documents.upload.fields.issuerName')}>
+                <Input
+                  disabled={Boolean(supplierId)}
+                  placeholder={t('projects.documents.upload.placeholders.issuerName')}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} md={8}>
+              <Form.Item
+                name="issuerTaxId"
+                label={t('projects.documents.upload.fields.issuerTaxId')}
+              >
+                <Input
+                  disabled={Boolean(supplierId)}
+                  placeholder={t('projects.documents.upload.placeholders.issuerTaxId')}
+                />
+              </Form.Item>
+              {supplierId && (
+                <Text type="secondary" style={{ fontSize: 11 }}>
+                  {t('projects.documents.upload.supplier.autofillNote')}
+                </Text>
+              )}
+            </Col>
+          </Row>
+
+          <Text strong style={{ fontSize: 13 }}>
+            {t('projects.documents.upload.sections.amounts')}
+          </Text>
+          <Row gutter={12} style={{ marginTop: 8 }}>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item
+                name="amount"
+                label={t('projects.documents.upload.fields.amount')}
+                rules={[
+                  {
+                    required: true,
+                    message: t('projects.documents.upload.validation.amountRequired'),
+                  },
+                  {
+                    type: 'number',
+                    min: 0,
+                    message: t('projects.documents.upload.validation.amountMin'),
+                  },
+                ]}
+              >
+                <InputNumber min={0} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="currency" label={t('projects.documents.upload.fields.currency')}>
+                <Select
+                  options={CURRENCIES.map((currency) => ({ value: currency, label: currency }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="taxBase" label={t('projects.documents.upload.fields.taxBase')}>
+                <InputNumber min={0} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="taxRate" label={t('projects.documents.upload.fields.taxRate')}>
+                <InputNumber min={0} max={100} suffix="%" />
+              </Form.Item>
+            </Col>
+          </Row>
+          <Row gutter={12}>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="direction" label={t('projects.documents.upload.fields.direction')}>
+                <Segmented<DocumentDirectionDto>
+                  block
+                  options={DOCUMENT_DIRECTIONS.map((direction) => ({
+                    value: direction,
+                    label: t(`projects.documents.directions.${direction}`),
+                  }))}
+                />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="taxAmount" label={t('projects.documents.upload.fields.taxAmount')}>
+                <InputNumber min={0} />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item name="irpfRate" label={t('projects.documents.upload.fields.irpfRate')}>
+                <InputNumber min={0} max={100} suffix="%" />
+              </Form.Item>
+            </Col>
+            <Col xs={24} sm={12} md={6}>
+              <Form.Item
+                name="irpfAmount"
+                label={t('projects.documents.upload.fields.irpfAmount')}
+                style={{ marginBottom: 0 }}
+              >
+                <InputNumber min={0} />
+              </Form.Item>
+            </Col>
+          </Row>
+          {amountMismatch && (
+            <Alert
+              type="warning"
+              showIcon
+              message={t('projects.documents.upload.validation.amountMismatch')}
+              style={{ marginTop: 8 }}
+            />
+          )}
+        </Form>
+      </ConfigProvider>
     </Modal>
   );
 }

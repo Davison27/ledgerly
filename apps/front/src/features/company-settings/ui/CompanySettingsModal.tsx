@@ -143,7 +143,6 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
                 <Form.Item
                   name="name"
                   label={t('company.settings.fields.name')}
-                  style={{ marginBottom: 12 }}
                   rules={[
                     { required: true, message: t('company.settings.validation.nameRequired') },
                   ]}
@@ -152,29 +151,17 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="legalName"
-                  label={t('company.settings.fields.legalName')}
-                  style={{ marginBottom: 12 }}
-                >
+                <Form.Item name="legalName" label={t('company.settings.fields.legalName')}>
                   <Input placeholder={t('company.settings.placeholders.legalName')} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="taxId"
-                  label={t('company.settings.fields.taxId')}
-                  style={{ marginBottom: 12 }}
-                >
+                <Form.Item name="taxId" label={t('company.settings.fields.taxId')}>
                   <Input placeholder={t('company.settings.placeholders.taxId')} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12} md={6}>
-                <Form.Item
-                  name="sector"
-                  label={t('company.settings.fields.sector')}
-                  style={{ marginBottom: 12 }}
-                >
+                <Form.Item name="sector" label={t('company.settings.fields.sector')}>
                   <Input placeholder={t('company.settings.placeholders.sector')} />
                 </Form.Item>
               </Col>
@@ -212,18 +199,13 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
             <Form.Item
               name="email"
               label={t('company.settings.fields.email')}
-              style={{ marginBottom: 12 }}
               rules={[{ type: 'email', message: t('company.settings.validation.emailInvalid') }]}
             >
               <Input type="email" placeholder={t('company.settings.placeholders.email')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12} md={8}>
-            <Form.Item
-              name="phone"
-              label={t('company.settings.fields.phone')}
-              style={{ marginBottom: 12 }}
-            >
+            <Form.Item name="phone" label={t('company.settings.fields.phone')}>
               <Input placeholder={t('company.settings.placeholders.phone')} />
             </Form.Item>
           </Col>
@@ -231,7 +213,6 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
             <Form.Item
               name="website"
               label={t('company.settings.fields.website')}
-              style={{ marginBottom: 12 }}
               rules={[{ type: 'url', message: t('company.settings.validation.urlInvalid') }]}
             >
               <Input placeholder={t('company.settings.placeholders.website')} />

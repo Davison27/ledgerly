@@ -4,6 +4,7 @@ import {
   App,
   Button,
   Col,
+  ConfigProvider,
   DatePicker,
   Flex,
   Form,
@@ -25,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 import type { ScheduleEventDto, UpdateScheduleEventPayload } from '@/entities/schedule-event';
 import type { ProductDto } from '@/entities/product';
 import type { StaffMemberDto } from '@/entities/staff-member';
+import { SPACE } from '@/shared/config/theme';
 import {
   MAX_BLOCK_DAYS,
   eventScheduleShape,
@@ -98,7 +100,8 @@ export function EventEditorModal({
         notes: event.notes ?? '',
         mode: shape.mode,
         date: shape.mode === 'single' ? dayjs(shape.startDate) : undefined,
-        dateRange: shape.mode === 'range' ? [dayjs(shape.startDate), dayjs(shape.endDate)] : undefined,
+        dateRange:
+          shape.mode === 'range' ? [dayjs(shape.startDate), dayjs(shape.endDate)] : undefined,
         fullDay: shape.fullDay,
         startTime: shape.startTime ? dayjs(shape.startTime, 'HH:mm') : undefined,
         endTime: shape.endTime ? dayjs(shape.endTime, 'HH:mm') : undefined,
@@ -129,9 +132,13 @@ export function EventEditorModal({
       .validateFields()
       .then((values) => {
         const startDate =
-          values.mode === 'single' ? values.date!.format('YYYY-MM-DD') : values.dateRange![0]!.format('YYYY-MM-DD');
+          values.mode === 'single'
+            ? values.date!.format('YYYY-MM-DD')
+            : values.dateRange![0]!.format('YYYY-MM-DD');
         const endDate =
-          values.mode === 'single' ? values.date!.format('YYYY-MM-DD') : values.dateRange![1]!.format('YYYY-MM-DD');
+          values.mode === 'single'
+            ? values.date!.format('YYYY-MM-DD')
+            : values.dateRange![1]!.format('YYYY-MM-DD');
 
         const payload: UpdateScheduleEventPayload = {
           title: values.title?.trim() ? values.title.trim() : null,
@@ -181,7 +188,9 @@ export function EventEditorModal({
       destroyOnHidden
       centered
       width="min(760px, 95vw)"
-      styles={{ body: { display: 'flex', flexDirection: 'column', maxHeight: '72vh', overflow: 'hidden' } }}
+      styles={{
+        body: { display: 'flex', flexDirection: 'column', maxHeight: '72vh', overflow: 'hidden' },
+      }}
       footer={(_, { OkBtn, CancelBtn }) => (
         <Flex justify="space-between" align="center">
           <Popconfirm
@@ -211,7 +220,12 @@ export function EventEditorModal({
       >
         <div style={{ flex: '0 0 auto' }}>
           {warnings.includes('gaps') && (
-            <Alert type="warning" showIcon message={t('calendar.editor.legacy.gaps')} style={{ marginBottom: 12 }} />
+            <Alert
+              type="warning"
+              showIcon
+              message={t('calendar.editor.legacy.gaps')}
+              style={{ marginBottom: 12 }}
+            />
           )}
           {warnings.includes('mixedTimes') && (
             <Alert
@@ -222,11 +236,11 @@ export function EventEditorModal({
             />
           )}
 
-          <Form.Item name="title" label={t('calendar.editor.fields.title')} style={{ marginBottom: 12 }}>
+          <Form.Item name="title" label={t('calendar.editor.fields.title')}>
             <Input placeholder={t('calendar.editor.placeholders.title')} />
           </Form.Item>
 
-          <Form.Item name="notes" label={t('calendar.editor.fields.notes')} style={{ marginBottom: 12 }}>
+          <Form.Item name="notes" label={t('calendar.editor.fields.notes')}>
             <TextArea rows={2} placeholder={t('calendar.editor.placeholders.notes')} />
           </Form.Item>
 
@@ -249,17 +263,15 @@ export function EventEditorModal({
               key="date"
               name="date"
               label={t('calendar.editor.schedule.date')}
-              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('calendar.editor.validation.rangeRequired') }]}
             >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <DatePicker format="YYYY-MM-DD" />
             </Form.Item>
           ) : (
             <Form.Item
               key="dateRange"
               name="dateRange"
               label={t('calendar.editor.schedule.date')}
-              style={{ marginBottom: 12 }}
               rules={[
                 { required: true, message: t('calendar.editor.validation.rangeRequired') },
                 {
@@ -273,20 +285,21 @@ export function EventEditorModal({
               ]}
             >
               <RangePicker
-                style={{ width: '100%' }}
                 format="YYYY-MM-DD"
                 placeholder={[t('calendar.editor.schedule.from'), t('calendar.editor.schedule.to')]}
               />
             </Form.Item>
           )}
 
-          <Form.Item name="fullDay" valuePropName="checked" style={{ marginBottom: 8 }}>
-            <Switch
-              checkedChildren={t('calendar.editor.schedule.fullDay')}
-              unCheckedChildren={t('calendar.editor.schedule.fullDay')}
-              onChange={(checked) => setFullDay(checked)}
-            />
-          </Form.Item>
+          <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
+            <Form.Item name="fullDay" valuePropName="checked">
+              <Switch
+                checkedChildren={t('calendar.editor.schedule.fullDay')}
+                unCheckedChildren={t('calendar.editor.schedule.fullDay')}
+                onChange={(checked) => setFullDay(checked)}
+              />
+            </Form.Item>
+          </ConfigProvider>
 
           {!fullDay && (
             <Row gutter={8} style={{ marginBottom: 12 }}>
@@ -295,9 +308,11 @@ export function EventEditorModal({
                   name="startTime"
                   label={t('calendar.editor.schedule.start')}
                   style={{ marginBottom: 0 }}
-                  rules={[{ required: true, message: t('calendar.editor.validation.startRequired') }]}
+                  rules={[
+                    { required: true, message: t('calendar.editor.validation.startRequired') },
+                  ]}
                 >
-                  <TimePicker style={{ width: '100%' }} format="HH:mm" />
+                  <TimePicker format="HH:mm" />
                 </Form.Item>
               </Col>
               <Col flex="0 0 140px">
@@ -311,23 +326,22 @@ export function EventEditorModal({
                     ({ getFieldValue }) => ({
                       validator(_rule, value: Dayjs | undefined) {
                         const startTime = getFieldValue('startTime') as Dayjs | undefined;
-                        if (!value || !startTime || value.isAfter(startTime)) return Promise.resolve();
-                        return Promise.reject(new Error(t('calendar.editor.validation.endAfterStart')));
+                        if (!value || !startTime || value.isAfter(startTime))
+                          return Promise.resolve();
+                        return Promise.reject(
+                          new Error(t('calendar.editor.validation.endAfterStart')),
+                        );
                       },
                     }),
                   ]}
                 >
-                  <TimePicker style={{ width: '100%' }} format="HH:mm" />
+                  <TimePicker format="HH:mm" />
                 </Form.Item>
               </Col>
             </Row>
           )}
 
-          <Form.Item
-            name="staffMemberIds"
-            label={t('calendar.editor.fields.staff')}
-            style={{ marginBottom: 12 }}
-          >
+          <Form.Item name="staffMemberIds" label={t('calendar.editor.fields.staff')}>
             <Select
               mode="multiple"
               allowClear
@@ -346,7 +360,7 @@ export function EventEditorModal({
 
         <Form.List name="products">
           {(fields, { add, remove }) => (
-            <>
+            <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
               <div
                 style={{
                   flex: '1 1 auto',
@@ -363,16 +377,21 @@ export function EventEditorModal({
                       <div style={{ flex: '1 1 auto', minWidth: 0 }}>
                         <Form.Item
                           name={[field.name, 'productId']}
-                          style={{ marginBottom: 8 }}
                           rules={[
-                            { required: true, message: t('calendar.editor.validation.productRequired') },
+                            {
+                              required: true,
+                              message: t('calendar.editor.validation.productRequired'),
+                            },
                           ]}
                         >
                           <Select
                             showSearch
                             placeholder={t('calendar.editor.placeholders.product')}
                             filterOption={(input, option) =>
-                              (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                              (option?.label ?? '')
+                                .toString()
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
                             }
                             options={products.map((product) => ({
                               value: product.id,
@@ -384,14 +403,19 @@ export function EventEditorModal({
                       <div style={{ flex: '0 0 110px' }}>
                         <Form.Item
                           name={[field.name, 'quantity']}
-                          style={{ marginBottom: 8 }}
                           rules={[
-                            { required: true, message: t('calendar.editor.validation.quantityRequired') },
-                            { type: 'number', min: 1, message: t('calendar.editor.validation.quantityMin') },
+                            {
+                              required: true,
+                              message: t('calendar.editor.validation.quantityRequired'),
+                            },
+                            {
+                              type: 'number',
+                              min: 1,
+                              message: t('calendar.editor.validation.quantityMin'),
+                            },
                           ]}
                         >
                           <InputNumber
-                            style={{ width: '100%' }}
                             min={1}
                             precision={0}
                             placeholder={t('calendar.editor.placeholders.quantity')}
@@ -427,7 +451,7 @@ export function EventEditorModal({
                   </Text>
                 )}
               </Flex>
-            </>
+            </ConfigProvider>
           )}
         </Form.List>
       </Form>

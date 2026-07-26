@@ -4,6 +4,7 @@ import {
   AutoComplete,
   Button,
   Col,
+  ConfigProvider,
   Flex,
   Form,
   Input,
@@ -22,6 +23,7 @@ import {
   type CreateInvoiceLinePayload,
   type CreateInvoicePayload,
 } from '@/entities/invoice';
+import { SPACE } from '@/shared/config/theme';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -184,7 +186,6 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
         <Form.Item
           name="projectId"
           label={t('invoices.fields.project')}
-          style={{ marginBottom: 12 }}
           rules={[{ required: true, message: t('invoices.form.validation.projectRequired') }]}
         >
           <Select
@@ -207,148 +208,140 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
         </Text>
         <Form.List name="lines">
           {(fields, { add, remove }) => (
-            <Flex vertical gap={4} style={{ marginTop: 8, marginBottom: 8 }}>
-              {fields.length > 0 && (
-                <Row gutter={12}>
-                  <Col flex="auto">
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {t('invoices.lines.columns.description')}
-                    </Text>
-                  </Col>
-                  <Col flex="0 0 100px">
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {t('invoices.lines.columns.quantity')}
-                    </Text>
-                  </Col>
-                  <Col flex="0 0 140px">
-                    <Text type="secondary" style={{ fontSize: 12 }}>
-                      {t('invoices.lines.columns.unitPrice')}
-                    </Text>
-                  </Col>
-                  <Col flex="0 0 32px" />
-                </Row>
-              )}
-              {fields.map((field) => (
-                <Row gutter={12} key={field.key} align="top">
-                  <Col flex="auto">
-                    <Form.Item
-                      {...field}
-                      name={[field.name, 'description']}
-                      style={{ marginBottom: 8 }}
-                      rules={[
-                        {
-                          required: true,
-                          message: t('invoices.form.validation.lineDescriptionRequired'),
-                        },
-                      ]}
-                    >
-                      <AutoComplete
-                        options={productOptions}
-                        filterOption={(inputValue, option) =>
-                          (option?.label ?? '').toString().toLowerCase().includes(inputValue.toLowerCase())
-                        }
-                        onSelect={(value: string) => handleProductSelect(field.name, value)}
-                        onChange={(value: string) => handleDescriptionChange(field.name, value)}
-                        aria-label={t('invoices.lines.columns.description')}
-                        placeholder={t('invoices.lines.descriptionPlaceholder')}
-                      />
+            <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
+              <Flex vertical gap={4} style={{ marginTop: 8, marginBottom: 8 }}>
+                {fields.length > 0 && (
+                  <Row gutter={12}>
+                    <Col flex="auto">
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {t('invoices.lines.columns.description')}
+                      </Text>
+                    </Col>
+                    <Col flex="0 0 100px">
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {t('invoices.lines.columns.quantity')}
+                      </Text>
+                    </Col>
+                    <Col flex="0 0 140px">
+                      <Text type="secondary" style={{ fontSize: 12 }}>
+                        {t('invoices.lines.columns.unitPrice')}
+                      </Text>
+                    </Col>
+                    <Col flex="0 0 32px" />
+                  </Row>
+                )}
+                {fields.map((field) => (
+                  <Row gutter={12} key={field.key} align="top">
+                    <Col flex="auto">
+                      <Form.Item
+                        {...field}
+                        name={[field.name, 'description']}
+                        rules={[
+                          {
+                            required: true,
+                            message: t('invoices.form.validation.lineDescriptionRequired'),
+                          },
+                        ]}
+                      >
+                        <AutoComplete
+                          options={productOptions}
+                          filterOption={(inputValue, option) =>
+                            (option?.label ?? '')
+                              .toString()
+                              .toLowerCase()
+                              .includes(inputValue.toLowerCase())
+                          }
+                          onSelect={(value: string) => handleProductSelect(field.name, value)}
+                          onChange={(value: string) => handleDescriptionChange(field.name, value)}
+                          aria-label={t('invoices.lines.columns.description')}
+                          placeholder={t('invoices.lines.descriptionPlaceholder')}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col flex="0 0 100px">
+                      <Form.Item
+                        {...field}
+                        name={[field.name, 'quantity']}
+                        rules={[
+                          {
+                            required: true,
+                            message: t('invoices.form.validation.lineQuantityRequired'),
+                          },
+                          {
+                            type: 'number',
+                            min: 0.001,
+                            message: t('invoices.form.validation.lineQuantityMin'),
+                          },
+                        ]}
+                      >
+                        <InputNumber
+                          min={0.001}
+                          step={1}
+                          aria-label={t('invoices.lines.columns.quantity')}
+                          placeholder={t('invoices.lines.quantityPlaceholder')}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col flex="0 0 140px">
+                      <Form.Item
+                        {...field}
+                        name={[field.name, 'unitPrice']}
+                        rules={[
+                          {
+                            required: true,
+                            message: t('invoices.form.validation.lineUnitPriceRequired'),
+                          },
+                          {
+                            type: 'number',
+                            min: 0,
+                            message: t('invoices.form.validation.lineUnitPriceMin'),
+                          },
+                        ]}
+                      >
+                        <InputNumber
+                          min={0}
+                          aria-label={t('invoices.lines.columns.unitPrice')}
+                          placeholder={t('invoices.lines.unitPricePlaceholder')}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Form.Item {...field} name={[field.name, 'productId']} hidden>
+                      <Input />
                     </Form.Item>
-                  </Col>
-                  <Col flex="0 0 100px">
-                    <Form.Item
-                      {...field}
-                      name={[field.name, 'quantity']}
-                      style={{ marginBottom: 8 }}
-                      rules={[
-                        {
-                          required: true,
-                          message: t('invoices.form.validation.lineQuantityRequired'),
-                        },
-                        {
-                          type: 'number',
-                          min: 0.001,
-                          message: t('invoices.form.validation.lineQuantityMin'),
-                        },
-                      ]}
-                    >
-                      <InputNumber
-                        style={{ width: '100%' }}
-                        min={0.001}
-                        step={1}
-                        aria-label={t('invoices.lines.columns.quantity')}
-                        placeholder={t('invoices.lines.quantityPlaceholder')}
+                    <Col flex="0 0 32px">
+                      <Button
+                        type="text"
+                        danger
+                        icon={<MinusCircleOutlined />}
+                        aria-label={t('invoices.lines.remove')}
+                        disabled={fields.length <= 1}
+                        onClick={() => remove(field.name)}
                       />
-                    </Form.Item>
-                  </Col>
-                  <Col flex="0 0 140px">
-                    <Form.Item
-                      {...field}
-                      name={[field.name, 'unitPrice']}
-                      style={{ marginBottom: 8 }}
-                      rules={[
-                        {
-                          required: true,
-                          message: t('invoices.form.validation.lineUnitPriceRequired'),
-                        },
-                        {
-                          type: 'number',
-                          min: 0,
-                          message: t('invoices.form.validation.lineUnitPriceMin'),
-                        },
-                      ]}
-                    >
-                      <InputNumber
-                        style={{ width: '100%' }}
-                        min={0}
-                        aria-label={t('invoices.lines.columns.unitPrice')}
-                        placeholder={t('invoices.lines.unitPricePlaceholder')}
-                      />
-                    </Form.Item>
-                  </Col>
-                  <Form.Item {...field} name={[field.name, 'productId']} hidden>
-                    <Input />
-                  </Form.Item>
-                  <Col flex="0 0 32px">
-                    <Button
-                      type="text"
-                      danger
-                      icon={<MinusCircleOutlined />}
-                      aria-label={t('invoices.lines.remove')}
-                      disabled={fields.length <= 1}
-                      onClick={() => remove(field.name)}
-                    />
-                  </Col>
-                </Row>
-              ))}
-              <Button
-                type="dashed"
-                block
-                icon={<PlusOutlined />}
-                onClick={() => add({ description: '', quantity: 1, unitPrice: undefined })}
-              >
-                {t('invoices.lines.add')}
-              </Button>
-            </Flex>
+                    </Col>
+                  </Row>
+                ))}
+                <Button
+                  type="dashed"
+                  block
+                  icon={<PlusOutlined />}
+                  onClick={() => add({ description: '', quantity: 1, unitPrice: undefined })}
+                >
+                  {t('invoices.lines.add')}
+                </Button>
+              </Flex>
+            </ConfigProvider>
           )}
         </Form.List>
 
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item
-              name="taxRate"
-              label={t('invoices.fields.taxRate')}
-              style={{ marginBottom: 12 }}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
+            <Form.Item name="taxRate" label={t('invoices.fields.taxRate')}>
+              <InputNumber min={0} max={100} suffix="%" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item
-              name="irpfRate"
-              label={t('invoices.fields.irpfRate')}
-              style={{ marginBottom: 12 }}
-            >
-              <InputNumber style={{ width: '100%' }} min={0} max={100} suffix="%" />
+            <Form.Item name="irpfRate" label={t('invoices.fields.irpfRate')}>
+              <InputNumber min={0} max={100} suffix="%" />
             </Form.Item>
           </Col>
         </Row>
@@ -358,31 +351,24 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
             <Form.Item
               name="customerName"
               label={t('invoices.fields.customerName')}
-              style={{ marginBottom: 12 }}
-              rules={[{ required: true, message: t('invoices.form.validation.customerNameRequired') }]}
+              rules={[
+                { required: true, message: t('invoices.form.validation.customerNameRequired') },
+              ]}
             >
               <Input placeholder={t('invoices.form.placeholders.customerName')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item
-              name="customerTaxId"
-              label={t('invoices.fields.customerTaxId')}
-              style={{ marginBottom: 12 }}
-            >
+            <Form.Item name="customerTaxId" label={t('invoices.fields.customerTaxId')}>
               <Input placeholder={t('invoices.form.placeholders.customerTaxId')} />
             </Form.Item>
           </Col>
         </Row>
-        <Form.Item
-          name="customerAddress"
-          label={t('invoices.fields.customerAddress')}
-          style={{ marginBottom: 12 }}
-        >
+        <Form.Item name="customerAddress" label={t('invoices.fields.customerAddress')}>
           <Input placeholder={t('invoices.form.placeholders.customerAddress')} />
         </Form.Item>
 
-        <Form.Item name="notes" label={t('invoices.fields.notes')} style={{ marginBottom: 12 }}>
+        <Form.Item name="notes" label={t('invoices.fields.notes')}>
           <TextArea rows={2} placeholder={t('invoices.form.placeholders.notes')} />
         </Form.Item>
 
@@ -392,15 +378,11 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
             <Text>{formatAmount(totals.taxBase)}</Text>
           </Flex>
           <Flex justify="space-between">
-            <Text type="secondary">
-              {t('invoices.totals.tax', { rate: taxRateWatch ?? 0 })}
-            </Text>
+            <Text type="secondary">{t('invoices.totals.tax', { rate: taxRateWatch ?? 0 })}</Text>
             <Text>{formatAmount(totals.taxAmount)}</Text>
           </Flex>
           <Flex justify="space-between">
-            <Text type="secondary">
-              {t('invoices.totals.irpf', { rate: irpfRateWatch ?? 0 })}
-            </Text>
+            <Text type="secondary">{t('invoices.totals.irpf', { rate: irpfRateWatch ?? 0 })}</Text>
             <Text>-{formatAmount(totals.irpfAmount)}</Text>
           </Flex>
           <Flex justify="space-between">

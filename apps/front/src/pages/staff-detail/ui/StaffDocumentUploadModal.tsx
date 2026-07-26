@@ -165,11 +165,11 @@ export function StaffDocumentUploadModal({
             { required: true, message: t('staff.documents.upload.validation.issueDateRequired') },
           ]}
         >
-          <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+          <DatePicker format="YYYY-MM-DD" />
         </Form.Item>
         {showExpiryDate && (
           <Form.Item name="expiryDate" label={t('staff.documents.upload.fields.expiryDate')}>
-            <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+            <DatePicker format="YYYY-MM-DD" />
           </Form.Item>
         )}
         <Form.Item name="notes" label={t('staff.documents.upload.fields.notes')}>

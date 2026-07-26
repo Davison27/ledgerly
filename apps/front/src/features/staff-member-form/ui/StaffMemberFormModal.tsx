@@ -103,7 +103,6 @@ export function StaffMemberFormModal({
             <Form.Item
               name="firstName"
               label={t('staff.fields.firstName')}
-              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('staff.form.validation.firstNameRequired') }]}
             >
               <Input placeholder={t('staff.form.placeholders.firstName')} />
@@ -113,7 +112,6 @@ export function StaffMemberFormModal({
             <Form.Item
               name="lastName"
               label={t('staff.fields.lastName')}
-              style={{ marginBottom: 12 }}
               rules={[{ required: true, message: t('staff.form.validation.lastNameRequired') }]}
             >
               <Input placeholder={t('staff.form.placeholders.lastName')} />
@@ -122,12 +120,12 @@ export function StaffMemberFormModal({
         </Row>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item name="taxId" label={t('staff.fields.taxId')} style={{ marginBottom: 12 }}>
+            <Form.Item name="taxId" label={t('staff.fields.taxId')}>
               <Input placeholder={t('staff.form.placeholders.taxId')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item name="position" label={t('staff.fields.position')} style={{ marginBottom: 12 }}>
+            <Form.Item name="position" label={t('staff.fields.position')}>
               <Input placeholder={t('staff.form.placeholders.position')} />
             </Form.Item>
           </Col>
@@ -137,32 +135,30 @@ export function StaffMemberFormModal({
             <Form.Item
               name="email"
               label={t('staff.fields.email')}
-              style={{ marginBottom: 12 }}
               rules={[{ type: 'email', message: t('staff.form.validation.emailInvalid') }]}
             >
               <Input type="email" placeholder={t('staff.form.placeholders.email')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
-            <Form.Item name="phone" label={t('staff.fields.phone')} style={{ marginBottom: 12 }}>
+            <Form.Item name="phone" label={t('staff.fields.phone')}>
               <Input placeholder={t('staff.form.placeholders.phone')} />
             </Form.Item>
           </Col>
         </Row>
         <Row gutter={16}>
           <Col xs={24} sm={12}>
-            <Form.Item name="hireDate" label={t('staff.fields.hireDate')} style={{ marginBottom: 12 }}>
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+            <Form.Item name="hireDate" label={t('staff.fields.hireDate')}>
+              <DatePicker format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>
             <Form.Item
               name="endDate"
               label={t('staff.fields.endDate')}
-              style={{ marginBottom: 12 }}
               extra={t('staff.form.endDateHelp')}
             >
-              <DatePicker style={{ width: '100%' }} format="YYYY-MM-DD" />
+              <DatePicker format="YYYY-MM-DD" />
             </Form.Item>
           </Col>
         </Row>

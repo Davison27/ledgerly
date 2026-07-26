@@ -220,6 +220,9 @@ export function buildThemeConfig(mode: 'light' | 'dark', brandColor?: string): T
         itemSelectedBg: derived.colorBgContainer,
         itemSelectedColor: primary,
       },
+      Form: {
+        itemMarginBottom: SPACE.md,
+      },
     },
   };
 }
