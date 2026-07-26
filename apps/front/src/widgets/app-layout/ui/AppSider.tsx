@@ -164,99 +164,100 @@ export function AppSider({
       width={LAYOUT.siderWidth}
       style={{
         height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
         background: token.colorBgContainer,
         borderRight: `1px solid ${token.colorBorderSecondary}`,
       }}
     >
-      <Flex
-        vertical={collapsed}
-        align="center"
-        justify={collapsed ? 'center' : 'space-between'}
-        gap={collapsed ? SPACE.xs : 0}
-        style={{
-          flex: 'none',
-          minHeight: LAYOUT.topbarHeight,
-          padding: collapsed ? `${SPACE.sm}px 0` : `0 ${SPACE.lg}px`,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
-        <div>
-          <img
-            src={(collapsed ? iconUrl : logoUrl)}
-            alt={t('common.appName')}
-            style={{ height: 28, display: 'block', objectFit: 'contain' }}
-          />
-        </div>
+      <Flex vertical style={{ height: '100%' }}>
+        <Flex
+          vertical={collapsed}
+          align="center"
+          justify={collapsed ? 'center' : 'space-between'}
+          gap={collapsed ? SPACE.xs : 0}
+          style={{
+            flex: 'none',
+            minHeight: LAYOUT.topbarHeight,
+            padding: collapsed ? `${SPACE.sm}px 0` : `0 ${SPACE.lg}px`,
+            borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          }}
+        >
+          <div>
+            <img
+              src={collapsed ? iconUrl : logoUrl}
+              alt={t('common.appName')}
+              style={{ height: 28, display: 'block', objectFit: 'contain' }}
+            />
+          </div>
 
-        <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
-          <Button
-            type="text"
-            aria-label={collapseLabel}
-            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => onCollapse(!collapsed)}
-          />
-        </Tooltip>
-      </Flex>
+          <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
+            <Button
+              type="text"
+              aria-label={collapseLabel}
+              icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+              onClick={() => onCollapse(!collapsed)}
+            />
+          </Tooltip>
+        </Flex>
 
-      <Menu
-        mode="inline"
-        inlineCollapsed={collapsed}
-        selectedKeys={selectedKey ? [selectedKey] : []}
-        items={items}
-        style={{
-          flex: 1,
-          borderInlineEnd: 'none',
-          overflow: 'auto',
-          paddingBlock: SPACE.md,
-        }}
-      />
+        <Menu
+          mode="inline"
+          inlineCollapsed={collapsed}
+          selectedKeys={selectedKey ? [selectedKey] : []}
+          items={items}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            borderInlineEnd: 'none',
+            overflow: 'auto',
+            paddingBlock: SPACE.md,
+          }}
+        />
 
-      <div
-        style={{
-          flex: 'none',
-          padding: SPACE.md,
-          borderTop: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
-        {collapsed ? (
-          <Flex justify="center">
+        <div
+          style={{
+            flex: 'none',
+            padding: SPACE.md,
+            borderTop: `1px solid ${token.colorBorderSecondary}`,
+          }}
+        >
+          {collapsed ? (
+            <Flex justify="center">
+              <Dropdown
+                menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
+                trigger={['click']}
+              >
+                <Tooltip title={company.name} placement="right">
+                  <div style={{ cursor: 'pointer' }}>
+                    <CompanyMark company={company} size={36} />
+                  </div>
+                </Tooltip>
+              </Dropdown>
+            </Flex>
+          ) : (
             <Dropdown
               menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
               trigger={['click']}
             >
-              <Tooltip title={company.name} placement="right">
-                <div style={{ cursor: 'pointer' }}>
-                  <CompanyMark company={company} size={36} />
-                </div>
-              </Tooltip>
-            </Dropdown>
-          </Flex>
-        ) : (
-          <Dropdown
-            menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
-            trigger={['click']}
-          >
-            <Flex align="center" gap={SPACE.sm} style={{ cursor: 'pointer', minWidth: 0 }}>
-              <CompanyMark company={company} size={36} />
-              <Flex
-                align="center"
-                justify="space-between"
-                gap={SPACE.sm}
-                style={{ flex: 1, minWidth: 0 }}
-              >
-                <Text strong ellipsis style={{ minWidth: 0 }}>
-                  {company.name}
-                </Text>
-                <DownOutlined
-                  style={{ fontSize: 12, color: token.colorTextTertiary, flex: 'none' }}
-                />
+              <Flex align="center" gap={SPACE.sm} style={{ cursor: 'pointer', minWidth: 0 }}>
+                <CompanyMark company={company} size={36} />
+                <Flex
+                  align="center"
+                  justify="space-between"
+                  gap={SPACE.sm}
+                  style={{ flex: 1, minWidth: 0 }}
+                >
+                  <Text strong ellipsis style={{ minWidth: 0 }}>
+                    {company.name}
+                  </Text>
+                  <DownOutlined
+                    style={{ fontSize: 12, color: token.colorTextTertiary, flex: 'none' }}
+                  />
+                </Flex>
               </Flex>
-            </Flex>
-          </Dropdown>
-        )}
-      </div>
+            </Dropdown>
+          )}
+        </div>
+      </Flex>
 
       <CompanySettingsModal open={companyModalOpen} onClose={() => setCompanyModalOpen(false)} />
     </Layout.Sider>
