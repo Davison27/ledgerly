@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { TYPE } from '../../config/theme';
+import typography from '../typography.module.css';
 
 export interface NumericProps {
   children: ReactNode;
@@ -7,5 +7,9 @@ export interface NumericProps {
 }
 
 export function Numeric({ children, style }: NumericProps) {
-  return <span style={{ ...TYPE.numeric, ...style }}>{children}</span>;
+  return (
+    <span className={typography.numeric} style={style}>
+      {children}
+    </span>
+  );
 }

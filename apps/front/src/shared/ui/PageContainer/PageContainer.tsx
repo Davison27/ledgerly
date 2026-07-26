@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { LAYOUT } from '../../config/theme';
+import styles from './PageContainer.module.css';
 
 export interface PageContainerProps {
   children: ReactNode;
@@ -8,14 +8,7 @@ export interface PageContainerProps {
 
 export function PageContainer({ children, maxWidth }: PageContainerProps) {
   return (
-    <div
-      style={{
-        padding: `${LAYOUT.pagePaddingBlock}px ${LAYOUT.pagePaddingInline}px`,
-        width: '100%',
-        maxWidth: maxWidth ?? LAYOUT.contentMaxWidth,
-        marginInline: 'auto',
-      }}
-    >
+    <div className={styles.container} style={maxWidth !== undefined ? { maxWidth } : undefined}>
       {children}
     </div>
   );

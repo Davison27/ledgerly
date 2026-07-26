@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '../../lib/useSemanticColors';
-import { TYPE } from '../../config/theme';
+import typography from '../typography.module.css';
 
 export interface AmountProps {
   value: number;
@@ -41,11 +41,14 @@ export function Amount({
   }).format(value);
 
   const style: CSSProperties = {
-    ...TYPE.numeric,
     color,
     fontWeight: strong ? 600 : undefined,
     fontSize: size,
   };
 
-  return <span style={style}>{formatted}</span>;
+  return (
+    <span className={typography.numeric} style={style}>
+      {formatted}
+    </span>
+  );
 }

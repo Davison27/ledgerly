@@ -1,0 +1,18 @@
+.empty {
+  padding: var(--lg-space-xxl) var(--lg-space-lg);
+  text-align: center;
+}
+
+.icon {
+  display: flex;
+  font-size: 20px;
+  color: var(--ant-color-text-quaternary);
+}
+
+.title {
+  color: var(--ant-color-text-secondary);
+}
+
+.hint {
+  color: var(--ant-color-text-tertiary);
+}

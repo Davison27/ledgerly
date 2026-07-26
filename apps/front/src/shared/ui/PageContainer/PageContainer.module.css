@@ -1,0 +1,6 @@
+.container {
+  padding: var(--lg-page-padding-block) var(--lg-page-padding-inline);
+  width: 100%;
+  max-width: var(--lg-content-max-width);
+  margin-inline: auto;
+}

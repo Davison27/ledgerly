@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Flex, Typography } from 'antd';
 import { SPACE } from '../../config/theme';
+import styles from './PageHeader.module.css';
 
 const { Title, Text } = Typography;
 
@@ -12,15 +13,15 @@ export interface PageHeaderProps {
 
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
-    <div style={{ marginBottom: SPACE.xxl }}>
+    <div className={styles.header}>
       <Flex align="center" justify="space-between" gap={SPACE.md} wrap="wrap">
-        <Title level={2} style={{ marginTop: 0, marginBottom: subtitle ? SPACE.xs : 0 }}>
+        <Title level={2} className={styles.title} data-with-subtitle={Boolean(subtitle)}>
           {title}
         </Title>
         {actions}
       </Flex>
       {subtitle && (
-        <Text type="secondary" style={{ display: 'block' }}>
+        <Text type="secondary" className={styles.subtitle}>
           {subtitle}
         </Text>
       )}
