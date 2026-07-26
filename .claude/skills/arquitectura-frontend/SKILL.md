@@ -47,6 +47,15 @@ estandarizada y añadir una rompe la convención para todo el que venga después
 
 Un slice no necesita todos. Crea solo los que uses.
 
+### Queries de TanStack Query
+
+Las factorías de `queryOptions` viven en el segmento `api` del slice dueño del
+dato: `entities/<x>/api/<x>.queries.ts`, exportadas por el `index.ts` del
+slice. Prohibido escribir una `queryKey` a mano fuera de una factoría. Los
+agregados de página (el dashboard es el caso hoy) llevan las suyas en
+`pages/<x>/api/<x>.queries.ts` y no se exportan a nadie más. Detalle completo
+en `docs/architecture/data-layer.md`.
+
 ## Public API: el `index.ts` de cada slice
 
 Cada slice expone un `index.ts` que es su **contrato**. Lo de dentro se puede
