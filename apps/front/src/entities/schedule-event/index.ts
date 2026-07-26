@@ -36,3 +36,4 @@ export {
 export type { DayTimesKind } from './lib/days';
 export { ScheduleDaysSummary } from './ui/ScheduleDaysSummary';
 export type { ScheduleDaysSummaryProps } from './ui/ScheduleDaysSummary';
+export { scheduleQueries } from './api/schedule.queries';

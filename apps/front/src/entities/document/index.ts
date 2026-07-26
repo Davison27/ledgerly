@@ -23,6 +23,7 @@ export type {
   ExtractInvoiceConfidence,
 } from './api/types';
 export { mapDocumentDto } from './model/documents';
+export { documentQueries } from './api/document.queries';
 export type {
   DocumentType,
   DocumentStatus,

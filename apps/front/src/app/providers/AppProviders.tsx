@@ -3,9 +3,11 @@ import { App as AntdApp, ConfigProvider } from 'antd';
 import esES from 'antd/locale/es_ES';
 import enUS from 'antd/locale/en_US';
 import { useTranslation } from 'react-i18next';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { buildThemeConfig } from '@/shared/config/theme';
 import { BrandColorProvider, useBrandColor } from '@/shared/lib/brand-color/BrandColorProvider';
 import { ThemeModeProvider, useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
+import { queryClient } from './queryClient';
 
 const localeMap = { es: esES, en: enUS } as const;
 
@@ -24,10 +26,12 @@ function ThemedConfigProvider({ children }: { children: ReactNode }) {
 
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
-    <BrandColorProvider>
-      <ThemeModeProvider>
-        <ThemedConfigProvider>{children}</ThemedConfigProvider>
-      </ThemeModeProvider>
-    </BrandColorProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrandColorProvider>
+        <ThemeModeProvider>
+          <ThemedConfigProvider>{children}</ThemedConfigProvider>
+        </ThemeModeProvider>
+      </BrandColorProvider>
+    </QueryClientProvider>
   );
 }

@@ -6,3 +6,4 @@ export type {
   ExtractInvoiceSource,
   ExtractInvoiceConfidence,
 } from './api/types';
+export { extractionHintQueries } from './api/extraction-hint.queries';
