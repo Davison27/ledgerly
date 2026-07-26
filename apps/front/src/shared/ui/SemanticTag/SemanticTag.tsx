@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { Tag, theme } from 'antd';
 import { useSemanticColors } from '../../lib/useSemanticColors';
+import styles from './SemanticTag.module.css';
 
 export type SemanticTone =
   | 'income'
@@ -41,19 +42,7 @@ export function SemanticTag({ tone, children }: SemanticTagProps) {
   })();
 
   return (
-    <Tag
-      bordered={false}
-      style={{
-        borderRadius: token.borderRadiusSM,
-        padding: '1px 8px',
-        fontSize: 12,
-        fontWeight: 500,
-        marginInlineEnd: 0,
-        lineHeight: '20px',
-        color,
-        background,
-      }}
-    >
+    <Tag bordered={false} className={styles.tag} style={{ color, background }}>
       {children}
     </Tag>
   );

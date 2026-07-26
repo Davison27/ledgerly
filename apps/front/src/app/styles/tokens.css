@@ -1,0 +1,15 @@
+:root {
+  --lg-space-xs: 4px;
+  --lg-space-sm: 8px;
+  --lg-space-md: 12px;
+  --lg-space-lg: 16px;
+  --lg-space-xl: 24px;
+  --lg-space-xxl: 32px;
+  --lg-topbar-height: 60px;
+  --lg-sider-width: 232px;
+  --lg-sider-collapsed-width: 64px;
+  --lg-section-header-height: 56px;
+  --lg-page-padding-block: 24px;
+  --lg-page-padding-inline: 32px;
+  --lg-content-max-width: 1440px;
+}
