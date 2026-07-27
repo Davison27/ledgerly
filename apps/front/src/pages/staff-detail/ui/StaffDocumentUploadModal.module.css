@@ -1,9 +1,9 @@
 .dragger {
-  padding: 8px 0;
+  padding: var(--lg-space-sm) 0;
 }
 
 .dragIcon {
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .dragText {

@@ -10,7 +10,7 @@
 }
 
 .weekdayLabel {
-  padding: 4px 8px;
+  padding: var(--lg-space-xs) var(--lg-space-sm);
   font-size: 12px;
   text-transform: uppercase;
 }

@@ -1,6 +1,6 @@
 .header {
   border-bottom: none;
-  padding-bottom: 8px;
+  padding-bottom: var(--lg-space-sm);
 }
 
 .deleteIcon {

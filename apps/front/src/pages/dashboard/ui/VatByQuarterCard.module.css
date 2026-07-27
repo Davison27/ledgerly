@@ -16,7 +16,7 @@
 }
 
 .legend {
-  margin-top: 8px;
+  margin-top: var(--lg-space-sm);
 }
 
 .legendSwatch {
@@ -28,5 +28,5 @@
 
 .note {
   display: block;
-  margin-top: 8px;
+  margin-top: var(--lg-space-sm);
 }

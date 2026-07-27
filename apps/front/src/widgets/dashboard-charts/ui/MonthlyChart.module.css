@@ -24,7 +24,7 @@
   border: 1px solid var(--ant-color-border-secondary);
   border-radius: var(--ant-border-radius-sm);
   box-shadow: var(--ant-box-shadow-secondary);
-  padding: 8px 12px;
+  padding: var(--lg-space-sm) var(--lg-space-md);
   pointer-events: none;
   white-space: nowrap;
   z-index: 1;
@@ -32,11 +32,11 @@
 
 .tooltipTitle {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .legend {
-  margin-top: 8px;
+  margin-top: var(--lg-space-sm);
 }
 
 .legendSwatch {

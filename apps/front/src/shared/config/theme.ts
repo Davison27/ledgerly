@@ -1,4 +1,3 @@
-import type { CSSProperties } from 'react';
 import { theme, type ThemeConfig } from 'antd';
 
 export const SPACE = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 } as const;
@@ -117,22 +116,6 @@ export const PROJECT_PALETTE: Record<ProjectColorToken, { light: string; dark: s
   rose: { light: '#A83E62', dark: '#D98099' },
   indigo: { light: '#3B5BA5', dark: '#7C97D9' },
   olive: { light: '#6B7A2E', dark: '#A3B356' },
-};
-
-export const TYPE: {
-  kpiValue: CSSProperties;
-  kpiValueSm: CSSProperties;
-  kpiLabel: CSSProperties;
-  cardTitle: CSSProperties;
-  caption: CSSProperties;
-  numeric: CSSProperties;
-} = {
-  kpiValue: { fontSize: 30, lineHeight: 1.15, fontWeight: 650, letterSpacing: '-0.01em' },
-  kpiValueSm: { fontSize: 22, lineHeight: 1.15, fontWeight: 650, letterSpacing: '-0.01em' },
-  kpiLabel: { fontSize: 12, fontWeight: 500, letterSpacing: '0.04em', textTransform: 'uppercase' },
-  cardTitle: { fontSize: 14, fontWeight: 600 },
-  caption: { fontSize: 12, lineHeight: 1.4 },
-  numeric: { fontVariantNumeric: 'tabular-nums', fontFeatureSettings: '"tnum" 1' },
 };
 
 const FONT_FAMILY =

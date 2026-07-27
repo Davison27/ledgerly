@@ -1,5 +1,5 @@
 .overdueSection {
-  margin-bottom: 12px;
+  margin-bottom: var(--lg-space-md);
 }
 
 .metric {
@@ -12,7 +12,7 @@
 
 .upcomingLabel {
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .chartWrap {

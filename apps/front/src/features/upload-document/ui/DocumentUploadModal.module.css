@@ -1,5 +1,5 @@
 .body {
-  padding-top: 4px;
+  padding-top: var(--lg-space-xs);
 }
 
 @media (min-width: 768px) {
@@ -51,7 +51,7 @@
     height: 100%;
     min-height: 0;
     overflow-y: auto;
-    padding-right: 4px;
+    padding-right: var(--lg-space-xs);
   }
 }
 
@@ -63,7 +63,7 @@
 }
 
 .dragIcon {
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .dragText {
@@ -144,5 +144,5 @@
 }
 
 .confidenceWarningIcon {
-  margin-inline-end: 4px;
+  margin-inline-end: var(--lg-space-xs);
 }

@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
+import type { CSSProperties } from 'react';
 import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { ConflictIndex } from '../model/conflictIndex';
 import type { LaneItem } from '../model/lanes';
-import { buildTimedSegments } from '../model/timeGrid';
+import { buildTimedSegments, HOUR_GUTTER_WIDTH, HOUR_HEIGHT, HOURS_IN_DAY } from '../model/timeGrid';
 import { WeekRow } from './WeekRow';
 import { TimeGrid } from './TimeGrid';
 import styles from './WeekGrid.module.css';
@@ -47,7 +48,17 @@ export function WeekGrid({
   );
 
   return (
-    <Flex vertical className={styles.root}>
+    <Flex
+      vertical
+      className={styles.root}
+      style={
+        {
+          '--hour-height': `${HOUR_HEIGHT}px`,
+          '--hour-gutter-width': `${HOUR_GUTTER_WIDTH}px`,
+          '--hours-in-day': HOURS_IN_DAY,
+        } as CSSProperties
+      }
+    >
       <div className={styles.headerRow}>
         <div className={styles.headerGutter} />
         <div className={styles.headerDays}>

@@ -17,7 +17,7 @@
 }
 
 .warningAlert {
-  margin-bottom: 12px;
+  margin-bottom: var(--lg-space-md);
 }
 
 .sectionLabel {
@@ -25,8 +25,8 @@
 }
 
 .modeItem {
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: var(--lg-space-sm);
+  margin-bottom: var(--lg-space-sm);
 }
 
 .tightItem {
@@ -34,7 +34,7 @@
 }
 
 .timeRow {
-  margin-bottom: 12px;
+  margin-bottom: var(--lg-space-md);
 }
 
 .productList {
@@ -42,8 +42,8 @@
   min-height: 0;
   overflow-x: hidden;
   overflow-y: auto;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin-top: var(--lg-space-sm);
+  margin-bottom: var(--lg-space-sm);
 }
 
 .productRow {
