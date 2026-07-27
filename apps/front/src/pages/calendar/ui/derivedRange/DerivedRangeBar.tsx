@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto } from '@/entities/schedule-event';
-import type { DerivedProjectDragData } from '../model/dragData';
+import type { DerivedProjectDragData } from '../../model/dragData';
 import styles from './DerivedRangeBar.module.css';
 
 const { Text } = Typography;

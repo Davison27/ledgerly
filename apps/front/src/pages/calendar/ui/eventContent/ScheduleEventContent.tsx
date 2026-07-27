@@ -2,8 +2,8 @@ import { Flex, Tag, Tooltip, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ScheduleEventDto } from '@/entities/schedule-event';
 import { StaffAvatar } from '@/entities/staff-member';
-import { staffDisplay } from '../model/staffDisplay';
-import type { EventContentDensity } from '../model/eventDensity';
+import { staffDisplay } from '../../model/staffDisplay';
+import type { EventContentDensity } from '../../model/eventDensity';
 import styles from './ScheduleEventContent.module.css';
 
 const { Text } = Typography;

@@ -4,8 +4,8 @@ import { Empty, Flex, Input, Typography } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { StaffMemberDto } from '@/entities/staff-member';
-import type { StaffDragData } from '../model/dragData';
-import { StaffPanelCard } from './StaffPanelCard';
+import type { StaffDragData } from '../../model/dragData';
+import { StaffPanelCard } from '../staffCard/StaffPanelCard';
 import styles from './StaffPanel.module.css';
 
 const { Text } = Typography;

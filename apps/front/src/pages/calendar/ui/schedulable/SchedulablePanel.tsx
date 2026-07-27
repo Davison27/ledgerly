@@ -4,8 +4,8 @@ import { Empty, Flex, Input, Typography } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto } from '@/entities/schedule-event';
-import type { ProjectDragData } from '../model/dragData';
-import { SchedulableProjectCard } from './SchedulableProjectCard';
+import type { ProjectDragData } from '../../model/dragData';
+import { SchedulableProjectCard } from '../projectCard/SchedulableProjectCard';
 import styles from './SchedulablePanel.module.css';
 
 const { Text } = Typography;

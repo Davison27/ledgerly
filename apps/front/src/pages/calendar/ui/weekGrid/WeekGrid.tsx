@@ -4,11 +4,11 @@ import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
-import type { ConflictIndex } from '../model/conflictIndex';
-import type { LaneItem } from '../model/lanes';
-import { buildTimedSegments, HOUR_GUTTER_WIDTH, HOUR_HEIGHT, HOURS_IN_DAY } from '../model/timeGrid';
-import { WeekRow } from './WeekRow';
-import { TimeGrid } from './TimeGrid';
+import type { ConflictIndex } from '../../model/conflictIndex';
+import type { LaneItem } from '../../model/lanes';
+import { buildTimedSegments, HOUR_GUTTER_WIDTH, HOUR_HEIGHT, HOURS_IN_DAY } from '../../model/timeGrid';
+import { WeekRow } from '../weekRow/WeekRow';
+import { TimeGrid } from '../timeGrid/TimeGrid';
 import styles from './WeekGrid.module.css';
 
 const { Text } = Typography;

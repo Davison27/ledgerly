@@ -2,9 +2,9 @@ import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
-import type { ConflictIndex } from '../model/conflictIndex';
-import type { LaneItem } from '../model/lanes';
-import { WeekRow } from './WeekRow';
+import type { ConflictIndex } from '../../model/conflictIndex';
+import type { LaneItem } from '../../model/lanes';
+import { WeekRow } from '../weekRow/WeekRow';
 import styles from './MonthGrid.module.css';
 
 const { Text } = Typography;

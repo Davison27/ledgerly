@@ -16,8 +16,8 @@ import {
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
-import type { CalendarDragData, CalendarDropData } from '../model/dragData';
-import { CalendarDragPreview } from './CalendarDragPreview';
+import type { CalendarDragData, CalendarDropData } from '../../model/dragData';
+import { CalendarDragPreview } from '../dragPreview/CalendarDragPreview';
 
 export interface CalendarDndContextProps {
   children: ReactNode;

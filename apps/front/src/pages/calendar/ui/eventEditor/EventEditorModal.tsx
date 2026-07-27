@@ -32,7 +32,7 @@ import {
   eventScheduleShape,
   expandScheduleToDays,
   type EventScheduleWarning,
-} from '../model/eventEditorSchedule';
+} from '../../model/eventEditorSchedule';
 import styles from './EventEditorModal.module.css';
 
 const { TextArea } = Input;
