@@ -17,6 +17,11 @@ import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-eve
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
 import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
+import {
+  DOMAIN_EVENT_PUBLISHER,
+  DomainEventPublisher,
+} from '../../../../shared/domain/domain-event-publisher.port';
+import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 import { UpdateScheduleEventCommand } from './update-schedule-event.command';
 
 @Injectable()
@@ -30,6 +35,8 @@ export class UpdateScheduleEventUseCase {
     private readonly staffReader: ScheduleStaffReader,
     @Inject(SCHEDULE_PRODUCT_READER)
     private readonly productReader: ScheduleProductReader,
+    @Inject(DOMAIN_EVENT_PUBLISHER)
+    private readonly eventPublisher: DomainEventPublisher,
   ) {}
 
   async execute(command: UpdateScheduleEventCommand): Promise<ScheduleEventView> {
@@ -89,6 +96,10 @@ export class UpdateScheduleEventUseCase {
     });
 
     await this.scheduleEventRepository.save(updated);
+
+    await this.eventPublisher.publish([
+      new ScheduleEventSavedEvent({ eventId: updated.id, dates: updated.days.map((day) => day.date) }),
+    ]);
 
     return buildScheduleEventViews([updated], { projects, staff, products })[0];
   }

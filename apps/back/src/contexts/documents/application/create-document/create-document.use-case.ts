@@ -17,6 +17,11 @@ import { DocumentProjectNotFoundException } from '../../domain/errors/document-p
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
 import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
+import {
+  DOMAIN_EVENT_PUBLISHER,
+  DomainEventPublisher,
+} from '../../../../shared/domain/domain-event-publisher.port';
+import { DocumentCreatedEvent } from '../../domain/events/document-created.event';
 import { CreateDocumentCommand } from './create-document.command';
 
 @Injectable()
@@ -28,6 +33,7 @@ export class CreateDocumentUseCase {
     @Inject(STAFF_MEMBER_EXISTENCE_CHECKER)
     private readonly staffMemberExistenceChecker: StaffMemberExistenceChecker,
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
+    @Inject(DOMAIN_EVENT_PUBLISHER) private readonly eventPublisher: DomainEventPublisher,
   ) {}
 
   async execute(command: CreateDocumentCommand): Promise<Document> {
@@ -89,6 +95,18 @@ export class CreateDocumentUseCase {
     if (command.file) {
       await this.repository.saveContent(document.getId(), command.file.buffer);
     }
+
+    await this.eventPublisher.publish([
+      new DocumentCreatedEvent({
+        documentId: document.getId(),
+        projectId: document.getProjectId(),
+        documentName: document.getName(),
+        invoiceNumber: document.getInvoiceNumber(),
+        issuerName: document.getIssuerName(),
+        issuerTaxId: document.getIssuerTaxId(),
+        amount: document.getAmount(),
+      }),
+    ]);
 
     return document;
   }

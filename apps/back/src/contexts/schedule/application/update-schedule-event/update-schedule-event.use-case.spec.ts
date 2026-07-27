@@ -12,6 +12,9 @@ import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-eve
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
 import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
+import { DomainEvent } from '../../../../shared/domain/domain-event';
+import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
+import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   constructor(private events: ScheduleEvent[] = []) {}
@@ -94,6 +97,17 @@ const STAFF_MEMBER: ScheduleStaffView = {
 
 const PRODUCT: ScheduleProductView = { id: 'product-1', name: 'Carpa', stock: 5 };
 
+class FakeDomainEventPublisher implements DomainEventPublisher {
+  published: DomainEvent[] = [];
+
+  publish(events: DomainEvent[]): Promise<void> {
+    this.published.push(...events);
+    return Promise.resolve();
+  }
+
+  register(): void {}
+}
+
 function buildEvent(): ScheduleEvent {
   return ScheduleEvent.create({
     id: 'event-1',
@@ -108,11 +122,13 @@ function buildEvent(): ScheduleEvent {
 describe('UpdateScheduleEventUseCase', () => {
   it('applies only the given changes and revalidates existence', async () => {
     const repository = new InMemoryScheduleEventRepository([buildEvent()]);
+    const publisher = new FakeDomainEventPublisher();
     const useCase = new UpdateScheduleEventUseCase(
       repository,
       new FakeScheduleProjectReader([PROJECT, OTHER_PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
       new FakeScheduleProductReader([PRODUCT]),
+      publisher,
     );
 
     const view = await useCase.execute({ id: 'event-1', title: 'Evento actualizado' });
@@ -120,6 +136,11 @@ describe('UpdateScheduleEventUseCase', () => {
     expect(view.event.title).toBe('Evento actualizado');
     expect(view.event.projectId).toBe('project-1');
     expect(view.event.staffMemberIds).toEqual(['staff-1']);
+    expect(publisher.published).toHaveLength(1);
+    const [event] = publisher.published as ScheduleEventSavedEvent[];
+    expect(event.name).toBe(ScheduleEventSavedEvent.EVENT_NAME);
+    expect(event.eventId).toBe('event-1');
+    expect(event.dates).toEqual(['2026-07-03']);
   });
 
   it('replaces the project when a new projectId is given', async () => {
@@ -129,6 +150,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeScheduleProjectReader([PROJECT, OTHER_PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
       new FakeScheduleProductReader([PRODUCT]),
+      new FakeDomainEventPublisher(),
     );
 
     const view = await useCase.execute({ id: 'event-1', projectId: 'project-2' });
@@ -143,6 +165,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([]),
       new FakeScheduleProductReader([]),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(useCase.execute({ id: 'missing-event', title: 'x' })).rejects.toThrow(
@@ -157,6 +180,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
       new FakeScheduleProductReader([PRODUCT]),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -171,6 +195,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
       new FakeScheduleProductReader([PRODUCT]),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -185,6 +210,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
       new FakeScheduleProductReader([PRODUCT]),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(

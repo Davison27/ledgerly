@@ -218,7 +218,11 @@ export class DocumentsController {
       throw new BadRequestException('file must be a PDF');
     }
 
-    return this.extractInvoiceUseCase.execute(file.buffer);
+    return this.extractInvoiceUseCase.execute({
+      fileBuffer: file.buffer,
+      fileName: file.originalname,
+      fileSize: file.size,
+    });
   }
 
   @Get(':documentId/file')
