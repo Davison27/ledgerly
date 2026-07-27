@@ -47,6 +47,34 @@ estandarizada y añadir una rompe la convención para todo el que venga después
 
 Un slice no necesita todos. Crea solo los que uses.
 
+### Subcarpeta por componente dentro de `ui/` (D-0)
+
+Cuando el `ui/` de un slice tiene **2 o más ficheros `.tsx` de componente**, cada
+uno pasa a su propia subcarpeta dentro de `ui/`. Con uno solo se queda plano: no
+hay nada que desambiguar. El componente principal del slice no es excepción:
+también se mueve (`AppLayout` → `ui/layout/`). Las páginas usan `page/` para su
+componente raíz, uniforme en todos los slices de `pages`.
+
+Nombre de la subcarpeta: camelCase, versión reducida del componente — se quita
+lo que ya repite el slice o el tipo de artefacto (`Card`, `Chart`, `Section`,
+`Modal`, `View`, `Page`). Si tras quitar no queda nada distintivo, se camelcasea
+el nombre entero (`TopBar` → `topBar`). Nunca idéntico al nombre del fichero.
+
+El `.module.css` homónimo de un componente viaja con él a su subcarpeta. Un
+`.module.css` transversal a todo el slice (usado por varios componentes) se
+queda en la raíz de `ui/` — sigue cumpliendo la proximidad de D3 en
+`docs/architecture/styling.md`.
+
+```
+widgets/dashboard-charts/ui/
+├── kpi/KpiRow.tsx
+├── monthly/MonthlyChart.tsx
+├── category/CategoryDonut.tsx
+├── status/StatusBreakdown.tsx
+├── dashboardCharts.module.css
+└── …
+```
+
 ### Queries de TanStack Query
 
 Las factorías de `queryOptions` viven en el segmento `api` del slice dueño del
