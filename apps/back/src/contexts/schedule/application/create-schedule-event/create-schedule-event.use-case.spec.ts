@@ -12,6 +12,9 @@ import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-p
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
 import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
+import { DomainEvent } from '../../../../shared/domain/domain-event';
+import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
+import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   events: ScheduleEvent[] = [];
@@ -78,6 +81,17 @@ class SequentialIdGenerator implements IdGenerator {
   }
 }
 
+class FakeDomainEventPublisher implements DomainEventPublisher {
+  published: DomainEvent[] = [];
+
+  publish(events: DomainEvent[]): Promise<void> {
+    this.published.push(...events);
+    return Promise.resolve();
+  }
+
+  register(): void {}
+}
+
 const PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
@@ -103,12 +117,14 @@ const PRODUCT: ScheduleProductView = { id: 'product-1', name: 'Carpa', stock: 5 
 describe('CreateScheduleEventUseCase', () => {
   it('creates a schedule event and returns its view', async () => {
     const repository = new InMemoryScheduleEventRepository();
+    const publisher = new FakeDomainEventPublisher();
     const useCase = new CreateScheduleEventUseCase(
       repository,
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
       new FakeScheduleProductReader([PRODUCT]),
       new SequentialIdGenerator(),
+      publisher,
     );
 
     const view = await useCase.execute({
@@ -128,6 +144,11 @@ describe('CreateScheduleEventUseCase', () => {
     expect(view.staff).toEqual([STAFF_MEMBER]);
     expect(view.products).toEqual([{ ...PRODUCT, quantity: 2 }]);
     expect(await repository.findById('event-1')).not.toBeNull();
+    expect(publisher.published).toHaveLength(1);
+    const [event] = publisher.published as ScheduleEventSavedEvent[];
+    expect(event.name).toBe(ScheduleEventSavedEvent.EVENT_NAME);
+    expect(event.eventId).toBe('event-1');
+    expect(event.dates).toEqual(['2026-07-03', '2026-07-04']);
   });
 
   it('throws ScheduleProjectNotFoundException when the project does not exist', async () => {
@@ -137,6 +158,7 @@ describe('CreateScheduleEventUseCase', () => {
       new FakeScheduleStaffReader([]),
       new FakeScheduleProductReader([]),
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -151,6 +173,7 @@ describe('CreateScheduleEventUseCase', () => {
       new FakeScheduleStaffReader([]),
       new FakeScheduleProductReader([]),
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -169,6 +192,7 @@ describe('CreateScheduleEventUseCase', () => {
       new FakeScheduleStaffReader([]),
       new FakeScheduleProductReader([]),
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(

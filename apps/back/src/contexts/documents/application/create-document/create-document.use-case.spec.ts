@@ -12,6 +12,9 @@ import { DocumentSupplierNotFoundException } from '../../domain/errors/document-
 import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
+import { DomainEvent } from '../../../../shared/domain/domain-event';
+import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
+import { DocumentCreatedEvent } from '../../domain/events/document-created.event';
 
 class InMemoryDocumentRepository implements DocumentRepository {
   private documents: Document[] = [];
@@ -72,6 +75,17 @@ class SequentialIdGenerator implements IdGenerator {
   }
 }
 
+class FakeDomainEventPublisher implements DomainEventPublisher {
+  published: DomainEvent[] = [];
+
+  publish(events: DomainEvent[]): Promise<void> {
+    this.published.push(...events);
+    return Promise.resolve();
+  }
+
+  register(): void {}
+}
+
 const BASE_COMMAND = {
   projectId: 'project-1',
   name: 'Invoice',
@@ -95,11 +109,37 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     const document = await useCase.execute(BASE_COMMAND);
 
     expect(document.getSupplierId()).toBeNull();
+  });
+
+  it('publishes a DocumentCreatedEvent after saving the document', async () => {
+    const repository = new InMemoryDocumentRepository();
+    const projectChecker = new FakeExistenceChecker(new Set(['project-1']));
+    const supplierChecker = new FakeExistenceChecker(new Set());
+    const staffMemberChecker = new FakeExistenceChecker(new Set());
+    const publisher = new FakeDomainEventPublisher();
+    const useCase = new CreateDocumentUseCase(
+      repository,
+      projectChecker,
+      supplierChecker,
+      staffMemberChecker,
+      new SequentialIdGenerator(),
+      publisher,
+    );
+
+    const document = await useCase.execute({ ...BASE_COMMAND, invoiceNumber: 'INV-1' });
+
+    expect(publisher.published).toHaveLength(1);
+    const [event] = publisher.published as DocumentCreatedEvent[];
+    expect(event.name).toBe(DocumentCreatedEvent.EVENT_NAME);
+    expect(event.documentId).toBe(document.getId());
+    expect(event.projectId).toBe('project-1');
+    expect(event.invoiceNumber).toBe('INV-1');
   });
 
   it('creates a document with a supplier when it exists', async () => {
@@ -113,6 +153,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     const document = await useCase.execute({ ...BASE_COMMAND, supplierId: 'supplier-1' });
@@ -131,6 +172,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -149,6 +191,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -167,6 +210,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     const document = await useCase.execute({
@@ -192,6 +236,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -210,6 +255,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     const document = await useCase.execute({
@@ -232,6 +278,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
@@ -250,6 +297,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(useCase.execute({ ...BASE_COMMAND, type: 'nomina' })).rejects.toThrow(
@@ -268,6 +316,7 @@ describe('CreateDocumentUseCase', () => {
       supplierChecker,
       staffMemberChecker,
       new SequentialIdGenerator(),
+      new FakeDomainEventPublisher(),
     );
 
     await expect(
