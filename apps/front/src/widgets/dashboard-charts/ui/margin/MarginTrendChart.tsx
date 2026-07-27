@@ -3,8 +3,8 @@ import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import typography from '@/shared/ui/typography.module.css';
-import { formatPct } from '../model/data';
-import dashboardCharts from './dashboardCharts.module.css';
+import { formatPct } from '../../model/data';
+import dashboardCharts from '../dashboardCharts.module.css';
 import styles from './MarginTrendChart.module.css';
 
 const { useToken } = theme;

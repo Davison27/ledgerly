@@ -12,7 +12,6 @@
   flex: none;
   min-height: var(--lg-topbar-height);
   padding: 0 var(--lg-space-lg);
-  border-bottom: 1px solid var(--ant-color-border-secondary);
 }
 
 .header[data-collapsed='true'] {
