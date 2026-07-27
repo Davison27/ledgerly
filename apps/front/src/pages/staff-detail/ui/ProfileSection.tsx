@@ -12,6 +12,7 @@ import {
   type StaffMemberFormValues,
 } from '@/features/staff-member-form';
 import type { StaffSectionProps } from '../model/types';
+import styles from './ProfileSection.module.css';
 
 export function ProfileSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
@@ -36,7 +37,7 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
 
   return (
     <PageContainer maxWidth={1080}>
-      <Flex align="center" justify="space-between" style={{ marginBottom: 20 }}>
+      <Flex align="center" justify="space-between" className={styles.header}>
         <Flex align="center" gap={8}>
           {staffMember.endDate && (
             <SemanticTag tone="neutral">{t('staff.columns.inactive')}</SemanticTag>

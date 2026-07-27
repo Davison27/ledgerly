@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { formatDateRange } from '@/shared/lib/dates';
 import type { ScheduleEventDayDto } from '../api/types';
 import { summarizeDayTimes } from '../lib/days';
+import typography from '@/shared/ui/typography.module.css';
 
 const { Text } = Typography;
 
@@ -26,7 +27,7 @@ export function ScheduleDaysSummary({ days }: ScheduleDaysSummaryProps) {
   return (
     <Flex gap={6} align="baseline" wrap>
       <Text>{rangeLabel}</Text>
-      <Text type="secondary" style={{ fontSize: 12 }}>
+      <Text type="secondary" className={typography.caption}>
         {timeLabel}
       </Text>
     </Flex>

@@ -5,14 +5,15 @@ import { Avatar, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { projectQueries } from '@/entities/project';
-import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
+import typography from '@/shared/ui/typography.module.css';
 import { DocumentsSection } from './DocumentsSection';
 import { DashboardSection } from './DashboardSection';
 import { ScheduleSection } from './ScheduleSection';
 import { SettingsSection } from './SettingsSection';
+import styles from './ProjectDetailPage.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -54,19 +55,8 @@ export function ProjectDetailPage() {
   ];
 
   return (
-    <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACE.xxl,
-          flex: 'none',
-          height: LAYOUT.sectionHeaderHeight,
-          padding: `0 ${LAYOUT.pagePaddingInline}px`,
-          background: token.colorBgContainer,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
+    <Flex vertical className={styles.page}>
+      <div className={styles.header}>
         <Flex align="center" gap={10}>
           {project.image ? (
             <Avatar shape="square" size={28} src={project.image} />
@@ -79,10 +69,10 @@ export function ProjectDetailPage() {
             />
           )}
           <Flex align="baseline" gap={8}>
-            <Text strong style={{ fontSize: 16 }}>
+            <Text strong className={styles.projectName}>
               {project.name}
             </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className={typography.caption}>
               {project.code}
             </Text>
           </Flex>
@@ -94,7 +84,7 @@ export function ProjectDetailPage() {
         />
       </div>
 
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <div className={styles.content}>
         {section === 'documents' && (
           <DocumentsSection project={project} color={token.colorPrimary} />
         )}

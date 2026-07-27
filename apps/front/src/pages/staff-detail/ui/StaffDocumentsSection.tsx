@@ -18,6 +18,7 @@ import { AddStaffDocumentButton } from './AddStaffDocumentButton';
 import { StaffDocumentEditModal } from './StaffDocumentEditModal';
 import { getExpiryStatus, getExpiryTone } from '../model/staffDocumentStatus';
 import type { StaffSectionProps } from '../model/types';
+import shared from './staff-detail.module.css';
 
 const PAYROLL_TYPE_CODE = 'nomina';
 
@@ -135,7 +136,7 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
 
   return (
     <PageContainer>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+      <div className={shared.actionsBar}>
         <AddStaffDocumentButton staffMemberId={staffMember.id} />
       </div>
 

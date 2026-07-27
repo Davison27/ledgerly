@@ -1,0 +1,24 @@
+.filterBar {
+  margin-bottom: var(--lg-space-xl);
+}
+
+.searchInput {
+  width: 240px;
+}
+
+.filterSelect {
+  width: 150px;
+}
+
+.amountInput {
+  width: 130px;
+}
+
+.entitySelect {
+  width: 200px;
+}
+
+.drawerBody {
+  display: flex;
+  flex-direction: column;
+}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { Empty, Input, List, Modal, Typography, theme } from 'antd';
+import { Empty, Input, List, Modal, Typography } from 'antd';
 import {
   CalendarOutlined,
   DashboardOutlined,
@@ -14,12 +14,12 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { SPACE } from '@/shared/config/theme';
 import { documentQueries } from '@/entities/document';
 import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './CommandPalette.module.css';
 
-const { useToken } = theme;
 const { Text } = Typography;
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -60,7 +60,6 @@ interface CommandPaletteProps {
 }
 
 export function CommandPalette({ open, onClose }: CommandPaletteProps) {
-  const { token } = useToken();
   const { t } = useTranslation();
   const navigate = useNavigate();
 
@@ -244,46 +243,29 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       width={640}
       centered
       destroyOnHidden
-      styles={{ body: { padding: 0 } }}
+      classNames={{ body: styles.body }}
     >
       <div ref={containerRef} onKeyDown={handleKeyDown}>
-        <div
-          style={{
-            padding: `${SPACE.md}px ${SPACE.lg}px`,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
+        <div className={styles.searchBar}>
           <Input
             autoFocus
             variant="borderless"
             size="large"
             allowClear
-            prefix={<SearchOutlined style={{ color: token.colorTextTertiary }} />}
+            prefix={<SearchOutlined className={styles.searchIcon} />}
             placeholder={t('commandPalette.placeholder')}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
           />
         </div>
 
-        <div style={{ maxHeight: 420, overflowY: 'auto', padding: `${SPACE.sm}px 0` }}>
+        <div className={styles.results}>
           {flatItems.length === 0 ? (
-            <Empty
-              description={t('commandPalette.empty')}
-              style={{ padding: `${SPACE.xxl}px 0` }}
-            />
+            <Empty description={t('commandPalette.empty')} className={styles.empty} />
           ) : (
             groups.map((group) => (
-              <div key={group.id} style={{ marginBottom: 4 }}>
-                <Text
-                  type="secondary"
-                  style={{
-                    display: 'block',
-                    padding: `${SPACE.xs}px ${SPACE.lg}px`,
-                    fontSize: 12,
-                    textTransform: 'uppercase',
-                    letterSpacing: 0.4,
-                  }}
-                >
+              <div key={group.id} className={styles.group}>
+                <Text type="secondary" className={styles.groupTitle}>
                   {group.title}
                 </Text>
                 <List
@@ -297,19 +279,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                       <List.Item
                         key={item.key}
                         data-index={flatIndex}
+                        data-active={isActive}
                         onMouseEnter={() => setActiveIndex(flatIndex)}
                         onClick={() => handleSelect(item)}
-                        style={{
-                          padding: '8px 16px',
-                          margin: '0 4px',
-                          borderRadius: token.borderRadius,
-                          cursor: 'pointer',
-                          background: isActive ? token.colorPrimaryBg : undefined,
-                          border: 'none',
-                        }}
+                        className={styles.item}
                       >
                         <List.Item.Meta
-                          avatar={<span style={{ fontSize: 16 }}>{item.icon}</span>}
+                          avatar={<span className={styles.itemIcon}>{item.icon}</span>}
                           title={item.label}
                           description={item.description}
                         />
@@ -322,13 +298,8 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
           )}
         </div>
 
-        <div
-          style={{
-            padding: '8px 16px',
-            borderTop: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
-          <Text type="secondary" style={{ fontSize: 12 }}>
+        <div className={styles.footer}>
+          <Text type="secondary" className={typography.caption}>
             {t('commandPalette.hint')}
           </Text>
         </div>

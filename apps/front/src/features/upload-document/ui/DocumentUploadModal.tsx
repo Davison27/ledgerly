@@ -20,7 +20,6 @@ import {
   Select,
   Typography,
   Upload,
-  theme,
 } from 'antd';
 import {
   ExclamationCircleOutlined,
@@ -51,6 +50,8 @@ import { createSupplier, supplierQueries, type SupplierDto } from '@/entities/su
 import { projectQueries } from '@/entities/project';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 import { SPACE } from '@/shared/config/theme';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './DocumentUploadModal.module.css';
 
 function normalize(value: string | null | undefined): string {
   return (value ?? '').trim().toLowerCase();
@@ -80,7 +81,6 @@ function isPdfFile(file: File): boolean {
 const { Dragger } = Upload;
 const { Text } = Typography;
 const { useBreakpoint } = Grid;
-const { useToken } = theme;
 
 const MAX_QUEUE_FILES = 20;
 
@@ -143,7 +143,6 @@ export function DocumentUploadModal({
 }: DocumentUploadModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const { token } = useToken();
   const queryClient = useQueryClient();
   const { data: projectsData } = useQuery(projectQueries.list());
   const projects = projectsData ?? [];
@@ -617,14 +616,14 @@ export function DocumentUploadModal({
   const confidenceTag = extractResult && (
     <SemanticTag tone={CONFIDENCE_TONE[extractResult.confidence]}>
       {extractResult.warnings.length > 0 && (
-        <ExclamationCircleOutlined style={{ marginInlineEnd: 4 }} />
+        <ExclamationCircleOutlined className={styles.confidenceWarningIcon} />
       )}
       {t(`projects.documents.upload.extraction.confidence.${extractResult.confidence}`)}
     </SemanticTag>
   );
 
   const createSupplierPopoverContent = (
-    <Flex vertical gap={8} style={{ width: 240 }}>
+    <Flex vertical gap={8} className={styles.popoverContent}>
       <Input
         size="small"
         placeholder={t('projects.documents.upload.supplier.createNamePlaceholder')}
@@ -654,7 +653,7 @@ export function DocumentUploadModal({
   );
 
   const createStaffMemberPopoverContent = (
-    <Flex vertical gap={8} style={{ width: 240 }}>
+    <Flex vertical gap={8} className={styles.popoverContent}>
       <Input
         size="small"
         placeholder={t('projects.documents.upload.staffMember.createFirstNamePlaceholder')}
@@ -683,14 +682,6 @@ export function DocumentUploadModal({
     </Flex>
   );
 
-  const leftPanelStyle: React.CSSProperties = isDesktop
-    ? { flex: '0 0 45%', height: '100%', minHeight: 0, display: 'flex', flexDirection: 'column' }
-    : { flex: '1 1 auto', minHeight: 260, display: 'flex', flexDirection: 'column' };
-
-  const rightPanelStyle: React.CSSProperties = isDesktop
-    ? { flex: '1 1 55%', height: '100%', minHeight: 0, overflowY: 'auto', paddingRight: 4 }
-    : { flex: '1 1 auto' };
-
   return (
     <Modal
       open={open}
@@ -699,11 +690,7 @@ export function DocumentUploadModal({
       destroyOnHidden
       centered
       width={isDesktop ? 'min(1200px, 96vw)' : '96vw'}
-      styles={{
-        body: isDesktop
-          ? { height: 'min(680px, 86vh)', overflow: 'hidden', paddingTop: 4 }
-          : { maxHeight: '86vh', overflowY: 'auto', paddingTop: 4 },
-      }}
+      classNames={{ body: styles.body }}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           {t('common.cancel')}
@@ -726,8 +713,8 @@ export function DocumentUploadModal({
         </Button>,
       ]}
     >
-      <Flex gap={20} style={{ height: isDesktop ? '100%' : 'auto' }} vertical={!isDesktop}>
-        <div style={leftPanelStyle}>
+      <Flex gap={20} className={styles.panels} vertical={!isDesktop}>
+        <div className={styles.leftPanel}>
           {!currentFile ? (
             <Dragger
               accept="application/pdf"
@@ -736,25 +723,20 @@ export function DocumentUploadModal({
               showUploadList={false}
               disabled={isBusy}
               beforeUpload={handleFilesSelected}
-              style={{
-                flex: '1 1 auto',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
+              className={styles.dragger}
             >
-              <p className="ant-upload-drag-icon" style={{ marginBottom: 4 }}>
+              <p className={`ant-upload-drag-icon ${styles.dragIcon}`}>
                 <InboxOutlined />
               </p>
-              <p className="ant-upload-text" style={{ marginBottom: 2 }}>
+              <p className={`ant-upload-text ${styles.dragText}`}>
                 {t('projects.documents.upload.dropzone.title')}
               </p>
               <p className="ant-upload-hint">{t('projects.documents.upload.dropzone.hint')}</p>
             </Dragger>
           ) : (
-            <Flex vertical gap={8} style={{ flex: '1 1 auto', minHeight: 0 }}>
+            <Flex vertical gap={8} className={styles.filePanel}>
               {isMultiQueue && (
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" className={typography.caption}>
                   {t('projects.documents.upload.queue.progress', {
                     current: currentIndex + 1,
                     total: queue.length,
@@ -762,11 +744,7 @@ export function DocumentUploadModal({
                 </Text>
               )}
               <Flex justify="space-between" align="center" gap={8}>
-                <Text
-                  ellipsis
-                  title={fileName ?? undefined}
-                  style={{ flex: '1 1 auto', minWidth: 0 }}
-                >
+                <Text ellipsis title={fileName ?? undefined} className={styles.fileName}>
                   {fileName}
                 </Text>
                 <Button
@@ -793,21 +771,21 @@ export function DocumentUploadModal({
                       <Popover
                         title={t('projects.documents.upload.extraction.warningsTitle')}
                         content={
-                          <ul style={{ margin: 0, paddingInlineStart: 18, maxWidth: 280 }}>
+                          <ul className={styles.warningsList}>
                             {extractResult.warnings.map((warning) => (
                               <li key={warning}>{warning}</li>
                             ))}
                           </ul>
                         }
                       >
-                        <span style={{ cursor: 'pointer' }}>{confidenceTag}</span>
+                        <span className={styles.confidencePopoverTrigger}>{confidenceTag}</span>
                       </Popover>
                     ) : (
                       confidenceTag
                     )}
                   </Flex>
                   {showReviewNote && (
-                    <Text type="warning" style={{ fontSize: 12 }}>
+                    <Text type="warning" className={typography.caption}>
                       {t('projects.documents.upload.extraction.reviewNote')}
                     </Text>
                   )}
@@ -819,33 +797,20 @@ export function DocumentUploadModal({
                   type="warning"
                   showIcon
                   message={t('projects.documents.upload.scannedPdfAlert')}
-                  style={{ fontSize: 12 }}
+                  className={typography.caption}
                 />
               )}
 
-              <div
-                style={{
-                  flex: '1 1 auto',
-                  minHeight: 160,
-                  border: `1px solid ${token.colorBorder}`,
-                  borderRadius: token.borderRadiusLG,
-                  overflow: 'hidden',
-                  background: token.colorFillQuaternary,
-                }}
-              >
+              <div className={styles.pdfPreview}>
                 {pdfObjectUrl && (
-                  <iframe
-                    src={pdfObjectUrl}
-                    title={fileName ?? 'pdf-preview'}
-                    style={{ width: '100%', height: '100%', border: 'none' }}
-                  />
+                  <iframe src={pdfObjectUrl} title={fileName ?? 'pdf-preview'} className={styles.pdfFrame} />
                 )}
               </div>
             </Flex>
           )}
         </div>
 
-        <div style={rightPanelStyle}>
+        <div className={styles.rightPanel}>
           <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
             <Form<DocumentFormFields>
               form={form}
@@ -860,7 +825,7 @@ export function DocumentUploadModal({
                   showIcon
                   message={t('projects.documents.upload.duplicate.title')}
                   description={
-                    <ul style={{ margin: 0, paddingInlineStart: 18 }}>
+                    <ul className={styles.duplicateList}>
                       {duplicateMatches.map((match) => (
                         <li key={match.id}>
                           {t('projects.documents.upload.duplicate.match', {
@@ -873,14 +838,14 @@ export function DocumentUploadModal({
                       ))}
                     </ul>
                   }
-                  style={{ marginBottom: 12 }}
+                  className={styles.duplicateAlert}
                 />
               )}
 
-              <Text strong style={{ fontSize: 13 }}>
+              <Text strong className={styles.sectionLabel}>
                 {t('projects.documents.upload.sections.document')}
               </Text>
-              <Row gutter={12} style={{ marginTop: 8 }}>
+              <Row gutter={12} className={styles.sectionRow}>
                 <Col xs={24} sm={12} md={8}>
                   <Form.Item
                     name="name"
@@ -990,7 +955,7 @@ export function DocumentUploadModal({
                           type="link"
                           size="small"
                           icon={<PlusOutlined />}
-                          style={{ paddingInlineStart: 0, marginTop: -4 }}
+                          className={styles.createLinkButton}
                         >
                           {t('projects.documents.upload.staffMember.createNew')}
                         </Button>
@@ -1028,10 +993,10 @@ export function DocumentUploadModal({
                 </Row>
               )}
 
-              <Text strong style={{ fontSize: 13 }}>
+              <Text strong className={styles.sectionLabel}>
                 {t('projects.documents.upload.sections.supplier')}
               </Text>
-              <Row gutter={12} style={{ marginTop: 8 }} align="top">
+              <Row gutter={12} className={styles.sectionRow} align="top">
                 <Col xs={24} md={8}>
                   <Form.Item label={t('projects.documents.upload.supplier.label')}>
                     <Select
@@ -1063,7 +1028,7 @@ export function DocumentUploadModal({
                       type="link"
                       size="small"
                       icon={<PlusOutlined />}
-                      style={{ paddingInlineStart: 0, marginTop: -4 }}
+                      className={styles.createLinkButton}
                     >
                       {t('projects.documents.upload.supplier.createNew')}
                     </Button>
@@ -1091,17 +1056,17 @@ export function DocumentUploadModal({
                     />
                   </Form.Item>
                   {supplierId && (
-                    <Text type="secondary" style={{ fontSize: 11 }}>
+                    <Text type="secondary" className={styles.autofillNote}>
                       {t('projects.documents.upload.supplier.autofillNote')}
                     </Text>
                   )}
                 </Col>
               </Row>
 
-              <Text strong style={{ fontSize: 13 }}>
+              <Text strong className={styles.sectionLabel}>
                 {t('projects.documents.upload.sections.amounts')}
               </Text>
-              <Row gutter={12} style={{ marginTop: 8 }}>
+              <Row gutter={12} className={styles.sectionRow}>
                 <Col xs={24} sm={12} md={6}>
                   <Form.Item
                     name="amount"
@@ -1171,7 +1136,7 @@ export function DocumentUploadModal({
                   <Form.Item
                     name="irpfAmount"
                     label={t('projects.documents.upload.fields.irpfAmount')}
-                    style={{ marginBottom: 0 }}
+                    className={styles.tightItem}
                   >
                     <InputNumber min={0} />
                   </Form.Item>
@@ -1182,7 +1147,7 @@ export function DocumentUploadModal({
                   type="warning"
                   showIcon
                   message={t('projects.documents.upload.validation.amountMismatch')}
-                  style={{ marginTop: 8 }}
+                  className={styles.mismatchAlert}
                 />
               )}
             </Form>

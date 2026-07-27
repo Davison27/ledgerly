@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, Button, Flex, Popconfirm, Spin, Typography, theme } from 'antd';
+import { Alert, Button, Flex, Popconfirm, Spin, Typography } from 'antd';
 import { DeleteOutlined, DownloadOutlined, EditOutlined, PrinterOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
@@ -10,9 +10,10 @@ import {
   StatusTag,
   type ProjectDocument,
 } from '@/entities/document';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './DocumentDetail.module.css';
 
 const { Text, Title } = Typography;
-const { useToken } = theme;
 
 interface DocumentDetailProps {
   document: ProjectDocument | null;
@@ -78,14 +79,13 @@ export function DocumentDetail({
   deleting,
 }: DocumentDetailProps) {
   const { t } = useTranslation();
-  const { token } = useToken();
   const typeLabel = useTypeLabel();
   const { state: viewerState, objectUrl } = usePdfObjectUrl(document);
 
   if (!document) {
     return (
-      <Flex align="center" justify="center" style={{ height: '100%', padding: 24 }}>
-        <Text type="secondary" style={{ textAlign: 'center' }}>
+      <Flex align="center" justify="center" className={styles.stateFill}>
+        <Text type="secondary" className={styles.stateFillCentered}>
           {t('projects.documents.preview.empty')}
         </Text>
       </Flex>
@@ -141,18 +141,18 @@ export function DocumentDetail({
   const actionsDisabled = showRealViewer ? viewerState !== 'ready' || !objectUrl : true;
 
   return (
-    <Flex vertical gap={16} style={{ height: '100%' }}>
+    <Flex vertical gap={16} className={styles.root}>
       <Flex align="flex-start" justify="space-between" gap={8}>
         <div>
-          <Title level={5} style={{ margin: 0 }}>
+          <Title level={5} className={styles.title}>
             {document.name}
           </Title>
-          <Text type="secondary" style={{ fontSize: 12 }}>
+          <Text type="secondary" className={typography.caption}>
             {typeLabel(document.type)} · {document.date}
           </Text>
         </div>
         {(onEdit || onDelete || onGoToProject) && (
-          <Flex gap={4} style={{ flex: 'none' }}>
+          <Flex gap={4} className={styles.actions}>
             {onGoToProject && (
               <Button type="text" onClick={() => onGoToProject(document)}>
                 {t('projects.documents.detail.goToProject')}
@@ -189,53 +189,24 @@ export function DocumentDetail({
       </Flex>
 
       {showRealViewer ? (
-        <div
-          style={{
-            flex: '1 1 auto',
-            minHeight: 200,
-            border: `1px solid ${token.colorBorder}`,
-            borderRadius: token.borderRadiusLG,
-            overflow: 'auto',
-            background: token.colorFillQuaternary,
-          }}
-        >
+        <div className={styles.viewer}>
           {viewerState === 'loading' && (
-            <Flex
-              align="center"
-              justify="center"
-              gap={8}
-              vertical
-              style={{ height: '100%', padding: 24 }}
-            >
+            <Flex align="center" justify="center" gap={8} vertical className={styles.stateFill}>
               <Spin />
               <Text type="secondary">{t('projects.documents.preview.viewer.loading')}</Text>
             </Flex>
           )}
           {viewerState === 'error' && (
-            <Flex align="center" justify="center" style={{ height: '100%', padding: 24 }}>
+            <Flex align="center" justify="center" className={styles.stateFill}>
               <Alert type="error" showIcon message={t('projects.documents.preview.viewer.error')} />
             </Flex>
           )}
           {viewerState === 'ready' && objectUrl && (
-            <iframe
-              src={objectUrl}
-              title={document.name}
-              style={{ width: '100%', height: '100%', minHeight: 400, border: 'none' }}
-            />
+            <iframe src={objectUrl} title={document.name} className={styles.viewerFrame} />
           )}
         </div>
       ) : (
-        <Flex
-          align="center"
-          justify="center"
-          style={{
-            minHeight: 200,
-            border: `1px dashed ${token.colorBorder}`,
-            borderRadius: token.borderRadiusLG,
-            color: token.colorTextTertiary,
-            background: token.colorFillQuaternary,
-          }}
-        >
+        <Flex align="center" justify="center" className={styles.emptyViewer}>
           <Text type="secondary">{t('projects.documents.preview.noFile')}</Text>
         </Flex>
       )}
@@ -249,7 +220,7 @@ export function DocumentDetail({
         ))}
       </Flex>
 
-      <Flex gap={8} style={{ marginTop: 'auto' }}>
+      <Flex gap={8} className={styles.footer}>
         <Button
           type="primary"
           icon={<DownloadOutlined />}

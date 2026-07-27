@@ -232,7 +232,7 @@ export function OnboardingPage() {
             </Row>
           </div>
 
-          <div style={{ display: current === 1 ? 'block' : 'none' }}>
+          <div className={styles.stepPanel} data-active={current === 1}>
             <Row gutter={16}>
               <Col xs={24} sm={8}>
                 <Form.Item
@@ -264,7 +264,7 @@ export function OnboardingPage() {
             </Row>
           </div>
 
-          <div style={{ display: current === 2 ? 'block' : 'none' }}>
+          <div className={styles.stepPanel} data-active={current === 2}>
             <Row gutter={16}>
               <Col xs={24} sm={12}>
                 <Form.Item name="address" label={t('company.settings.fields.address')}>
@@ -290,7 +290,7 @@ export function OnboardingPage() {
           </div>
         </Form>
 
-        <Flex justify="space-between" style={{ marginTop: 8 }}>
+        <Flex justify="space-between" className={styles.footer}>
           <Button disabled={current === 0} onClick={handleBack}>
             {t('onboarding.back')}
           </Button>

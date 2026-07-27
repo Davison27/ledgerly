@@ -3,6 +3,7 @@ import { Col, DatePicker, Form, Input, Modal, Row } from 'antd';
 import dayjs, { type Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { StaffMemberDto } from '@/entities/staff-member';
+import styles from './StaffMemberFormModal.module.css';
 
 const { TextArea } = Input;
 
@@ -162,7 +163,7 @@ export function StaffMemberFormModal({
             </Form.Item>
           </Col>
         </Row>
-        <Form.Item name="notes" label={t('staff.fields.notes')} style={{ marginBottom: 0 }}>
+        <Form.Item name="notes" label={t('staff.fields.notes')} className={styles.tightItem}>
           <TextArea rows={3} placeholder={t('staff.form.placeholders.notes')} />
         </Form.Item>
       </Form>

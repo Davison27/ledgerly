@@ -6,6 +6,7 @@ import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { createStaffDocument, staffQueries, type StaffDocumentTypeDto } from '@/entities/staff-member';
 import { documentQueries } from '@/entities/document';
+import styles from './StaffDocumentUploadModal.module.css';
 
 const { Dragger } = Upload;
 const { TextArea } = Input;
@@ -180,12 +181,12 @@ export function StaffDocumentUploadModal({
             accept=".pdf,.jpg,.jpeg,.png,.webp"
             showUploadList={false}
             beforeUpload={handleFileSelected}
-            style={{ padding: '8px 0' }}
+            className={styles.dragger}
           >
-            <p className="ant-upload-drag-icon" style={{ marginBottom: 4 }}>
+            <p className={`ant-upload-drag-icon ${styles.dragIcon}`}>
               <InboxOutlined />
             </p>
-            <p className="ant-upload-text" style={{ marginBottom: 2 }}>
+            <p className={`ant-upload-text ${styles.dragText}`}>
               {file ? file.name : t('staff.documents.upload.dropzone.title')}
             </p>
             <p className="ant-upload-hint">{t('staff.documents.upload.dropzone.hint')}</p>

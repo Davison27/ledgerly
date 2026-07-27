@@ -18,6 +18,8 @@ import { useTranslation } from 'react-i18next';
 import { useQueryClient } from '@tanstack/react-query';
 import { companyQueries, updateCompany, useCompany } from '@/entities/company';
 import { BRAND_DEFAULT } from '@/shared/config/theme';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './CompanySettingsModal.module.css';
 
 const { Text } = Typography;
 
@@ -88,7 +90,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
       destroyOnHidden
       centered
       width="min(1080px, 95vw)"
-      styles={{ body: { maxHeight: '80vh', overflowY: 'auto', paddingTop: 4 } }}
+      classNames={{ body: styles.body }}
     >
       <Form<CompanyFormFields>
         form={form}
@@ -98,7 +100,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
       >
         <Row gutter={16}>
           <Col xs={24} sm={8} md={4}>
-            <Form.Item label={t('company.settings.fields.logo')} style={{ marginBottom: 4 }}>
+            <Form.Item label={t('company.settings.fields.logo')} className={styles.logoField}>
               <Upload
                 accept="image/*"
                 listType="picture-card"
@@ -115,29 +117,25 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
                 }}
               >
                 {logo ? (
-                  <img
-                    src={logo}
-                    alt={t('company.settings.fields.logo')}
-                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
+                  <img src={logo} alt={t('company.settings.fields.logo')} className={styles.logoPreview} />
                 ) : (
                   <div>
-                    <UploadOutlined style={{ fontSize: 20 }} />
-                    <div style={{ marginTop: 8, fontSize: 12 }}>
+                    <UploadOutlined className={styles.logoPlaceholderIcon} />
+                    <div className={`${typography.caption} ${styles.logoPlaceholderText}`}>
                       {t('company.settings.logo.upload')}
                     </div>
                   </div>
                 )}
               </Upload>
             </Form.Item>
-            <Text type="secondary" style={{ fontSize: 11 }}>
+            <Text type="secondary" className={styles.hint}>
               {t('company.settings.logo.hint')}
             </Text>
           </Col>
 
           <Col xs={24} sm={16} md={20}>
             <Text strong>{t('company.settings.sections.general')}</Text>
-            <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+            <Divider className={styles.sectionDivider} />
             <Row gutter={16}>
               <Col xs={24} sm={12} md={6}>
                 <Form.Item
@@ -169,19 +167,19 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
                 <Form.Item
                   name="brandColor"
                   label={t('company.settings.fields.brandColor')}
-                  style={{ marginBottom: 4 }}
+                  className={styles.brandColorField}
                   getValueFromEvent={(color: Color) => color.toHexString()}
                 >
                   <ColorPicker format="hex" disabledAlpha showText />
                 </Form.Item>
-                <Text type="secondary" style={{ fontSize: 11 }}>
+                <Text type="secondary" className={styles.hint}>
                   {t('company.settings.brandColor.hint')}
                 </Text>
                 <div>
                   <Button
                     type="link"
                     size="small"
-                    style={{ padding: 0 }}
+                    className={styles.resetButton}
                     onClick={() => form.setFieldValue('brandColor', BRAND_DEFAULT)}
                   >
                     {t('company.settings.brandColor.reset')}
@@ -193,7 +191,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
         </Row>
 
         <Text strong>{t('company.settings.sections.contact')}</Text>
-        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+        <Divider className={styles.sectionDivider} />
         <Row gutter={16}>
           <Col xs={24} sm={12} md={8}>
             <Form.Item
@@ -221,13 +219,13 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
         </Row>
 
         <Text strong>{t('company.settings.sections.address')}</Text>
-        <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+        <Divider className={styles.sectionDivider} />
         <Row gutter={16}>
           <Col xs={24} sm={12} md={6}>
             <Form.Item
               name="address"
               label={t('company.settings.fields.address')}
-              style={{ marginBottom: 0 }}
+              className={styles.tightItem}
             >
               <Input placeholder={t('company.settings.placeholders.address')} />
             </Form.Item>
@@ -236,7 +234,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
             <Form.Item
               name="city"
               label={t('company.settings.fields.city')}
-              style={{ marginBottom: 0 }}
+              className={styles.tightItem}
             >
               <Input placeholder={t('company.settings.placeholders.city')} />
             </Form.Item>
@@ -245,7 +243,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
             <Form.Item
               name="postalCode"
               label={t('company.settings.fields.postalCode')}
-              style={{ marginBottom: 0 }}
+              className={styles.tightItem}
             >
               <Input placeholder={t('company.settings.placeholders.postalCode')} />
             </Form.Item>
@@ -254,7 +252,7 @@ export function CompanySettingsModal({ open, onClose }: CompanySettingsModalProp
             <Form.Item
               name="country"
               label={t('company.settings.fields.country')}
-              style={{ marginBottom: 0 }}
+              className={styles.tightItem}
             >
               <Input placeholder={t('company.settings.placeholders.country')} />
             </Form.Item>

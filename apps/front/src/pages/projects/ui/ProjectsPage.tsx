@@ -19,6 +19,7 @@ import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectCard } from './ProjectCard';
 import { ProjectFormModal } from './ProjectFormModal';
+import styles from './ProjectsPage.module.css';
 
 const SKELETON_CARD_COUNT = 6;
 
@@ -117,13 +118,7 @@ export function ProjectsPage() {
         }
       />
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: 20,
-        }}
-      >
+      <div className={styles.grid}>
         {projectsLoading ? (
           Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
             <Card key={index} loading />

@@ -1,0 +1,49 @@
+.root {
+  height: 100%;
+}
+
+.main {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 20px;
+}
+
+.filterBar {
+  flex: none;
+}
+
+.searchInput {
+  width: 220px;
+}
+
+.filterSelect {
+  width: 150px;
+}
+
+.amountInput {
+  width: 120px;
+}
+
+.layoutSegmented {
+  margin-inline-start: auto;
+}
+
+.count {
+  flex: none;
+}
+
+.list {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.detail {
+  flex: none;
+  width: 360px;
+  height: 100%;
+  padding: 20px;
+  overflow: auto;
+  border-inline-start: 1px solid var(--ant-color-border-secondary);
+}

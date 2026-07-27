@@ -1,0 +1,56 @@
+.colorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  padding: 0;
+  cursor: pointer;
+  background: var(--swatch-color);
+}
+
+.colorSwatch[data-selected='true'] {
+  border-color: var(--ant-color-text);
+  box-shadow: 0 0 0 2px var(--swatch-color);
+}
+
+.imageField {
+  margin-bottom: 4px;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.imagePlaceholderIcon {
+  font-size: 20px;
+}
+
+.imagePlaceholderText {
+  margin-top: var(--lg-space-sm);
+}
+
+.removeImageButton {
+  padding: 0;
+  height: auto;
+}
+
+.imageHint {
+  font-size: 11px;
+  display: block;
+}
+
+.colorField {
+  margin-top: var(--lg-space-sm);
+  margin-bottom: 0;
+}
+
+.sectionDivider {
+  margin-top: 6px;
+  margin-bottom: var(--lg-space-md);
+}
+
+.tightItem {
+  margin-bottom: 0;
+}

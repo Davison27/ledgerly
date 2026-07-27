@@ -8,10 +8,12 @@ import dayjs from 'dayjs';
 import { scheduleQueries } from '@/entities/schedule-event';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
-import { TYPE } from '@/shared/config/theme';
+import typography from '@/shared/ui/typography.module.css';
 import { agendaStats, groupAgenda, type AgendaStatus } from '../model/agenda';
 import type { StaffSectionProps } from '../model/types';
 import { AgendaEventCard } from './AgendaEventCard';
+import styles from './AgendaSection.module.css';
+import shared from './staff-detail.module.css';
 
 const { Text } = Typography;
 
@@ -40,7 +42,7 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
 
   return (
     <PageContainer>
-      <Flex justify="flex-end" style={{ marginBottom: 12 }}>
+      <Flex className={shared.actionsBar}>
         <Button icon={<CalendarOutlined />} onClick={goToCalendar}>
           {t('staff.schedule.viewInCalendar')}
         </Button>
@@ -64,20 +66,20 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
         <Flex vertical gap={28}>
           <Flex gap={32}>
             <Flex vertical gap={2}>
-              <div style={TYPE.kpiValueSm}>{stats.blocks}</div>
-              <Text style={{ ...TYPE.kpiLabel }} type="secondary">
+              <div className={typography.kpiValueSm}>{stats.blocks}</div>
+              <Text className={typography.kpiLabel} type="secondary">
                 {t('staff.schedule.stats.blocks')}
               </Text>
             </Flex>
             <Flex vertical gap={2}>
-              <div style={TYPE.kpiValueSm}>{stats.days}</div>
-              <Text style={{ ...TYPE.kpiLabel }} type="secondary">
+              <div className={typography.kpiValueSm}>{stats.days}</div>
+              <Text className={typography.kpiLabel} type="secondary">
                 {t('staff.schedule.stats.days')}
               </Text>
             </Flex>
             <Flex vertical gap={2}>
-              <div style={TYPE.kpiValueSm}>{stats.projects}</div>
-              <Text style={{ ...TYPE.kpiLabel }} type="secondary">
+              <div className={typography.kpiValueSm}>{stats.projects}</div>
+              <Text className={typography.kpiLabel} type="secondary">
                 {t('staff.schedule.stats.projects')}
               </Text>
             </Flex>
@@ -85,16 +87,10 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
 
           {groups.map((group) => (
             <Flex key={group.status} vertical gap={12}>
-              <Text style={{ ...TYPE.kpiLabel }} type="secondary">
+              <Text className={typography.kpiLabel} type="secondary">
                 {t(SECTION_TITLE_KEY[group.status])}
               </Text>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                  gap: 16,
-                }}
-              >
+              <div className={styles.grid}>
                 {group.events.map((event) => (
                   <AgendaEventCard
                     key={event.id}

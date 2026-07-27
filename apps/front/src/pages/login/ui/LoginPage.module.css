@@ -1,0 +1,72 @@
+.page {
+  min-height: 100vh;
+  display: flex;
+}
+
+.formPanel {
+  position: relative;
+  flex: 0 0 45%;
+  min-width: 360px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--lg-space-xl);
+  background: var(--ant-color-bg-container);
+}
+
+.formPanel[data-full-width='true'] {
+  flex: 1 1 100%;
+}
+
+.langSwitcher {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+}
+
+.formCard {
+  width: 100%;
+  max-width: 340px;
+}
+
+.logo {
+  width: 200px;
+  max-width: 100%;
+}
+
+.title {
+  margin: 0;
+  text-align: center;
+}
+
+.subtitle {
+  text-align: center;
+}
+
+.brandPanel {
+  flex: 1 1 55%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.brandContent {
+  padding: calc(var(--lg-space-xxl) + var(--lg-space-lg));
+  text-align: center;
+}
+
+.brandIcon {
+  width: 140px;
+  height: 140px;
+  border-radius: 32px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.25);
+}
+
+.tagline {
+  color: #ffffff;
+  font-size: 20px;
+  max-width: 380px;
+  opacity: 0.95;
+}

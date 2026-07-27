@@ -1,0 +1,28 @@
+.body {
+  max-height: 76vh;
+  overflow-y: auto;
+}
+
+.fileAlert {
+  margin-bottom: var(--lg-space-md);
+}
+
+.sectionLabel {
+  font-size: 13px;
+}
+
+.sectionRow {
+  margin-top: var(--lg-space-sm);
+}
+
+.tightItem {
+  margin-bottom: 0;
+}
+
+.autofillNote {
+  font-size: 11px;
+}
+
+.mismatchAlert {
+  margin-top: var(--lg-space-sm);
+}

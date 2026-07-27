@@ -1,0 +1,29 @@
+.page {
+  flex: 1;
+  min-height: 0;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-xxl);
+  flex: none;
+  height: var(--lg-section-header-height);
+  padding: 0 var(--lg-page-padding-inline);
+  background: var(--ant-color-bg-container);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.avatarFallback {
+  background-color: var(--ant-color-primary);
+}
+
+.staffName {
+  font-size: 16px;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
-import { Avatar, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
+import { Avatar, Flex, Segmented, Skeleton, Typography } from 'antd';
 import { IdcardOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
@@ -9,22 +9,21 @@ import {
   staffDocumentTypeQueries,
   staffQueries,
 } from '@/entities/staff-member';
-import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
+import typography from '@/shared/ui/typography.module.css';
 import { ProfileSection } from './ProfileSection';
 import { StaffDocumentsSection } from './StaffDocumentsSection';
 import { PayrollsSection } from './PayrollsSection';
 import { AgendaSection } from './AgendaSection';
+import styles from './StaffMemberDetailPage.module.css';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 type Section = 'profile' | 'documents' | 'payrolls' | 'schedule';
 
 const PHOTO_TYPE_CODE = 'foto';
 
 export function StaffMemberDetailPage() {
-  const { token } = useToken();
   const { t } = useTranslation();
   const { staffMemberId } = useParams({ strict: false }) as { staffMemberId?: string };
   const [section, setSection] = useState<Section>('profile');
@@ -82,31 +81,20 @@ export function StaffMemberDetailPage() {
     latestPhoto && staffMemberId ? staffDocumentFileUrl(staffMemberId, latestPhoto.id) : undefined;
 
   return (
-    <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACE.xxl,
-          flex: 'none',
-          height: LAYOUT.sectionHeaderHeight,
-          padding: `0 ${LAYOUT.pagePaddingInline}px`,
-          background: token.colorBgContainer,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
+    <Flex vertical className={styles.page}>
+      <div className={styles.header}>
         <Flex align="center" gap={10}>
           {avatarSrc ? (
             <Avatar size={28} src={avatarSrc} />
           ) : (
-            <Avatar size={28} style={{ backgroundColor: token.colorPrimary }} icon={<IdcardOutlined />} />
+            <Avatar size={28} className={styles.avatarFallback} icon={<IdcardOutlined />} />
           )}
           <Flex align="baseline" gap={8}>
-            <Text strong style={{ fontSize: 16 }}>
+            <Text strong className={styles.staffName}>
               {staffMember.firstName} {staffMember.lastName}
             </Text>
             {staffMember.position && (
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text type="secondary" className={typography.caption}>
                 {staffMember.position}
               </Text>
             )}
@@ -115,7 +103,7 @@ export function StaffMemberDetailPage() {
         <Segmented<Section> value={section} onChange={setSection} options={options} />
       </div>
 
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <div className={styles.content}>
         {section === 'profile' && <ProfileSection staffMember={staffMember} />}
         {section === 'documents' && <StaffDocumentsSection staffMember={staffMember} />}
         {section === 'payrolls' && <PayrollsSection staffMember={staffMember} />}

@@ -12,7 +12,6 @@ import {
   Select,
   Skeleton,
   Typography,
-  theme,
 } from 'antd';
 import { PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -30,9 +29,9 @@ import { DocumentsCardsView } from './DocumentsCardsView';
 import { DocumentUploadModal } from '@/features/upload-document';
 import { useProjectDocuments } from '../model/useProjectDocuments';
 import { DocumentDetail, DocumentEditModal } from '@/features/document-detail';
+import styles from './DocumentsSection.module.css';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 type TypeFilter = DocumentType | 'all';
 type StatusFilter = DocumentStatus | 'all';
@@ -40,7 +39,6 @@ type LayoutMode = 'list' | 'cards';
 
 export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const { t } = useTranslation();
-  const { token } = useToken();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
 
@@ -134,28 +132,28 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   ];
 
   return (
-    <Flex style={{ height: '100%' }}>
-      <Flex vertical gap={12} style={{ flex: 1, minWidth: 0, height: '100%', padding: 20 }}>
-        <Flex wrap gap={8} align="center" style={{ flex: 'none' }}>
+    <Flex className={styles.root}>
+      <Flex vertical gap={12} className={styles.main}>
+        <Flex wrap gap={8} align="center" className={styles.filterBar}>
           <Input
             allowClear
             prefix={<SearchOutlined />}
             placeholder={t('projects.documents.search')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            style={{ width: 220 }}
+            className={styles.searchInput}
           />
           <Select<TypeFilter>
             value={type}
             onChange={setType}
             options={typeOptions}
-            style={{ width: 150 }}
+            className={styles.filterSelect}
           />
           <Select<StatusFilter>
             value={status}
             onChange={setStatus}
             options={statusOptions}
-            style={{ width: 150 }}
+            className={styles.filterSelect}
           />
           <DatePicker
             placeholder={t('projects.documents.filters.dateFrom')}
@@ -172,14 +170,14 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
             min={0}
             value={amountMin}
             onChange={setAmountMin}
-            style={{ width: 120 }}
+            className={styles.amountInput}
           />
           <InputNumber
             placeholder={t('projects.documents.filters.amountMax')}
             min={0}
             value={amountMax}
             onChange={setAmountMax}
-            style={{ width: 120 }}
+            className={styles.amountInput}
           />
           <Segmented<LayoutMode>
             value={layout}
@@ -188,7 +186,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
               { value: 'list', label: t('projects.documents.layout.list') },
               { value: 'cards', label: t('projects.documents.layout.cards') },
             ]}
-            style={{ marginInlineStart: 'auto' }}
+            className={styles.layoutSegmented}
           />
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setUploadOpen(true)}>
             {t('projects.documents.upload.button')}
@@ -196,14 +194,14 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
         </Flex>
 
         {!documentsLoading && (
-          <Text type="secondary" style={{ flex: 'none' }}>
+          <Text type="secondary" className={styles.count}>
             {t(count === 1 ? 'projects.documents.countOne' : 'projects.documents.countOther', {
               count,
             })}
           </Text>
         )}
 
-        <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+        <div className={styles.list}>
           {documentsLoading ? (
             <Skeleton active paragraph={{ rows: 8 }} />
           ) : documentsError ? (
@@ -228,16 +226,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
         </div>
       </Flex>
 
-      <div
-        style={{
-          flex: 'none',
-          width: 360,
-          height: '100%',
-          padding: 20,
-          overflow: 'auto',
-          borderInlineStart: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
+      <div className={styles.detail}>
         <DocumentDetail
           document={selectedDoc}
           onEdit={handleEdit}
