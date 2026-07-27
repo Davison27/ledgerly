@@ -2,6 +2,7 @@ import { Avatar } from 'antd';
 import { seedColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { initials } from '../lib/initials';
+import styles from './StaffAvatar.module.css';
 
 export interface StaffAvatarProps {
   staffMember: { id: string; firstName: string; lastName: string };
@@ -15,11 +16,10 @@ export function StaffAvatar({ staffMember, size = 28 }: StaffAvatarProps) {
   return (
     <Avatar
       size={size}
+      className={styles.avatar}
       style={{
         backgroundColor: seedColor(staffMember.id, isDark),
-        color: '#fff',
         fontSize: Math.round(size * 0.4),
-        fontWeight: 600,
       }}
     >
       {initials(staffMember.firstName, staffMember.lastName)}

@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Form, Input, InputNumber, Modal } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ProductDto } from '@/entities/product';
+import styles from './ProductFormModal.module.css';
 
 export interface ProductFormValues {
   name: string;
@@ -83,7 +84,7 @@ export function ProductFormModal({
         <Form.Item
           name="stock"
           label={t('products.fields.stock')}
-          style={{ marginBottom: 0 }}
+          className={styles.lastItem}
           extra={t('products.form.stockHelp')}
         >
           <InputNumber precision={0} min={0} placeholder={t('products.form.placeholders.stock')} />

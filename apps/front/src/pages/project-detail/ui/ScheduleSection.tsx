@@ -7,6 +7,7 @@ import { scheduleQueries, ScheduleDaysSummary, type ScheduleEventDto } from '@/e
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import type { ProjectSectionProps } from '../model/types';
+import styles from './ScheduleSection.module.css';
 
 const { Text } = Typography;
 
@@ -61,7 +62,7 @@ export function ScheduleSection({ project }: ProjectSectionProps) {
 
   return (
     <PageContainer>
-      <Flex justify="flex-end" style={{ marginBottom: 12 }}>
+      <Flex justify="flex-end" className={styles.header}>
         <Button icon={<CalendarOutlined />} onClick={() => void navigate({ to: '/calendar' })}>
           {t('projects.schedule.viewInCalendar')}
         </Button>

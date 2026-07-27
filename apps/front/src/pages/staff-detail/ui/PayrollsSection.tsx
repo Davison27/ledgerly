@@ -10,6 +10,7 @@ import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { AddStaffDocumentButton } from './AddStaffDocumentButton';
 import type { StaffSectionProps } from '../model/types';
+import shared from './staff-detail.module.css';
 
 export function PayrollsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
@@ -58,7 +59,7 @@ export function PayrollsSection({ staffMember }: StaffSectionProps) {
 
   return (
     <PageContainer>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>
+      <div className={shared.actionsBar}>
         <AddStaffDocumentButton staffMemberId={staffMember.id} />
       </div>
 

@@ -1,0 +1,44 @@
+.body {
+  max-height: 80vh;
+  overflow-y: auto;
+  padding-top: 4px;
+}
+
+.logoField {
+  margin-bottom: 4px;
+}
+
+.logoPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logoPlaceholderIcon {
+  font-size: 20px;
+}
+
+.logoPlaceholderText {
+  margin-top: var(--lg-space-sm);
+}
+
+.hint {
+  font-size: 11px;
+}
+
+.brandColorField {
+  margin-bottom: 4px;
+}
+
+.resetButton {
+  padding: 0;
+}
+
+.sectionDivider {
+  margin-top: 6px;
+  margin-bottom: var(--lg-space-md);
+}
+
+.tightItem {
+  margin-bottom: 0;
+}

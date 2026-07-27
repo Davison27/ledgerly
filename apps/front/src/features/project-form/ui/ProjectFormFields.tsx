@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import {
   Button,
   Col,
@@ -12,7 +12,6 @@ import {
   Select,
   Typography,
   Upload,
-  theme,
 } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
@@ -25,6 +24,8 @@ import {
 } from '@/shared/config/theme';
 import { deriveColorToken } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './ProjectFormFields.module.css';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -58,7 +59,6 @@ interface ProjectColorPickerProps {
 function ProjectColorPicker({ value, onChange }: ProjectColorPickerProps) {
   const { t } = useTranslation();
   const { mode } = useThemeMode();
-  const { token } = theme.useToken();
   const isDark = mode === 'dark';
 
   return (
@@ -72,17 +72,10 @@ function ProjectColorPicker({ value, onChange }: ProjectColorPickerProps) {
             type="button"
             aria-label={t(`projects.form.colors.${colorToken}`)}
             aria-pressed={selected}
+            data-selected={selected}
             onClick={() => onChange?.(colorToken)}
-            style={{
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              border: selected ? `2px solid ${token.colorText}` : '2px solid transparent',
-              boxShadow: selected ? `0 0 0 2px ${hex}` : 'none',
-              background: hex,
-              padding: 0,
-              cursor: 'pointer',
-            }}
+            className={styles.colorSwatch}
+            style={{ '--swatch-color': hex } as CSSProperties}
           />
         );
       })}
@@ -123,7 +116,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
     <>
       <Row gutter={16}>
         <Col xs={24} sm={8} md={4}>
-          <Form.Item label={t('projects.form.fields.image')} style={{ marginBottom: 4 }}>
+          <Form.Item label={t('projects.form.fields.image')} className={styles.imageField}>
             <Upload
               accept="image/*"
               listType="picture-card"
@@ -140,15 +133,11 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
               }}
             >
               {image ? (
-                <img
-                  src={image}
-                  alt={t('projects.form.fields.image')}
-                  style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                />
+                <img src={image} alt={t('projects.form.fields.image')} className={styles.imagePreview} />
               ) : (
                 <div>
-                  <ProjectOutlined style={{ fontSize: 20 }} />
-                  <div style={{ marginTop: 8, fontSize: 12 }}>
+                  <ProjectOutlined className={styles.imagePlaceholderIcon} />
+                  <div className={`${typography.caption} ${styles.imagePlaceholderText}`}>
                     {t('projects.form.image.upload')}
                   </div>
                 </div>
@@ -159,27 +148,23 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
             <Button
               type="link"
               size="small"
-              style={{ padding: 0, height: 'auto' }}
+              className={styles.removeImageButton}
               onClick={() => onImageChange(undefined)}
             >
               {t('projects.form.image.remove')}
             </Button>
           )}
-          <Text type="secondary" style={{ fontSize: 11, display: 'block' }}>
+          <Text type="secondary" className={styles.imageHint}>
             {t('projects.form.image.hint')}
           </Text>
-          <Form.Item
-            name="color"
-            label={t('projects.form.fields.color')}
-            style={{ marginTop: 8, marginBottom: 0 }}
-          >
+          <Form.Item name="color" label={t('projects.form.fields.color')} className={styles.colorField}>
             <ProjectColorPicker />
           </Form.Item>
         </Col>
 
         <Col xs={24} sm={16} md={20}>
           <Text strong>{t('projects.form.sections.general')}</Text>
-          <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+          <Divider className={styles.sectionDivider} />
           <Row gutter={16}>
             <Col xs={24} sm={12} md={6}>
               <Form.Item
@@ -232,7 +217,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
       </Form.Item>
 
       <Text strong>{t('projects.form.sections.client')}</Text>
-      <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+      <Divider className={styles.sectionDivider} />
       <Row gutter={16}>
         <Col xs={24} sm={12} md={8}>
           <Form.Item name="clientCompany" label={t('projects.form.fields.clientCompany')}>
@@ -273,7 +258,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
       </Row>
 
       <Text strong>{t('projects.form.sections.planning')}</Text>
-      <Divider style={{ marginTop: 6, marginBottom: 12 }} />
+      <Divider className={styles.sectionDivider} />
       <Row gutter={16}>
         <Col xs={24} sm={12} md={6}>
           <Form.Item name="startDate" label={t('projects.form.fields.startDate')}>
@@ -310,7 +295,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
           <Form.Item
             name="fiscalYear"
             label={t('projects.form.fields.fiscalYear')}
-            style={{ marginBottom: 0 }}
+            className={styles.tightItem}
           >
             <Input placeholder={t('projects.form.placeholders.fiscalYear')} />
           </Form.Item>
@@ -319,7 +304,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
           <Form.Item
             name="manager"
             label={t('projects.form.fields.manager')}
-            style={{ marginBottom: 0 }}
+            className={styles.tightItem}
           >
             <Input placeholder={t('projects.form.placeholders.manager')} />
           </Form.Item>

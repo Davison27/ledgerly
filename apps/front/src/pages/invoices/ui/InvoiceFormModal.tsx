@@ -24,6 +24,8 @@ import {
   type CreateInvoicePayload,
 } from '@/entities/invoice';
 import { SPACE } from '@/shared/config/theme';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './InvoiceFormModal.module.css';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -175,7 +177,7 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
       destroyOnHidden
       centered
       width="min(760px, 95vw)"
-      styles={{ body: { maxHeight: '80vh', overflowY: 'auto' } }}
+      classNames={{ body: styles.body }}
     >
       <Form<InvoiceFormFields>
         form={form}
@@ -203,27 +205,27 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
           />
         </Form.Item>
 
-        <Text strong style={{ fontSize: 13 }}>
+        <Text strong className={styles.linesTitle}>
           {t('invoices.lines.title')}
         </Text>
         <Form.List name="lines">
           {(fields, { add, remove }) => (
             <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
-              <Flex vertical gap={4} style={{ marginTop: 8, marginBottom: 8 }}>
+              <Flex vertical gap={4} className={styles.linesList}>
                 {fields.length > 0 && (
                   <Row gutter={12}>
                     <Col flex="auto">
-                      <Text type="secondary" style={{ fontSize: 12 }}>
+                      <Text type="secondary" className={typography.caption}>
                         {t('invoices.lines.columns.description')}
                       </Text>
                     </Col>
                     <Col flex="0 0 100px">
-                      <Text type="secondary" style={{ fontSize: 12 }}>
+                      <Text type="secondary" className={typography.caption}>
                         {t('invoices.lines.columns.quantity')}
                       </Text>
                     </Col>
                     <Col flex="0 0 140px">
-                      <Text type="secondary" style={{ fontSize: 12 }}>
+                      <Text type="secondary" className={typography.caption}>
                         {t('invoices.lines.columns.unitPrice')}
                       </Text>
                     </Col>
@@ -372,7 +374,7 @@ export function InvoiceFormModal({ open, onCancel, onSubmit, submitting }: Invoi
           <TextArea rows={2} placeholder={t('invoices.form.placeholders.notes')} />
         </Form.Item>
 
-        <Flex vertical gap={2} style={{ marginTop: 4 }}>
+        <Flex vertical gap={2} className={styles.totals}>
           <Flex justify="space-between">
             <Text type="secondary">{t('invoices.totals.base')}</Text>
             <Text>{formatAmount(totals.taxBase)}</Text>

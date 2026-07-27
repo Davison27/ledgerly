@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { Col, Form, Input, Modal, Row } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SupplierDto } from '@/entities/supplier';
+import styles from './SupplierFormModal.module.css';
 
 const { TextArea } = Input;
 
@@ -120,7 +121,7 @@ export function SupplierFormModal({
             </Form.Item>
           </Col>
         </Row>
-        <Form.Item name="notes" label={t('suppliers.fields.notes')} style={{ marginBottom: 0 }}>
+        <Form.Item name="notes" label={t('suppliers.fields.notes')} className={styles.lastItem}>
           <TextArea rows={3} placeholder={t('suppliers.form.placeholders.notes')} />
         </Form.Item>
       </Form>

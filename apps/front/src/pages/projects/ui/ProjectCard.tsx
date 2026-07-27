@@ -1,4 +1,4 @@
-import { Avatar, Card, Tooltip, theme, type CardProps } from 'antd';
+import { Avatar, Card, Tooltip } from 'antd';
 import {
   EditOutlined,
   DeleteOutlined,
@@ -8,9 +8,9 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/entities/project';
+import styles from './ProjectCard.module.css';
 
 const { Meta } = Card;
-const { useToken } = theme;
 
 export interface ProjectCardProps {
   project: Project;
@@ -30,16 +30,11 @@ export function ProjectCard({
   onDelete,
 }: ProjectCardProps) {
   const { t } = useTranslation();
-  const { token } = useToken();
-
-  const styles: CardProps['styles'] = {
-    header: { borderBottom: 'none', paddingBottom: 8 },
-  };
 
   const actions = [
     <Tooltip key="delete" title={t('common.delete')}>
       <DeleteOutlined
-        style={{ color: token.colorError }}
+        className={styles.deleteIcon}
         onClick={(e) => {
           e.stopPropagation();
           onDelete(project);
@@ -60,7 +55,7 @@ export function ProjectCard({
     </Tooltip>,
     <Tooltip key="open" title={t('common.open')}>
       <ExportOutlined
-        style={{ color: token.colorSuccess }}
+        className={styles.openIcon}
         onClick={(e) => {
           e.stopPropagation();
           onOpen(project);
@@ -70,7 +65,7 @@ export function ProjectCard({
   ];
 
   return (
-    <Card hoverable styles={styles} actions={actions}>
+    <Card hoverable classNames={{ header: styles.header }} actions={actions}>
       <Meta
         avatar={
           project.image ? (
@@ -87,8 +82,8 @@ export function ProjectCard({
         title={project.name}
         description={
           <>
-            <div style={{ marginBottom: 2 }}>{project.code}</div>
-            <div style={{ marginBottom: 2 }}>
+            <div className={styles.metaLine}>{project.code}</div>
+            <div className={styles.metaLine}>
               {t('projects.docSummary', {
                 docs: project.documentCount,
                 pending: project.pendingCount,

@@ -32,6 +32,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
+import styles from './ExtractionHintsPage.module.css';
 
 const { Text } = Typography;
 
@@ -127,7 +128,7 @@ function QualityPanel() {
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0;
                 return (
                   <div key={source}>
-                    <Flex justify="space-between" style={{ marginBottom: 4 }}>
+                    <Flex justify="space-between" className={styles.metricRow}>
                       <SemanticTag tone="neutral">
                         {t(`projects.documents.upload.extraction.source.${source}`)}
                       </SemanticTag>
@@ -148,7 +149,7 @@ function QualityPanel() {
                 const percent = total > 0 ? Math.round((count / total) * 100) : 0;
                 return (
                   <div key={confidence}>
-                    <Flex justify="space-between" style={{ marginBottom: 4 }}>
+                    <Flex justify="space-between" className={styles.metricRow}>
                       <SemanticTag tone={CONFIDENCE_TONE[confidence]}>
                         {t(`projects.documents.upload.extraction.confidence.${confidence}`)}
                       </SemanticTag>

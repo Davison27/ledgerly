@@ -5,6 +5,7 @@ import { companyNeedsSetup, useCompany } from '@/entities/company';
 import { useSyncBrandColor } from '../model/useSyncBrandColor';
 import { AppSider } from './AppSider';
 import { TopBar } from './TopBar';
+import styles from './AppLayout.module.css';
 
 function CompanyGuard({ children }: { children: ReactNode }) {
   const { company, isLoading } = useCompany();
@@ -29,18 +30,11 @@ export function AppLayout({ search }: AppLayoutProps) {
 
   return (
     <CompanyGuard>
-      <Layout hasSider style={{ height: '100vh', overflow: 'hidden' }}>
+      <Layout hasSider className={styles.shell}>
         <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
-        <Layout style={{ minHeight: 0 }}>
+        <Layout className={styles.main}>
           <TopBar search={search} />
-          <Layout.Content
-            style={{
-              display: 'flex',
-              flexDirection: 'column',
-              minHeight: 0,
-              overflow: 'auto',
-            }}
-          >
+          <Layout.Content className={styles.content}>
             <Outlet />
           </Layout.Content>
         </Layout>

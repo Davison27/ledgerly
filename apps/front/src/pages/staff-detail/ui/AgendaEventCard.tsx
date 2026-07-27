@@ -6,7 +6,9 @@ import { StaffAvatar } from '@/entities/staff-member';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
+import typography from '@/shared/ui/typography.module.css';
 import type { AgendaStatus } from '../model/agenda';
+import styles from './AgendaEventCard.module.css';
 
 const { Text } = Typography;
 
@@ -44,7 +46,9 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
       size="small"
       hoverable
       onClick={() => onOpenProject(event.projectId)}
-      style={{ borderInlineStart: `4px solid ${color}`, opacity: status === 'past' ? 0.7 : 1 }}
+      className={styles.card}
+      data-status={status}
+      style={{ borderInlineStartColor: color }}
     >
       <Flex vertical gap={8}>
         <Flex align="center" gap={8}>
@@ -53,11 +57,11 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
           ) : (
             <Avatar shape="square" size={36} style={{ backgroundColor: color }} icon={<ProjectOutlined />} />
           )}
-          <Flex vertical gap={0} style={{ minWidth: 0 }}>
+          <Flex vertical gap={0} className={styles.nameCol}>
             <Text strong ellipsis>
               {event.project.name}
             </Text>
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" className={typography.caption}>
               {event.project.code}
             </Text>
           </Flex>
@@ -77,12 +81,12 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
 
         {coworkers.length > 0 && (
           <Flex align="center" gap={8}>
-            <Text type="secondary" style={{ fontSize: 11 }}>
+            <Text type="secondary" className={styles.coworkersLabel}>
               {t('staff.schedule.coworkers')}
             </Text>
             <Flex>
               {visibleCoworkers.map((member, index) => (
-                <div key={member.id} style={{ marginInlineStart: index === 0 ? 0 : -8 }}>
+                <div key={member.id} className={styles.overlapAvatar} data-first={index === 0}>
                   <StaffAvatar staffMember={member} size={22} />
                 </div>
               ))}
@@ -90,7 +94,7 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
                 <Tooltip
                   title={hiddenCoworkers.map((member) => `${member.firstName} ${member.lastName}`).join(', ')}
                 >
-                  <Avatar size={22} style={{ marginInlineStart: -8 }}>
+                  <Avatar size={22} className={styles.overlapAvatar}>
                     +{hiddenCoworkers.length}
                   </Avatar>
                 </Tooltip>

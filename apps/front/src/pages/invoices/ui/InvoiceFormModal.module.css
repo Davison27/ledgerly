@@ -1,0 +1,17 @@
+.body {
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.linesTitle {
+  font-size: 13px;
+}
+
+.linesList {
+  margin-top: var(--lg-space-sm);
+  margin-bottom: var(--lg-space-sm);
+}
+
+.totals {
+  margin-top: var(--lg-space-xs);
+}

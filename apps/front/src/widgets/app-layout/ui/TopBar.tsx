@@ -1,19 +1,17 @@
 import type { ReactNode } from 'react';
-import { App, Button, Flex, Layout, Tooltip, theme } from 'antd';
+import { App, Button, Flex, Layout, Tooltip } from 'antd';
 import { BellOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
-import { LAYOUT, SPACE } from '@/shared/config/theme';
+import { SPACE } from '@/shared/config/theme';
 import { useCompany } from '@/entities/company';
-
-const { useToken } = theme;
+import styles from './TopBar.module.css';
 
 export interface TopBarProps {
   search?: ReactNode;
 }
 
 export function TopBar({ search }: TopBarProps) {
-  const { token } = useToken();
   const { message } = App.useApp();
   const { t } = useTranslation();
   const { mode, toggle } = useThemeMode();
@@ -21,37 +19,21 @@ export function TopBar({ search }: TopBarProps) {
   const { company } = useCompany();
 
   return (
-    <Layout.Header
-      style={{
-        position: 'relative',
-        flex: 'none',
-        height: LAYOUT.topbarHeight,
-        lineHeight: 'normal',
-        padding: `0 ${SPACE.lg}px`,
-        background: token.colorBgContainer,
-        borderBottom: `1px solid ${token.colorBorderSecondary}`,
-      }}
-    >
-      <Flex align="center" justify="space-between" gap={SPACE.md} style={{ height: '100%' }}>
-        <Flex align="center" style={{ flex: 1, minWidth: 0 }}>
+    <Layout.Header className={styles.header}>
+      <Flex align="center" justify="space-between" gap={SPACE.md} className={styles.inner}>
+        <Flex align="center" className={styles.searchSlot}>
           {search}
         </Flex>
 
-        <Flex align="center" gap={SPACE.xs} style={{ flex: 'none' }}>
+        <Flex align="center" gap={SPACE.xs} className={styles.actions}>
           <Tooltip title={t('topbar.notifications')}>
             <Button
               type="text"
               aria-label={t('topbar.notifications')}
               onClick={() => void message.info(t('common.comingSoon'))}
-              style={{
-                height: 40,
-                width: 40,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className={styles.iconButton}
             >
-              <BellOutlined style={{ fontSize: 18 }} />
+              <BellOutlined className={styles.icon} />
             </Button>
           </Tooltip>
 
@@ -60,28 +42,18 @@ export function TopBar({ search }: TopBarProps) {
               type="text"
               aria-label={t('theme.ariaLabel')}
               onClick={toggle}
-              style={{
-                height: 40,
-                width: 40,
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
+              className={styles.iconButton}
             >
               {mode === 'dark' ? (
-                <MoonOutlined style={{ fontSize: 18 }} />
+                <MoonOutlined className={styles.icon} />
               ) : (
-                <SunOutlined style={{ fontSize: 18 }} />
+                <SunOutlined className={styles.icon} />
               )}
             </Button>
           </Tooltip>
 
           <div aria-label={t('common.appName')}>
-            <img
-              src={company.logo}
-              alt={t('common.appName')}
-              style={{ height: 28, display: 'block', objectFit: 'contain' }}
-            />
+            <img src={company.logo} alt={t('common.appName')} className={styles.logo} />
           </div>
         </Flex>
       </Flex>

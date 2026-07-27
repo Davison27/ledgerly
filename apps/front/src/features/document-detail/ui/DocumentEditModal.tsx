@@ -32,6 +32,7 @@ import { projectQueries } from '@/entities/project';
 import { staffQueries } from '@/entities/staff-member';
 import { supplierQueries } from '@/entities/supplier';
 import { SPACE } from '@/shared/config/theme';
+import styles from './DocumentEditModal.module.css';
 
 const { Text } = Typography;
 
@@ -207,7 +208,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
       destroyOnHidden
       centered
       width="min(760px, 96vw)"
-      styles={{ body: { maxHeight: '76vh', overflowY: 'auto' } }}
+      classNames={{ body: styles.body }}
       footer={[
         <Button key="cancel" onClick={handleCancel}>
           {t('common.cancel')}
@@ -222,7 +223,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           type="info"
           showIcon
           message={t('projects.documents.edit.fileNote')}
-          style={{ marginBottom: 12 }}
+          className={styles.fileAlert}
         />
       )}
 
@@ -233,10 +234,10 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           size="small"
           requiredMark={false}
         >
-          <Text strong style={{ fontSize: 13 }}>
+          <Text strong className={styles.sectionLabel}>
             {t('projects.documents.upload.sections.document')}
           </Text>
-          <Row gutter={12} style={{ marginTop: 8 }}>
+          <Row gutter={12} className={styles.sectionRow}>
             <Col xs={24} sm={12} md={8}>
               <Form.Item
                 name="name"
@@ -332,10 +333,10 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
             </Row>
           )}
 
-          <Text strong style={{ fontSize: 13 }}>
+          <Text strong className={styles.sectionLabel}>
             {t('projects.documents.upload.sections.supplier')}
           </Text>
-          <Row gutter={12} style={{ marginTop: 8 }} align="top">
+          <Row gutter={12} className={styles.sectionRow} align="top">
             <Col xs={24} md={8}>
               <Form.Item label={t('projects.documents.upload.supplier.label')}>
                 <Select
@@ -374,17 +375,17 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
                 />
               </Form.Item>
               {supplierId && (
-                <Text type="secondary" style={{ fontSize: 11 }}>
+                <Text type="secondary" className={styles.autofillNote}>
                   {t('projects.documents.upload.supplier.autofillNote')}
                 </Text>
               )}
             </Col>
           </Row>
 
-          <Text strong style={{ fontSize: 13 }}>
+          <Text strong className={styles.sectionLabel}>
             {t('projects.documents.upload.sections.amounts')}
           </Text>
-          <Row gutter={12} style={{ marginTop: 8 }}>
+          <Row gutter={12} className={styles.sectionRow}>
             <Col xs={24} sm={12} md={6}>
               <Form.Item
                 name="amount"
@@ -448,7 +449,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
               <Form.Item
                 name="irpfAmount"
                 label={t('projects.documents.upload.fields.irpfAmount')}
-                style={{ marginBottom: 0 }}
+                className={styles.tightItem}
               >
                 <InputNumber min={0} />
               </Form.Item>
@@ -459,7 +460,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
               type="warning"
               showIcon
               message={t('projects.documents.upload.validation.amountMismatch')}
-              style={{ marginTop: 8 }}
+              className={styles.mismatchAlert}
             />
           )}
         </Form>

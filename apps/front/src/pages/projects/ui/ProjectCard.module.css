@@ -1,0 +1,16 @@
+.header {
+  border-bottom: none;
+  padding-bottom: 8px;
+}
+
+.deleteIcon {
+  color: var(--ant-color-error);
+}
+
+.openIcon {
+  color: var(--ant-color-success);
+}
+
+.metaLine {
+  margin-bottom: 2px;
+}

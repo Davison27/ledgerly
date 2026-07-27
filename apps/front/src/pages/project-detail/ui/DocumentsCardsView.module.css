@@ -1,0 +1,13 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.card[data-selected='true'] {
+  background: var(--ant-control-item-bg-active);
+}
+
+.body {
+  padding: 12px;
+}

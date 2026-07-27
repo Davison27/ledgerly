@@ -32,6 +32,7 @@ import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { InvoiceFormModal } from './InvoiceFormModal';
+import styles from './InvoicesPage.module.css';
 
 const { Text } = Typography;
 
@@ -191,7 +192,7 @@ export function InvoicesPage() {
               {t('company.settings.title')}
             </Button>
           }
-          style={{ marginBottom: 24 }}
+          className={styles.incompleteAlert}
         />
       )}
 

@@ -41,6 +41,7 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { DocumentDetail, DocumentEditModal } from '@/features/document-detail';
+import styles from './DocumentsPage.module.css';
 
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
@@ -257,21 +258,21 @@ export function DocumentsPage() {
     <PageContainer>
       <PageHeader title={t('documents.title')} subtitle={t('documents.subtitle')} />
 
-      <Flex gap={12} wrap style={{ marginBottom: 24 }}>
+      <Flex gap={12} wrap className={styles.filterBar}>
         <Input
           allowClear
           prefix={<SearchOutlined />}
           placeholder={t('documents.filters.search')}
           value={searchInput}
           onChange={(event) => setSearchInput(event.target.value)}
-          style={{ width: 240 }}
+          className={styles.searchInput}
         />
         <Select<DocumentTypeDto>
           allowClear
           placeholder={t('documents.filters.allTypes')}
           value={type}
           onChange={setType}
-          style={{ width: 150 }}
+          className={styles.filterSelect}
           options={DOCUMENT_TYPES.map((value) => ({
             value,
             label: t(`projects.documents.types.${value}`),
@@ -282,7 +283,7 @@ export function DocumentsPage() {
           placeholder={t('documents.filters.allStatuses')}
           value={status}
           onChange={setStatus}
-          style={{ width: 150 }}
+          className={styles.filterSelect}
           options={DOCUMENT_STATUSES.map((value) => ({
             value,
             label: t(`projects.documents.statuses.${value}`),
@@ -293,7 +294,7 @@ export function DocumentsPage() {
           placeholder={t('documents.filters.direction')}
           value={direction}
           onChange={setDirection}
-          style={{ width: 150 }}
+          className={styles.filterSelect}
           options={DOCUMENT_DIRECTIONS.map((value) => ({
             value,
             label: t(`projects.documents.directions.${value}`),
@@ -308,14 +309,14 @@ export function DocumentsPage() {
           placeholder={t('documents.filters.amountMin')}
           value={amountMin}
           onChange={(value) => setAmountMin(value ?? undefined)}
-          style={{ width: 130 }}
+          className={styles.amountInput}
           min={0}
         />
         <InputNumber
           placeholder={t('documents.filters.amountMax')}
           value={amountMax}
           onChange={(value) => setAmountMax(value ?? undefined)}
-          style={{ width: 130 }}
+          className={styles.amountInput}
           min={0}
         />
         <Select
@@ -324,7 +325,7 @@ export function DocumentsPage() {
           placeholder={t('documents.filters.allProjects')}
           value={projectId}
           onChange={setProjectId}
-          style={{ width: 200 }}
+          className={styles.entitySelect}
           filterOption={filterByLabel}
           options={projects.map((project) => ({ value: project.id, label: project.name }))}
         />
@@ -334,7 +335,7 @@ export function DocumentsPage() {
           placeholder={t('documents.filters.allSuppliers')}
           value={supplierId}
           onChange={setSupplierId}
-          style={{ width: 200 }}
+          className={styles.entitySelect}
           filterOption={filterByLabel}
           options={suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
         />
@@ -365,7 +366,7 @@ export function DocumentsPage() {
         title={t('documents.detail.title')}
         width="min(900px, 96vw)"
         destroyOnHidden
-        styles={{ body: { display: 'flex', flexDirection: 'column' } }}
+        classNames={{ body: styles.drawerBody }}
       >
         {detailLoading ? (
           <Skeleton active paragraph={{ rows: 6 }} />

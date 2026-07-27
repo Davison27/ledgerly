@@ -1,10 +1,12 @@
-import { Card, Flex, theme, Typography } from 'antd';
+import { Card, Flex, Typography } from 'antd';
 import {
   formatEUR,
   useTypeLabel,
   StatusTag,
   type ProjectDocument,
 } from '@/entities/document';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './DocumentsCardsView.module.css';
 
 const { Text } = Typography;
 
@@ -22,16 +24,9 @@ export function DocumentsCardsView({
   color,
 }: DocumentsCardsViewProps) {
   const typeLabel = useTypeLabel();
-  const { token } = theme.useToken();
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(190px, 1fr))',
-        gap: 12,
-      }}
-    >
+    <div className={styles.grid}>
       {documents.map((doc) => {
         const selected = doc.id === selectedId;
         return (
@@ -40,17 +35,16 @@ export function DocumentsCardsView({
             size="small"
             hoverable
             onClick={() => onSelect(doc)}
-            style={{
-              borderColor: selected ? color : undefined,
-              background: selected ? token.controlItemBgActive : undefined,
-            }}
-            styles={{ body: { padding: 12 } }}
+            className={styles.card}
+            data-selected={selected}
+            style={selected ? { borderColor: color } : undefined}
+            classNames={{ body: styles.body }}
           >
             <Flex vertical gap={6}>
               <Text strong ellipsis={{ tooltip: doc.name }}>
                 {doc.name}
               </Text>
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text type="secondary" className={typography.caption}>
                 {typeLabel(doc.type)} · {doc.date}
               </Text>
               <Flex align="center" justify="space-between" gap={8}>

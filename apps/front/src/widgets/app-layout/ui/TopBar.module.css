@@ -1,0 +1,40 @@
+.header {
+  position: relative;
+  flex: none;
+  height: var(--lg-topbar-height);
+  line-height: normal;
+  padding: 0 var(--lg-space-lg);
+  background: var(--ant-color-bg-container);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.inner {
+  height: 100%;
+}
+
+.searchSlot {
+  flex: 1;
+  min-width: 0;
+}
+
+.actions {
+  flex: none;
+}
+
+.iconButton {
+  height: 40px;
+  width: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon {
+  font-size: 18px;
+}
+
+.logo {
+  height: 28px;
+  display: block;
+  object-fit: contain;
+}

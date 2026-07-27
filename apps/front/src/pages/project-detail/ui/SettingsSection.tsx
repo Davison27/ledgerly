@@ -11,6 +11,7 @@ import {
   ProjectFormFields,
   type ProjectFormFieldValues,
 } from '@/features/project-form';
+import styles from './SettingsSection.module.css';
 
 const { Title } = Typography;
 
@@ -95,8 +96,8 @@ export function SettingsSection({ project }: ProjectSectionProps) {
 
   return (
     <PageContainer maxWidth={1080}>
-      <Flex align="center" justify="space-between" style={{ marginBottom: 20 }}>
-        <Title level={5} style={{ margin: 0 }}>
+      <Flex align="center" justify="space-between" className={styles.header}>
+        <Title level={5} className={styles.title}>
           {t('projects.settings.details')}
         </Title>
         <Button type="primary" loading={saving} onClick={handleSave}>
