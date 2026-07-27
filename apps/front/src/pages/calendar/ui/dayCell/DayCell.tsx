@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import type { CalendarDropData } from '../model/dragData';
+import type { CalendarDropData } from '../../model/dragData';
 import styles from './DayCell.module.css';
 
 export interface DayCellProps {

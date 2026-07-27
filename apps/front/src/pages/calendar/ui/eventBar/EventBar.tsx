@@ -5,11 +5,11 @@ import { useTranslation } from 'react-i18next';
 import type { ScheduleConflictDto, ScheduleEventDto } from '@/entities/schedule-event';
 import { summarizeDayTimes } from '@/entities/schedule-event';
 import { StaffAvatar } from '@/entities/staff-member';
-import { hasErrorConflict, hasInfoConflict } from '../model/conflictIndex';
-import type { EventDragData, EventDropData, ResizeDragData } from '../model/dragData';
-import { eventContentDensity, WEEK_BAR_HEIGHT } from '../model/eventDensity';
-import { staffDisplay } from '../model/staffDisplay';
-import { ScheduleEventContent } from './ScheduleEventContent';
+import { hasErrorConflict, hasInfoConflict } from '../../model/conflictIndex';
+import type { EventDragData, EventDropData, ResizeDragData } from '../../model/dragData';
+import { eventContentDensity, WEEK_BAR_HEIGHT } from '../../model/eventDensity';
+import { staffDisplay } from '../../model/staffDisplay';
+import { ScheduleEventContent } from '../eventContent/ScheduleEventContent';
 import styles from './EventBar.module.css';
 
 const { Text } = Typography;

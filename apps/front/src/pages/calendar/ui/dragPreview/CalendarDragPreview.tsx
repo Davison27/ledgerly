@@ -1,7 +1,7 @@
 import { Typography } from 'antd';
-import type { CalendarDragData } from '../model/dragData';
-import { SchedulableProjectCard } from './SchedulableProjectCard';
-import { StaffPanelCard } from './StaffPanelCard';
+import type { CalendarDragData } from '../../model/dragData';
+import { SchedulableProjectCard } from '../projectCard/SchedulableProjectCard';
+import { StaffPanelCard } from '../staffCard/StaffPanelCard';
 import styles from './CalendarDragPreview.module.css';
 
 const { Text } = Typography;

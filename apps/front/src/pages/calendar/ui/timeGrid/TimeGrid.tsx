@@ -4,15 +4,15 @@ import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { formatDayTime, type ScheduleEventDto } from '@/entities/schedule-event';
-import { eventContentDensity } from '../model/eventDensity';
+import { eventContentDensity } from '../../model/eventDensity';
 import {
   HOUR_HEIGHT,
   HOURS_IN_DAY,
   initialScrollTop,
   segmentGeometry,
   type TimedSegment,
-} from '../model/timeGrid';
-import { ScheduleEventContent } from './ScheduleEventContent';
+} from '../../model/timeGrid';
+import { ScheduleEventContent } from '../eventContent/ScheduleEventContent';
 import styles from './TimeGrid.module.css';
 
 const { Text } = Typography;
