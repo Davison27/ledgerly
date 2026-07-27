@@ -1,0 +1,33 @@
+.panel {
+  width: 380px;
+}
+
+.header {
+  padding: var(--lg-space-sm) var(--lg-space-lg);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.body {
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.stateFill {
+  padding: var(--lg-space-xxl) var(--lg-space-lg);
+}
+
+.group:not(:last-child) {
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.groupHeader {
+  display: block;
+  padding: var(--lg-space-xs) var(--lg-space-lg);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.loadMore {
+  padding: var(--lg-space-sm) var(--lg-space-lg);
+}
