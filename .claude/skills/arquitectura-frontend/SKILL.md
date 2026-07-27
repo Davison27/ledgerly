@@ -56,6 +56,20 @@ agregados de página (el dashboard es el caso hoy) llevan las suyas en
 `pages/<x>/api/<x>.queries.ts` y no se exportan a nadie más. Detalle completo
 en `docs/architecture/data-layer.md`.
 
+### Estilos: CSS Modules
+
+Cada componente lleva su `Componente.module.css` **junto al fichero que lo
+usa** — normalmente en `ui/`, pero la regla es de proximidad, no de segmento
+fijo: un hook en `model/` que devuelve JSX (`useSettingsMenuItems.tsx`) tiene
+su módulo al lado, en `model/`. Un `.module.css` no se exporta por el
+`index.ts` del slice ni se importa desde otro slice, salvo
+`@/shared/ui/typography.module.css`.
+
+`style={{…}}` solo cuando el valor no se puede conocer hasta el render y
+varía por instancia (geometría calculada, porcentaje de una serie, color que
+viene del dato); todo lo demás va a una clase. Detalle completo, con el
+catálogo de casos legítimos, en `docs/architecture/styling.md`.
+
 ## Public API: el `index.ts` de cada slice
 
 Cada slice expone un `index.ts` que es su **contrato**. Lo de dentro se puede
@@ -107,7 +121,7 @@ apps/front/src/
 ├── app/
 │   ├── providers/        AppProviders, CompanyProvider, ThemeModeProvider, BrandColorProvider
 │   ├── router/           router.tsx y rutas
-│   └── styles/           index.css
+│   └── styles/           index.css, tokens.css (variables --lg-*)
 ├── pages/
 │   ├── dashboard/        ui/ + api/
 │   ├── documents/
@@ -136,7 +150,8 @@ apps/front/src/
 │   ├── staff-member/
 │   └── company/
 └── shared/
-    ├── ui/               Amount, Numeric, SemanticTag, PageContainer, EmptyHint
+    ├── ui/               Amount, Numeric, SemanticTag, PageContainer, EmptyHint,
+    │                     typography.module.css
     ├── api/              httpClient, sanitize
     ├── lib/              utilidades transversales
     ├── config/           tokens de tema, constantes
@@ -193,6 +208,8 @@ de negocio, esa decisión pertenece a `model` o al `entity`.
 | Una `feature` con un solo consumidor | Ceremonia: si solo la usa una página, va en esa página |
 | Lógica de negocio en un componente de `ui` | Para eso está `model`; si es regla de dominio, está en `entities` |
 | Un cajón técnico global (`data/`, `queries/`, `repositories/`) | Es agrupar por tecnología en vez de por dominio: justo lo que FSD viene a evitar |
+| `style={{…}}` para valores estáticos | El sitio es una clase de `.module.css`; `style` es solo para lo que no se puede saber hasta el render (ver `docs/architecture/styling.md`) |
+| Clases con nombre de propiedad (`.mb12`) | El nombre debe decir el papel del elemento (`.kpiLabel`), no la propiedad CSS que aplica |
 | Comentarios en el código | Prohibidos en todo el repo. Ver `CLAUDE.md` |
 
 ---

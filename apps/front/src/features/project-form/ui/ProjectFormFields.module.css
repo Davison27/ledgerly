@@ -14,7 +14,7 @@
 }
 
 .imageField {
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .imagePreview {

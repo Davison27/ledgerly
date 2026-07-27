@@ -1,11 +1,11 @@
 .body {
   max-height: 80vh;
   overflow-y: auto;
-  padding-top: 4px;
+  padding-top: var(--lg-space-xs);
 }
 
 .logoField {
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .logoPreview {
@@ -27,7 +27,7 @@
 }
 
 .brandColorField {
-  margin-bottom: 4px;
+  margin-bottom: var(--lg-space-xs);
 }
 
 .resetButton {

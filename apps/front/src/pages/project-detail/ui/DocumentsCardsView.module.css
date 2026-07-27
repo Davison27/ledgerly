@@ -1,7 +1,7 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-  gap: 12px;
+  gap: var(--lg-space-md);
 }
 
 .card[data-selected='true'] {
@@ -9,5 +9,5 @@
 }
 
 .body {
-  padding: 12px;
+  padding: var(--lg-space-md);
 }

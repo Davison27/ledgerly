@@ -12,12 +12,12 @@
 }
 
 .gutter {
-  width: 56px;
+  width: var(--hour-gutter-width);
   flex: none;
 }
 
 .hourGutterRow {
-  height: 44px;
+  height: var(--hour-height);
   position: relative;
 }
 
@@ -33,7 +33,7 @@
   flex: 1;
   min-width: 0;
   position: relative;
-  height: 1056px;
+  height: calc(var(--hour-height) * var(--hours-in-day));
   display: grid;
   grid-template-columns: repeat(7, 1fr);
 }
@@ -44,7 +44,7 @@
 }
 
 .hourDivider {
-  height: 44px;
+  height: var(--hour-height);
   border-top: 1px solid var(--ant-color-border-secondary);
 }
 

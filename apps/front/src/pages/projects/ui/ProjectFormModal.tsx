@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { Project, ProjectFormValues } from '@/entities/project';
 import { ProjectFormFields, type ProjectFormFieldValues } from '@/features/project-form';
+import styles from './ProjectFormModal.module.css';
 
 interface ProjectFormModalProps {
   open: boolean;
@@ -83,7 +84,7 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
       destroyOnHidden
       centered
       width="min(1080px, 95vw)"
-      styles={{ body: { maxHeight: '80vh', overflowY: 'auto', paddingTop: 4 } }}
+      classNames={{ body: styles.body }}
     >
       <Form<ProjectFormFieldValues>
         form={form}

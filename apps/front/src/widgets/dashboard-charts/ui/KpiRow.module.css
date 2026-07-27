@@ -20,7 +20,7 @@
 }
 
 .value {
-  margin-top: 4px;
+  margin-top: var(--lg-space-xs);
 }
 
 .margin {

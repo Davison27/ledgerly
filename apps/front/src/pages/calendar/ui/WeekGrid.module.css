@@ -9,7 +9,7 @@
 }
 
 .headerGutter {
-  width: 56px;
+  width: var(--hour-gutter-width);
   flex: none;
 }
 
@@ -21,7 +21,7 @@
 }
 
 .weekdayHeaderLabel {
-  padding: 4px 8px;
+  padding: var(--lg-space-xs) var(--lg-space-sm);
   font-size: 12px;
 }
 
@@ -37,9 +37,9 @@
 }
 
 .allDayGutter {
-  width: 56px;
+  width: var(--hour-gutter-width);
   flex: none;
-  padding: 4px 8px;
+  padding: var(--lg-space-xs) var(--lg-space-sm);
   border-inline-end: 1px solid var(--ant-color-border-secondary);
 }
 

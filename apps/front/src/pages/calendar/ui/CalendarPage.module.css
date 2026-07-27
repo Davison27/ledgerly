@@ -21,7 +21,7 @@
 }
 
 .cursorLabel {
-  margin-inline-start: 8px;
+  margin-inline-start: var(--lg-space-sm);
 }
 
 .conflictWrapper {

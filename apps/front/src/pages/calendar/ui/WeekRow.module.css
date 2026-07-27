@@ -32,7 +32,7 @@
 .overflowList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--lg-space-xs);
 }
 
 .overflowItem {
@@ -43,5 +43,5 @@
 .overflowTrigger {
   font-size: 11px;
   cursor: pointer;
-  padding-inline-start: 4px;
+  padding-inline-start: var(--lg-space-xs);
 }
