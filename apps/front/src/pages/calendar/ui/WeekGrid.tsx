@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import dayjs from 'dayjs';
-import { Flex, Typography, theme } from 'antd';
+import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { ConflictIndex } from '../model/conflictIndex';
 import type { LaneItem } from '../model/lanes';
-import { HOUR_GUTTER_WIDTH, buildTimedSegments } from '../model/timeGrid';
+import { buildTimedSegments } from '../model/timeGrid';
 import { WeekRow } from './WeekRow';
 import { TimeGrid } from './TimeGrid';
+import styles from './WeekGrid.module.css';
 
 const { Text } = Typography;
 
@@ -35,7 +36,6 @@ export function WeekGrid({
   onSelectDerived,
 }: WeekGridProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
 
   const monday = dayjs(cursor).subtract((dayjs(cursor).day() + 6) % 7, 'day');
   const weekDates = Array.from({ length: 7 }, (_, index) => monday.add(index, 'day').format('YYYY-MM-DD'));
@@ -47,20 +47,17 @@ export function WeekGrid({
   );
 
   return (
-    <Flex vertical style={{ height: '100%', minHeight: 0 }}>
-      <div style={{ display: 'flex', flex: 'none' }}>
-        <div style={{ width: HOUR_GUTTER_WIDTH, flex: 'none' }} />
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 1, minWidth: 0 }}>
+    <Flex vertical className={styles.root}>
+      <div className={styles.headerRow}>
+        <div className={styles.headerGutter} />
+        <div className={styles.headerDays}>
           {weekDates.map((date, index) => (
             <Text
               key={date}
               strong={date === today}
               type={date === today ? undefined : 'secondary'}
-              style={{
-                padding: '4px 8px',
-                fontSize: 12,
-                color: date === today ? token.colorPrimary : undefined,
-              }}
+              className={styles.weekdayHeaderLabel}
+              data-today={date === today}
             >
               {t(`calendar.weekdays.${WEEKDAY_KEYS[index]}`)} · {dayjs(date).date()}
             </Text>
@@ -68,31 +65,13 @@ export function WeekGrid({
         </div>
       </div>
 
-      <div style={{ display: 'flex', flex: '0 0 auto', minHeight: 0, maxHeight: '50%' }}>
-        <Flex
-          align="flex-start"
-          justify="flex-end"
-          style={{
-            width: HOUR_GUTTER_WIDTH,
-            flex: 'none',
-            padding: '4px 8px',
-            borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
-          <Text type="secondary" style={{ fontSize: 11 }}>
+      <div className={styles.allDayRow}>
+        <Flex align="flex-start" justify="flex-end" className={styles.allDayGutter}>
+          <Text type="secondary" className={styles.allDayLabel}>
             {t('calendar.week.allDay')}
           </Text>
         </Flex>
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            overflowY: 'auto',
-            scrollbarGutter: 'stable',
-            display: 'flex',
-            flexDirection: 'column',
-          }}
-        >
+        <div className={styles.allDayScroller}>
           <WeekRow
             weekDates={weekDates}
             dayHeaders={weekDates.map(() => null)}
@@ -108,13 +87,7 @@ export function WeekGrid({
         </div>
       </div>
 
-      <div
-        style={{
-          flex: '1 1 auto',
-          minHeight: 220,
-          borderTop: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
+      <div className={styles.timeGridWrapper}>
         <TimeGrid
           weekDates={weekDates}
           segments={segments}

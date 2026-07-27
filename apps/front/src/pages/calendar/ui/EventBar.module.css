@@ -1,0 +1,83 @@
+.row {
+  height: 100%;
+}
+
+.row[data-over='true'] {
+  background: var(--ant-color-primary-bg-hover);
+}
+
+.handle {
+  width: 6px;
+  flex: none;
+  cursor: ew-resize;
+  border-radius: var(--ant-border-radius-sm);
+  background: var(--ant-color-fill-secondary);
+}
+
+.content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  cursor: grab;
+  overflow: hidden;
+  background: var(--bar-bg);
+  border-inline-start: 1px solid var(--bar-color);
+  border-block: 1px solid var(--bar-border-color);
+  border-inline-end: 1px solid var(--bar-color);
+}
+
+.content[data-variant='month'] {
+  justify-content: center;
+  padding: 2px 6px;
+}
+
+.content[data-variant='week'] {
+  justify-content: flex-start;
+  padding: 6px 8px;
+}
+
+.content[data-owns-start='true'] {
+  border-inline-start-width: 3px;
+  border-start-start-radius: var(--ant-border-radius-sm);
+  border-end-start-radius: var(--ant-border-radius-sm);
+}
+
+.content[data-owns-end='true'] {
+  border-inline-end-color: var(--bar-border-color);
+  border-start-end-radius: var(--ant-border-radius-sm);
+  border-end-end-radius: var(--ant-border-radius-sm);
+}
+
+.content[data-dragging='true'] {
+  opacity: 0.5;
+}
+
+.monthHeader {
+  flex: none;
+}
+
+.monthTitleGroup {
+  min-width: 0;
+}
+
+.monthTitle {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.monthStatusTag {
+  margin-inline-end: 0;
+  font-size: 10px;
+  line-height: 16px;
+}
+
+.monthStaffAvatar:not(:first-child) {
+  margin-inline-start: -6px;
+}
+
+.monthHiddenCount {
+  font-size: 10px;
+  margin-inline-start: 2px;
+}

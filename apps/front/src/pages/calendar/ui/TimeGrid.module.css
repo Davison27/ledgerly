@@ -1,0 +1,74 @@
+.root {
+  height: 100%;
+  min-height: 0;
+}
+
+.scroller {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+  display: flex;
+}
+
+.gutter {
+  width: 56px;
+  flex: none;
+}
+
+.hourGutterRow {
+  height: 44px;
+  position: relative;
+}
+
+.hourLabel {
+  position: absolute;
+  top: 0;
+  inset-inline-end: 8px;
+  transform: translateY(-50%);
+  font-size: 11px;
+}
+
+.grid {
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  height: 1056px;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.dayColumn {
+  position: relative;
+  border-inline-start: 1px solid var(--ant-color-border-secondary);
+}
+
+.hourDivider {
+  height: 44px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.segment {
+  position: absolute;
+  top: var(--segment-top);
+  height: var(--segment-height);
+  left: var(--segment-left);
+  width: var(--segment-width);
+  background: var(--segment-bg);
+  border-inline-start: 3px solid var(--segment-color);
+  border-radius: var(--ant-border-radius-sm);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 6px;
+}
+
+.nowIndicator {
+  position: absolute;
+  inset-inline: 0;
+  height: 2px;
+  background: var(--ant-color-error);
+  pointer-events: none;
+}

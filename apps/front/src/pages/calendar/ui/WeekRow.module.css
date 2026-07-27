@@ -1,0 +1,47 @@
+.row {
+  position: relative;
+  flex: 1;
+}
+
+.dayGrid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  height: 100%;
+}
+
+.barsLayer {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  padding: 0 6px;
+  pointer-events: none;
+}
+
+.barCell {
+  pointer-events: auto;
+  min-width: 0;
+}
+
+.overflowCell {
+  grid-row: 4;
+  pointer-events: auto;
+}
+
+.overflowList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.overflowItem {
+  cursor: pointer;
+  font-size: 12px;
+}
+
+.overflowTrigger {
+  font-size: 11px;
+  cursor: pointer;
+  padding-inline-start: 4px;
+}

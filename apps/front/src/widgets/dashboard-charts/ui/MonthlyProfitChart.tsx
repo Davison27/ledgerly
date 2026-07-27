@@ -3,6 +3,9 @@ import { Card, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
+import typography from '@/shared/ui/typography.module.css';
+import dashboardCharts from './dashboardCharts.module.css';
+import styles from './MonthlyProfitChart.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -51,11 +54,8 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
   };
 
   return (
-    <Card
-      title={t('projects.dashboard.monthlyProfit.title')}
-      style={{ flex: '1 1 320px', minWidth: 300 }}
-    >
-      <div style={{ overflowX: 'auto', position: 'relative' }}>
+    <Card title={t('projects.dashboard.monthlyProfit.title')} className={dashboardCharts.card}>
+      <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
@@ -63,15 +63,7 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
           aria-label={t('projects.dashboard.monthlyProfit.title')}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverIdx(null)}
-          style={{
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-            maxWidth: '100%',
-            minWidth: 0,
-            maxHeight: 170,
-            cursor: 'crosshair',
-          }}
+          className={styles.svg}
         >
           <line
             x1={PAD_L}
@@ -117,22 +109,13 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
 
         {hoverIdx !== null && (
           <div
+            className={styles.tooltip}
             style={{
-              position: 'absolute',
               left: `${((PAD_L + slotW * hoverIdx + slotW / 2) / W) * 100}%`,
               top: `${(barY(profit[hoverIdx]) / H) * 100}%`,
-              transform: 'translate(-50%, -115%)',
-              background: token.colorBgElevated,
-              border: `1px solid ${token.colorBorderSecondary}`,
-              borderRadius: token.borderRadiusSM,
-              boxShadow: token.boxShadowSecondary,
-              padding: '6px 10px',
-              pointerEvents: 'none',
-              whiteSpace: 'nowrap',
-              zIndex: 1,
             }}
           >
-            <Text strong style={{ fontSize: 12 }}>
+            <Text strong className={typography.caption}>
               {months[hoverIdx]}: <Amount value={profit[hoverIdx]} tone="auto" />
             </Text>
           </div>

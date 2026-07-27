@@ -1,0 +1,32 @@
+.chartWrap {
+  overflow-x: auto;
+}
+
+.quarterGroup {
+  cursor: pointer;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 190px;
+}
+
+.legend {
+  margin-top: 8px;
+}
+
+.legendSwatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.note {
+  display: block;
+  margin-top: 8px;
+}

@@ -1,0 +1,17 @@
+.name {
+  flex: 1 1 auto;
+  min-width: 80px;
+}
+
+.consumed {
+  flex: none;
+  font-size: 12px;
+}
+
+.noBudgetLabel {
+  flex: none;
+}
+
+.overBudgetWarning {
+  font-size: 11px;
+}

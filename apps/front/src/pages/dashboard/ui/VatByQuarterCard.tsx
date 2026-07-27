@@ -4,7 +4,9 @@ import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../api/types';
 import { formatEur } from '@/widgets/dashboard-charts';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
-import { TYPE } from '@/shared/config/theme';
+import typography from '@/shared/ui/typography.module.css';
+import dashboard from './dashboard.module.css';
+import styles from './VatByQuarterCard.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -52,25 +54,14 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
   ];
 
   return (
-    <Card
-      size="small"
-      title={t('dashboard.vat.title')}
-      style={{ flex: '1 1 420px', minWidth: 320 }}
-    >
-      <div style={{ overflowX: 'auto' }}>
+    <Card size="small" title={t('dashboard.vat.title')} className={dashboard.wideCard}>
+      <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           role="img"
           aria-label={t('dashboard.vat.title')}
-          style={{
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-            maxWidth: '100%',
-            minWidth: 0,
-            maxHeight: 190,
-          }}
+          className={styles.svg}
         >
           <line
             x1={PAD_L}
@@ -92,7 +83,7 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
                 opacity={isDimmed ? 0.45 : 1}
                 onMouseEnter={() => setHoverQuarter(q.quarter)}
                 onMouseLeave={() => setHoverQuarter(null)}
-                style={{ cursor: 'pointer' }}
+                className={styles.quarterGroup}
               >
                 <rect
                   x={x(i, 0)}
@@ -119,7 +110,7 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
                   fontSize={11}
                   fontWeight={600}
                   fill={balanceColor}
-                  style={TYPE.numeric}
+                  className={typography.numeric}
                 >
                   <title>{t('dashboard.vat.balance')}</title>
                   {formatEur(q.balance)}
@@ -139,26 +130,18 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
         </svg>
       </div>
 
-      <Flex gap={20} style={{ marginTop: 8 }}>
+      <Flex gap={20} className={styles.legend}>
         {legend.map((item) => (
           <Flex key={item.key} align="center" gap={8}>
-            <span
-              style={{
-                width: 10,
-                height: 10,
-                borderRadius: 3,
-                background: item.color,
-                display: 'inline-block',
-              }}
-            />
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <span className={styles.legendSwatch} style={{ background: item.color }} />
+            <Text type="secondary" className={typography.caption}>
               {item.label}
             </Text>
           </Flex>
         ))}
       </Flex>
 
-      <Text type="secondary" style={{ display: 'block', marginTop: 8, fontSize: 12 }}>
+      <Text type="secondary" className={`${typography.caption} ${styles.note}`}>
         {t('dashboard.vat.approxNote')}
       </Text>
     </Card>

@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
-import { Card, Flex, Typography, theme } from 'antd';
+import type { CSSProperties, ReactNode } from 'react';
+import { Card, Flex, Typography } from 'antd';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -10,14 +10,14 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
-import { TYPE } from '@/shared/config/theme';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
+import typography from '@/shared/ui/typography.module.css';
 import { formatPct } from '../model/data';
+import styles from './KpiRow.module.css';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 export interface KpiRowProps {
   income: number;
@@ -30,7 +30,6 @@ export interface KpiRowProps {
 
 export function KpiRow({ income, expenses, pending, overdue, profit, margin }: KpiRowProps) {
   const { t } = useTranslation();
-  const { token } = useToken();
   const colors = useSemanticColors();
 
   if (income === 0 && expenses === 0) {
@@ -74,41 +73,38 @@ export function KpiRow({ income, expenses, pending, overdue, profit, margin }: K
   return (
     <Flex gap={12} wrap>
       {items.map((item) => (
-        <Card key={item.key} size="small" style={{ flex: '1 1 150px', minWidth: 150 }}>
+        <Card key={item.key} size="small" className={styles.card}>
           <Flex justify="space-between" align="flex-start">
-            <Text style={{ ...TYPE.kpiLabel, color: token.colorTextSecondary }}>
-              {item.label}
-            </Text>
-            <span style={{ fontSize: 18, color: token.colorTextQuaternary, display: 'flex' }}>
-              {item.icon}
-            </span>
+            <Text className={`${typography.kpiLabel} ${styles.label}`}>{item.label}</Text>
+            <span className={styles.icon}>{item.icon}</span>
           </Flex>
-          <div style={{ marginTop: 4, ...TYPE.kpiValue }}>{item.value}</div>
+          <div className={`${typography.kpiValue} ${styles.value}`}>{item.value}</div>
         </Card>
       ))}
 
       <Card
         size="small"
-        style={{
-          flex: '1 1 150px',
-          minWidth: 150,
-          borderColor: isProfitable ? colors.incomeBorder : colors.expenseBorder,
-          borderInlineStart: `3px solid ${profitColor}`,
-          background: isProfitable ? colors.incomeBg : colors.expenseBg,
-        }}
+        className={`${styles.card} ${styles.profitCard}`}
+        style={
+          {
+            '--kpi-profit-border-color': isProfitable ? colors.incomeBorder : colors.expenseBorder,
+            '--kpi-profit-border-start': profitColor,
+            '--kpi-profit-bg': isProfitable ? colors.incomeBg : colors.expenseBg,
+          } as CSSProperties
+        }
       >
         <Flex justify="space-between" align="flex-start">
-          <Text style={{ ...TYPE.kpiLabel, color: token.colorTextSecondary }}>
+          <Text className={`${typography.kpiLabel} ${styles.label}`}>
             {t('projects.dashboard.profit.net')}
           </Text>
-          <span style={{ fontSize: 18, color: token.colorTextQuaternary, display: 'flex' }}>
+          <span className={styles.icon}>
             <LineChartOutlined />
           </span>
         </Flex>
-        <div style={{ marginTop: 4, ...TYPE.kpiValue }}>
+        <div className={`${typography.kpiValue} ${styles.value}`}>
           <Amount value={profit} tone="auto" />
         </div>
-        <Text style={{ fontSize: 12, color: profitColor }}>
+        <Text className={styles.margin} style={{ color: profitColor }}>
           {t('projects.dashboard.profit.margin')} <Numeric>{formatPct(margin)}</Numeric>
         </Text>
       </Card>

@@ -1,0 +1,46 @@
+.ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  transition: background 0.15s ease;
+  flex: none;
+}
+
+.ringCenter {
+  position: absolute;
+  inset: 21px;
+  border-radius: 50%;
+  background: var(--ant-color-bg-container);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ringLabel {
+  font-size: 15px;
+}
+
+.legendList {
+  flex: 1 1 auto;
+  min-width: 120px;
+}
+
+.legendItem {
+  cursor: default;
+}
+
+.legendItem[data-dimmed='true'] {
+  opacity: 0.5;
+}
+
+.legendSwatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  flex: none;
+}
+
+.legendLabel {
+  flex: 1 1 auto;
+}

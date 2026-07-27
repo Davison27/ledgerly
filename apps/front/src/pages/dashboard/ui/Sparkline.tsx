@@ -1,4 +1,5 @@
 import { useId } from 'react';
+import styles from './Sparkline.module.css';
 
 export interface SparklineProps {
   data: number[];
@@ -35,7 +36,7 @@ export function Sparkline({ data, color, fill, height = 40, strokeWidth = 2 }: S
       height={height}
       preserveAspectRatio="none"
       role="presentation"
-      style={{ display: 'block' }}
+      className={styles.svg}
     >
       {fill && (
         <defs>

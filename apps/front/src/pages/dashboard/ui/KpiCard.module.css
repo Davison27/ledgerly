@@ -1,0 +1,38 @@
+.card {
+  flex: 1 1 220px;
+  min-width: 220px;
+  position: relative;
+  overflow: hidden;
+}
+
+.sparkline {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  height: 44px;
+  opacity: 0.6;
+}
+
+.body {
+  position: relative;
+}
+
+.label {
+  color: var(--ant-color-text-secondary);
+}
+
+.iconPill {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ant-border-radius);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  flex: none;
+}
+
+.delta {
+  font-size: 12px;
+  font-weight: 600;
+}
