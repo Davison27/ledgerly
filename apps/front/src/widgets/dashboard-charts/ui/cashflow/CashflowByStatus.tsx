@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { DocumentStatus } from '@/entities/document';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
-import { vividOverdue } from '../model/data';
-import dashboardCharts from './dashboardCharts.module.css';
+import { vividOverdue } from '../../model/data';
+import dashboardCharts from '../dashboardCharts.module.css';
 import styles from './CashflowByStatus.module.css';
 
 const { Text } = Typography;

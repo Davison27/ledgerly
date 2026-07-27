@@ -18,9 +18,9 @@ import { useTranslation } from 'react-i18next';
 import { useCompany, type Company } from '@/entities/company';
 import { CompanySettingsModal } from '@/features/company-settings';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
-import { useSettingsMenuItems } from '../model/useSettingsMenuItems';
-import logoUrl from '../../../assets/ledgerly-logo.svg';
-import iconUrl from '../../../assets/ledgerly-icon.svg';
+import { useSettingsMenuItems } from '../../model/useSettingsMenuItems';
+import logoUrl from '@/assets/ledgerly-logo.svg';
+import iconUrl from '@/assets/ledgerly-icon.svg';
 import styles from './AppSider.module.css';
 
 const { Text } = Typography;

@@ -14,7 +14,7 @@ import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import typography from '@/shared/ui/typography.module.css';
-import { formatPct } from '../model/data';
+import { formatPct } from '../../model/data';
 import styles from './KpiRow.module.css';
 
 const { Text } = Typography;

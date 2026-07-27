@@ -3,8 +3,8 @@ import { SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { SPACE } from '@/shared/config/theme';
 import typography from '@/shared/ui/typography.module.css';
-import { useCommandPalette } from '../model/useCommandPalette';
-import { CommandPalette } from './CommandPalette';
+import { useCommandPalette } from '../../model/useCommandPalette';
+import { CommandPalette } from '../palette/CommandPalette';
 import styles from './CommandPaletteSearch.module.css';
 
 export function CommandPaletteSearch() {

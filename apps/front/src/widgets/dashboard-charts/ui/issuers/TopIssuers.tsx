@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Card, Empty, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { TopIssuer } from '../model/data';
+import type { TopIssuer } from '../../model/data';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
-import dashboardCharts from './dashboardCharts.module.css';
+import dashboardCharts from '../dashboardCharts.module.css';
 import styles from './TopIssuers.module.css';
 
 const { Text } = Typography;

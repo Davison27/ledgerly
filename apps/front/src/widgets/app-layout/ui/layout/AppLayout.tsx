@@ -2,9 +2,9 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { Outlet, useNavigate } from '@tanstack/react-router';
 import { Layout } from 'antd';
 import { companyNeedsSetup, useCompany } from '@/entities/company';
-import { useSyncBrandColor } from '../model/useSyncBrandColor';
-import { AppSider } from './AppSider';
-import { TopBar } from './TopBar';
+import { useSyncBrandColor } from '../../model/useSyncBrandColor';
+import { AppSider } from '../sider/AppSider';
+import { TopBar } from '../topBar/TopBar';
 import styles from './AppLayout.module.css';
 
 function CompanyGuard({ children }: { children: ReactNode }) {

@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
 import typography from '@/shared/ui/typography.module.css';
-import dashboardCharts from './dashboardCharts.module.css';
+import dashboardCharts from '../dashboardCharts.module.css';
 import styles from './MonthlyProfitChart.module.css';
 
 const { Text } = Typography;
