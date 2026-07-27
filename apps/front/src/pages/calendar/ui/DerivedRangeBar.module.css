@@ -1,0 +1,28 @@
+.bar {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 2px 6px;
+  border-radius: var(--ant-border-radius-sm);
+  border-style: dashed;
+  border-width: 1px;
+  opacity: 0.7;
+  cursor: grab;
+  overflow: hidden;
+}
+
+.bar[data-dragging='true'] {
+  opacity: 0.4;
+}
+
+.label {
+  font-size: 12px;
+}
+
+.badge {
+  font-size: 10px;
+  margin-inline-end: 0;
+  flex: none;
+}

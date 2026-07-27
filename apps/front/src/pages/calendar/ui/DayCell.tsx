@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { theme } from 'antd';
 import type { CalendarDropData } from '../model/dragData';
+import styles from './DayCell.module.css';
 
 export interface DayCellProps {
   date: string;
@@ -10,25 +10,13 @@ export interface DayCellProps {
 }
 
 export function DayCell({ date, header, muted }: DayCellProps) {
-  const { token } = theme.useToken();
   const { setNodeRef, isOver } = useDroppable({
     id: `day-${date}`,
     data: { kind: 'day', date } satisfies CalendarDropData,
   });
 
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        padding: 6,
-        background: isOver ? token.colorPrimaryBg : token.colorBgContainer,
-        border: `1px solid ${token.colorBorderSecondary}`,
-        opacity: muted ? 0.55 : 1,
-      }}
-    >
+    <div ref={setNodeRef} className={styles.cell} data-over={isOver} data-muted={muted}>
       {header}
     </div>
   );

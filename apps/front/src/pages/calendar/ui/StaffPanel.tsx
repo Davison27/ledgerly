@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { StaffMemberDto } from '@/entities/staff-member';
 import type { StaffDragData } from '../model/dragData';
 import { StaffPanelCard } from './StaffPanelCard';
+import styles from './StaffPanel.module.css';
 
 const { Text } = Typography;
 
@@ -25,12 +26,7 @@ function StaffPanelItem({ staffMember }: StaffPanelItemProps) {
   });
 
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      style={{ cursor: 'grab', opacity: isDragging ? 0.5 : 1 }}
-    >
+    <div ref={setNodeRef} {...listeners} {...attributes} className={styles.draggableItem} data-dragging={isDragging}>
       <StaffPanelCard staffMember={staffMember} />
     </div>
   );
@@ -51,8 +47,8 @@ export function StaffPanel({ staffMembers }: StaffPanelProps) {
   );
 
   return (
-    <Flex vertical gap={8} style={{ height: '100%', minHeight: 0 }}>
-      <Text strong style={{ fontSize: 13 }}>
+    <Flex vertical gap={8} className={styles.panel}>
+      <Text strong className={styles.title}>
         {t('calendar.staffPanel.title')}
       </Text>
       <Input
@@ -62,7 +58,7 @@ export function StaffPanel({ staffMembers }: StaffPanelProps) {
         value={search}
         onChange={(event) => setSearch(event.target.value)}
       />
-      <Flex wrap gap={8} style={{ flex: 1, minHeight: 0, overflowY: 'auto', alignContent: 'flex-start' }}>
+      <Flex wrap gap={8} className={styles.list}>
         {filtered.length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('calendar.staffPanel.empty')} />
         ) : (

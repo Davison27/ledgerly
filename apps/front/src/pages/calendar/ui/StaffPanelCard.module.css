@@ -1,0 +1,10 @@
+.card {
+  width: 88px;
+  padding: 6px;
+}
+
+.name {
+  font-size: 12px;
+  max-width: 80px;
+  text-align: center;
+}

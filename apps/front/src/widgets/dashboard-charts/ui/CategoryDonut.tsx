@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import type { DocumentType } from '@/entities/document';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Numeric } from '@/shared/ui/Numeric';
+import dashboardCharts from './dashboardCharts.module.css';
+import styles from './CategoryDonut.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -54,38 +56,18 @@ export function CategoryDonut({
     <Card
       size="small"
       title={t('projects.dashboard.category')}
-      style={{ flex: '1 1 320px', minWidth: 300 }}
+      className={dashboardCharts.card}
     >
       <Flex align="center" gap={28} wrap>
-        <div
-          style={{
-            position: 'relative',
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            background,
-            transition: 'background 0.15s ease',
-            flex: 'none',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              inset: 21,
-              borderRadius: '50%',
-              background: token.colorBgContainer,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text strong style={{ fontSize: 15 }}>
+        <div className={styles.ring} style={{ background }}>
+          <div className={styles.ringCenter}>
+            <Text strong className={styles.ringLabel}>
               {t('projects.dashboard.totalDocs', { count: totalDocs })}
             </Text>
           </div>
         </div>
 
-        <Flex vertical gap={8} style={{ flex: '1 1 auto', minWidth: 120 }}>
+        <Flex vertical gap={8} className={styles.legendList}>
           {ORDER.map((key) => {
             const pct = total > 0 ? Math.round((categoryTotals[key] / total) * 100) : 0;
             return (
@@ -93,20 +75,13 @@ export function CategoryDonut({
                 key={key}
                 align="center"
                 gap={8}
-                style={{ cursor: 'default', opacity: hovered !== null && hovered !== key ? 0.5 : 1 }}
+                className={styles.legendItem}
+                data-dimmed={hovered !== null && hovered !== key}
                 onMouseEnter={() => setHovered(key)}
                 onMouseLeave={() => setHovered(null)}
               >
-                <span
-                  style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 3,
-                    background: palette[key],
-                    flex: 'none',
-                  }}
-                />
-                <Text style={{ flex: '1 1 auto' }}>
+                <span className={styles.legendSwatch} style={{ background: palette[key] }} />
+                <Text className={styles.legendLabel}>
                   {t(`projects.documents.types.${key}`)}
                 </Text>
                 <Text type="secondary">

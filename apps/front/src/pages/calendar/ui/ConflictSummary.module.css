@@ -1,0 +1,11 @@
+.trigger {
+  cursor: pointer;
+}
+
+.errorIcon {
+  color: var(--ant-color-error);
+}
+
+.warningIcon {
+  color: var(--ant-color-warning);
+}

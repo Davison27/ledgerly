@@ -1,0 +1,17 @@
+.card {
+  padding: 6px 8px;
+  border-radius: var(--ant-border-radius);
+  border: 1px solid var(--ant-color-border-secondary);
+}
+
+.meta {
+  min-width: 0;
+}
+
+.name {
+  font-size: 13px;
+}
+
+.code {
+  font-size: 11px;
+}

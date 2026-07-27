@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography, theme } from 'antd';
+import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography } from 'antd';
 import {
   CalendarOutlined,
   DashboardOutlined,
@@ -21,8 +21,8 @@ import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { useSettingsMenuItems } from '../model/useSettingsMenuItems';
 import logoUrl from '../../../assets/ledgerly-logo.svg';
 import iconUrl from '../../../assets/ledgerly-icon.svg';
+import styles from './AppSider.module.css';
 
-const { useToken } = theme;
 const { Text } = Typography;
 
 type NavKey =
@@ -48,34 +48,16 @@ function getSelectedKey(pathname: string): NavKey | undefined {
 }
 
 function CompanyMark({ company, size }: { company: Company; size: number }) {
-  const { token } = useToken();
-
   if (company.logo) {
     return (
-      <div
-        style={{
-          width: size,
-          height: size,
-          flex: 'none',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: token.borderRadius,
-          background: token.colorFillTertiary,
-          overflow: 'hidden',
-        }}
-      >
-        <img
-          src={company.logo}
-          alt={company.name}
-          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-        />
+      <div className={styles.mark} style={{ width: size, height: size }}>
+        <img src={company.logo} alt={company.name} className={styles.markImage} />
       </div>
     );
   }
 
   return (
-    <Avatar shape="square" size={size} style={{ background: token.colorPrimary, flex: 'none' }}>
+    <Avatar shape="square" size={size} className={styles.markAvatar}>
       {company.name ? company.name.charAt(0).toUpperCase() : undefined}
     </Avatar>
   );
@@ -88,7 +70,6 @@ export function AppSider({
   collapsed: boolean;
   onCollapse: (collapsed: boolean) => void;
 }) {
-  const { token } = useToken();
   const { t } = useTranslation();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -162,31 +143,19 @@ export function AppSider({
       onCollapse={onCollapse}
       collapsedWidth={LAYOUT.siderCollapsedWidth}
       width={LAYOUT.siderWidth}
-      style={{
-        height: '100%',
-        background: token.colorBgContainer,
-        borderRight: `1px solid ${token.colorBorderSecondary}`,
-      }}
+      className={styles.sider}
     >
-      <Flex vertical style={{ height: '100%' }}>
+      <Flex vertical className={styles.inner}>
         <Flex
           vertical={collapsed}
           align="center"
           justify={collapsed ? 'center' : 'space-between'}
           gap={collapsed ? SPACE.xs : 0}
-          style={{
-            flex: 'none',
-            minHeight: LAYOUT.topbarHeight,
-            padding: collapsed ? `${SPACE.sm}px 0` : `0 ${SPACE.lg}px`,
-            borderBottom: `1px solid ${token.colorBorderSecondary}`,
-          }}
+          data-collapsed={collapsed}
+          className={styles.header}
         >
           <div>
-            <img
-              src={collapsed ? iconUrl : logoUrl}
-              alt={t('common.appName')}
-              style={{ height: 28, display: 'block', objectFit: 'contain' }}
-            />
+            <img src={collapsed ? iconUrl : logoUrl} alt={t('common.appName')} className={styles.logo} />
           </div>
 
           <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
@@ -204,22 +173,10 @@ export function AppSider({
           inlineCollapsed={collapsed}
           selectedKeys={selectedKey ? [selectedKey] : []}
           items={items}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            borderInlineEnd: 'none',
-            overflow: 'auto',
-            paddingBlock: SPACE.md,
-          }}
+          className={styles.menu}
         />
 
-        <div
-          style={{
-            flex: 'none',
-            padding: SPACE.md,
-            borderTop: `1px solid ${token.colorBorderSecondary}`,
-          }}
-        >
+        <div className={styles.footer}>
           {collapsed ? (
             <Flex justify="center">
               <Dropdown
@@ -227,7 +184,7 @@ export function AppSider({
                 trigger={['click']}
               >
                 <Tooltip title={company.name} placement="right">
-                  <div style={{ cursor: 'pointer' }}>
+                  <div className={styles.trigger}>
                     <CompanyMark company={company} size={36} />
                   </div>
                 </Tooltip>
@@ -238,20 +195,13 @@ export function AppSider({
               menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
               trigger={['click']}
             >
-              <Flex align="center" gap={SPACE.sm} style={{ cursor: 'pointer', minWidth: 0 }}>
+              <Flex align="center" gap={SPACE.sm} className={styles.identityRow}>
                 <CompanyMark company={company} size={36} />
-                <Flex
-                  align="center"
-                  justify="space-between"
-                  gap={SPACE.sm}
-                  style={{ flex: 1, minWidth: 0 }}
-                >
-                  <Text strong ellipsis style={{ minWidth: 0 }}>
+                <Flex align="center" justify="space-between" gap={SPACE.sm} className={styles.identityDetails}>
+                  <Text strong ellipsis className={styles.identityName}>
                     {company.name}
                   </Text>
-                  <DownOutlined
-                    style={{ fontSize: 12, color: token.colorTextTertiary, flex: 'none' }}
-                  />
+                  <DownOutlined className={styles.chevron} />
                 </Flex>
               </Flex>
             </Dropdown>

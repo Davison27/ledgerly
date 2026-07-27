@@ -1,0 +1,14 @@
+.wrapper {
+  width: fit-content;
+}
+
+.eventPreview {
+  padding: 4px 10px;
+  background: var(--ant-color-bg-elevated);
+  border-inline-start: 3px solid transparent;
+  border-radius: var(--ant-border-radius-sm);
+}
+
+.eventLabel {
+  font-size: 13px;
+}
