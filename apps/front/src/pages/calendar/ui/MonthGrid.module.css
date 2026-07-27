@@ -1,0 +1,33 @@
+.root {
+  height: 100%;
+  min-height: 0;
+}
+
+.weekdayRow {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  flex: none;
+}
+
+.weekdayLabel {
+  padding: 4px 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.weeksScroller {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.dayHeaderLabel {
+  font-size: 12px;
+  color: var(--ant-color-text);
+}
+
+.dayHeaderLabel[data-today='true'] {
+  color: var(--ant-color-primary);
+}

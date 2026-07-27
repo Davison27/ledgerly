@@ -1,10 +1,11 @@
 import dayjs from 'dayjs';
-import { Flex, Typography, theme } from 'antd';
+import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { ConflictIndex } from '../model/conflictIndex';
 import type { LaneItem } from '../model/lanes';
 import { WeekRow } from './WeekRow';
+import styles from './MonthGrid.module.css';
 
 const { Text } = Typography;
 
@@ -33,7 +34,6 @@ export function MonthGrid({
   onSelectDerived,
 }: MonthGridProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
 
   const monthStart = dayjs(cursor).startOf('month');
   const gridStart = monthStart.subtract((monthStart.day() + 6) % 7, 'day');
@@ -46,29 +46,21 @@ export function MonthGrid({
   );
 
   return (
-    <Flex vertical style={{ height: '100%', minHeight: 0 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', flex: 'none' }}>
+    <Flex vertical className={styles.root}>
+      <div className={styles.weekdayRow}>
         {WEEKDAY_KEYS.map((key) => (
-          <Text
-            key={key}
-            type="secondary"
-            style={{ padding: '4px 8px', fontSize: 12, textTransform: 'uppercase' }}
-          >
+          <Text key={key} type="secondary" className={styles.weekdayLabel}>
             {t(`calendar.weekdays.${key}`)}
           </Text>
         ))}
       </div>
-      <div style={{ flex: 1, minHeight: 0, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+      <div className={styles.weeksScroller}>
         {weeks.map((weekDates) => (
           <WeekRow
             key={weekDates[0]}
             weekDates={weekDates}
             dayHeaders={weekDates.map((date) => (
-              <Text
-                key={date}
-                strong={date === today}
-                style={{ fontSize: 12, color: date === today ? token.colorPrimary : token.colorText }}
-              >
+              <Text key={date} strong={date === today} className={styles.dayHeaderLabel} data-today={date === today}>
                 {dayjs(date).date()}
               </Text>
             ))}

@@ -15,6 +15,7 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
+import typography from '@/shared/ui/typography.module.css';
 import { dashboardQueries } from '../api/dashboard.queries';
 import {
   MonthlyChart,
@@ -37,21 +38,26 @@ import { CashflowForecastCard } from './CashflowForecastCard';
 import { KpiCard, type KpiCardProps } from './KpiCard';
 import { computeKpiDelta } from '../model/kpis';
 import { resolveGreetingPeriod } from '../model/greeting';
+import dashboard from './dashboard.module.css';
+import styles from './DashboardPage.module.css';
 
 const { Title, Text } = Typography;
 const { useToken } = theme;
 
+type SkeletonVariant = 'kpi' | 'wide' | 'card';
+
 function SkeletonCard({
-  flex = '1 1 320px',
-  minWidth = 300,
+  variant = 'card',
   rows = 3,
 }: {
-  flex?: string;
-  minWidth?: number;
+  variant?: SkeletonVariant;
   rows?: number;
 }) {
+  const skeletonClass =
+    variant === 'kpi' ? styles.skeletonKpi : variant === 'wide' ? styles.skeletonWide : dashboard.card;
+
   return (
-    <Card style={{ flex, minWidth }}>
+    <Card className={skeletonClass}>
       <Skeleton active title paragraph={{ rows }} />
     </Card>
   );
@@ -126,14 +132,14 @@ export function DashboardPage() {
         actions={
           data && (
             <Flex vertical gap={4} align="flex-end">
-              <Text type="secondary" style={{ fontSize: 12 }}>
+              <Text type="secondary" className={typography.caption}>
                 {t('dashboard.yearSelector.label')}
               </Text>
               <Select
                 size="small"
                 value={selectedYear}
                 options={yearOptions}
-                style={{ width: 110 }}
+                className={styles.yearSelect}
                 onChange={(value: number) => setYear(value)}
                 aria-label={t('dashboard.yearSelector.label')}
               />
@@ -146,14 +152,14 @@ export function DashboardPage() {
         {loading && (
           <>
             <Flex gap={SPACE.lg} wrap align="stretch">
-              <SkeletonCard flex="1 1 220px" minWidth={220} rows={2} />
-              <SkeletonCard flex="1 1 220px" minWidth={220} rows={2} />
-              <SkeletonCard flex="1 1 220px" minWidth={220} rows={2} />
-              <SkeletonCard flex="1 1 220px" minWidth={220} rows={2} />
+              <SkeletonCard variant="kpi" rows={2} />
+              <SkeletonCard variant="kpi" rows={2} />
+              <SkeletonCard variant="kpi" rows={2} />
+              <SkeletonCard variant="kpi" rows={2} />
             </Flex>
             <Flex gap={SPACE.lg} wrap align="stretch">
-              <SkeletonCard flex="2 1 480px" minWidth={360} rows={6} />
-              <SkeletonCard flex="1 1 320px" minWidth={300} rows={6} />
+              <SkeletonCard variant="wide" rows={6} />
+              <SkeletonCard variant="card" rows={6} />
             </Flex>
             <Flex gap={SPACE.lg} wrap align="stretch">
               <SkeletonCard rows={4} />
@@ -217,7 +223,7 @@ export function DashboardPage() {
             </Flex>
 
             <div>
-              <Title level={4} style={{ marginBottom: SPACE.md }}>
+              <Title level={4} className={styles.detailTitle}>
                 {t('dashboard.detail.title')}
               </Title>
 

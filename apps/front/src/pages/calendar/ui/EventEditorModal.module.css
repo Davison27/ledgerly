@@ -1,0 +1,72 @@
+.modalBody {
+  display: flex;
+  flex-direction: column;
+  max-height: 72vh;
+  overflow: hidden;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.topSection {
+  flex: 0 0 auto;
+}
+
+.warningAlert {
+  margin-bottom: 12px;
+}
+
+.sectionLabel {
+  font-size: 13px;
+}
+
+.modeItem {
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.tightItem {
+  margin-bottom: 0;
+}
+
+.timeRow {
+  margin-bottom: 12px;
+}
+
+.productList {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.productRow {
+  min-width: 0;
+}
+
+.productSelectSlot {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.productQtySlot {
+  flex: 0 0 110px;
+}
+
+.productRemoveSlot {
+  flex: 0 0 32px;
+}
+
+.productFooter {
+  flex: 0 0 auto;
+}
+
+.noProductsHint {
+  font-size: 12px;
+}

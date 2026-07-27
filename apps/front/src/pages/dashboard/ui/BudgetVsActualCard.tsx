@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../api/types';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
+import typography from '@/shared/ui/typography.module.css';
 import { vividOverdue } from '@/widgets/dashboard-charts';
+import dashboard from './dashboard.module.css';
+import styles from './BudgetVsActualCard.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -19,11 +22,7 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
   const overdueVivid = vividOverdue(colors.mode);
 
   return (
-    <Card
-      size="small"
-      title={t('dashboard.budget.title')}
-      style={{ flex: '1 1 420px', minWidth: 320 }}
-    >
+    <Card size="small" title={t('dashboard.budget.title')} className={dashboard.wideCard}>
       {budgetVsActual.length === 0 ? (
         <Empty description={t('dashboard.budget.empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
@@ -36,22 +35,19 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
             return (
               <Flex key={entry.projectId} vertical gap={2}>
                 <Flex align="center" justify="space-between" gap={12}>
-                  <Text ellipsis style={{ flex: '1 1 auto', minWidth: 80 }} title={entry.name}>
+                  <Text ellipsis className={styles.name} title={entry.name}>
                     {entry.name}
                   </Text>
                   {hasBudget ? (
                     <Text
                       strong
-                      style={{
-                        flex: 'none',
-                        fontSize: 12,
-                        color: isOverBudget ? overdueVivid : token.colorTextSecondary,
-                      }}
+                      className={styles.consumed}
+                      style={{ color: isOverBudget ? overdueVivid : token.colorTextSecondary }}
                     >
                       {t('dashboard.budget.consumed', { pct })}
                     </Text>
                   ) : (
-                    <Text type="secondary" style={{ flex: 'none', fontSize: 12 }}>
+                    <Text type="secondary" className={`${typography.caption} ${styles.noBudgetLabel}`}>
                       {t('dashboard.budget.noBudget')}
                     </Text>
                   )}
@@ -67,23 +63,23 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
                   />
                 )}
                 {isOverBudget && (
-                  <Text style={{ fontSize: 11, color: overdueVivid }}>
+                  <Text className={styles.overBudgetWarning} style={{ color: overdueVivid }}>
                     {t('dashboard.budget.overBudget')}
                   </Text>
                 )}
 
                 <Flex gap={16} wrap>
                   {hasBudget && (
-                    <Text type="secondary" style={{ fontSize: 12 }}>
+                    <Text type="secondary" className={typography.caption}>
                       {t('dashboard.budget.budget')}:{' '}
                       <Amount value={entry.budget as number} currency={entry.currency} />
                     </Text>
                   )}
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Text type="secondary" className={typography.caption}>
                     {t('dashboard.budget.income')}:{' '}
                     <Amount value={entry.income} currency={entry.currency} />
                   </Text>
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Text type="secondary" className={typography.caption}>
                     {t('dashboard.budget.spent')}:{' '}
                     <Amount value={entry.expenses} currency={entry.currency} />
                   </Text>

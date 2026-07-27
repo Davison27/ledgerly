@@ -1,0 +1,47 @@
+.card {
+  flex: 2 1 480px;
+  min-width: 360px;
+}
+
+.chartWrap {
+  position: relative;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 240px;
+  cursor: crosshair;
+}
+
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -115%);
+  background: var(--ant-color-bg-elevated);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius-sm);
+  box-shadow: var(--ant-box-shadow-secondary);
+  padding: 8px 12px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
+}
+
+.tooltipTitle {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.legend {
+  margin-top: 8px;
+}
+
+.legendSwatch {
+  width: 16px;
+  height: 3px;
+  border-radius: 2px;
+  display: inline-block;
+}

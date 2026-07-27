@@ -1,0 +1,76 @@
+.page {
+  flex: 1;
+  min-height: 0;
+}
+
+.header {
+  flex: none;
+  height: var(--lg-section-header-height);
+  padding: 0 var(--lg-page-padding-inline);
+  background: var(--ant-color-bg-container);
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.titleIcon {
+  color: var(--ant-color-primary);
+  font-size: 18px;
+}
+
+.titleText {
+  font-size: 16px;
+}
+
+.cursorLabel {
+  margin-inline-start: 8px;
+}
+
+.conflictWrapper {
+  margin-inline-start: auto;
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.loadingSkeleton {
+  padding: var(--lg-space-lg);
+}
+
+.loadError {
+  margin: var(--lg-space-lg);
+}
+
+.boardRow {
+  height: 100%;
+  min-height: 0;
+}
+
+.sidePanel {
+  flex: none;
+  width: 280px;
+  height: 100%;
+  border-inline-end: 1px solid var(--ant-color-border-secondary);
+}
+
+.schedulablePanelSlot {
+  flex: 1;
+  min-height: 0;
+  padding: var(--lg-space-lg);
+  overflow: auto;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.staffPanelSlot {
+  flex: 1;
+  min-height: 0;
+  padding: var(--lg-space-lg);
+  overflow: auto;
+}
+
+.gridSlot {
+  flex: 1;
+  min-height: 0;
+  padding: var(--lg-space-lg);
+}

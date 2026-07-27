@@ -1,15 +1,16 @@
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Button, Card, Flex, Typography, theme } from 'antd';
+import { Button, Card, Flex, Typography } from 'antd';
 import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { scheduleQueries, ScheduleDaysSummary } from '@/entities/schedule-event';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
+import dashboard from './dashboard.module.css';
+import styles from './UpcomingScheduleCard.module.css';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 const UPCOMING_WINDOW_DAYS = 30;
 const MAX_ITEMS = 5;
@@ -17,7 +18,6 @@ const MAX_ITEMS = 5;
 export function UpcomingScheduleCard() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { token } = useToken();
   const range = useMemo(
     () => ({
       from: dayjs().format('YYYY-MM-DD'),
@@ -47,7 +47,7 @@ export function UpcomingScheduleCard() {
           {t('dashboard.upcomingSchedule.viewAll')}
         </Button>
       }
-      style={{ flex: '1 1 320px', minWidth: 300 }}
+      className={dashboard.card}
       loading={loading}
     >
       {!loading && error ? (
@@ -63,33 +63,19 @@ export function UpcomingScheduleCard() {
                 key={event.id}
                 align="center"
                 gap={12}
-                style={{ cursor: 'pointer' }}
+                className={styles.row}
                 onClick={goToCalendar}
               >
-                <Flex
-                  vertical
-                  align="center"
-                  justify="center"
-                  style={{
-                    flex: 'none',
-                    width: 44,
-                    height: 44,
-                    borderRadius: token.borderRadius,
-                    background: token.colorFillTertiary,
-                  }}
-                >
-                  <Text strong style={{ fontSize: 15, lineHeight: 1.1 }}>
+                <Flex vertical align="center" justify="center" className={styles.dateBadge}>
+                  <Text strong className={styles.dateNumber}>
                     {start.date()}
                   </Text>
-                  <Text
-                    type="secondary"
-                    style={{ fontSize: 10, letterSpacing: '0.04em', textTransform: 'uppercase' }}
-                  >
+                  <Text type="secondary" className={styles.dateMonth}>
                     {monthsShort[start.month()]}
                   </Text>
                 </Flex>
 
-                <Flex vertical gap={2} style={{ flex: '1 1 auto', minWidth: 0 }}>
+                <Flex vertical gap={2} className={styles.info}>
                   <Text strong ellipsis>
                     {event.title?.trim() || event.project.name}
                   </Text>

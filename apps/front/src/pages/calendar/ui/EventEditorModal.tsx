@@ -33,6 +33,7 @@ import {
   expandScheduleToDays,
   type EventScheduleWarning,
 } from '../model/eventEditorSchedule';
+import styles from './EventEditorModal.module.css';
 
 const { TextArea } = Input;
 const { Text } = Typography;
@@ -188,9 +189,7 @@ export function EventEditorModal({
       destroyOnHidden
       centered
       width="min(760px, 95vw)"
-      styles={{
-        body: { display: 'flex', flexDirection: 'column', maxHeight: '72vh', overflow: 'hidden' },
-      }}
+      classNames={{ body: styles.modalBody }}
       footer={(_, { OkBtn, CancelBtn }) => (
         <Flex justify="space-between" align="center">
           <Popconfirm
@@ -216,15 +215,15 @@ export function EventEditorModal({
         form={form}
         layout="vertical"
         requiredMark={false}
-        style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}
+        className={styles.form}
       >
-        <div style={{ flex: '0 0 auto' }}>
+        <div className={styles.topSection}>
           {warnings.includes('gaps') && (
             <Alert
               type="warning"
               showIcon
               message={t('calendar.editor.legacy.gaps')}
-              style={{ marginBottom: 12 }}
+              className={styles.warningAlert}
             />
           )}
           {warnings.includes('mixedTimes') && (
@@ -232,7 +231,7 @@ export function EventEditorModal({
               type="warning"
               showIcon
               message={t('calendar.editor.legacy.mixedTimes')}
-              style={{ marginBottom: 12 }}
+              className={styles.warningAlert}
             />
           )}
 
@@ -244,11 +243,11 @@ export function EventEditorModal({
             <TextArea rows={2} placeholder={t('calendar.editor.placeholders.notes')} />
           </Form.Item>
 
-          <Text strong style={{ fontSize: 13 }}>
+          <Text strong className={styles.sectionLabel}>
             {t('calendar.editor.schedule.title')}
           </Text>
 
-          <Form.Item name="mode" style={{ marginTop: 8, marginBottom: 8 }}>
+          <Form.Item name="mode" className={styles.modeItem}>
             <Segmented
               options={[
                 { label: t('calendar.editor.schedule.modeSingle'), value: 'single' },
@@ -302,12 +301,12 @@ export function EventEditorModal({
           </ConfigProvider>
 
           {!fullDay && (
-            <Row gutter={8} style={{ marginBottom: 12 }}>
+            <Row gutter={8} className={styles.timeRow}>
               <Col flex="0 0 140px">
                 <Form.Item
                   name="startTime"
                   label={t('calendar.editor.schedule.start')}
-                  style={{ marginBottom: 0 }}
+                  className={styles.tightItem}
                   rules={[
                     { required: true, message: t('calendar.editor.validation.startRequired') },
                   ]}
@@ -320,7 +319,7 @@ export function EventEditorModal({
                   name="endTime"
                   label={t('calendar.editor.schedule.end')}
                   dependencies={['startTime']}
-                  style={{ marginBottom: 0 }}
+                  className={styles.tightItem}
                   rules={[
                     { required: true, message: t('calendar.editor.validation.endRequired') },
                     ({ getFieldValue }) => ({
@@ -353,7 +352,7 @@ export function EventEditorModal({
             />
           </Form.Item>
 
-          <Text strong style={{ fontSize: 13 }}>
+          <Text strong className={styles.sectionLabel}>
             {t('calendar.editor.products.title')}
           </Text>
         </div>
@@ -361,20 +360,11 @@ export function EventEditorModal({
         <Form.List name="products">
           {(fields, { add, remove }) => (
             <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
-              <div
-                style={{
-                  flex: '1 1 auto',
-                  minHeight: 0,
-                  overflowX: 'hidden',
-                  overflowY: 'auto',
-                  marginTop: 8,
-                  marginBottom: 8,
-                }}
-              >
+              <div className={styles.productList}>
                 <Flex vertical gap={4}>
                   {fields.map((field) => (
-                    <Flex key={field.key} gap={8} align="center" style={{ minWidth: 0 }}>
-                      <div style={{ flex: '1 1 auto', minWidth: 0 }}>
+                    <Flex key={field.key} gap={8} align="center" className={styles.productRow}>
+                      <div className={styles.productSelectSlot}>
                         <Form.Item
                           name={[field.name, 'productId']}
                           rules={[
@@ -400,7 +390,7 @@ export function EventEditorModal({
                           />
                         </Form.Item>
                       </div>
-                      <div style={{ flex: '0 0 110px' }}>
+                      <div className={styles.productQtySlot}>
                         <Form.Item
                           name={[field.name, 'quantity']}
                           rules={[
@@ -422,7 +412,7 @@ export function EventEditorModal({
                           />
                         </Form.Item>
                       </div>
-                      <div style={{ flex: '0 0 32px' }}>
+                      <div className={styles.productRemoveSlot}>
                         <Button
                           type="text"
                           danger
@@ -435,7 +425,7 @@ export function EventEditorModal({
                   ))}
                 </Flex>
               </div>
-              <Flex vertical gap={4} style={{ flex: '0 0 auto' }}>
+              <Flex vertical gap={4} className={styles.productFooter}>
                 <Button
                   type="dashed"
                   block
@@ -446,7 +436,7 @@ export function EventEditorModal({
                   {t('calendar.editor.products.add')}
                 </Button>
                 {products.length === 0 && (
-                  <Text type="secondary" style={{ fontSize: 12 }}>
+                  <Text type="secondary" className={styles.noProductsHint}>
                     {t('calendar.editor.products.noneAvailable')}
                   </Text>
                 )}

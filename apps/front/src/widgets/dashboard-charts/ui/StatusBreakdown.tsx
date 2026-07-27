@@ -5,6 +5,8 @@ import type { DocumentStatus } from '@/entities/document';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Numeric } from '@/shared/ui/Numeric';
 import { vividOverdue } from '../model/data';
+import dashboardCharts from './dashboardCharts.module.css';
+import styles from './StatusBreakdown.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -51,41 +53,17 @@ export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps
     total > 0 ? `conic-gradient(${stops.join(', ')})` : token.colorFillSecondary;
 
   return (
-    <Card
-      size="small"
-      title={t('projects.dashboard.statusBreakdown')}
-      style={{ flex: '1 1 320px', minWidth: 300 }}
-    >
+    <Card size="small" title={t('projects.dashboard.statusBreakdown')} className={dashboardCharts.card}>
       <Flex align="center" gap={28} wrap>
-        <div
-          style={{
-            position: 'relative',
-            width: 120,
-            height: 120,
-            borderRadius: '50%',
-            background,
-            transition: 'background 0.15s ease',
-            flex: 'none',
-          }}
-        >
-          <div
-            style={{
-              position: 'absolute',
-              inset: 21,
-              borderRadius: '50%',
-              background: token.colorBgContainer,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text strong style={{ fontSize: 15 }}>
+        <div className={styles.ring} style={{ background }}>
+          <div className={styles.ringCenter}>
+            <Text strong className={styles.ringLabel}>
               {t('projects.dashboard.totalDocs', { count: total })}
             </Text>
           </div>
         </div>
 
-        <Flex vertical gap={8} style={{ flex: '1 1 auto', minWidth: 120 }}>
+        <Flex vertical gap={8} className={styles.legendList}>
           {ORDER.map((key) => {
             const pct = total > 0 ? Math.round((counts[key] / total) * 100) : 0;
             return (
@@ -93,20 +71,13 @@ export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps
                 key={key}
                 align="center"
                 gap={8}
-                style={{ cursor: 'default', opacity: hovered !== null && hovered !== key ? 0.5 : 1 }}
+                className={styles.legendItem}
+                data-dimmed={hovered !== null && hovered !== key}
                 onMouseEnter={() => setHovered(key)}
                 onMouseLeave={() => setHovered(null)}
               >
-                <span
-                  style={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: 3,
-                    background: palette[key],
-                    flex: 'none',
-                  }}
-                />
-                <Text style={{ flex: '1 1 auto' }}>
+                <span className={styles.legendSwatch} style={{ background: palette[key] }} />
+                <Text className={styles.legendLabel}>
                   {t(`projects.documents.statuses.${key}`)}
                 </Text>
                 <Text type="secondary">

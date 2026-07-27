@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from 'react';
-import { Popover, Typography, theme } from 'antd';
+import { Popover, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { ConflictIndex } from '../model/conflictIndex';
@@ -9,6 +9,7 @@ import { layoutWeek, type CalendarBar, type LaneItem } from '../model/lanes';
 import { DayCell } from './DayCell';
 import { EventBar } from './EventBar';
 import { DerivedRangeBar } from './DerivedRangeBar';
+import styles from './WeekRow.module.css';
 
 const { Text } = Typography;
 
@@ -62,7 +63,6 @@ export function WeekRow({
   onSelectDerived,
 }: WeekRowProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
 
   const { bars, laneCount } = useMemo(() => layoutWeek(weekDates, items), [weekDates, items]);
 
@@ -86,26 +86,13 @@ export function WeekRow({
   const rowKey = weekDates[0];
 
   return (
-    <div style={{ position: 'relative', flex: 1, minHeight: rowHeight }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', height: '100%' }}>
+    <div className={styles.row} style={{ minHeight: rowHeight }}>
+      <div className={styles.dayGrid}>
         {weekDates.map((date, index) => (
           <DayCell key={date} date={date} header={dayHeaders[index]} muted={mutedDays?.[index]} />
         ))}
       </div>
-      <div
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: headerHeight,
-          bottom: 0,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(7, 1fr)',
-          gridAutoRows: barHeight + BAR_GAP,
-          padding: '0 6px',
-          pointerEvents: 'none',
-        }}
-      >
+      <div className={styles.barsLayer} style={{ top: headerHeight, gridAutoRows: barHeight + BAR_GAP }}>
         {visibleBars.map((bar) => {
           const segmentStart = weekDates[bar.startIndex];
           const segmentEnd = weekDates[bar.startIndex + bar.span - 1];
@@ -115,12 +102,8 @@ export function WeekRow({
           return (
             <div
               key={bar.key}
-              style={{
-                gridColumn: `${bar.startIndex + 1} / span ${bar.span}`,
-                gridRow: bar.lane + 1,
-                pointerEvents: 'auto',
-                minWidth: 0,
-              }}
+              className={styles.barCell}
+              style={{ gridColumn: `${bar.startIndex + 1} / span ${bar.span}`, gridRow: bar.lane + 1 }}
             >
               {bar.kind === 'event' && event && (
                 <EventBar
@@ -156,20 +139,17 @@ export function WeekRow({
             return (
               <div
                 key={`overflow-${weekDates[dayIndex]}`}
-                style={{
-                  gridColumn: `${dayIndex + 1} / span 1`,
-                  gridRow: MONTH_MAX_LANES + 1,
-                  pointerEvents: 'auto',
-                }}
+                className={styles.overflowCell}
+                style={{ gridColumn: `${dayIndex + 1} / span 1` }}
               >
                 <Popover
                   trigger="click"
                   content={
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    <div className={styles.overflowList}>
                       {hiddenForDay.map((bar) => (
                         <Text
                           key={bar.key}
-                          style={{ cursor: 'pointer', fontSize: 12 }}
+                          className={styles.overflowItem}
                           onClick={() => {
                             if (bar.kind === 'event') {
                               const event = eventsById.get(bar.eventId ?? '');
@@ -186,14 +166,7 @@ export function WeekRow({
                     </div>
                   }
                 >
-                  <Text
-                    style={{
-                      fontSize: 11,
-                      color: token.colorTextSecondary,
-                      cursor: 'pointer',
-                      paddingInlineStart: 4,
-                    }}
-                  >
+                  <Text type="secondary" className={styles.overflowTrigger}>
                     {t('calendar.moreEvents', { count: hiddenForDay.length })}
                   </Text>
                 </Popover>

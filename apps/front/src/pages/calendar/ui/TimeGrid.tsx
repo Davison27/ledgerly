@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import dayjs from 'dayjs';
-import { Flex, Typography, theme } from 'antd';
+import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { formatDayTime, type ScheduleEventDto } from '@/entities/schedule-event';
 import { eventContentDensity } from '../model/eventDensity';
 import {
-  HOUR_GUTTER_WIDTH,
   HOUR_HEIGHT,
   HOURS_IN_DAY,
   initialScrollTop,
@@ -13,6 +13,7 @@ import {
   type TimedSegment,
 } from '../model/timeGrid';
 import { ScheduleEventContent } from './ScheduleEventContent';
+import styles from './TimeGrid.module.css';
 
 const { Text } = Typography;
 
@@ -41,7 +42,6 @@ export interface TimeGridProps {
 
 export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onSelectEvent }: TimeGridProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
   const scrollerRef = useRef<HTMLDivElement>(null);
   const [nowMinutes, setNowMinutes] = useState(currentTimeOfDayMinutes);
 
@@ -60,25 +60,13 @@ export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onS
   }, [weekStart]);
 
   return (
-    <Flex vertical style={{ height: '100%', minHeight: 0 }}>
-      <div
-        ref={scrollerRef}
-        style={{ flex: 1, minHeight: 0, overflowY: 'auto', scrollbarGutter: 'stable', display: 'flex' }}
-      >
-        <div style={{ width: HOUR_GUTTER_WIDTH, flex: 'none' }}>
+    <Flex vertical className={styles.root}>
+      <div ref={scrollerRef} className={styles.scroller}>
+        <div className={styles.gutter}>
           {HOURS.map((hour) => (
-            <div key={hour} style={{ height: HOUR_HEIGHT, position: 'relative' }}>
+            <div key={hour} className={styles.hourGutterRow}>
               {hour > 0 && (
-                <Text
-                  type="secondary"
-                  style={{
-                    position: 'absolute',
-                    top: 0,
-                    insetInlineEnd: 8,
-                    transform: 'translateY(-50%)',
-                    fontSize: 11,
-                  }}
-                >
+                <Text type="secondary" className={styles.hourLabel}>
                   {String(hour).padStart(2, '0')}:00
                 </Text>
               )}
@@ -86,26 +74,11 @@ export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onS
           ))}
         </div>
 
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            position: 'relative',
-            height: HOURS_IN_DAY * HOUR_HEIGHT,
-            display: 'grid',
-            gridTemplateColumns: 'repeat(7, 1fr)',
-          }}
-        >
+        <div className={styles.grid}>
           {weekDates.map((date, dayIndex) => (
-            <div
-              key={date}
-              style={{ position: 'relative', borderInlineStart: `1px solid ${token.colorBorderSecondary}` }}
-            >
+            <div key={date} className={styles.dayColumn}>
               {HOURS.map((hour) => (
-                <div
-                  key={hour}
-                  style={{ height: HOUR_HEIGHT, borderTop: `1px solid ${token.colorBorderSecondary}` }}
-                />
+                <div key={hour} className={styles.hourDivider} />
               ))}
 
               {(segmentsByDay.get(dayIndex) ?? []).map((segment) => {
@@ -121,22 +94,15 @@ export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onS
                   <div
                     key={segment.key}
                     onClick={() => onSelectEvent(event)}
+                    className={styles.segment}
                     style={{
-                      position: 'absolute',
-                      top: geometry.top,
-                      height: geometry.height,
-                      left: `calc(${geometry.leftPercent}% + 1px)`,
-                      width: `calc(${geometry.widthPercent}% - 2px)`,
-                      background: `${color}26`,
-                      borderInlineStart: `3px solid ${color}`,
-                      borderRadius: token.borderRadiusSM,
-                      overflow: 'hidden',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      gap: 2,
-                      padding: '2px 6px',
-                    }}
+                      '--segment-top': `${geometry.top}px`,
+                      '--segment-height': `${geometry.height}px`,
+                      '--segment-left': `calc(${geometry.leftPercent}% + 1px)`,
+                      '--segment-width': `calc(${geometry.widthPercent}% - 2px)`,
+                      '--segment-bg': `${color}26`,
+                      '--segment-color': color,
+                    } as CSSProperties}
                   >
                     <ScheduleEventContent
                       event={event}
@@ -150,14 +116,8 @@ export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onS
               {dayIndex === todayIndex && (
                 <div
                   aria-label={t('calendar.week.now')}
-                  style={{
-                    position: 'absolute',
-                    insetInline: 0,
-                    top: (nowMinutes / 60) * HOUR_HEIGHT,
-                    height: 2,
-                    background: token.colorError,
-                    pointerEvents: 'none',
-                  }}
+                  className={styles.nowIndicator}
+                  style={{ top: (nowMinutes / 60) * HOUR_HEIGHT }}
                 />
               )}
             </div>

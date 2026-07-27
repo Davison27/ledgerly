@@ -1,5 +1,6 @@
+import type { CSSProperties } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { Flex, Tag, Tooltip, Typography, theme } from 'antd';
+import { Flex, Tag, Tooltip, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { ScheduleConflictDto, ScheduleEventDto } from '@/entities/schedule-event';
 import { summarizeDayTimes } from '@/entities/schedule-event';
@@ -9,6 +10,7 @@ import type { EventDragData, EventDropData, ResizeDragData } from '../model/drag
 import { eventContentDensity, WEEK_BAR_HEIGHT } from '../model/eventDensity';
 import { staffDisplay } from '../model/staffDisplay';
 import { ScheduleEventContent } from './ScheduleEventContent';
+import styles from './EventBar.module.css';
 
 const { Text } = Typography;
 
@@ -27,12 +29,6 @@ export interface EventBarProps {
   onSelect: (event: ScheduleEventDto) => void;
 }
 
-const HANDLE_STYLE = {
-  width: 6,
-  flex: 'none' as const,
-  cursor: 'ew-resize',
-};
-
 export function EventBar({
   event,
   barKey,
@@ -48,7 +44,6 @@ export function EventBar({
   onSelect,
 }: EventBarProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
   const instanceKey = `${barKey}-${rowKey}`;
 
   const { setNodeRef: setDropRef, isOver } = useDroppable({
@@ -75,7 +70,7 @@ export function EventBar({
   const hasError = hasErrorConflict(conflicts);
   const hasInfo = hasInfoConflict(conflicts);
   const title = event.title?.trim() || event.project.name;
-  const borderColor = hasError ? token.colorError : hasInfo ? token.colorWarning : 'transparent';
+  const borderColor = hasError ? 'var(--ant-color-error)' : hasInfo ? 'var(--ant-color-warning)' : 'transparent';
   const segmentDays = event.days.filter((day) => day.date >= segmentStart && day.date <= segmentEnd);
 
   const monthStaff = staffDisplay(event.staff, 3);
@@ -88,12 +83,7 @@ export function EventBar({
       : (daySummary?.label ?? t('calendar.days.fullDay'));
 
   return (
-    <Flex
-      ref={setDropRef}
-      align="stretch"
-      gap={2}
-      style={{ height: '100%', background: isOver ? token.colorPrimaryBgHover : undefined }}
-    >
+    <Flex ref={setDropRef} align="stretch" gap={2} className={styles.row} data-over={isOver}>
       {ownsStartHandle && (
         <div
           ref={startHandle.setNodeRef}
@@ -101,7 +91,7 @@ export function EventBar({
           {...startHandle.attributes}
           role="slider"
           aria-label={t('calendar.event.resizeStart')}
-          style={{ ...HANDLE_STYLE, borderRadius: token.borderRadiusSM, background: token.colorFillSecondary }}
+          className={styles.handle}
         />
       )}
 
@@ -110,35 +100,25 @@ export function EventBar({
         {...listeners}
         {...attributes}
         onClick={() => onSelect(event)}
+        className={styles.content}
         style={{
-          flex: 1,
-          minWidth: 0,
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: variant === 'week' ? 'flex-start' : 'center',
-          gap: 2,
-          background: `${color}${isInactive ? '40' : '26'}`,
-          borderInlineStart: `${ownsStartHandle ? 3 : 1}px solid ${color}`,
-          borderBlock: `1px solid ${borderColor}`,
-          borderInlineEnd: `1px solid ${ownsEndHandle ? borderColor : color}`,
-          borderStartStartRadius: ownsStartHandle ? token.borderRadiusSM : 0,
-          borderEndStartRadius: ownsStartHandle ? token.borderRadiusSM : 0,
-          borderStartEndRadius: ownsEndHandle ? token.borderRadiusSM : 0,
-          borderEndEndRadius: ownsEndHandle ? token.borderRadiusSM : 0,
-          opacity: isDragging ? 0.5 : 1,
-          padding: variant === 'month' ? '2px 6px' : '6px 8px',
-          cursor: 'grab',
-          overflow: 'hidden',
-        }}
+          '--bar-bg': `${color}${isInactive ? '40' : '26'}`,
+          '--bar-color': color,
+          '--bar-border-color': borderColor,
+        } as CSSProperties}
+        data-variant={variant}
+        data-owns-start={ownsStartHandle}
+        data-owns-end={ownsEndHandle}
+        data-dragging={isDragging}
       >
         {variant === 'month' && (
-          <Flex align="center" gap={4} wrap justify="space-between" style={{ flex: 'none' }}>
-            <Flex align="center" gap={4} wrap style={{ minWidth: 0 }}>
-              <Text ellipsis style={{ fontSize: 12, fontWeight: 500 }}>
+          <Flex align="center" gap={4} wrap justify="space-between" className={styles.monthHeader}>
+            <Flex align="center" gap={4} wrap className={styles.monthTitleGroup}>
+              <Text ellipsis className={styles.monthTitle}>
                 {title}
               </Text>
               {isInactive && (
-                <Tag style={{ marginInlineEnd: 0, fontSize: 10, lineHeight: '16px' }}>
+                <Tag className={styles.monthStatusTag}>
                   {t(`projects.form.statuses.${event.project.status}`)}
                 </Tag>
               )}
@@ -146,13 +126,13 @@ export function EventBar({
             {span >= 2 && event.staff.length > 0 && (
               <Tooltip title={monthStaffNames}>
                 <Flex flex="none">
-                  {monthStaff.visible.map((staffMember, index) => (
-                    <div key={staffMember.id} style={{ marginInlineStart: index === 0 ? 0 : -6 }}>
+                  {monthStaff.visible.map((staffMember) => (
+                    <div key={staffMember.id} className={styles.monthStaffAvatar}>
                       <StaffAvatar staffMember={staffMember} size={18} />
                     </div>
                   ))}
                   {monthStaff.hidden.length > 0 && (
-                    <Text style={{ fontSize: 10, marginInlineStart: 2 }}>+{monthStaff.hidden.length}</Text>
+                    <Text className={styles.monthHiddenCount}>+{monthStaff.hidden.length}</Text>
                   )}
                 </Flex>
               </Tooltip>
@@ -176,7 +156,7 @@ export function EventBar({
           {...endHandle.attributes}
           role="slider"
           aria-label={t('calendar.event.resizeEnd')}
-          style={{ ...HANDLE_STYLE, borderRadius: token.borderRadiusSM, background: token.colorFillSecondary }}
+          className={styles.handle}
         />
       )}
     </Flex>

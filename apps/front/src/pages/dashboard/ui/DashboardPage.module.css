@@ -1,0 +1,17 @@
+.skeletonKpi {
+  flex: 1 1 220px;
+  min-width: 220px;
+}
+
+.skeletonWide {
+  flex: 2 1 480px;
+  min-width: 360px;
+}
+
+.yearSelect {
+  width: 110px;
+}
+
+.detailTitle {
+  margin-bottom: var(--lg-space-md);
+}

@@ -3,6 +3,8 @@ import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './MonthlyChart.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -64,27 +66,15 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
     hoverIdx !== null ? (Math.min(y(income[hoverIdx]), y(expenses[hoverIdx])) / H) * 100 : 0;
 
   return (
-    <Card
-      size="small"
-      title={t('projects.dashboard.monthly')}
-      style={{ flex: '2 1 480px', minWidth: 360 }}
-    >
-      <div style={{ position: 'relative' }}>
+    <Card size="small" title={t('projects.dashboard.monthly')} className={styles.card}>
+      <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
           role="img"
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverIdx(null)}
-          style={{
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-            maxWidth: '100%',
-            minWidth: 0,
-            maxHeight: 240,
-            cursor: 'crosshair',
-          }}
+          className={styles.svg}
         >
           <defs>
             <linearGradient id={incomeGradientId} x1="0" y1="0" x2="0" y2="1">
@@ -160,30 +150,15 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         </svg>
 
         {hoverIdx !== null && (
-          <div
-            style={{
-              position: 'absolute',
-              left: `${(x(hoverIdx) / W) * 100}%`,
-              top: `${tooltipTop}%`,
-              transform: 'translate(-50%, -115%)',
-              background: token.colorBgElevated,
-              border: `1px solid ${token.colorBorderSecondary}`,
-              borderRadius: token.borderRadiusSM,
-              boxShadow: token.boxShadowSecondary,
-              padding: '8px 12px',
-              pointerEvents: 'none',
-              whiteSpace: 'nowrap',
-              zIndex: 1,
-            }}
-          >
-            <Text strong style={{ display: 'block', fontSize: 12, marginBottom: 4 }}>
+          <div className={styles.tooltip} style={{ left: `${(x(hoverIdx) / W) * 100}%`, top: `${tooltipTop}%` }}>
+            <Text strong className={`${typography.caption} ${styles.tooltipTitle}`}>
               {months[hoverIdx]}
             </Text>
             <Flex gap={12}>
-              <Text style={{ fontSize: 12, color: incomeVivid }}>
+              <Text className={typography.caption} style={{ color: incomeVivid }}>
                 {t('projects.dashboard.legend.income')}: <Amount value={income[hoverIdx]} />
               </Text>
-              <Text style={{ fontSize: 12, color: expenseVivid }}>
+              <Text className={typography.caption} style={{ color: expenseVivid }}>
                 {t('projects.dashboard.legend.expenses')}: <Amount value={expenses[hoverIdx]} />
               </Text>
             </Flex>
@@ -191,19 +166,11 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         )}
       </div>
 
-      <Flex gap={20} style={{ marginTop: 8 }}>
+      <Flex gap={20} className={styles.legend}>
         {legend.map((item) => (
           <Flex key={item.key} align="center" gap={8}>
-            <span
-              style={{
-                width: 16,
-                height: 3,
-                borderRadius: 2,
-                background: item.color,
-                display: 'inline-block',
-              }}
-            />
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <span className={styles.legendSwatch} style={{ background: item.color }} />
+            <Text type="secondary" className={typography.caption}>
               {item.label}
             </Text>
           </Flex>

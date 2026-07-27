@@ -1,0 +1,27 @@
+.row {
+  cursor: pointer;
+}
+
+.dateBadge {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--ant-border-radius);
+  background: var(--ant-color-fill-tertiary);
+}
+
+.dateNumber {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.dateMonth {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.info {
+  flex: 1 1 auto;
+  min-width: 0;
+}

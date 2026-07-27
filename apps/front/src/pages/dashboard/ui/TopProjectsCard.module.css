@@ -1,0 +1,41 @@
+.row {
+  border-radius: var(--ant-border-radius-sm);
+  padding: 4px 6px;
+  margin-inline: -6px;
+  transition: background 0.15s ease;
+}
+
+.row[data-hovered='true'] {
+  background: var(--ant-color-fill-tertiary);
+}
+
+.name {
+  flex: 0 1 140px;
+  min-width: 80px;
+}
+
+.track {
+  flex: 1 1 auto;
+  height: 10px;
+  border-radius: 5px;
+  background: var(--ant-color-fill-secondary);
+  overflow: hidden;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 5px;
+  background: var(--ant-color-primary);
+}
+
+.docCount {
+  flex: none;
+  width: 78px;
+  text-align: right;
+}
+
+.amount {
+  flex: none;
+  width: 90px;
+  text-align: right;
+}

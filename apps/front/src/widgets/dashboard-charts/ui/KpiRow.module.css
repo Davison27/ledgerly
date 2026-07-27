@@ -1,0 +1,28 @@
+.card {
+  flex: 1 1 150px;
+  min-width: 150px;
+}
+
+.profitCard {
+  border-color: var(--kpi-profit-border-color);
+  border-inline-start: 3px solid var(--kpi-profit-border-start);
+  background: var(--kpi-profit-bg);
+}
+
+.label {
+  color: var(--ant-color-text-secondary);
+}
+
+.icon {
+  font-size: 18px;
+  color: var(--ant-color-text-quaternary);
+  display: flex;
+}
+
+.value {
+  margin-top: 4px;
+}
+
+.margin {
+  font-size: 12px;
+}

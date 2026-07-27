@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { App, Button, Flex, Segmented, Skeleton, Alert, Typography, theme } from 'antd';
+import { App, Button, Flex, Segmented, Skeleton, Alert, Typography } from 'antd';
 import { CalendarOutlined, LeftOutlined, RightOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { LAYOUT, SPACE } from '@/shared/config/theme';
+import { SPACE } from '@/shared/config/theme';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { ApiError } from '@/shared/api/httpClient';
@@ -19,14 +19,13 @@ import { MonthGrid } from './MonthGrid';
 import { WeekGrid } from './WeekGrid';
 import { ConflictSummary } from './ConflictSummary';
 import { EventEditorModal } from './EventEditorModal';
+import styles from './CalendarPage.module.css';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 export function CalendarPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
-  const { token } = useToken();
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
 
@@ -191,22 +190,11 @@ export function CalendarPage() {
   ];
 
   return (
-    <Flex vertical style={{ flex: 1, minHeight: 0 }}>
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: SPACE.lg,
-          flex: 'none',
-          height: LAYOUT.sectionHeaderHeight,
-          padding: `0 ${LAYOUT.pagePaddingInline}px`,
-          background: token.colorBgContainer,
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
-        }}
-      >
+    <Flex vertical className={styles.page}>
+      <Flex align="center" gap={SPACE.lg} className={styles.header}>
         <Flex align="center" gap={10}>
-          <CalendarOutlined style={{ color: token.colorPrimary, fontSize: 18 }} />
-          <Text strong style={{ fontSize: 16 }}>
+          <CalendarOutlined className={styles.titleIcon} />
+          <Text strong className={styles.titleText}>
             {t('calendar.title')}
           </Text>
         </Flex>
@@ -227,26 +215,21 @@ export function CalendarPage() {
             aria-label={t('calendar.next')}
             onClick={goNext}
           />
-          <Text type="secondary" style={{ marginInlineStart: 8 }}>
+          <Text type="secondary" className={styles.cursorLabel}>
             {cursorLabel}
           </Text>
         </Flex>
 
-        <div style={{ marginInlineStart: 'auto' }}>
+        <div className={styles.conflictWrapper}>
           <ConflictSummary summary={board?.summary ?? null} />
         </div>
-      </div>
+      </Flex>
 
-      <div style={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      <div className={styles.body}>
         {loading ? (
-          <Skeleton active paragraph={{ rows: 8 }} style={{ padding: SPACE.lg }} />
+          <Skeleton active paragraph={{ rows: 8 }} className={styles.loadingSkeleton} />
         ) : loadError ? (
-          <Alert
-            type="error"
-            showIcon
-            message={t('calendar.loadError')}
-            style={{ margin: SPACE.lg }}
-          />
+          <Alert type="error" showIcon message={t('calendar.loadError')} className={styles.loadError} />
         ) : (
           <CalendarDndContext
             colorForProject={colorForProject}
@@ -256,33 +239,17 @@ export function CalendarPage() {
             onResizeEvent={handleResizeEvent}
             onAssignStaff={handleAssignStaff}
           >
-            <Flex style={{ height: '100%', minHeight: 0 }}>
-              <Flex
-                vertical
-                style={{
-                  flex: 'none',
-                  width: 280,
-                  height: '100%',
-                  borderInlineEnd: `1px solid ${token.colorBorderSecondary}`,
-                }}
-              >
-                <div
-                  style={{
-                    flex: 1,
-                    minHeight: 0,
-                    padding: SPACE.lg,
-                    overflow: 'auto',
-                    borderBottom: `1px solid ${token.colorBorderSecondary}`,
-                  }}
-                >
+            <Flex className={styles.boardRow}>
+              <Flex vertical className={styles.sidePanel}>
+                <div className={styles.schedulablePanelSlot}>
                   <SchedulablePanel projects={projects} colorForProject={colorForProject} />
                 </div>
-                <div style={{ flex: 1, minHeight: 0, padding: SPACE.lg, overflow: 'auto' }}>
+                <div className={styles.staffPanelSlot}>
                   <StaffPanel staffMembers={staffMembers} />
                 </div>
               </Flex>
 
-              <div style={{ flex: 1, minHeight: 0, padding: SPACE.lg }}>
+              <div className={styles.gridSlot}>
                 {view === 'month' ? (
                   <MonthGrid
                     cursor={cursor}

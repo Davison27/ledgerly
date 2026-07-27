@@ -4,6 +4,9 @@ import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../api/types';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
+import typography from '@/shared/ui/typography.module.css';
+import dashboard from './dashboard.module.css';
+import styles from './CashflowForecastCard.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -59,36 +62,32 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
   };
 
   return (
-    <Card
-      size="small"
-      title={t('dashboard.cashflow.title')}
-      style={{ flex: '1 1 420px', minWidth: 320 }}
-    >
-      <Flex vertical gap={4} style={{ marginBottom: 12 }}>
-        <Text type="secondary" style={{ fontSize: 12 }}>
+    <Card size="small" title={t('dashboard.cashflow.title')} className={dashboard.wideCard}>
+      <Flex vertical gap={4} className={styles.overdueSection}>
+        <Text type="secondary" className={typography.caption}>
           {t('dashboard.cashflow.overdue')}
         </Text>
         <Flex gap={16} wrap align="baseline">
-          <Text style={{ fontSize: 13 }}>
+          <Text className={styles.metric}>
             {t('dashboard.cashflow.inflow')}: <Amount value={overdue.inflow} tone="income" strong />
           </Text>
-          <Text style={{ fontSize: 13, color: token.colorTextTertiary }}>
+          <Text className={`${styles.metric} ${styles.outflow}`}>
             {t('dashboard.cashflow.outflow')}: <Amount value={overdue.outflow} strong />
           </Text>
-          <Text style={{ fontSize: 13 }}>
+          <Text className={styles.metric}>
             {t('dashboard.cashflow.net')}: <Amount value={overdue.net} tone="auto" strong />
           </Text>
         </Flex>
       </Flex>
 
-      <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+      <Text type="secondary" className={`${typography.caption} ${styles.upcomingLabel}`}>
         {t('dashboard.cashflow.upcoming')}
       </Text>
 
       {months.length === 0 ? (
         <Empty description={t('dashboard.cashflow.empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (
-        <div style={{ overflowX: 'auto', position: 'relative' }}>
+        <div className={styles.chartWrap}>
           <svg
             viewBox={`0 0 ${W} ${H}`}
             width="100%"
@@ -96,15 +95,7 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
             aria-label={t('dashboard.cashflow.title')}
             onMouseMove={handleMouseMove}
             onMouseLeave={() => setHoverIdx(null)}
-            style={{
-              display: 'block',
-              width: '100%',
-              height: 'auto',
-              maxWidth: '100%',
-              minWidth: 0,
-              maxHeight: 170,
-              cursor: 'crosshair',
-            }}
+            className={styles.svg}
           >
             <line
               x1={PAD_L}
@@ -149,22 +140,13 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
 
           {hoverIdx !== null && months[hoverIdx] && (
             <div
+              className={styles.tooltip}
               style={{
-                position: 'absolute',
                 left: `${((PAD_L + slotW * hoverIdx + slotW / 2) / W) * 100}%`,
                 top: `${(barY(months[hoverIdx].net) / H) * 100}%`,
-                transform: 'translate(-50%, -115%)',
-                background: token.colorBgElevated,
-                border: `1px solid ${token.colorBorderSecondary}`,
-                borderRadius: token.borderRadiusSM,
-                boxShadow: token.boxShadowSecondary,
-                padding: '6px 10px',
-                pointerEvents: 'none',
-                whiteSpace: 'nowrap',
-                zIndex: 1,
               }}
             >
-              <Text strong style={{ fontSize: 12 }}>
+              <Text strong className={typography.caption}>
                 {monthLabel(months[hoverIdx].month, monthsShort)}: <Amount value={months[hoverIdx].net} tone="auto" />
               </Text>
             </div>
