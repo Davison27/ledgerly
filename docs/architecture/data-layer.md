@@ -120,6 +120,8 @@ Claves realmente en el código:
 | | `events(filter)` | `['schedule', 'events', filter]` | |
 | | `schedulableProjects()` | `['schedule', 'schedulable-projects']` | |
 | `dashboardQueries` (`pages/dashboard/api/dashboard.queries.ts`) | `company(year?)` | `['dashboard', 'company', year ?? null]` | `staleTime: 0`; único agregado de página, no se exporta a nadie |
+| `notificationQueries` (`entities/notification/api/notification.queries.ts`) | `unreadCount()` | `['notifications', 'unread-count']` | `refetchInterval: 5 min`, `refetchOnWindowFocus: true` — ver `docs/architecture/notifications.md` |
+| | `list(size)` | `['notifications', 'list', size]` | `infiniteQueryOptions`, solo se pide con el desplegable de la campana abierto |
 
 Cada `all` es la clave raíz de su fila (`['projects']`, `['documents']`, …) y
 es lo que reciben las invalidaciones que quieren refrescar todo el dominio.
@@ -162,6 +164,7 @@ flujo; el resto del handler no se mueve.
 | Guardar ajustes de empresa | `features/company-settings/ui/CompanySettingsModal.tsx` | `companyQueries.singleton().queryKey` |
 | Completar el asistente de onboarding | `pages/onboarding/ui/OnboardingPage.tsx` | `companyQueries.singleton().queryKey` |
 | Cargar datos de demo en onboarding | `pages/onboarding/ui/OnboardingPage.tsx` | `invalidateQueries()` sin filtro — crea datos de todos los dominios a la vez, es el único sitio donde una invalidación total está justificada |
+| Marcar un aviso / todos como leídos | `widgets/app-layout/model/useNotificationCenter.ts` | `notificationQueries.all` |
 
 ## `useCompany()` y el sentinel `EMPTY_COMPANY`
 
