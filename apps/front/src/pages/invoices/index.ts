@@ -1,1 +1,1 @@
-export { InvoicesPage } from './ui/InvoicesPage';
+export { InvoicesPage } from './ui/page/InvoicesPage';
