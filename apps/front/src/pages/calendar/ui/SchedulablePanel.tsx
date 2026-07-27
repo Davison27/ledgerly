@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto } from '@/entities/schedule-event';
 import type { ProjectDragData } from '../model/dragData';
 import { SchedulableProjectCard } from './SchedulableProjectCard';
+import styles from './SchedulablePanel.module.css';
 
 const { Text } = Typography;
 
@@ -21,12 +22,7 @@ function SchedulableProjectItem({ project, color }: SchedulableProjectItemProps)
   });
 
   return (
-    <div
-      ref={setNodeRef}
-      {...listeners}
-      {...attributes}
-      style={{ cursor: 'grab', opacity: isDragging ? 0.5 : 1 }}
-    >
+    <div ref={setNodeRef} {...listeners} {...attributes} className={styles.draggableItem} data-dragging={isDragging}>
       <SchedulableProjectCard project={project} color={color} />
     </div>
   );
@@ -49,8 +45,8 @@ export function SchedulablePanel({ projects, colorForProject }: SchedulablePanel
   );
 
   return (
-    <Flex vertical gap={8} style={{ height: '100%', minHeight: 0 }}>
-      <Text strong style={{ fontSize: 13 }}>
+    <Flex vertical gap={8} className={styles.panel}>
+      <Text strong className={styles.title}>
         {t('calendar.panel.title')}
       </Text>
       <Input
@@ -60,7 +56,7 @@ export function SchedulablePanel({ projects, colorForProject }: SchedulablePanel
         value={search}
         onChange={(event) => setSearch(event.target.value)}
       />
-      <Flex vertical gap={6} style={{ flex: 1, minHeight: 0, overflowY: 'auto' }}>
+      <Flex vertical gap={6} className={styles.list}>
         {filtered.length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('calendar.panel.empty')} />
         ) : (

@@ -1,0 +1,27 @@
+.chartWrap {
+  overflow-x: auto;
+  position: relative;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 170px;
+  cursor: crosshair;
+}
+
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -115%);
+  background: var(--ant-color-bg-elevated);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius-sm);
+  box-shadow: var(--ant-box-shadow-secondary);
+  padding: 6px 10px;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 1;
+}

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { Card, Flex, Typography, theme } from 'antd';
+import { Card, Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentStatus } from '@/entities/document';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
 import { vividOverdue } from '../model/data';
+import dashboardCharts from './dashboardCharts.module.css';
+import styles from './CashflowByStatus.module.css';
 
 const { Text } = Typography;
-const { useToken } = theme;
 
 export interface CashflowByStatusProps {
   pagado: number;
@@ -21,7 +22,6 @@ export function CashflowByStatus({
   vencido,
 }: CashflowByStatusProps) {
   const { t } = useTranslation();
-  const { token } = useToken();
   const colors = useSemanticColors();
   const [hovered, setHovered] = useState<DocumentStatus | null>(null);
 
@@ -37,7 +37,7 @@ export function CashflowByStatus({
     <Card
       size="small"
       title={t('projects.dashboard.cashflowByStatus.title')}
-      style={{ flex: '1 1 320px', minWidth: 300 }}
+      className={dashboardCharts.card}
     >
       <Flex vertical gap={8}>
         {rows.map((row) => (
@@ -45,38 +45,21 @@ export function CashflowByStatus({
             key={row.key}
             align="center"
             gap={12}
-            style={{
-              borderRadius: token.borderRadiusSM,
-              padding: '4px 6px',
-              marginInline: -6,
-              background: hovered === row.key ? token.colorFillTertiary : 'transparent',
-              transition: 'background 0.15s ease',
-            }}
+            className={styles.row}
+            data-hovered={hovered === row.key}
             onMouseEnter={() => setHovered(row.key)}
             onMouseLeave={() => setHovered(null)}
           >
-            <Text style={{ flex: 'none', width: 90 }}>
+            <Text className={styles.label}>
               {t(`projects.documents.statuses.${row.key}`)}
             </Text>
-            <div
-              style={{
-                flex: '1 1 auto',
-                height: 10,
-                borderRadius: 5,
-                background: token.colorFillSecondary,
-                overflow: 'hidden',
-              }}
-            >
+            <div className={styles.track}>
               <div
-                style={{
-                  width: `${(row.amount / max) * 100}%`,
-                  height: '100%',
-                  borderRadius: 5,
-                  background: row.color,
-                }}
+                className={styles.fill}
+                style={{ width: `${(row.amount / max) * 100}%`, background: row.color }}
               />
             </div>
-            <Text strong style={{ flex: 'none', width: 90, textAlign: 'right' }}>
+            <Text strong className={styles.amount}>
               <Amount value={row.amount} />
             </Text>
           </Flex>

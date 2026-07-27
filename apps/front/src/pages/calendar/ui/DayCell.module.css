@@ -1,0 +1,17 @@
+.cell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 6px;
+  background: var(--ant-color-bg-container);
+  border: 1px solid var(--ant-color-border-secondary);
+  opacity: 1;
+}
+
+.cell[data-over='true'] {
+  background: var(--ant-color-primary-bg);
+}
+
+.cell[data-muted='true'] {
+  opacity: 0.55;
+}

@@ -3,6 +3,9 @@ import { Card, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
+import typography from '@/shared/ui/typography.module.css';
+import dashboardCharts from './dashboardCharts.module.css';
+import styles from './CumulativeProfitChart.module.css';
 
 const { Text } = Typography;
 const { useToken } = theme;
@@ -59,9 +62,9 @@ export function CumulativeProfitChart({
   return (
     <Card
       title={t('projects.dashboard.cumulativeProfit.title')}
-      style={{ flex: '1 1 320px', minWidth: 300 }}
+      className={dashboardCharts.card}
     >
-      <div style={{ overflowX: 'auto', position: 'relative' }}>
+      <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
@@ -69,15 +72,7 @@ export function CumulativeProfitChart({
           aria-label={t('projects.dashboard.cumulativeProfit.title')}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverIdx(null)}
-          style={{
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-            maxWidth: '100%',
-            minWidth: 0,
-            maxHeight: 170,
-            cursor: 'crosshair',
-          }}
+          className={styles.svg}
         >
           <defs>
             <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
@@ -132,22 +127,10 @@ export function CumulativeProfitChart({
 
         {hoverIdx !== null && (
           <div
-            style={{
-              position: 'absolute',
-              left: `${(x(hoverIdx) / W) * 100}%`,
-              top: `${(y(cumulativeProfit[hoverIdx]) / H) * 100}%`,
-              transform: 'translate(-50%, -115%)',
-              background: token.colorBgElevated,
-              border: `1px solid ${token.colorBorderSecondary}`,
-              borderRadius: token.borderRadiusSM,
-              boxShadow: token.boxShadowSecondary,
-              padding: '6px 10px',
-              pointerEvents: 'none',
-              whiteSpace: 'nowrap',
-              zIndex: 1,
-            }}
+            className={styles.tooltip}
+            style={{ left: `${(x(hoverIdx) / W) * 100}%`, top: `${(y(cumulativeProfit[hoverIdx]) / H) * 100}%` }}
           >
-            <Text strong style={{ fontSize: 12 }}>
+            <Text strong className={typography.caption}>
               {months[hoverIdx]}: <Amount value={cumulativeProfit[hoverIdx]} tone="auto" />
             </Text>
           </div>

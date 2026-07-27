@@ -1,7 +1,8 @@
-import { Typography, theme } from 'antd';
+import { Typography } from 'antd';
 import type { CalendarDragData } from '../model/dragData';
 import { SchedulableProjectCard } from './SchedulableProjectCard';
 import { StaffPanelCard } from './StaffPanelCard';
+import styles from './CalendarDragPreview.module.css';
 
 const { Text } = Typography;
 
@@ -15,8 +16,6 @@ function eventLabel(data: Extract<CalendarDragData, { kind: 'event' }>): string 
 }
 
 export function CalendarDragPreview({ data, colorForProject }: CalendarDragPreviewProps) {
-  const { token } = theme.useToken();
-
   const content = (() => {
     switch (data.kind) {
       case 'project':
@@ -32,15 +31,8 @@ export function CalendarDragPreview({ data, colorForProject }: CalendarDragPrevi
       case 'event': {
         const color = colorForProject(data.event.projectId, data.event.project.color);
         return (
-          <div
-            style={{
-              padding: '4px 10px',
-              background: token.colorBgElevated,
-              borderInlineStart: `3px solid ${color}`,
-              borderRadius: token.borderRadiusSM,
-            }}
-          >
-            <Text style={{ fontSize: 13 }}>{eventLabel(data)}</Text>
+          <div className={styles.eventPreview} style={{ borderInlineStartColor: color }}>
+            <Text className={styles.eventLabel}>{eventLabel(data)}</Text>
           </div>
         );
       }
@@ -53,5 +45,5 @@ export function CalendarDragPreview({ data, colorForProject }: CalendarDragPrevi
 
   if (!content) return null;
 
-  return <div style={{ width: 'fit-content' }}>{content}</div>;
+  return <div className={styles.wrapper}>{content}</div>;
 }

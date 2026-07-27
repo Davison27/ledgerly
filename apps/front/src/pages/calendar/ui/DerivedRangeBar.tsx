@@ -1,8 +1,9 @@
 import { useDraggable } from '@dnd-kit/core';
-import { Tag, Typography, theme } from 'antd';
+import { Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto } from '@/entities/schedule-event';
 import type { DerivedProjectDragData } from '../model/dragData';
+import styles from './DerivedRangeBar.module.css';
 
 const { Text } = Typography;
 
@@ -15,7 +16,6 @@ export interface DerivedRangeBarProps {
 
 export function DerivedRangeBar({ project, rowKey, color, onSelect }: DerivedRangeBarProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `derived-drag-${project.id}-${rowKey}`,
@@ -28,24 +28,14 @@ export function DerivedRangeBar({ project, rowKey, color, onSelect }: DerivedRan
       {...listeners}
       {...attributes}
       onClick={() => onSelect(project)}
-      style={{
-        height: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        minWidth: 0,
-        padding: '2px 6px',
-        borderRadius: token.borderRadiusSM,
-        border: `1px dashed ${color}`,
-        opacity: isDragging ? 0.4 : 0.7,
-        cursor: 'grab',
-        overflow: 'hidden',
-      }}
+      className={styles.bar}
+      data-dragging={isDragging}
+      style={{ borderColor: color }}
     >
-      <Text ellipsis style={{ fontSize: 12, color }}>
+      <Text ellipsis className={styles.label} style={{ color }}>
         {project.name}
       </Text>
-      <Tag style={{ fontSize: 10, marginInlineEnd: 0, flex: 'none' }}>{t('calendar.derived.badge')}</Tag>
+      <Tag className={styles.badge}>{t('calendar.derived.badge')}</Tag>
     </div>
   );
 }

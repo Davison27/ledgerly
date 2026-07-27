@@ -1,0 +1,13 @@
+.chartWrap {
+  overflow-x: auto;
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+  min-width: 0;
+  max-height: 170px;
+  cursor: crosshair;
+}

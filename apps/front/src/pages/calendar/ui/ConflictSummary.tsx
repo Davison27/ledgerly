@@ -1,7 +1,8 @@
-import { Flex, Popover, Tag, Typography, theme } from 'antd';
+import { Flex, Popover, Tag, Typography } from 'antd';
 import { ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ScheduleBoardSummaryDto, ScheduleConflictKind } from '@/entities/schedule-event';
+import styles from './ConflictSummary.module.css';
 
 const { Text } = Typography;
 
@@ -20,7 +21,6 @@ export interface ConflictSummaryProps {
 
 export function ConflictSummary({ summary }: ConflictSummaryProps) {
   const { t } = useTranslation();
-  const { token } = theme.useToken();
 
   const errorCount = summary?.errorCount ?? 0;
   const infoCount = summary?.infoCount ?? 0;
@@ -42,13 +42,13 @@ export function ConflictSummary({ summary }: ConflictSummaryProps) {
 
   return (
     <Popover title={t('calendar.conflicts.title')} content={content} trigger="click">
-      <Flex align="center" gap={10} style={{ cursor: 'pointer' }}>
+      <Flex align="center" gap={10} className={styles.trigger}>
         <Flex align="center" gap={4}>
-          <ExclamationCircleOutlined style={{ color: token.colorError }} />
+          <ExclamationCircleOutlined className={styles.errorIcon} />
           <Tag color={errorCount > 0 ? 'error' : 'default'}>{errorCount}</Tag>
         </Flex>
         <Flex align="center" gap={4}>
-          <InfoCircleOutlined style={{ color: token.colorWarning }} />
+          <InfoCircleOutlined className={styles.warningIcon} />
           <Tag color={infoCount > 0 ? 'warning' : 'default'}>{infoCount}</Tag>
         </Flex>
       </Flex>

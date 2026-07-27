@@ -2,8 +2,10 @@ import { useState, type MouseEvent } from 'react';
 import { Card, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
-import { TYPE } from '@/shared/config/theme';
+import typography from '@/shared/ui/typography.module.css';
 import { formatPct } from '../model/data';
+import dashboardCharts from './dashboardCharts.module.css';
+import styles from './MarginTrendChart.module.css';
 
 const { useToken } = theme;
 
@@ -54,9 +56,9 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
   return (
     <Card
       title={t('projects.dashboard.marginTrend.title')}
-      style={{ flex: '1 1 320px', minWidth: 300 }}
+      className={dashboardCharts.card}
     >
-      <div style={{ overflowX: 'auto' }}>
+      <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
           width="100%"
@@ -64,15 +66,7 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
           aria-label={t('projects.dashboard.marginTrend.title')}
           onMouseMove={handleMouseMove}
           onMouseLeave={() => setHoverIdx(null)}
-          style={{
-            display: 'block',
-            width: '100%',
-            height: 'auto',
-            maxWidth: '100%',
-            minWidth: 0,
-            maxHeight: 170,
-            cursor: 'crosshair',
-          }}
+          className={styles.svg}
         >
           <line
             x1={PAD_L}
@@ -110,7 +104,7 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
               fontSize={11}
               fontWeight={600}
               fill={token.colorText}
-              style={TYPE.numeric}
+              className={typography.numeric}
             >
               {formatPct(monthlyMargin[hoverIdx])}
             </text>
@@ -124,21 +118,14 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
               fontSize={11}
               fontWeight={600}
               fill={token.colorText}
-              style={TYPE.numeric}
+              className={typography.numeric}
             >
               {formatPct(lastValue)}
             </text>
           )}
 
           {months.map((m, i) => (
-            <text
-              key={`m-${i}`}
-              x={x(i)}
-              y={H - 8}
-              textAnchor="middle"
-              fontSize={11}
-              fill={token.colorTextSecondary}
-            >
+            <text key={`m-${i}`} x={x(i)} y={H - 8} textAnchor="middle" fontSize={11} fill={token.colorTextSecondary}>
               {m}
             </text>
           ))}

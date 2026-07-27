@@ -1,5 +1,6 @@
 import { Flex, Typography } from 'antd';
 import { StaffAvatar, type StaffMemberDto } from '@/entities/staff-member';
+import styles from './StaffPanelCard.module.css';
 
 const { Text } = Typography;
 
@@ -9,9 +10,9 @@ export interface StaffPanelCardProps {
 
 export function StaffPanelCard({ staffMember }: StaffPanelCardProps) {
   return (
-    <Flex vertical align="center" gap={4} style={{ width: 88, padding: 6 }}>
+    <Flex vertical align="center" gap={4} className={styles.card}>
       <StaffAvatar staffMember={staffMember} size={48} />
-      <Text ellipsis style={{ fontSize: 12, maxWidth: 80, textAlign: 'center' }}>
+      <Text ellipsis className={styles.name}>
         {staffMember.firstName} {staffMember.lastName}
       </Text>
     </Flex>

@@ -13,16 +13,16 @@ import {
   Steps,
   Typography,
   Upload,
-  theme,
 } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { SPACE } from '@/shared/config/theme';
 import { companyNeedsSetup, companyQueries, updateCompany, useCompany } from '@/entities/company';
 import { loadDemoData } from '../api/demo.api';
 import { projectQueries } from '@/entities/project';
+import typography from '@/shared/ui/typography.module.css';
+import styles from './OnboardingPage.module.css';
 
 const { Title, Text } = Typography;
 
@@ -50,7 +50,6 @@ export function OnboardingPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message } = App.useApp();
-  const { token } = theme.useToken();
   const queryClient = useQueryClient();
   const [form] = Form.useForm<CompanyFormFields>();
   const [current, setCurrent] = useState(0);
@@ -117,8 +116,8 @@ export function OnboardingPage() {
 
   if (checkingExisting) {
     return (
-      <Flex align="center" justify="center" style={{ minHeight: '100vh', padding: SPACE.xl }}>
-        <Card style={{ width: '100%', maxWidth: 720, boxShadow: token.boxShadowSecondary }}>
+      <Flex align="center" justify="center" className={styles.page}>
+        <Card className={styles.card}>
           <Skeleton active paragraph={{ rows: 8 }} />
         </Card>
       </Flex>
@@ -126,10 +125,10 @@ export function OnboardingPage() {
   }
 
   return (
-    <Flex align="center" justify="center" style={{ minHeight: '100vh', padding: SPACE.xl }}>
-      <Card style={{ width: '100%', maxWidth: 720, boxShadow: token.boxShadowSecondary }}>
-        <Flex vertical gap={4} style={{ marginBottom: 20 }}>
-          <Title level={3} style={{ margin: 0 }}>
+    <Flex align="center" justify="center" className={styles.page}>
+      <Card className={styles.card}>
+        <Flex vertical gap={4} className={styles.intro}>
+          <Title level={3} className={styles.title}>
             {t('onboarding.title')}
           </Title>
           <Text type="secondary">{t('onboarding.welcome')}</Text>
@@ -145,14 +144,14 @@ export function OnboardingPage() {
                 {t('onboarding.demo.button')}
               </Button>
             }
-            style={{ marginBottom: 20 }}
+            className={styles.demoAlert}
           />
         )}
 
         <Steps
           current={current}
           size="small"
-          style={{ marginBottom: 24 }}
+          className={styles.steps}
           items={[
             { title: t('onboarding.steps.company') },
             { title: t('onboarding.steps.contact') },
@@ -161,10 +160,10 @@ export function OnboardingPage() {
         />
 
         <Form<CompanyFormFields> form={form} layout="vertical" requiredMark={false}>
-          <div style={{ display: current === 0 ? 'block' : 'none' }}>
+          <div className={styles.stepPanel} data-active={current === 0}>
             <Row gutter={16}>
               <Col xs={24} sm={8}>
-                <Form.Item label={t('company.settings.fields.logo')} style={{ marginBottom: 4 }}>
+                <Form.Item label={t('company.settings.fields.logo')} className={styles.logoItem}>
                   <Upload
                     accept="image/*"
                     listType="picture-card"
@@ -184,14 +183,14 @@ export function OnboardingPage() {
                       <img
                         src={logo}
                         alt={t('company.settings.fields.logo')}
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        className={styles.logoImage}
                       />
                     ) : (
                       <div>
-                        <UploadOutlined style={{ fontSize: 20 }} />
-                        <div style={{ marginTop: 8, fontSize: 12 }}>
+                        <UploadOutlined className={styles.uploadIcon} />
+                        <Text className={`${typography.caption} ${styles.uploadHint}`}>
                           {t('company.settings.logo.upload')}
-                        </div>
+                        </Text>
                       </div>
                     )}
                   </Upload>
