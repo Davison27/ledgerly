@@ -1,7 +1,7 @@
 .card {
   padding: 6px 8px;
   border-radius: var(--ant-border-radius);
-  border: 1px solid var(--ant-color-border-secondary);
+  border: 2px solid var(--ant-color-border-secondary);
 }
 
 .meta {

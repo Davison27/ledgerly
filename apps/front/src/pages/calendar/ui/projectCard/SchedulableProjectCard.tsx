@@ -14,9 +14,9 @@ export function SchedulableProjectCard({ project, color }: SchedulableProjectCar
   return (
     <Flex align="center" gap={8} className={styles.card}>
       {project.image ? (
-        <Avatar shape="square" size={22} src={project.image} />
+        <Avatar shape="square" size={30} src={project.image} />
       ) : (
-        <Avatar shape="square" size={22} style={{ backgroundColor: color }} icon={<ProjectOutlined />} />
+        <Avatar shape="square" size={30} style={{ backgroundColor: color }} icon={<ProjectOutlined />} />
       )}
       <Flex vertical gap={0} className={styles.meta}>
         <Text ellipsis className={styles.name}>
