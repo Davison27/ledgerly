@@ -93,7 +93,8 @@
   },
   "sider": {
     "collapse": "Contraer menú",
-    "expand": "Expandir menú"
+    "expand": "Expandir menú",
+    "workspace": "Ir al espacio de trabajo"
   },
   "dashboard": {
     "title": "Panel",
@@ -246,6 +247,309 @@
         "urlInvalid": "Introduce una URL válida"
       },
       "error": "No se ha podido actualizar la empresa. Inténtalo de nuevo."
+    }
+  },
+  "workspace": {
+    "title": "Espacio de trabajo",
+    "subtitle": "Datos de la empresa, personas con acceso e integraciones",
+    "tabs": {
+      "company": "Empresa",
+      "members": "Usuarios y permisos",
+      "integrations": "Integraciones"
+    },
+    "company": {
+      "identity": "Identidad y marca",
+      "unsaved": "Tienes cambios sin guardar",
+      "discard": "Descartar cambios",
+      "loadError": "No se han podido cargar los datos de la empresa"
+    },
+    "members": {
+      "title": "Personas con acceso",
+      "subtitle": "Invita a tu equipo y decide qué puede ver y editar cada persona",
+      "invite": "Invitar persona",
+      "searchPlaceholder": "Buscar por nombre o email",
+      "filters": {
+        "allRoles": "Todos los roles",
+        "all": "Todos",
+        "active": "Activos",
+        "invited": "Pendientes"
+      },
+      "stats": {
+        "active": "Activos",
+        "pending": "Invitaciones pendientes",
+        "admins": "Administradores"
+      },
+      "columns": {
+        "member": "Persona",
+        "role": "Rol",
+        "access": "Acceso",
+        "status": "Estado",
+        "lastActive": "Última actividad"
+      },
+      "you": "Tú",
+      "neverActive": "Sin actividad",
+      "accessSummary": "{{edit}} editar · {{view}} ver",
+      "accessFull": "Acceso total",
+      "accessNone": "Sin acceso",
+      "empty": "Todavía no hay nadie más en el espacio",
+      "emptyHint": "Invita a tu equipo para repartir el trabajo",
+      "noResults": "Ninguna persona coincide con el filtro",
+      "noResultsHint": "Prueba con otro nombre o quita los filtros",
+      "loadError": "No se han podido cargar las personas del espacio",
+      "retry": "Reintentar",
+      "status": {
+        "active": "Activo",
+        "invited": "Invitación pendiente",
+        "disabled": "Desactivado"
+      },
+      "actions": {
+        "edit": "Editar acceso",
+        "resend": "Reenviar invitación",
+        "disable": "Desactivar",
+        "enable": "Reactivar",
+        "revoke": "Quitar del espacio"
+      },
+      "confirm": {
+        "revoke": {
+          "title": "¿Quitar a {{name}} del espacio?",
+          "description": "Perderá el acceso de inmediato. Podrás volver a invitarla cuando quieras.",
+          "ok": "Quitar"
+        },
+        "disable": {
+          "title": "¿Desactivar a {{name}}?",
+          "description": "No podrá entrar hasta que la reactives.",
+          "ok": "Desactivar"
+        }
+      },
+      "toast": {
+        "invited": "Invitación enviada a {{email}}",
+        "updated": "Acceso actualizado",
+        "resent": "Invitación reenviada",
+        "disabled": "Persona desactivada",
+        "enabled": "Persona reactivada",
+        "revoked": "Persona quitada del espacio",
+        "error": "No se ha podido completar la acción. Inténtalo de nuevo."
+      },
+      "guard": {
+        "lastAdmin": "El espacio necesita al menos un administrador",
+        "self": "No puedes cambiar tu propio acceso"
+      }
+    },
+    "roles": {
+      "admin": {
+        "name": "Administrador",
+        "description": "Acceso total, incluidos los ajustes del espacio, las personas y las integraciones"
+      },
+      "editor": {
+        "name": "Editor",
+        "description": "Crea y edita el trabajo del día a día; no gestiona el espacio"
+      },
+      "viewer": {
+        "name": "Lector",
+        "description": "Solo consulta; no puede modificar nada"
+      },
+      "custom": {
+        "name": "Personalizado",
+        "description": "Permisos ajustados módulo a módulo"
+      }
+    },
+    "permissions": {
+      "title": "Permisos por módulo",
+      "hint": "Elige un rol para partir de un preajuste y afínalo módulo a módulo",
+      "module": "Módulo",
+      "levels": {
+        "none": "Sin acceso",
+        "view": "Ver",
+        "edit": "Editar"
+      },
+      "applyAll": "Aplicar a todos los módulos",
+      "editUnsupported": "Este módulo es de solo lectura",
+      "ariaLabel": "Permiso para {{module}}"
+    },
+    "memberDrawer": {
+      "inviteTitle": "Invitar al espacio",
+      "editTitle": "Acceso de {{name}}",
+      "sections": {
+        "person": "Persona",
+        "role": "Rol"
+      },
+      "fields": {
+        "name": "Nombre",
+        "email": "Email",
+        "message": "Mensaje de la invitación"
+      },
+      "placeholders": {
+        "name": "Ej. Marta Ruiz",
+        "email": "Ej. marta@empresa.com",
+        "message": "Opcional"
+      },
+      "validation": {
+        "nameRequired": "El nombre es obligatorio",
+        "emailRequired": "El email es obligatorio",
+        "emailInvalid": "Introduce un email válido",
+        "emailTaken": "Esa persona ya está en el espacio"
+      },
+      "emailLocked": "El email no se puede cambiar",
+      "submitInvite": "Enviar invitación",
+      "submitEdit": "Guardar acceso"
+    },
+    "integrations": {
+      "title": "Integraciones",
+      "subtitle": "Conecta Ledgerly con las herramientas que ya usas",
+      "searchPlaceholder": "Buscar integración",
+      "filters": {
+        "all": "Todas"
+      },
+      "families": {
+        "google": {
+          "name": "Google Workspace",
+          "description": "Agenda, archivos y correo de tu cuenta de Google"
+        },
+        "microsoft": {
+          "name": "Microsoft 365",
+          "description": "Outlook, OneDrive y Excel a través de Microsoft Graph"
+        },
+        "communication": {
+          "name": "Comunicación",
+          "description": "Recibe los avisos de Ledgerly en el canal de tu equipo"
+        },
+        "open": {
+          "name": "Estándares abiertos",
+          "description": "Sin depender de ningún proveedor: webhooks, ICS, SMTP y claves de API"
+        }
+      },
+      "status": {
+        "connected": "Conectado",
+        "disconnected": "Sin conectar",
+        "error": "Con error"
+      },
+      "actions": {
+        "connect": "Conectar",
+        "reconnect": "Volver a conectar",
+        "disconnect": "Desconectar",
+        "configure": "Configurar",
+        "test": "Probar conexión",
+        "copy": "Copiar"
+      },
+      "enabledLabel": "Activa",
+      "connectedAs": "Conectado como {{account}}",
+      "lastSync": "Última sincronización {{when}}",
+      "neverSynced": "Sin sincronizar todavía",
+      "empty": "Ninguna integración coincide con el filtro",
+      "emptyHint": "Prueba con otro término o quita los filtros",
+      "loadError": "No se han podido cargar las integraciones",
+      "errors": {
+        "token_expired": "El permiso ha caducado; vuelve a conectar",
+        "revoked": "El acceso se ha revocado desde el proveedor",
+        "rate_limited": "El proveedor está limitando las peticiones",
+        "unreachable": "No se ha podido contactar con el proveedor"
+      },
+      "confirm": {
+        "disconnect": {
+          "title": "¿Desconectar {{name}}?",
+          "description": "Ledgerly dejará de sincronizar con este servicio. Los datos ya sincronizados se conservan.",
+          "ok": "Desconectar"
+        }
+      },
+      "toast": {
+        "connected": "{{name}} conectado",
+        "disconnected": "{{name}} desconectado",
+        "saved": "Ajustes guardados",
+        "tested": "La conexión funciona",
+        "testFailed": "La prueba ha fallado",
+        "copied": "Copiado al portapapeles",
+        "error": "No se ha podido completar la acción"
+      },
+      "drawer": {
+        "connection": "Conexión",
+        "settings": "Ajustes",
+        "connectedSince": "Conectado desde {{date}}",
+        "notConnected": "Conecta el servicio para poder configurarlo"
+      },
+      "fields": {
+        "calendar": "Calendario de destino",
+        "folder": "Carpeta de archivo",
+        "spreadsheet": "Hoja de cálculo",
+        "mailbox": "Buzón",
+        "label": "Etiqueta",
+        "channel": "Canal",
+        "chatId": "Identificador del chat",
+        "webhookUrl": "URL del webhook",
+        "feedUrl": "URL del calendario",
+        "events": "Eventos que se envían",
+        "host": "Servidor",
+        "port": "Puerto",
+        "username": "Usuario",
+        "password": "Contraseña",
+        "security": "Seguridad",
+        "apiKey": "Clave de API",
+        "syncDirection": "Dirección de sincronización",
+        "contactGroup": "Grupo de contactos",
+        "autoArchive": "Archivar documentos automáticamente",
+        "notifyOnError": "Avisar también de los errores"
+      },
+      "catalog": {
+        "google-calendar": {
+          "name": "Google Calendar",
+          "description": "Vuelca la agenda de proyectos en un calendario de Google"
+        },
+        "google-drive": {
+          "name": "Google Drive",
+          "description": "Archiva los documentos subidos en una carpeta de Drive"
+        },
+        "gmail": {
+          "name": "Gmail",
+          "description": "Recoge facturas de proveedores desde una etiqueta del buzón"
+        },
+        "google-sheets": {
+          "name": "Google Sheets",
+          "description": "Exporta facturas y gastos a una hoja de cálculo"
+        },
+        "google-contacts": {
+          "name": "Google Contacts",
+          "description": "Mantiene los proveedores sincronizados con tus contactos"
+        },
+        "outlook-calendar": {
+          "name": "Outlook Calendar",
+          "description": "Publica la agenda en el calendario de Outlook"
+        },
+        "onedrive": {
+          "name": "OneDrive",
+          "description": "Archiva los documentos en una carpeta de OneDrive"
+        },
+        "excel-online": {
+          "name": "Excel",
+          "description": "Vuelca los informes en un libro de Excel en línea"
+        },
+        "slack": {
+          "name": "Slack",
+          "description": "Envía los avisos de Ledgerly a un canal de Slack"
+        },
+        "telegram": {
+          "name": "Telegram",
+          "description": "Recibe los avisos en un chat de Telegram"
+        },
+        "discord": {
+          "name": "Discord",
+          "description": "Publica los avisos en un canal de Discord"
+        },
+        "outgoing-webhooks": {
+          "name": "Webhooks salientes",
+          "description": "Envía cada evento a la URL que indiques"
+        },
+        "calendar-feed": {
+          "name": "Calendario ICS / CalDAV",
+          "description": "Publica la agenda como calendario suscribible"
+        },
+        "smtp-imap": {
+          "name": "SMTP / IMAP",
+          "description": "Usa tu propio servidor de correo para enviar y recoger"
+        },
+        "api-keys": {
+          "name": "Claves de API",
+          "description": "Da acceso programático a Ledgerly desde tus scripts"
+        }
+      }
     }
   },
   "projects": {

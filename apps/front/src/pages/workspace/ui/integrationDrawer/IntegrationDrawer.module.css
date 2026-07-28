@@ -1,0 +1,17 @@
+.section {
+  margin-bottom: var(--lg-space-lg);
+}
+
+.connectedSince {
+  margin-bottom: 0;
+}
+
+.copyField {
+  width: 100%;
+}
+
+.footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--lg-space-sm);
+}
