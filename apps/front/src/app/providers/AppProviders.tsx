@@ -7,7 +7,14 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { buildThemeConfig } from '@/shared/config/theme';
 import { BrandColorProvider, useBrandColor } from '@/shared/lib/brand-color/BrandColorProvider';
 import { ThemeModeProvider, useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
+import { setUnauthorizedHandler } from '@/shared/api/httpClient';
+import { router } from '../router/router';
 import { queryClient } from './queryClient';
+
+setUnauthorizedHandler(() => {
+  queryClient.clear();
+  void router.navigate({ to: '/', search: { sessionExpired: true } });
+});
 
 const localeMap = { es: esES, en: enUS } as const;
 

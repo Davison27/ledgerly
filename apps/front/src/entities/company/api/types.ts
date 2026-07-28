@@ -15,6 +15,12 @@ export interface CompanyDto {
   brandColor?: string | null;
 }
 
+export interface CompanyBrandingDto {
+  name: string;
+  logo: string | null;
+  brandColor: string | null;
+}
+
 export interface UpdateCompanyPayload {
   name?: string;
   legalName?: string;

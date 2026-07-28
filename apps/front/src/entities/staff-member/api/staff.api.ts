@@ -1,4 +1,5 @@
 import { API_URL, ApiError, buildQueryString, del, get, patch, post } from '@/shared/api/httpClient';
+import { csrfHeader } from '@/shared/api/csrf';
 import { stripEmpty } from '@/shared/api/sanitize';
 import type {
   CreateStaffDocumentPayload,
@@ -56,7 +57,8 @@ export async function createStaffDocument(
 
   const response = await fetch(`${API_URL}/staff/${staffMemberId}/documents`, {
     method: 'POST',
-    headers: { Accept: 'application/json' },
+    credentials: 'include',
+    headers: { Accept: 'application/json', ...csrfHeader() },
     body: formData,
   });
 

@@ -1,13 +1,16 @@
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import { type MenuProps } from 'antd';
 import { ApiOutlined, BulbOutlined, PoweroffOutlined, ShopOutlined, TeamOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { logout } from '@/entities/session';
 import styles from './useSettingsMenuItems.module.css';
 
 export function useSettingsMenuItems(): MenuProps['items'] {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   return useMemo(
     () => [
@@ -39,9 +42,18 @@ export function useSettingsMenuItems(): MenuProps['items'] {
         key: 'signout',
         label: t('common.signOut'),
         icon: <PoweroffOutlined className={styles.menuIcon} />,
-        onClick: () => void navigate({ to: '/' }),
+        onClick: () => {
+          void (async () => {
+            try {
+              await logout();
+            } finally {
+              queryClient.clear();
+              void navigate({ to: '/', search: { signedOut: true } });
+            }
+          })();
+        },
       },
     ],
-    [t, navigate],
+    [t, navigate, queryClient],
   );
 }
