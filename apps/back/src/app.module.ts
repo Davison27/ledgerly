@@ -18,6 +18,7 @@ import { DashboardModule } from './contexts/dashboard/dashboard.module';
 import { DemoModule } from './contexts/demo/demo.module';
 import { StaffModule } from './contexts/staff/staff.module';
 import { ScheduleModule } from './contexts/schedule/schedule.module';
+import { NotificationsModule } from './contexts/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { ScheduleModule } from './contexts/schedule/schedule.module';
     DemoModule,
     StaffModule,
     ScheduleModule,
+    NotificationsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],

@@ -25,6 +25,57 @@
     "newTab": "Nueva pestaña",
     "notifications": "Notificaciones"
   },
+  "notifications": {
+    "title": "Notificaciones",
+    "empty": "No tienes avisos pendientes",
+    "emptyHint": "Aquí aparecerán los vencimientos, caducidades y conflictos",
+    "markAllRead": "Marcar todo como leído",
+    "loadMore": "Ver más",
+    "loadError": "No se pudieron cargar las notificaciones",
+    "severity": {
+      "error": "Urgente",
+      "warning": "Atención",
+      "info": "Información"
+    },
+    "items": {
+      "document_overdue": {
+        "title": "Documento vencido",
+        "description": "{{subject}} venció el {{date}} y sigue pendiente de pago"
+      },
+      "document_due_soon": {
+        "title": "Vencimiento próximo",
+        "description": "{{subject}} vence el {{date}}"
+      },
+      "document_incomplete": {
+        "title": "Factura incompleta",
+        "description": "{{subject}} no tiene número de factura"
+      },
+      "document_duplicate": {
+        "title": "Posible duplicado",
+        "description": "{{subject}} podría estar duplicada"
+      },
+      "document_extraction_failed": {
+        "title": "Extracción fallida",
+        "description": "No se pudo leer {{subject}}: habrá que rellenarla a mano"
+      },
+      "staff_document_expired": {
+        "title": "Documento laboral caducado",
+        "description": "{{subject}} de {{related}} caducó el {{date}}"
+      },
+      "staff_document_expiring": {
+        "title": "Documento laboral por caducar",
+        "description": "{{subject}} de {{related}} caduca el {{date}}"
+      },
+      "schedule_event_upcoming": {
+        "title": "Evento próximo",
+        "description": "{{subject}} está programado para el {{date}}"
+      },
+      "schedule_conflict": {
+        "title": "Conflicto en la agenda",
+        "description": "{{subject}}: {{conflict}}"
+      }
+    }
+  },
   "theme": {
     "toggleLight": "Activar modo claro",
     "toggleDark": "Activar modo oscuro",

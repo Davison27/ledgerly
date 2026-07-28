@@ -42,5 +42,6 @@ import { ListSchedulableProjectsUseCase } from './application/list-schedulable-p
     { provide: SCHEDULE_STAFF_READER, useClass: TypeOrmScheduleStaffReader },
     { provide: SCHEDULE_PRODUCT_READER, useClass: TypeOrmScheduleProductReader },
   ],
+  exports: [GetScheduleBoardUseCase],
 })
 export class ScheduleModule {}

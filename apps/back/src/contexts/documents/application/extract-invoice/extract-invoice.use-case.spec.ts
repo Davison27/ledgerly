@@ -1,9 +1,13 @@
 import { ExtractInvoiceUseCase } from './extract-invoice.use-case';
+import { ExtractInvoiceCommand } from './extract-invoice.command';
 import { PdfReader, PdfReadResult } from '../../domain/extraction/pdf-reader.port';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
 import { FACTURAE_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturae-sample.xml';
 import { FACTURX_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturx-sample.xml';
 import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { DomainEvent } from '../../../../shared/domain/domain-event';
+import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
+import { InvoiceExtractionFailedEvent } from '../../domain/events/invoice-extraction-failed.event';
 
 class FakePdfReader implements PdfReader {
   constructor(private readonly result: PdfReadResult) {}
@@ -20,6 +24,21 @@ class NoHintsRepository implements InvoiceHintRepository {
   delete = () => Promise.resolve();
 }
 
+class FakeDomainEventPublisher implements DomainEventPublisher {
+  published: DomainEvent[] = [];
+
+  publish(events: DomainEvent[]): Promise<void> {
+    this.published.push(...events);
+    return Promise.resolve();
+  }
+
+  register(): void {}
+}
+
+function buildCommand(fileBuffer: Buffer, fileName = 'invoice.pdf'): ExtractInvoiceCommand {
+  return { fileBuffer, fileName, fileSize: fileBuffer.length };
+}
+
 describe('ExtractInvoiceUseCase', () => {
   it('prefers a Facturae attachment over the text layer when both are present', async () => {
     const useCase = new ExtractInvoiceUseCase(
@@ -28,9 +47,10 @@ describe('ExtractInvoiceUseCase', () => {
         attachments: [{ filename: 'facturae.xml', content: Buffer.from(FACTURAE_SAMPLE_XML, 'utf-8') }],
       }),
       new NoHintsRepository(),
+      new FakeDomainEventPublisher(),
     );
 
-    const result = await useCase.execute(Buffer.from('fake-pdf'));
+    const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
 
     expect(result.source).toBe('facturae');
     expect(result.confidence).toBe('high');
@@ -49,9 +69,10 @@ describe('ExtractInvoiceUseCase', () => {
         attachments: [{ filename: 'factur-x.xml', content: Buffer.from(FACTURX_SAMPLE_XML, 'utf-8') }],
       }),
       new NoHintsRepository(),
+      new FakeDomainEventPublisher(),
     );
 
-    const result = await useCase.execute(Buffer.from('fake-pdf'));
+    const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
 
     expect(result.source).toBe('facturx');
     expect(result.confidence).toBe('high');
@@ -66,9 +87,10 @@ describe('ExtractInvoiceUseCase', () => {
         attachments: [],
       }),
       new NoHintsRepository(),
+      new FakeDomainEventPublisher(),
     );
 
-    const result = await useCase.execute(Buffer.from('fake-pdf'));
+    const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
 
     expect(result.source).toBe('heuristic');
     expect(result.confidence).toBe('partial');
@@ -83,24 +105,34 @@ describe('ExtractInvoiceUseCase', () => {
         attachments: [],
       }),
       new NoHintsRepository(),
+      new FakeDomainEventPublisher(),
     );
 
-    const result = await useCase.execute(Buffer.from('fake-pdf'));
+    const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
 
     expect(result.source).toBe('heuristic');
     expect(result.confidence).toBe('low');
   });
 
   it('throws PdfNoTextLayerException when there is no text and no structured attachment', async () => {
+    const publisher = new FakeDomainEventPublisher();
     const useCase = new ExtractInvoiceUseCase(
       new FakePdfReader({
         text: '   \n  ',
         attachments: [],
       }),
       new NoHintsRepository(),
+      publisher,
     );
 
-    await expect(useCase.execute(Buffer.from('fake-pdf'))).rejects.toThrow(PdfNoTextLayerException);
+    await expect(
+      useCase.execute(buildCommand(Buffer.from('fake-pdf'), 'unreadable.pdf')),
+    ).rejects.toThrow(PdfNoTextLayerException);
+
+    expect(publisher.published).toHaveLength(1);
+    const [event] = publisher.published as InvoiceExtractionFailedEvent[];
+    expect(event.name).toBe(InvoiceExtractionFailedEvent.EVENT_NAME);
+    expect(event.fileName).toBe('unreadable.pdf');
   });
 
   it('ignores non-XML / unrelated attachments and falls back to heuristics', async () => {
@@ -110,9 +142,10 @@ describe('ExtractInvoiceUseCase', () => {
         attachments: [{ filename: 'logo.png', content: Buffer.from([0x89, 0x50, 0x4e, 0x47]) }],
       }),
       new NoHintsRepository(),
+      new FakeDomainEventPublisher(),
     );
 
-    const result = await useCase.execute(Buffer.from('fake-pdf'));
+    const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
 
     expect(result.source).toBe('heuristic');
   });
@@ -147,9 +180,10 @@ describe('ExtractInvoiceUseCase', () => {
         attachments: [],
       }),
       new SingleHintRepository(),
+      new FakeDomainEventPublisher(),
     );
 
-    const result = await useCase.execute(Buffer.from('fake-pdf'));
+    const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
 
     expect(result.source).toBe('heuristic');
     expect(result.fields.invoiceNumber).toBe('REF-9');

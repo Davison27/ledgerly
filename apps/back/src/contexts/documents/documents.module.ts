@@ -76,6 +76,6 @@ import { ProjectRepositoryNameProvider } from './infrastructure/projects/project
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },
     { provide: EXTRACTION_OUTCOME_REPOSITORY, useClass: TypeOrmExtractionOutcomeRepository },
   ],
-  exports: [CreateDocumentUseCase, DeleteDocumentUseCase],
+  exports: [CreateDocumentUseCase, DeleteDocumentUseCase, CheckDocumentDuplicateUseCase],
 })
 export class DocumentsModule {}

@@ -18,6 +18,11 @@ import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-p
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
 import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
+import {
+  DOMAIN_EVENT_PUBLISHER,
+  DomainEventPublisher,
+} from '../../../../shared/domain/domain-event-publisher.port';
+import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 import { CreateScheduleEventCommand } from './create-schedule-event.command';
 
 @Injectable()
@@ -33,6 +38,8 @@ export class CreateScheduleEventUseCase {
     private readonly productReader: ScheduleProductReader,
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IdGenerator,
+    @Inject(DOMAIN_EVENT_PUBLISHER)
+    private readonly eventPublisher: DomainEventPublisher,
   ) {}
 
   async execute(command: CreateScheduleEventCommand): Promise<ScheduleEventView> {
@@ -79,6 +86,10 @@ export class CreateScheduleEventUseCase {
     });
 
     await this.scheduleEventRepository.save(event);
+
+    await this.eventPublisher.publish([
+      new ScheduleEventSavedEvent({ eventId: event.id, dates: event.days.map((day) => day.date) }),
+    ]);
 
     return buildScheduleEventViews([event], { projects, staff, products })[0];
   }
