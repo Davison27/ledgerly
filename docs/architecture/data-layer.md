@@ -122,9 +122,22 @@ Claves realmente en el código:
 | `dashboardQueries` (`pages/dashboard/api/dashboard.queries.ts`) | `company(year?)` | `['dashboard', 'company', year ?? null]` | `staleTime: 0`; único agregado de página, no se exporta a nadie |
 | `notificationQueries` (`entities/notification/api/notification.queries.ts`) | `unreadCount()` | `['notifications', 'unread-count']` | `refetchInterval: 5 min`, `refetchOnWindowFocus: true` — ver `docs/architecture/notifications.md` |
 | | `list(size)` | `['notifications', 'list', size]` | `infiniteQueryOptions`, solo se pide con el desplegable de la campana abierto |
+| `workspaceMemberQueries` (`entities/workspace-member/api/workspaceMember.queries.ts`) | `list()` | `['workspace-members', 'list']` | API simulada, ver `docs/architecture/workspace.md` |
+| | `current()` | `['workspace-members', 'current']` | fixture fijo `wm-1`, no hay auth |
+| `integrationQueries` (`entities/integration/api/integration.queries.ts`) | `list()` | `['integrations', 'list']` | API simulada, ver `docs/architecture/workspace.md` |
 
 Cada `all` es la clave raíz de su fila (`['projects']`, `['documents']`, …) y
 es lo que reciben las invalidaciones que quieren refrescar todo el dominio.
+
+`workspaceMemberQueries` e `integrationQueries` siguen exactamente el mismo
+convenio, pero su `queryFn` no llama al backend: resuelve contra un store en
+memoria con latencia simulada (`entities/workspace-member/api/*.fixtures.ts`,
+`entities/integration/api/*.fixtures.ts`, `shared/lib/fakeLatency.ts`). El día
+que exista backend para el espacio de trabajo, solo cambia el cuerpo de
+`entities/workspace-member/api/*.api.ts` y `entities/integration/api/*.api.ts`
+por llamadas reales, y se borran los `*.fixtures.ts` y `fakeLatency.ts`; las
+factorías de queries, los tipos y los componentes no se tocan. Detalle
+completo en `docs/architecture/workspace.md`.
 
 ## Regla M — las mutaciones no pasan a `useMutation`
 
@@ -161,10 +174,12 @@ flujo; el resto del handler no se mueve.
 | Borrar documento de un trabajador | `pages/staff-detail/ui/StaffDocumentsSection.tsx` | `staffQueries.all` |
 | Subir / editar documento de un trabajador | `pages/staff-detail/ui/StaffDocumentUploadModal.tsx`, `StaffDocumentEditModal.tsx` | `staffQueries.all` + `documentQueries.all` |
 | Crear / mover / redimensionar / editar / borrar evento de agenda, asignar personal | `pages/calendar/model/useCalendarBoard.ts` | `scheduleQueries.all` (cubre tablero, eventos y proyectos planificables de una vez) |
-| Guardar ajustes de empresa | `features/company-settings/ui/CompanySettingsModal.tsx` | `companyQueries.singleton().queryKey` |
+| Guardar ajustes de empresa | `pages/workspace/model/useCompanyProfileForm.ts` | `companyQueries.singleton().queryKey` |
 | Completar el asistente de onboarding | `pages/onboarding/ui/OnboardingPage.tsx` | `companyQueries.singleton().queryKey` |
 | Cargar datos de demo en onboarding | `pages/onboarding/ui/OnboardingPage.tsx` | `invalidateQueries()` sin filtro — crea datos de todos los dominios a la vez, es el único sitio donde una invalidación total está justificada |
 | Marcar un aviso / todos como leídos | `widgets/app-layout/model/useNotificationCenter.ts` | `notificationQueries.all` |
+| Invitar / editar acceso / reenviar / (des)activar / expulsar persona del espacio | `pages/workspace/model/useMembersPanel.ts` | `workspaceMemberQueries.all` |
+| Conectar / desconectar / activar / ajustar / probar una integración | `pages/workspace/model/useIntegrationsPanel.tsx` | `integrationQueries.all` |
 
 ## `useCompany()` y el sentinel `EMPTY_COMPANY`
 
