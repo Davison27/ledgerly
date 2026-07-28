@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
+  App,
   Avatar,
   Button,
   Card,
   Dropdown,
   Flex,
   Input,
-  Popconfirm,
   Segmented,
   Select,
   Skeleton,
@@ -33,6 +33,7 @@ import {
   RoleTag,
   countAccess,
   memberInitials,
+  moduleSupportsEdit,
   WORKSPACE_MODULES,
   type WorkspaceMemberDto,
 } from '@/entities/workspace-member';
@@ -47,11 +48,13 @@ import styles from './MembersTab.module.css';
 
 const { Title, Text } = Typography;
 
+const EDITABLE_MODULE_COUNT = WORKSPACE_MODULES.filter(moduleSupportsEdit).length;
+
 function AccessCell({ member }: { member: WorkspaceMemberDto }) {
   const { t } = useTranslation();
   const counts = countAccess(member.permissions);
   const summary =
-    counts.none === 0
+    counts.none === 0 && counts.edit === EDITABLE_MODULE_COUNT
       ? t('workspace.members.accessFull')
       : counts.edit === 0 && counts.view === 0
         ? t('workspace.members.accessNone')
@@ -77,6 +80,7 @@ function AccessCell({ member }: { member: WorkspaceMemberDto }) {
 
 export function MembersTab() {
   const { t, i18n } = useTranslation();
+  const { modal } = App.useApp();
   const {
     loading,
     loadError,
@@ -121,6 +125,28 @@ export function MembersTab() {
     { value: 'invited', label: t('workspace.members.filters.invited') },
   ];
 
+  const confirmDisable = (member: WorkspaceMemberDto) => {
+    modal.confirm({
+      title: t('workspace.members.confirm.disable.title', { name: member.name }),
+      content: t('workspace.members.confirm.disable.description'),
+      okText: t('workspace.members.confirm.disable.ok'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: () => toggleEnabled(member),
+    });
+  };
+
+  const confirmRevoke = (member: WorkspaceMemberDto) => {
+    modal.confirm({
+      title: t('workspace.members.confirm.revoke.title', { name: member.name }),
+      content: t('workspace.members.confirm.revoke.description'),
+      okText: t('workspace.members.confirm.revoke.ok'),
+      cancelText: t('common.cancel'),
+      okButtonProps: { danger: true },
+      onOk: () => revoke(member),
+    });
+  };
+
   const buildActionItems = (member: WorkspaceMemberDto): MenuProps['items'] => {
     const editAllowed = canEditAccess(member);
     const revokeAllowed = canRevoke(member);
@@ -163,18 +189,8 @@ export function MembersTab() {
         key: 'disable',
         danger: true,
         icon: <StopOutlined />,
-        label: (
-          <Popconfirm
-            title={t('workspace.members.confirm.disable.title', { name: member.name })}
-            description={t('workspace.members.confirm.disable.description')}
-            okText={t('workspace.members.confirm.disable.ok')}
-            cancelText={t('common.cancel')}
-            okButtonProps={{ danger: true }}
-            onConfirm={() => void toggleEnabled(member)}
-          >
-            <span onClick={(event) => event.stopPropagation()}>{t('workspace.members.actions.disable')}</span>
-          </Popconfirm>
-        ),
+        label: t('workspace.members.actions.disable'),
+        onClick: () => confirmDisable(member),
       });
     }
 
@@ -184,16 +200,7 @@ export function MembersTab() {
       icon: <UserDeleteOutlined />,
       disabled: !revokeAllowed,
       label: revokeAllowed ? (
-        <Popconfirm
-          title={t('workspace.members.confirm.revoke.title', { name: member.name })}
-          description={t('workspace.members.confirm.revoke.description')}
-          okText={t('workspace.members.confirm.revoke.ok')}
-          cancelText={t('common.cancel')}
-          okButtonProps={{ danger: true }}
-          onConfirm={() => void revoke(member)}
-        >
-          <span onClick={(event) => event.stopPropagation()}>{t('workspace.members.actions.revoke')}</span>
-        </Popconfirm>
+        t('workspace.members.actions.revoke')
       ) : (
         <Tooltip
           title={t(
@@ -203,6 +210,7 @@ export function MembersTab() {
           <span>{t('workspace.members.actions.revoke')}</span>
         </Tooltip>
       ),
+      onClick: revokeAllowed ? () => confirmRevoke(member) : undefined,
     });
 
     return items;
