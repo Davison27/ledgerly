@@ -1,0 +1,9 @@
+.loading {
+  min-height: 100vh;
+  padding: var(--lg-space-xl);
+}
+
+.skeleton {
+  width: 100%;
+  max-width: 480px;
+}

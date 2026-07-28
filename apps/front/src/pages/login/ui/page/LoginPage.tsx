@@ -1,10 +1,11 @@
-import { Button, Flex, Grid, Typography, theme } from 'antd';
+import { Alert, Button, Flex, Form, Grid, Input, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { useNavigate } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { LanguageSwitcher } from '../language/LanguageSwitcher';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { SPACE } from '@/shared/config/theme';
-import { companyNeedsSetup, useCompany } from '@/entities/company';
+import { companyQueries } from '@/entities/company';
+import { useLoginPage } from '../../model/useLoginPage';
 import logoUrl from '../../../../assets/ledgerly-logo.svg';
 import iconUrl from '../../../../assets/ledgerly-icon.svg';
 import styles from './LoginPage.module.css';
@@ -12,20 +13,35 @@ import styles from './LoginPage.module.css';
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
 
+interface BootstrapFormValues {
+  email: string;
+}
+
 export function LoginPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
   const { token } = theme.useToken();
   const colors = useSemanticColors();
   const screens = useBreakpoint();
-  const { company, isLoading: checking } = useCompany();
-  const needsSetup = companyNeedsSetup(company);
-
-  const handleEnter = () => {
-    void navigate({ to: needsSetup ? '/onboarding' : '/dashboard' });
-  };
+  const { data: branding } = useQuery(companyQueries.branding());
+  const [form] = Form.useForm<BootstrapFormValues>();
+  const {
+    status,
+    authError,
+    sessionNotice,
+    bootstrapSubmitting,
+    bootstrapError,
+    setBootstrapEmail,
+    handleBootstrapSubmit,
+    signInSubmitting,
+    handleSignIn,
+  } = useLoginPage();
 
   const showBrandPanel = screens.md ?? true;
+
+  const handleBootstrapFinish = (values: BootstrapFormValues) => {
+    setBootstrapEmail(values.email);
+    void handleBootstrapSubmit();
+  };
 
   return (
     <div className={styles.page}>
@@ -35,7 +51,7 @@ export function LoginPage() {
         </div>
 
         <Flex vertical align="center" gap={20} className={styles.formCard}>
-          <img src={company.logo || logoUrl} alt={t('common.appName')} className={styles.logo} />
+          <img src={branding?.logo || logoUrl} alt={t('common.appName')} className={styles.logo} />
           <Flex vertical align="center" gap={4}>
             <Title level={3} className={styles.title}>
               {t('login.welcome')}
@@ -44,15 +60,75 @@ export function LoginPage() {
               {t('login.subtitle')}
             </Text>
           </Flex>
-          <Button
-            type="primary"
-            size="large"
-            block
-            loading={checking}
-            onClick={handleEnter}
-          >
-            {t('login.signIn')}
-          </Button>
+
+          {authError && (
+            <Alert
+              type="error"
+              showIcon
+              message={t(`login.errors.${authError}`)}
+              className={styles.alert}
+            />
+          )}
+
+          {sessionNotice && (
+            <Alert
+              type="info"
+              showIcon
+              message={t(`session.${sessionNotice}`)}
+              className={styles.alert}
+            />
+          )}
+
+          {status === 'bootstrap' &&
+            (bootstrapError ? (
+              <Alert
+                type="error"
+                showIcon
+                message={t(`login.setup.errors.${bootstrapError}`)}
+                className={styles.alert}
+              />
+            ) : (
+              <Flex vertical gap={12} className={styles.setupPanel}>
+                <Flex vertical gap={4}>
+                  <Text strong>{t('login.setup.title')}</Text>
+                  <Text type="secondary" className={styles.setupSubtitle}>
+                    {t('login.setup.subtitle')}
+                  </Text>
+                </Flex>
+                <Form<BootstrapFormValues>
+                  form={form}
+                  layout="vertical"
+                  requiredMark={false}
+                  onFinish={handleBootstrapFinish}
+                >
+                  <Form.Item
+                    name="email"
+                    label={t('login.setup.emailLabel')}
+                    rules={[{ required: true, type: 'email' }]}
+                  >
+                    <Input type="email" placeholder={t('login.setup.emailPlaceholder')} />
+                  </Form.Item>
+                  <Button type="primary" htmlType="submit" block loading={bootstrapSubmitting}>
+                    {t('login.setup.submit')}
+                  </Button>
+                </Form>
+                <Text type="secondary" className={styles.setupHint}>
+                  {t('login.setup.hint')}
+                </Text>
+              </Flex>
+            ))}
+
+          {(status === 'signIn' || status === 'loading') && (
+            <Button
+              type="primary"
+              size="large"
+              block
+              loading={status === 'loading' || signInSubmitting}
+              onClick={() => void handleSignIn()}
+            >
+              {t('login.signInWithGoogle')}
+            </Button>
+          )}
         </Flex>
       </div>
 

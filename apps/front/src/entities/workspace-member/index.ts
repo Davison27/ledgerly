@@ -3,7 +3,6 @@ export {
   getCurrentWorkspaceMember,
   inviteWorkspaceMember,
   updateWorkspaceMember,
-  resendWorkspaceInvitation,
   revokeWorkspaceMember,
 } from './api/workspaceMembers.api';
 export { WORKSPACE_MODULES } from './api/types';

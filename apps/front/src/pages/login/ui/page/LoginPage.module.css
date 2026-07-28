@@ -43,6 +43,22 @@
   text-align: center;
 }
 
+.alert {
+  width: 100%;
+}
+
+.setupPanel {
+  width: 100%;
+}
+
+.setupSubtitle {
+  text-align: left;
+}
+
+.setupHint {
+  font-size: 12px;
+}
+
 .brandPanel {
   flex: 1 1 55%;
   position: relative;

@@ -19,7 +19,29 @@
     "welcome": "Bienvenido a Ledgerly",
     "subtitle": "Plataforma de gestión",
     "signIn": "Entrar",
-    "tagline": "Gestiona tus proyectos, documentos y finanzas en un solo lugar."
+    "signInWithGoogle": "Continuar con Google",
+    "tagline": "Gestiona tus proyectos, documentos y finanzas en un solo lugar.",
+    "errors": {
+      "accessDenied": "No se ha podido iniciar sesión con esa cuenta. Habla con el administrador del espacio.",
+      "expired": "El enlace ha caducado. Vuelve a intentarlo.",
+      "failed": "No se ha podido iniciar sesión. Vuelve a intentarlo."
+    },
+    "setup": {
+      "title": "Configura el primer administrador",
+      "subtitle": "Introduce el correo de Google que gestionará este espacio.",
+      "emailLabel": "Correo de Google",
+      "emailPlaceholder": "tu-correo@empresa.com",
+      "submit": "Continuar con Google",
+      "hint": "Solo se puede dar de alta una vez. Usa el correo configurado como administrador.",
+      "errors": {
+        "notAllowed": "Este correo no puede dar de alta el espacio, o ya existe un administrador.",
+        "failed": "No se ha podido completar el alta. Inténtalo de nuevo más tarde."
+      }
+    }
+  },
+  "session": {
+    "expired": "Tu sesión ha caducado. Vuelve a iniciar sesión.",
+    "signedOut": "Has cerrado sesión."
   },
   "topbar": {
     "newTab": "Nueva pestaña",
@@ -304,7 +326,6 @@
       },
       "actions": {
         "edit": "Editar acceso",
-        "resend": "Reenviar invitación",
         "disable": "Desactivar",
         "enable": "Reactivar",
         "revoke": "Quitar del espacio"
@@ -324,7 +345,6 @@
       "toast": {
         "invited": "Invitación enviada a {{email}}",
         "updated": "Acceso actualizado",
-        "resent": "Invitación reenviada",
         "disabled": "Persona desactivada",
         "enabled": "Persona reactivada",
         "revoked": "Persona quitada del espacio",
@@ -375,13 +395,11 @@
       },
       "fields": {
         "name": "Nombre",
-        "email": "Email",
-        "message": "Mensaje de la invitación"
+        "email": "Email"
       },
       "placeholders": {
         "name": "Ej. Marta Ruiz",
-        "email": "Ej. marta@empresa.com",
-        "message": "Opcional"
+        "email": "Ej. marta@empresa.com"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio",

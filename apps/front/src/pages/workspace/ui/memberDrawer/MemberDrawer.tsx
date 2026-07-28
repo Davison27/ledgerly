@@ -48,7 +48,7 @@ export function MemberDrawer({ drawer, submitting, onClose, onInvite, onSave }: 
   useEffect(() => {
     if (!drawer) return;
     if (drawer.mode === 'edit') {
-      form.setFieldsValue({ name: drawer.member.name, email: drawer.member.email, message: undefined });
+      form.setFieldsValue({ name: drawer.member.name, email: drawer.member.email });
       setMatrix({ ...drawer.member.permissions });
     } else {
       form.resetFields();
@@ -115,11 +115,6 @@ export function MemberDrawer({ drawer, submitting, onClose, onInvite, onSave }: 
             >
               <Input placeholder={t('workspace.memberDrawer.placeholders.email')} disabled={mode === 'edit'} />
             </Form.Item>
-            {mode === 'invite' && (
-              <Form.Item name="message" label={t('workspace.memberDrawer.fields.message')}>
-                <Input.TextArea rows={3} placeholder={t('workspace.memberDrawer.placeholders.message')} />
-              </Form.Item>
-            )}
           </Form>
         </div>
 

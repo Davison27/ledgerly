@@ -31,7 +31,6 @@ export interface InviteWorkspaceMemberPayload {
   email: string;
   role: WorkspaceRoleDto;
   permissions: PermissionMatrixDto;
-  message?: string;
 }
 
 export interface UpdateWorkspaceMemberPayload {

@@ -1,4 +1,5 @@
 import { API_URL, ApiError, buildQueryString, del, get, patch } from '@/shared/api/httpClient';
+import { csrfHeader, readCsrfToken, CSRF_HEADER_NAME } from '@/shared/api/csrf';
 import { stripEmpty } from '@/shared/api/sanitize';
 import type {
   CreateDocumentPayload,
@@ -73,7 +74,8 @@ export async function createDocument(
 
   const response = await fetch(`${API_URL}/projects/${projectId}/documents`, {
     method: 'POST',
-    headers: { Accept: 'application/json' },
+    credentials: 'include',
+    headers: { Accept: 'application/json', ...csrfHeader() },
     body: formData,
   });
 
@@ -127,6 +129,11 @@ function requestExtraction(
     formData.append('file', file);
 
     xhr.open('POST', url);
+    xhr.withCredentials = true;
+    const csrfToken = readCsrfToken();
+    if (csrfToken) {
+      xhr.setRequestHeader(CSRF_HEADER_NAME, csrfToken);
+    }
     xhr.responseType = 'text';
 
     if (onProgress) {

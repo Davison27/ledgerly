@@ -1,4 +1,5 @@
 import { API_URL } from '../config/config';
+import { csrfHeader } from './csrf';
 
 export class ApiError extends Error {
   readonly status: number;
@@ -31,11 +32,24 @@ function messageFromBody(body: unknown): string | undefined {
   return undefined;
 }
 
+const UNSAFE_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
+
+type UnauthorizedHandler = () => void;
+
+let unauthorizedHandler: UnauthorizedHandler | undefined;
+
+export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
+  unauthorizedHandler = handler;
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const method = (init?.method ?? 'GET').toUpperCase();
   const response = await fetch(`${API_URL}${path}`, {
     ...init,
+    credentials: 'include',
     headers: {
       Accept: 'application/json',
+      ...(UNSAFE_METHODS.has(method) ? csrfHeader() : {}),
       ...(init?.headers ?? {}),
     },
   });
@@ -43,6 +57,9 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await parseBody(response);
 
   if (!response.ok) {
+    if (response.status === 401) {
+      unauthorizedHandler?.();
+    }
     throw new ApiError(response.status, body, messageFromBody(body));
   }
 

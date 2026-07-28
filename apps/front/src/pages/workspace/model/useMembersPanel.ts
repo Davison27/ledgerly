@@ -3,9 +3,9 @@ import type { FormInstance } from 'antd';
 import { App } from 'antd';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
+import { ApiError } from '@/shared/api/httpClient';
 import {
   inviteWorkspaceMember,
-  resendWorkspaceInvitation,
   revokeWorkspaceMember,
   updateWorkspaceMember,
   workspaceMemberQueries,
@@ -27,7 +27,6 @@ export type MembersDrawerState =
 export interface MemberFormValues {
   name: string;
   email: string;
-  message?: string;
 }
 
 export interface MembersStats {
@@ -72,7 +71,6 @@ export interface UseMembersPanelResult {
     role: WorkspaceRoleDto,
     permissions: PermissionMatrixDto,
   ) => Promise<void>;
-  resend: (member: WorkspaceMemberDto) => Promise<void>;
   toggleEnabled: (member: WorkspaceMemberDto) => Promise<void>;
   revoke: (member: WorkspaceMemberDto) => Promise<void>;
   refetch: () => void;
@@ -142,6 +140,14 @@ export function useMembersPanel(): UseMembersPanelResult {
 
   const invalidateMembers = () => queryClient.invalidateQueries({ queryKey: workspaceMemberQueries.all });
 
+  const guardErrorMessage = (error: unknown): string | null => {
+    if (!(error instanceof ApiError) || error.status !== 422) return null;
+    const code = (error.body as { code?: string } | undefined)?.code;
+    if (code === 'SELF_ACCESS_CHANGE') return t('workspace.members.guard.self');
+    if (code === 'LAST_ADMIN') return t('workspace.members.guard.lastAdmin');
+    return null;
+  };
+
   const invite = async (
     values: MemberFormValues,
     role: WorkspaceRoleDto,
@@ -156,7 +162,7 @@ export function useMembersPanel(): UseMembersPanelResult {
       void message.success(t('workspace.members.toast.invited', { email: payload.email }));
       closeDrawer();
     } catch (error) {
-      if (error instanceof Error && error.message === 'email_taken') {
+      if (error instanceof ApiError && error.status === 409) {
         form.setFields([
           { name: 'email', errors: [t('workspace.memberDrawer.validation.emailTaken')] },
         ]);
@@ -180,23 +186,10 @@ export function useMembersPanel(): UseMembersPanelResult {
       await invalidateMembers();
       void message.success(t('workspace.members.toast.updated'));
       closeDrawer();
-    } catch {
-      void message.error(t('workspace.members.toast.error'));
+    } catch (error) {
+      void message.error(guardErrorMessage(error) ?? t('workspace.members.toast.error'));
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const resend = async (member: WorkspaceMemberDto) => {
-    setBusyId(member.id);
-    try {
-      await resendWorkspaceInvitation(member.id);
-      await invalidateMembers();
-      void message.success(t('workspace.members.toast.resent'));
-    } catch {
-      void message.error(t('workspace.members.toast.error'));
-    } finally {
-      setBusyId(null);
     }
   };
 
@@ -209,8 +202,8 @@ export function useMembersPanel(): UseMembersPanelResult {
       void message.success(
         t(nextStatus === 'disabled' ? 'workspace.members.toast.disabled' : 'workspace.members.toast.enabled'),
       );
-    } catch {
-      void message.error(t('workspace.members.toast.error'));
+    } catch (error) {
+      void message.error(guardErrorMessage(error) ?? t('workspace.members.toast.error'));
     } finally {
       setBusyId(null);
     }
@@ -222,8 +215,8 @@ export function useMembersPanel(): UseMembersPanelResult {
       await revokeWorkspaceMember(member.id);
       await invalidateMembers();
       void message.success(t('workspace.members.toast.revoked'));
-    } catch {
-      void message.error(t('workspace.members.toast.error'));
+    } catch (error) {
+      void message.error(guardErrorMessage(error) ?? t('workspace.members.toast.error'));
     } finally {
       setBusyId(null);
     }
@@ -255,7 +248,6 @@ export function useMembersPanel(): UseMembersPanelResult {
     revokeBlockReason,
     invite,
     saveAccess,
-    resend,
     toggleEnabled,
     revoke,
     refetch: () => void refetch(),

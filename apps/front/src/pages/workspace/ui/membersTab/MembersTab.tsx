@@ -22,7 +22,6 @@ import {
   CheckCircleOutlined,
   EditOutlined,
   MoreOutlined,
-  SendOutlined,
   StopOutlined,
   TeamOutlined,
   UserAddOutlined,
@@ -105,7 +104,6 @@ export function MembersTab() {
     revokeBlockReason,
     invite,
     saveAccess,
-    resend,
     toggleEnabled,
     revoke,
     refetch,
@@ -167,15 +165,6 @@ export function MembersTab() {
         onClick: editAllowed ? () => openEdit(member) : undefined,
       },
     ];
-
-    if (member.status === 'invited') {
-      items.push({
-        key: 'resend',
-        icon: <SendOutlined />,
-        label: t('workspace.members.actions.resend'),
-        onClick: () => void resend(member),
-      });
-    }
 
     if (member.status === 'disabled') {
       items.push({

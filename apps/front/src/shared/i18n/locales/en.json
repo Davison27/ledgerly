@@ -19,7 +19,29 @@
     "welcome": "Welcome to Ledgerly",
     "subtitle": "Management platform",
     "signIn": "Sign in",
-    "tagline": "Manage your projects, documents and finances in one place."
+    "signInWithGoogle": "Continue with Google",
+    "tagline": "Manage your projects, documents and finances in one place.",
+    "errors": {
+      "accessDenied": "We couldn't sign you in with that account. Contact your workspace admin.",
+      "expired": "That link has expired. Please try again.",
+      "failed": "We couldn't sign you in. Please try again."
+    },
+    "setup": {
+      "title": "Set up the first administrator",
+      "subtitle": "Enter the Google account that will manage this workspace.",
+      "emailLabel": "Google email",
+      "emailPlaceholder": "you@company.com",
+      "submit": "Continue with Google",
+      "hint": "This can only be done once. Use the email configured as the administrator.",
+      "errors": {
+        "notAllowed": "This email can't set up the workspace, or an administrator already exists.",
+        "failed": "We couldn't complete the setup. Please try again later."
+      }
+    }
+  },
+  "session": {
+    "expired": "Your session has expired. Please sign in again.",
+    "signedOut": "You've been signed out."
   },
   "topbar": {
     "newTab": "New tab",
@@ -304,7 +326,6 @@
       },
       "actions": {
         "edit": "Edit access",
-        "resend": "Resend invitation",
         "disable": "Deactivate",
         "enable": "Reactivate",
         "revoke": "Remove from workspace"
@@ -324,7 +345,6 @@
       "toast": {
         "invited": "Invitation sent to {{email}}",
         "updated": "Access updated",
-        "resent": "Invitation resent",
         "disabled": "Person deactivated",
         "enabled": "Person reactivated",
         "revoked": "Person removed from the workspace",
@@ -375,13 +395,11 @@
       },
       "fields": {
         "name": "Name",
-        "email": "Email",
-        "message": "Invitation message"
+        "email": "Email"
       },
       "placeholders": {
         "name": "E.g. Marta Ruiz",
-        "email": "E.g. marta@company.com",
-        "message": "Optional"
+        "email": "E.g. marta@company.com"
       },
       "validation": {
         "nameRequired": "The name is required",

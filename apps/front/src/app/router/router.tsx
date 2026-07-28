@@ -6,6 +6,7 @@ import {
 
 import { AppShell } from './AppShell';
 import { RootLayout } from './RootLayout';
+import { SessionGuard } from '@/widgets/app-layout';
 import { LoginPage } from '@/pages/login';
 import { OnboardingPage } from '@/pages/onboarding';
 import { DashboardPage } from '@/pages/dashboard';
@@ -21,24 +22,43 @@ import { StaffPage } from '@/pages/staff';
 import { StaffMemberDetailPage } from '@/pages/staff-detail';
 import { WorkspacePage, type WorkspaceTab } from '@/pages/workspace';
 
+interface LoginSearch {
+  authError?: string;
+  sessionExpired?: boolean;
+  signedOut?: boolean;
+}
+
 const rootRoute = createRootRoute({ component: RootLayout });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    authError: typeof search.authError === 'string' ? search.authError : undefined,
+    sessionExpired: search.sessionExpired === true ? true : undefined,
+    signedOut: search.signedOut === true ? true : undefined,
+  }),
   component: LoginPage,
 });
 
 const onboardingRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/onboarding',
-  component: OnboardingPage,
+  component: () => (
+    <SessionGuard>
+      <OnboardingPage />
+    </SessionGuard>
+  ),
 });
 
 const appLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: '_app',
-  component: AppShell,
+  component: () => (
+    <SessionGuard>
+      <AppShell />
+    </SessionGuard>
+  ),
 });
 
 const dashboardRoute = createRoute({
