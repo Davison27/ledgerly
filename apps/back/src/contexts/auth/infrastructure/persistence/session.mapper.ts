@@ -2,19 +2,6 @@ import { Session } from '../../domain/session';
 import { SessionOrmEntity } from './session.orm-entity';
 
 export class SessionMapper {
-  static toDomain(orm: SessionOrmEntity): Session {
-    return Session.fromPrimitives({
-      id: orm.id,
-      memberId: orm.memberId,
-      tokenHash: orm.tokenHash,
-      csrfHash: orm.csrfHash,
-      createdAt: orm.createdAt,
-      lastSeenAt: orm.lastSeenAt,
-      expiresAt: orm.expiresAt,
-      revokedAt: orm.revokedAt,
-    });
-  }
-
   static toOrm(session: Session): SessionOrmEntity {
     const orm = new SessionOrmEntity();
     const primitives = session.toPrimitives();

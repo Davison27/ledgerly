@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Session } from '../../domain/session';
 import { SessionRepository, SessionWithMember } from '../../domain/session.repository';
 import { WorkspaceMember, WorkspaceMemberStatus } from '../../domain/workspace-member';
+import { SessionMapper } from './session.mapper';
 import { SessionOrmEntity } from './session.orm-entity';
 import { WorkspaceMemberOrmEntity } from './workspace-member.orm-entity';
 
@@ -94,19 +95,7 @@ export class TypeOrmSessionRepository implements SessionRepository {
   }
 
   async save(session: Session): Promise<void> {
-    const primitives = session.toPrimitives();
-    const orm = new SessionOrmEntity();
-
-    orm.id = primitives.id;
-    orm.memberId = primitives.memberId;
-    orm.tokenHash = primitives.tokenHash;
-    orm.csrfHash = primitives.csrfHash;
-    orm.createdAt = primitives.createdAt;
-    orm.lastSeenAt = primitives.lastSeenAt;
-    orm.expiresAt = primitives.expiresAt;
-    orm.revokedAt = primitives.revokedAt;
-
-    await this.repository.save(orm);
+    await this.repository.save(SessionMapper.toOrm(session));
   }
 
   async revokeById(id: string, at: Date): Promise<void> {

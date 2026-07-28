@@ -6,18 +6,6 @@ import { LoginAttemptRepository } from '../../domain/login-attempt.repository';
 import { LoginAttemptMapper } from './login-attempt.mapper';
 import { LoginAttemptOrmEntity } from './login-attempt.orm-entity';
 
-interface ConsumedLoginAttemptRow {
-  id: string;
-  transaction_hash: string;
-  state_hash: string;
-  code_verifier: string;
-  nonce: string;
-  redirect_to: string;
-  created_at: Date;
-  expires_at: Date;
-  consumed_at: Date | null;
-}
-
 @Injectable()
 export class TypeOrmLoginAttemptRepository implements LoginAttemptRepository {
   constructor(
@@ -30,11 +18,20 @@ export class TypeOrmLoginAttemptRepository implements LoginAttemptRepository {
   }
 
   async consumeByTransactionHash(transactionHash: string, now: Date): Promise<LoginAttempt | null> {
-    const rows = await this.repository.query<ConsumedLoginAttemptRow[]>(
+    const rows = await this.repository.query<LoginAttemptOrmEntity[]>(
       `UPDATE "oauth_login_attempts"
        SET "consumed_at" = $1
        WHERE "transaction_hash" = $2 AND "consumed_at" IS NULL
-       RETURNING *`,
+       RETURNING
+         "id",
+         "transaction_hash" AS "transactionHash",
+         "state_hash" AS "stateHash",
+         "code_verifier" AS "codeVerifier",
+         "nonce",
+         "redirect_to" AS "redirectTo",
+         "created_at" AS "createdAt",
+         "expires_at" AS "expiresAt",
+         "consumed_at" AS "consumedAt"`,
       [now, transactionHash],
     );
 
@@ -44,17 +41,7 @@ export class TypeOrmLoginAttemptRepository implements LoginAttemptRepository {
       return null;
     }
 
-    return LoginAttempt.fromPrimitives({
-      id: row.id,
-      transactionHash: row.transaction_hash,
-      stateHash: row.state_hash,
-      codeVerifier: row.code_verifier,
-      nonce: row.nonce,
-      redirectTo: row.redirect_to,
-      createdAt: row.created_at,
-      expiresAt: row.expires_at,
-      consumedAt: row.consumed_at,
-    });
+    return LoginAttemptMapper.toDomain(row);
   }
 
   async deleteExpired(now: Date): Promise<number> {
