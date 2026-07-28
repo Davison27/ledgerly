@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
@@ -25,7 +26,6 @@ import {
   type InvoiceDto,
 } from '@/entities/invoice';
 import { documentQueries } from '@/entities/document';
-import { CompanySettingsModal } from '@/features/company-settings';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
@@ -39,6 +39,7 @@ const { Text } = Typography;
 export function InvoicesPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
+  const navigate = useNavigate();
   const { company } = useCompany();
   const queryClient = useQueryClient();
   const {
@@ -49,7 +50,6 @@ export function InvoicesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [companySettingsOpen, setCompanySettingsOpen] = useState(false);
 
   const companyIncomplete = companyNeedsSetup(company) || !company.taxId;
 
@@ -188,7 +188,10 @@ export function InvoicesPage() {
           showIcon
           message={t('invoices.companyIncomplete')}
           action={
-            <Button size="small" onClick={() => setCompanySettingsOpen(true)}>
+            <Button
+              size="small"
+              onClick={() => void navigate({ to: '/workspace', search: { tab: 'company' } })}
+            >
               {t('company.settings.title')}
             </Button>
           }
@@ -227,11 +230,6 @@ export function InvoicesPage() {
         onCancel={handleCancelForm}
         onSubmit={handleSubmit}
         submitting={submitting}
-      />
-
-      <CompanySettingsModal
-        open={companySettingsOpen}
-        onClose={() => setCompanySettingsOpen(false)}
       />
     </PageContainer>
   );

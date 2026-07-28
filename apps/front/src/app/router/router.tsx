@@ -19,6 +19,7 @@ import { InvoicesPage } from '@/pages/invoices';
 import { ProductsPage } from '@/pages/products';
 import { StaffPage } from '@/pages/staff';
 import { StaffMemberDetailPage } from '@/pages/staff-detail';
+import { WorkspacePage, type WorkspaceTab } from '@/pages/workspace';
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -106,6 +107,15 @@ const staffMemberDetailRoute = createRoute({
   component: StaffMemberDetailPage,
 });
 
+const workspaceRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/workspace',
+  validateSearch: (search: Record<string, unknown>): { tab: WorkspaceTab } => ({
+    tab: search.tab === 'members' || search.tab === 'integrations' ? search.tab : 'company',
+  }),
+  component: WorkspacePage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   onboardingRoute,
@@ -121,6 +131,7 @@ const routeTree = rootRoute.addChildren([
     productsRoute,
     staffRoute,
     staffMemberDetailRoute,
+    workspaceRoute,
   ]),
 ]);
 
