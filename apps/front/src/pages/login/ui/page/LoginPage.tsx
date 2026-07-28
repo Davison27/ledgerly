@@ -1,4 +1,5 @@
 import { Alert, Button, Flex, Form, Grid, Input, Typography, theme } from 'antd';
+import { GoogleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { LanguageSwitcher } from '../language/LanguageSwitcher';
@@ -123,6 +124,7 @@ export function LoginPage() {
               type="primary"
               size="large"
               block
+              icon={<GoogleOutlined />}
               loading={status === 'loading' || signInSubmitting}
               onClick={() => void handleSignIn()}
             >

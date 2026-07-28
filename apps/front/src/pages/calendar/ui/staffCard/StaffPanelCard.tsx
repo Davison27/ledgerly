@@ -10,8 +10,8 @@ export interface StaffPanelCardProps {
 
 export function StaffPanelCard({ staffMember }: StaffPanelCardProps) {
   return (
-    <Flex vertical align="center" gap={4} className={styles.card}>
-      <StaffAvatar staffMember={staffMember} size={48} />
+    <Flex vertical align="center" gap={2} className={styles.card}>
+      <StaffAvatar staffMember={staffMember} size={40} />
       <Text ellipsis className={styles.name}>
         {staffMember.firstName} {staffMember.lastName}
       </Text>
