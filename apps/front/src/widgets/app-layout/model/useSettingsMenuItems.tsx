@@ -1,28 +1,33 @@
 import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
-import { App, type MenuProps } from 'antd';
-import { BulbOutlined, IdcardOutlined, PoweroffOutlined, ShopOutlined } from '@ant-design/icons';
+import { type MenuProps } from 'antd';
+import { ApiOutlined, BulbOutlined, PoweroffOutlined, ShopOutlined, TeamOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import styles from './useSettingsMenuItems.module.css';
 
-export interface UseSettingsMenuItemsParams {
-  onCompanySettings: () => void;
-}
-
-export function useSettingsMenuItems({
-  onCompanySettings,
-}: UseSettingsMenuItemsParams): MenuProps['items'] {
+export function useSettingsMenuItems(): MenuProps['items'] {
   const { t } = useTranslation();
-  const { message } = App.useApp();
   const navigate = useNavigate();
 
   return useMemo(
     () => [
       {
         key: 'company',
-        label: t('company.settings.title'),
+        label: t('workspace.tabs.company'),
         icon: <ShopOutlined className={styles.menuIcon} />,
-        onClick: onCompanySettings,
+        onClick: () => void navigate({ to: '/workspace', search: { tab: 'company' } }),
+      },
+      {
+        key: 'members',
+        label: t('workspace.tabs.members'),
+        icon: <TeamOutlined className={styles.menuIcon} />,
+        onClick: () => void navigate({ to: '/workspace', search: { tab: 'members' } }),
+      },
+      {
+        key: 'integrations',
+        label: t('workspace.tabs.integrations'),
+        icon: <ApiOutlined className={styles.menuIcon} />,
+        onClick: () => void navigate({ to: '/workspace', search: { tab: 'integrations' } }),
       },
       {
         key: 'extraction-hints',
@@ -31,18 +36,12 @@ export function useSettingsMenuItems({
         onClick: () => void navigate({ to: '/extraction-hints' }),
       },
       {
-        key: 'profile',
-        label: t('common.profile'),
-        icon: <IdcardOutlined className={styles.menuIcon} />,
-        onClick: () => void message.info(t('common.comingSoon')),
-      },
-      {
         key: 'signout',
         label: t('common.signOut'),
         icon: <PoweroffOutlined className={styles.menuIcon} />,
         onClick: () => void navigate({ to: '/' }),
       },
     ],
-    [t, navigate, message, onCompanySettings],
+    [t, navigate],
   );
 }

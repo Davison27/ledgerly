@@ -1,0 +1,27 @@
+.card {
+  height: 100%;
+}
+
+.icon {
+  background: var(--ant-color-fill-tertiary);
+  color: var(--ant-color-primary);
+  flex-shrink: 0;
+}
+
+.body {
+  min-width: 0;
+}
+
+.name {
+  min-width: 0;
+}
+
+.errorLine {
+  color: var(--ant-color-error);
+}
+
+.footer {
+  margin-top: var(--lg-space-md);
+  padding-top: var(--lg-space-sm);
+  border-top: 1px solid var(--ant-color-border-secondary);
+}

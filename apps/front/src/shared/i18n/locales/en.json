@@ -93,7 +93,8 @@
   },
   "sider": {
     "collapse": "Collapse menu",
-    "expand": "Expand menu"
+    "expand": "Expand menu",
+    "workspace": "Go to the workspace"
   },
   "dashboard": {
     "title": "Dashboard",
@@ -246,6 +247,309 @@
         "urlInvalid": "Enter a valid URL"
       },
       "error": "The company could not be updated. Please try again."
+    }
+  },
+  "workspace": {
+    "title": "Workspace",
+    "subtitle": "Company details, people with access and integrations",
+    "tabs": {
+      "company": "Company",
+      "members": "Users and permissions",
+      "integrations": "Integrations"
+    },
+    "company": {
+      "identity": "Identity and branding",
+      "unsaved": "You have unsaved changes",
+      "discard": "Discard changes",
+      "loadError": "Company details could not be loaded"
+    },
+    "members": {
+      "title": "People with access",
+      "subtitle": "Invite your team and decide what each person can see and edit",
+      "invite": "Invite person",
+      "searchPlaceholder": "Search by name or email",
+      "filters": {
+        "allRoles": "All roles",
+        "all": "All",
+        "active": "Active",
+        "invited": "Pending"
+      },
+      "stats": {
+        "active": "Active",
+        "pending": "Pending invitations",
+        "admins": "Administrators"
+      },
+      "columns": {
+        "member": "Person",
+        "role": "Role",
+        "access": "Access",
+        "status": "Status",
+        "lastActive": "Last active"
+      },
+      "you": "You",
+      "neverActive": "No activity yet",
+      "accessSummary": "{{edit}} edit · {{view}} view",
+      "accessFull": "Full access",
+      "accessNone": "No access",
+      "empty": "Nobody else is in this workspace yet",
+      "emptyHint": "Invite your team to share the work",
+      "noResults": "No person matches the filter",
+      "noResultsHint": "Try another name or clear the filters",
+      "loadError": "Workspace members could not be loaded",
+      "retry": "Retry",
+      "status": {
+        "active": "Active",
+        "invited": "Invitation pending",
+        "disabled": "Deactivated"
+      },
+      "actions": {
+        "edit": "Edit access",
+        "resend": "Resend invitation",
+        "disable": "Deactivate",
+        "enable": "Reactivate",
+        "revoke": "Remove from workspace"
+      },
+      "confirm": {
+        "revoke": {
+          "title": "Remove {{name}} from the workspace?",
+          "description": "They lose access immediately. You can invite them again later.",
+          "ok": "Remove"
+        },
+        "disable": {
+          "title": "Deactivate {{name}}?",
+          "description": "They will not be able to sign in until you reactivate them.",
+          "ok": "Deactivate"
+        }
+      },
+      "toast": {
+        "invited": "Invitation sent to {{email}}",
+        "updated": "Access updated",
+        "resent": "Invitation resent",
+        "disabled": "Person deactivated",
+        "enabled": "Person reactivated",
+        "revoked": "Person removed from the workspace",
+        "error": "The action could not be completed. Try again."
+      },
+      "guard": {
+        "lastAdmin": "The workspace needs at least one administrator",
+        "self": "You cannot change your own access"
+      }
+    },
+    "roles": {
+      "admin": {
+        "name": "Administrator",
+        "description": "Full access, including workspace settings, people and integrations"
+      },
+      "editor": {
+        "name": "Editor",
+        "description": "Creates and edits day-to-day work; does not manage the workspace"
+      },
+      "viewer": {
+        "name": "Viewer",
+        "description": "Read-only; cannot change anything"
+      },
+      "custom": {
+        "name": "Custom",
+        "description": "Permissions tuned module by module"
+      }
+    },
+    "permissions": {
+      "title": "Permissions by module",
+      "hint": "Pick a role as a preset and fine-tune it module by module",
+      "module": "Module",
+      "levels": {
+        "none": "No access",
+        "view": "View",
+        "edit": "Edit"
+      },
+      "applyAll": "Apply to every module",
+      "editUnsupported": "This module is read-only",
+      "ariaLabel": "Permission for {{module}}"
+    },
+    "memberDrawer": {
+      "inviteTitle": "Invite to the workspace",
+      "editTitle": "{{name}}'s access",
+      "sections": {
+        "person": "Person",
+        "role": "Role"
+      },
+      "fields": {
+        "name": "Name",
+        "email": "Email",
+        "message": "Invitation message"
+      },
+      "placeholders": {
+        "name": "E.g. Marta Ruiz",
+        "email": "E.g. marta@company.com",
+        "message": "Optional"
+      },
+      "validation": {
+        "nameRequired": "The name is required",
+        "emailRequired": "The email is required",
+        "emailInvalid": "Enter a valid email",
+        "emailTaken": "That person is already in the workspace"
+      },
+      "emailLocked": "The email cannot be changed",
+      "submitInvite": "Send invitation",
+      "submitEdit": "Save access"
+    },
+    "integrations": {
+      "title": "Integrations",
+      "subtitle": "Connect Ledgerly with the tools you already use",
+      "searchPlaceholder": "Search integration",
+      "filters": {
+        "all": "All"
+      },
+      "families": {
+        "google": {
+          "name": "Google Workspace",
+          "description": "Calendar, files and mail from your Google account"
+        },
+        "microsoft": {
+          "name": "Microsoft 365",
+          "description": "Outlook, OneDrive and Excel through Microsoft Graph"
+        },
+        "communication": {
+          "name": "Communication",
+          "description": "Get Ledgerly alerts in your team's channel"
+        },
+        "open": {
+          "name": "Open standards",
+          "description": "Vendor-free: webhooks, ICS, SMTP and API keys"
+        }
+      },
+      "status": {
+        "connected": "Connected",
+        "disconnected": "Not connected",
+        "error": "Error"
+      },
+      "actions": {
+        "connect": "Connect",
+        "reconnect": "Reconnect",
+        "disconnect": "Disconnect",
+        "configure": "Configure",
+        "test": "Test connection",
+        "copy": "Copy"
+      },
+      "enabledLabel": "Enabled",
+      "connectedAs": "Connected as {{account}}",
+      "lastSync": "Last sync {{when}}",
+      "neverSynced": "Never synced",
+      "empty": "No integration matches the filter",
+      "emptyHint": "Try another term or clear the filters",
+      "loadError": "Integrations could not be loaded",
+      "errors": {
+        "token_expired": "The authorisation expired; connect again",
+        "revoked": "Access was revoked from the provider",
+        "rate_limited": "The provider is rate limiting requests",
+        "unreachable": "The provider could not be reached"
+      },
+      "confirm": {
+        "disconnect": {
+          "title": "Disconnect {{name}}?",
+          "description": "Ledgerly will stop syncing with this service. Data already synced is kept.",
+          "ok": "Disconnect"
+        }
+      },
+      "toast": {
+        "connected": "{{name}} connected",
+        "disconnected": "{{name}} disconnected",
+        "saved": "Settings saved",
+        "tested": "The connection works",
+        "testFailed": "The test failed",
+        "copied": "Copied to clipboard",
+        "error": "The action could not be completed"
+      },
+      "drawer": {
+        "connection": "Connection",
+        "settings": "Settings",
+        "connectedSince": "Connected since {{date}}",
+        "notConnected": "Connect the service to configure it"
+      },
+      "fields": {
+        "calendar": "Target calendar",
+        "folder": "Archive folder",
+        "spreadsheet": "Spreadsheet",
+        "mailbox": "Mailbox",
+        "label": "Label",
+        "channel": "Channel",
+        "chatId": "Chat ID",
+        "webhookUrl": "Webhook URL",
+        "feedUrl": "Calendar URL",
+        "events": "Events to send",
+        "host": "Host",
+        "port": "Port",
+        "username": "Username",
+        "password": "Password",
+        "security": "Security",
+        "apiKey": "API key",
+        "syncDirection": "Sync direction",
+        "contactGroup": "Contact group",
+        "autoArchive": "Archive documents automatically",
+        "notifyOnError": "Notify errors too"
+      },
+      "catalog": {
+        "google-calendar": {
+          "name": "Google Calendar",
+          "description": "Pushes the project schedule into a Google calendar"
+        },
+        "google-drive": {
+          "name": "Google Drive",
+          "description": "Archives uploaded documents into a Drive folder"
+        },
+        "gmail": {
+          "name": "Gmail",
+          "description": "Pulls supplier invoices from a mailbox label"
+        },
+        "google-sheets": {
+          "name": "Google Sheets",
+          "description": "Exports invoices and expenses to a spreadsheet"
+        },
+        "google-contacts": {
+          "name": "Google Contacts",
+          "description": "Keeps suppliers in sync with your contacts"
+        },
+        "outlook-calendar": {
+          "name": "Outlook Calendar",
+          "description": "Publishes the schedule to the Outlook calendar"
+        },
+        "onedrive": {
+          "name": "OneDrive",
+          "description": "Archives documents into a OneDrive folder"
+        },
+        "excel-online": {
+          "name": "Excel",
+          "description": "Dumps reports into an online Excel workbook"
+        },
+        "slack": {
+          "name": "Slack",
+          "description": "Sends Ledgerly alerts to a Slack channel"
+        },
+        "telegram": {
+          "name": "Telegram",
+          "description": "Receives alerts in a Telegram chat"
+        },
+        "discord": {
+          "name": "Discord",
+          "description": "Posts alerts to a Discord channel"
+        },
+        "outgoing-webhooks": {
+          "name": "Outgoing webhooks",
+          "description": "Sends every event to the URL you choose"
+        },
+        "calendar-feed": {
+          "name": "ICS / CalDAV feed",
+          "description": "Publishes the schedule as a subscribable calendar"
+        },
+        "smtp-imap": {
+          "name": "SMTP / IMAP",
+          "description": "Use your own mail server to send and fetch"
+        },
+        "api-keys": {
+          "name": "API keys",
+          "description": "Give programmatic access to Ledgerly from your scripts"
+        }
+      }
     }
   },
   "projects": {

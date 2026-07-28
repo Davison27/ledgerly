@@ -1,9 +1,3 @@
-.body {
-  max-height: 80vh;
-  overflow-y: auto;
-  padding-top: var(--lg-space-xs);
-}
-
 .logoField {
   margin-bottom: var(--lg-space-xs);
 }
@@ -32,11 +26,6 @@
 
 .resetButton {
   padding: 0;
-}
-
-.sectionDivider {
-  margin-top: 6px;
-  margin-bottom: var(--lg-space-md);
 }
 
 .tightItem {

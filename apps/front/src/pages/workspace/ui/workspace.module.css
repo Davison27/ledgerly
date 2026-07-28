@@ -1,0 +1,34 @@
+.tabBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-lg);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lg-space-sm);
+}
+
+.sectionGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-lg);
+}
+
+.actionBar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--lg-space-md);
+  padding-top: var(--lg-space-lg);
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.statStrip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lg-space-md);
+}

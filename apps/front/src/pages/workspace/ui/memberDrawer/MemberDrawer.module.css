@@ -1,0 +1,32 @@
+.sectionTitle {
+  display: block;
+  margin-bottom: var(--lg-space-sm);
+}
+
+.form {
+  margin-top: var(--lg-space-xs);
+}
+
+.roleGroup {
+  display: block;
+  width: 100%;
+}
+
+.roleCard {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--lg-space-sm);
+  padding: var(--lg-space-sm) var(--lg-space-md);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius);
+  cursor: pointer;
+}
+
+.roleCard[data-active='true'] {
+  border-color: var(--ant-color-primary);
+  background: var(--ant-color-primary-bg);
+}
+
+.roleRadio {
+  margin-top: 2px;
+}
