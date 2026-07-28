@@ -16,7 +16,6 @@
 .row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: var(--lg-space-md);
   padding: var(--lg-space-sm) 0;
   border-bottom: 1px solid var(--ant-color-border-secondary);
@@ -27,6 +26,7 @@
 }
 
 .moduleLabel {
+  flex: 0 0 auto;
   min-width: 140px;
 }
 
@@ -36,7 +36,9 @@
 }
 
 .segmented {
-  max-width: 320px;
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 420px;
 }
 
 @media (max-width: 575px) {
@@ -47,6 +49,7 @@
   }
 
   .segmented {
+    flex: 0 0 auto;
     max-width: none;
   }
 }
