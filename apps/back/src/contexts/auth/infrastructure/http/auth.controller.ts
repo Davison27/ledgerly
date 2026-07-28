@@ -68,6 +68,7 @@ export class AuthController {
   @Public()
   @Throttle({ default: { limit: 10, ttl: 60_000 } })
   @Post('google/start')
+  @HttpCode(HttpStatus.OK)
   @Header('Cache-Control', 'no-store')
   async startGoogleLogin(
     @Body() dto: StartGoogleLoginDto,
