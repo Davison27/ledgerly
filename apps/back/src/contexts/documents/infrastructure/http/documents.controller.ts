@@ -23,6 +23,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListDocumentsUseCase } from '../../application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from '../../application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from '../../application/create-document/create-document.use-case';
@@ -41,6 +42,7 @@ import { ListDocumentsQueryDto } from './dtos/list-documents.query.dto';
 import { DocumentResponse } from './document.response';
 import { isValidPdfFile, MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
 
+@RequiresAccess('documents', 'view')
 @Controller('projects/:projectId/documents')
 export class DocumentsController {
   private readonly logger = new Logger(DocumentsController.name);
@@ -79,6 +81,7 @@ export class DocumentsController {
     return documents.map((document) => DocumentResponse.fromDomain(document));
   }
 
+  @RequiresAccess('documents', 'edit')
   @Post()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
@@ -201,6 +204,7 @@ export class DocumentsController {
     return dto;
   }
 
+  @RequiresAccess('documents', 'edit')
   @Post('extract')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
@@ -248,6 +252,7 @@ export class DocumentsController {
     return DocumentResponse.fromDomain(document);
   }
 
+  @RequiresAccess('documents', 'edit')
   @Patch(':id')
   async update(@Param('id') id: string, @Body() dto: UpdateDocumentDto): Promise<DocumentResponse> {
     const updated = await this.updateDocumentUseCase.execute({
@@ -314,6 +319,7 @@ export class DocumentsController {
     }
   }
 
+  @RequiresAccess('documents', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

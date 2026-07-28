@@ -1,4 +1,5 @@
 import { Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
+import { Authenticated } from '../../../../shared/infrastructure/http/access/authenticated.decorator';
 import { ListNotificationsUseCase } from '../../application/list-notifications/list-notifications.use-case';
 import { CountUnreadNotificationsUseCase } from '../../application/count-unread-notifications/count-unread-notifications.use-case';
 import { MarkNotificationReadUseCase } from '../../application/mark-notification-read/mark-notification-read.use-case';
@@ -6,6 +7,7 @@ import { MarkAllNotificationsReadUseCase } from '../../application/mark-all-noti
 import { ListNotificationsQueryDto } from './dtos/list-notifications.query.dto';
 import { NotificationPageResponse } from './notification-page.response';
 
+@Authenticated()
 @Controller('notifications')
 export class NotificationsController {
   constructor(

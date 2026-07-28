@@ -8,6 +8,9 @@ import { AppService } from './app.service';
 import { envValidationSchema } from './config/env-validation.schema';
 import { typeOrmConfig } from './database/typeorm.config';
 import { SharedModule } from './shared/shared.module';
+import { AccessGuard } from './shared/infrastructure/http/access/access.guard';
+import { OriginGuard } from './shared/infrastructure/http/access/origin.guard';
+import { AuthModule } from './contexts/auth/auth.module';
 import { CompanyModule } from './contexts/company/company.module';
 import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
@@ -26,6 +29,7 @@ import { NotificationsModule } from './contexts/notifications/notifications.modu
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 300 }]),
     TypeOrmModule.forRootAsync(typeOrmConfig),
     SharedModule,
+    AuthModule,
     CompanyModule,
     ProjectsModule,
     DocumentsModule,
@@ -39,6 +43,11 @@ import { NotificationsModule } from './contexts/notifications/notifications.modu
     NotificationsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: OriginGuard },
+    { provide: APP_GUARD, useClass: AccessGuard },
+  ],
 })
 export class AppModule {}

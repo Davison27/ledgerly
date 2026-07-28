@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListProductsUseCase } from '../../application/list-products/list-products.use-case';
 import { CreateProductUseCase } from '../../application/create-product/create-product.use-case';
 import { UpdateProductUseCase } from '../../application/update-product/update-product.use-case';
@@ -16,6 +17,7 @@ import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { ProductResponse } from './product.response';
 
+@RequiresAccess('products', 'view')
 @Controller('products')
 export class ProductsController {
   constructor(
@@ -32,6 +34,7 @@ export class ProductsController {
     return products.map((product) => ProductResponse.fromDomain(product));
   }
 
+  @RequiresAccess('products', 'edit')
   @Post()
   @HttpCode(201)
   async create(@Body() dto: CreateProductDto): Promise<ProductResponse> {
@@ -44,6 +47,7 @@ export class ProductsController {
     return ProductResponse.fromDomain(product);
   }
 
+  @RequiresAccess('products', 'edit')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -59,6 +63,7 @@ export class ProductsController {
     return ProductResponse.fromDomain(product);
   }
 
+  @RequiresAccess('products', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {
