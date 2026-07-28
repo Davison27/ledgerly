@@ -1,0 +1,16 @@
+.statCard {
+  flex: 1 1 200px;
+}
+
+.searchInput {
+  flex: 1 1 240px;
+  min-width: 200px;
+}
+
+.roleFilter {
+  width: 200px;
+}
+
+.inviteButton {
+  margin-left: auto;
+}
