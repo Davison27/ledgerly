@@ -1,0 +1,33 @@
+.logoField {
+  margin-bottom: var(--lg-space-xs);
+}
+
+.logoPreview {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.logoPlaceholderIcon {
+  font-size: 20px;
+}
+
+.logoPlaceholderText {
+  margin-top: var(--lg-space-sm);
+}
+
+.hint {
+  font-size: 11px;
+}
+
+.brandColorField {
+  margin-bottom: var(--lg-space-xs);
+}
+
+.resetButton {
+  padding: 0;
+}
+
+.tightItem {
+  margin-bottom: 0;
+}
