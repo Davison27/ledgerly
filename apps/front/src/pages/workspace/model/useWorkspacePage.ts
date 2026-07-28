@@ -20,8 +20,7 @@ export function useWorkspacePage(): UseWorkspacePageResult {
   const tab: WorkspaceTab = isWorkspaceTab(search.tab) ? search.tab : 'company';
 
   const setTab = (nextTab: WorkspaceTab) => {
-    const options = { to: '/workspace', search: { tab: nextTab }, replace: true };
-    void navigate(options as unknown as Parameters<typeof navigate>[0]);
+    void navigate({ to: '/workspace', search: { tab: nextTab }, replace: true });
   };
 
   return { tab, setTab };

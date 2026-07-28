@@ -24,6 +24,18 @@
   object-fit: contain;
 }
 
+.logoButton {
+  height: auto;
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.logoButton:focus-visible {
+  outline: 2px solid var(--ant-color-primary);
+  outline-offset: 2px;
+}
+
 .menu {
   flex: 1;
   min-height: 0;

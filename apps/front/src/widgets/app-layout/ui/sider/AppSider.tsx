@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography } from 'antd';
 import {
@@ -16,7 +16,6 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany, type Company } from '@/entities/company';
-import { CompanySettingsModal } from '@/features/company-settings';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { useSettingsMenuItems } from '../../model/useSettingsMenuItems';
 import logoUrl from '@/assets/ledgerly-logo.svg';
@@ -75,11 +74,9 @@ export function AppSider({
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const selectedKey = getSelectedKey(pathname);
   const { company } = useCompany();
-  const [companyModalOpen, setCompanyModalOpen] = useState(false);
   const collapseLabel = collapsed ? t('sider.expand') : t('sider.collapse');
-  const settingsItems = useSettingsMenuItems({
-    onCompanySettings: () => setCompanyModalOpen(true),
-  });
+  const workspaceLabel = t('sider.workspace');
+  const settingsItems = useSettingsMenuItems();
 
   const items = useMemo(
     () => [
@@ -154,9 +151,17 @@ export function AppSider({
           data-collapsed={collapsed}
           className={styles.header}
         >
-          <div>
-            <img src={collapsed ? iconUrl : logoUrl} alt={t('common.appName')} className={styles.logo} />
-          </div>
+          <Tooltip title={workspaceLabel} placement={collapsed ? 'right' : 'bottom'}>
+            <Button
+              type="text"
+              aria-label={workspaceLabel}
+              className={styles.logoButton}
+              data-active={pathname.startsWith('/workspace') || undefined}
+              onClick={() => void navigate({ to: '/workspace', search: { tab: 'company' } })}
+            >
+              <img src={collapsed ? iconUrl : logoUrl} alt="" className={styles.logo} />
+            </Button>
+          </Tooltip>
 
           <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
             <Button
@@ -208,8 +213,6 @@ export function AppSider({
           )}
         </div>
       </Flex>
-
-      <CompanySettingsModal open={companyModalOpen} onClose={() => setCompanyModalOpen(false)} />
     </Layout.Sider>
   );
 }
