@@ -7,7 +7,13 @@ import { applyHints } from '../../domain/extraction/hints/hint-anchor';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
 import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
+import {
+  DOMAIN_EVENT_PUBLISHER,
+  DomainEventPublisher,
+} from '../../../../shared/domain/domain-event-publisher.port';
+import { InvoiceExtractionFailedEvent } from '../../domain/events/invoice-extraction-failed.event';
 import { ExtractedInvoiceResult, ExtractionConfidence, ExtractionSource } from './extracted-invoice';
+import { ExtractInvoiceCommand } from './extract-invoice.command';
 
 function buildSuggestedName(fields: InvoiceFields): string | undefined {
   const parts = [fields.issuerName, fields.invoiceNumber].filter(
@@ -48,10 +54,11 @@ export class ExtractInvoiceUseCase {
   constructor(
     @Inject(PDF_READER) private readonly pdfReader: PdfReader,
     @Inject(INVOICE_HINT_REPOSITORY) private readonly hintRepository: InvoiceHintRepository,
+    @Inject(DOMAIN_EVENT_PUBLISHER) private readonly eventPublisher: DomainEventPublisher,
   ) {}
 
-  async execute(pdf: Buffer): Promise<ExtractedInvoiceResult> {
-    const { text, attachments } = await this.pdfReader.read(pdf);
+  async execute(command: ExtractInvoiceCommand): Promise<ExtractedInvoiceResult> {
+    const { text, attachments } = await this.pdfReader.read(command.fileBuffer);
 
     const structuredResult = this.tryStructuredExtraction(attachments);
     if (structuredResult) {
@@ -59,6 +66,10 @@ export class ExtractInvoiceUseCase {
     }
 
     if (text.trim().length === 0) {
+      await this.eventPublisher.publish([
+        new InvoiceExtractionFailedEvent({ fileName: command.fileName, fileSize: command.fileSize }),
+      ]);
+
       throw new PdfNoTextLayerException();
     }
 

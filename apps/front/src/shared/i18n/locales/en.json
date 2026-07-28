@@ -25,6 +25,57 @@
     "newTab": "New tab",
     "notifications": "Notifications"
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "You have no pending alerts",
+    "emptyHint": "Due dates, expirations and conflicts will show up here",
+    "markAllRead": "Mark all as read",
+    "loadMore": "Load more",
+    "loadError": "Notifications could not be loaded",
+    "severity": {
+      "error": "Urgent",
+      "warning": "Attention",
+      "info": "Information"
+    },
+    "items": {
+      "document_overdue": {
+        "title": "Overdue document",
+        "description": "{{subject}} was due on {{date}} and is still unpaid"
+      },
+      "document_due_soon": {
+        "title": "Payment due soon",
+        "description": "{{subject}} is due on {{date}}"
+      },
+      "document_incomplete": {
+        "title": "Incomplete invoice",
+        "description": "{{subject}} has no invoice number"
+      },
+      "document_duplicate": {
+        "title": "Possible duplicate",
+        "description": "{{subject}} may be a duplicate"
+      },
+      "document_extraction_failed": {
+        "title": "Extraction failed",
+        "description": "{{subject}} could not be read: it will need to be filled in manually"
+      },
+      "staff_document_expired": {
+        "title": "Expired staff document",
+        "description": "{{related}}'s {{subject}} expired on {{date}}"
+      },
+      "staff_document_expiring": {
+        "title": "Staff document expiring",
+        "description": "{{related}}'s {{subject}} expires on {{date}}"
+      },
+      "schedule_event_upcoming": {
+        "title": "Upcoming event",
+        "description": "{{subject}} is scheduled for {{date}}"
+      },
+      "schedule_conflict": {
+        "title": "Schedule conflict",
+        "description": "{{subject}}: {{conflict}}"
+      }
+    }
+  },
   "theme": {
     "toggleLight": "Switch to light mode",
     "toggleDark": "Switch to dark mode",
