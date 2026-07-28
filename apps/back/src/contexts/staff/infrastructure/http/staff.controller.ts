@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListStaffMembersUseCase } from '../../application/list-staff-members/list-staff-members.use-case';
 import { GetStaffMemberUseCase } from '../../application/get-staff-member/get-staff-member.use-case';
 import { CreateStaffMemberUseCase } from '../../application/create-staff-member/create-staff-member.use-case';
@@ -17,6 +18,7 @@ import { CreateStaffMemberDto } from './dtos/create-staff-member.dto';
 import { UpdateStaffMemberDto } from './dtos/update-staff-member.dto';
 import { StaffMemberResponse } from './staff-member.response';
 
+@RequiresAccess('staff', 'view')
 @Controller('staff')
 export class StaffController {
   constructor(
@@ -34,6 +36,7 @@ export class StaffController {
     return staffMembers.map((staffMember) => StaffMemberResponse.fromDomain(staffMember));
   }
 
+  @RequiresAccess('staff', 'edit')
   @Post()
   @HttpCode(201)
   async create(@Body() dto: CreateStaffMemberDto): Promise<StaffMemberResponse> {
@@ -59,6 +62,7 @@ export class StaffController {
     return StaffMemberResponse.fromDomain(staffMember);
   }
 
+  @RequiresAccess('staff', 'edit')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -80,6 +84,7 @@ export class StaffController {
     return StaffMemberResponse.fromDomain(staffMember);
   }
 
+  @RequiresAccess('staff', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

@@ -14,4 +14,19 @@ export const envValidationSchema = Joi.object({
   DB_NAME: Joi.string().required(),
   DB_USER: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
+
+  GOOGLE_CLIENT_ID: Joi.string().required(),
+  GOOGLE_CLIENT_SECRET: Joi.string().required(),
+  BOOTSTRAP_ADMIN_EMAIL: Joi.string().email().required(),
+  BACKEND_PUBLIC_URL: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.string().uri().required(),
+    otherwise: Joi.string().uri().default('http://localhost:3005'),
+  }),
+  COOKIE_SECURE: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.boolean().valid(true).required(),
+    otherwise: Joi.boolean().default(false),
+  }),
+  TRUST_PROXY: Joi.boolean().default(false),
 });

@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListSuppliersUseCase } from '../../application/list-suppliers/list-suppliers.use-case';
 import { GetSupplierUseCase } from '../../application/get-supplier/get-supplier.use-case';
 import { CreateSupplierUseCase } from '../../application/create-supplier/create-supplier.use-case';
@@ -17,6 +18,7 @@ import { CreateSupplierDto } from './dtos/create-supplier.dto';
 import { UpdateSupplierDto } from './dtos/update-supplier.dto';
 import { SupplierResponse } from './supplier.response';
 
+@RequiresAccess('suppliers', 'view')
 @Controller('suppliers')
 export class SuppliersController {
   constructor(
@@ -34,6 +36,7 @@ export class SuppliersController {
     return suppliers.map((supplier) => SupplierResponse.fromDomain(supplier));
   }
 
+  @RequiresAccess('suppliers', 'edit')
   @Post()
   @HttpCode(201)
   async create(@Body() dto: CreateSupplierDto): Promise<SupplierResponse> {
@@ -57,6 +60,7 @@ export class SuppliersController {
     return SupplierResponse.fromDomain(supplier);
   }
 
+  @RequiresAccess('suppliers', 'edit')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -76,6 +80,7 @@ export class SuppliersController {
     return SupplierResponse.fromDomain(supplier);
   }
 
+  @RequiresAccess('suppliers', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

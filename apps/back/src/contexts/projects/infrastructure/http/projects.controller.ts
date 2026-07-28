@@ -8,6 +8,7 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListProjectsUseCase } from '../../application/list-projects/list-projects.use-case';
 import { GetProjectUseCase } from '../../application/get-project/get-project.use-case';
 import { CreateProjectUseCase } from '../../application/create-project/create-project.use-case';
@@ -18,6 +19,7 @@ import { UpdateProjectDto } from './dtos/update-project.dto';
 import { ProjectResponse } from './project.response';
 import { ProjectSummaryResponse } from './project-summary.response';
 
+@RequiresAccess('projects', 'view')
 @Controller('projects')
 export class ProjectsController {
   constructor(
@@ -35,6 +37,7 @@ export class ProjectsController {
     return summaries.map((summary) => ProjectSummaryResponse.fromSummary(summary));
   }
 
+  @RequiresAccess('projects', 'edit')
   @Post()
   @HttpCode(201)
   async create(@Body() dto: CreateProjectDto): Promise<ProjectResponse> {
@@ -70,6 +73,7 @@ export class ProjectsController {
     return ProjectResponse.fromDomain(project);
   }
 
+  @RequiresAccess('projects', 'edit')
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -101,6 +105,7 @@ export class ProjectsController {
     return ProjectResponse.fromDomain(project);
   }
 
+  @RequiresAccess('projects', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

@@ -21,6 +21,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListStaffDocumentsUseCase } from '../../application/list-staff-documents/list-staff-documents.use-case';
 import { CreateStaffDocumentUseCase } from '../../application/create-staff-document/create-staff-document.use-case';
 import { UpdateStaffDocumentUseCase } from '../../application/update-staff-document/update-staff-document.use-case';
@@ -34,6 +35,7 @@ import { isValidStaffDocumentFile, STAFF_DOCUMENT_MIME_TYPES } from './staff-doc
 
 const MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
+@RequiresAccess('staff', 'view')
 @Controller('staff/:staffMemberId/documents')
 export class StaffDocumentsController {
   constructor(
@@ -54,6 +56,7 @@ export class StaffDocumentsController {
     return documents.map((document) => StaffDocumentResponse.fromDomain(document));
   }
 
+  @RequiresAccess('staff', 'edit')
   @Post()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
@@ -137,6 +140,7 @@ export class StaffDocumentsController {
     return new StreamableFile(file.content);
   }
 
+  @RequiresAccess('staff', 'edit')
   @Patch(':documentId')
   async update(
     @Param('documentId') documentId: string,
@@ -153,6 +157,7 @@ export class StaffDocumentsController {
     return StaffDocumentResponse.fromDomain(updated);
   }
 
+  @RequiresAccess('staff', 'edit')
   @Delete(':documentId')
   @HttpCode(204)
   async remove(@Param('documentId') documentId: string): Promise<void> {

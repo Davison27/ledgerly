@@ -10,6 +10,7 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListAllDocumentsUseCase } from '../../application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from '../../application/check-document-duplicate/check-document-duplicate.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
@@ -20,6 +21,7 @@ import { DocumentListItemResponse } from './document-list-item.response';
 import { DocumentDuplicateCheckResponse } from './document-duplicate.response';
 import { isValidPdfFile, MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
 
+@RequiresAccess('documents', 'view')
 @Controller('documents')
 export class DocumentsGlobalController {
   constructor(
@@ -61,6 +63,7 @@ export class DocumentsGlobalController {
     return documents.map((document) => DocumentListItemResponse.fromResult(document));
   }
 
+  @RequiresAccess('documents', 'edit')
   @Post('extract')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(

@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, HttpCode, Param, Patch, Post, Query } from '@nestjs/common';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { GetScheduleBoardUseCase } from '../../application/get-schedule-board/get-schedule-board.use-case';
 import { ListScheduleEventsUseCase } from '../../application/list-schedule-events/list-schedule-events.use-case';
 import { CreateScheduleEventUseCase } from '../../application/create-schedule-event/create-schedule-event.use-case';
@@ -13,6 +14,7 @@ import { ScheduleEventResponse } from './schedule-event.response';
 import { ScheduleBoardResponse } from './schedule-board.response';
 import { SchedulableProjectResponse } from './schedulable-project.response';
 
+@RequiresAccess('calendar', 'view')
 @Controller('schedule')
 export class ScheduleController {
   constructor(
@@ -43,6 +45,7 @@ export class ScheduleController {
     return views.map((view) => ScheduleEventResponse.fromView(view));
   }
 
+  @RequiresAccess('calendar', 'edit')
   @Post('events')
   @HttpCode(201)
   async create(@Body() dto: CreateScheduleEventDto): Promise<ScheduleEventResponse> {
@@ -58,6 +61,7 @@ export class ScheduleController {
     return ScheduleEventResponse.fromView(view);
   }
 
+  @RequiresAccess('calendar', 'edit')
   @Patch('events/:id')
   async update(
     @Param('id') id: string,
@@ -76,6 +80,7 @@ export class ScheduleController {
     return ScheduleEventResponse.fromView(view);
   }
 
+  @RequiresAccess('calendar', 'edit')
   @Delete('events/:id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {

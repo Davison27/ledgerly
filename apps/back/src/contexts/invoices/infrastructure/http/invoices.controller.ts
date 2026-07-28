@@ -11,6 +11,7 @@ import {
   StreamableFile,
 } from '@nestjs/common';
 import type { Response } from 'express';
+import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListInvoicesUseCase } from '../../application/list-invoices/list-invoices.use-case';
 import { GetInvoiceUseCase } from '../../application/get-invoice/get-invoice.use-case';
 import { CreateInvoiceUseCase } from '../../application/create-invoice/create-invoice.use-case';
@@ -28,6 +29,7 @@ function todayIso(): string {
   return `${year}-${month}-${day}`;
 }
 
+@RequiresAccess('invoices', 'view')
 @Controller('invoices')
 export class InvoicesController {
   constructor(
@@ -45,6 +47,7 @@ export class InvoicesController {
     return invoices.map((invoice) => InvoiceResponse.fromDomain(invoice));
   }
 
+  @RequiresAccess('invoices', 'edit')
   @Post()
   @HttpCode(201)
   async create(@Body() dto: CreateInvoiceDto): Promise<InvoiceResponse> {
@@ -85,6 +88,7 @@ export class InvoicesController {
     return new StreamableFile(file.content);
   }
 
+  @RequiresAccess('invoices', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(@Param('id') id: string): Promise<void> {
