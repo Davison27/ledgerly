@@ -62,7 +62,7 @@ export class StaffDocumentsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      limits: { fileSize: MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES },
+      limits: { fileSize: MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES, files: 1, fields: 1, parts: 3, fieldSize: 64 * 1024 },
     }),
   )
   async create(
@@ -114,7 +114,7 @@ export class StaffDocumentsController {
     const errors = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
 
     if (errors.length > 0) {
-      throw new BadRequestException(errors);
+      throw new BadRequestException('payload is invalid');
     }
 
     return dto;

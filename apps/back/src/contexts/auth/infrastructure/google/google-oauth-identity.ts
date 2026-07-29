@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { CodeChallengeMethod, GenerateAuthUrlOpts, OAuth2Client } from 'google-auth-library';
+import { CodeChallengeMethod, Credentials, GenerateAuthUrlOpts, LoginTicket, OAuth2Client } from 'google-auth-library';
 import {
   GoogleAuthorizationUrlParams,
   GoogleIdentity,
@@ -12,6 +12,7 @@ export const GOOGLE_LOGIN_SCOPES = ['openid', 'email', 'profile'];
 
 @Injectable()
 export class GoogleOAuthIdentity implements GoogleIdentity {
+  private readonly logger = new Logger(GoogleOAuthIdentity.name);
   private readonly client: OAuth2Client;
 
   constructor(private readonly configService: ConfigService) {
@@ -50,16 +51,36 @@ export class GoogleOAuthIdentity implements GoogleIdentity {
   }
 
   async exchangeCode(code: string, verifier: string): Promise<GoogleIdentityResult> {
-    const { tokens } = await this.client.getToken({ code, codeVerifier: verifier });
+    let tokens: Credentials;
+
+    try {
+      ({ tokens } = await this.client.getToken({ code, codeVerifier: verifier }));
+    } catch (error) {
+      this.logger.error(
+        'Google rejected the authorization code exchange',
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
+    }
 
     if (!tokens.id_token) {
       throw new Error('google token exchange did not return an id_token');
     }
 
-    const ticket = await this.client.verifyIdToken({
-      idToken: tokens.id_token,
-      audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
-    });
+    let ticket: LoginTicket;
+
+    try {
+      ticket = await this.client.verifyIdToken({
+        idToken: tokens.id_token,
+        audience: this.configService.get<string>('GOOGLE_CLIENT_ID'),
+      });
+    } catch (error) {
+      this.logger.error(
+        'Google ID token verification failed',
+        error instanceof Error ? error.stack : String(error),
+      );
+      throw error;
+    }
 
     const payload = ticket.getPayload();
 

@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: ${DB_NAME}
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
@@ -29,6 +31,9 @@ services:
     init: true
     security_opt:
       - no-new-privileges:true
+    networks:
+      - proxy
+      - data
 
   front:
     build:
@@ -42,6 +47,8 @@ services:
     init: true
     security_opt:
       - no-new-privileges:true
+    networks:
+      - proxy
 
   caddy:
     image: caddy:2.11-alpine
@@ -60,6 +67,8 @@ services:
     depends_on:
       - back
       - front
+    networks:
+      - proxy
 
   migrator:
     image: ledgerly-back:local
@@ -70,8 +79,15 @@ services:
       postgres:
         condition: service_healthy
     command: ["./node_modules/.bin/typeorm", "migration:run", "-d", "dist/database/data-source.js"]
+    networks:
+      - data
 
 volumes:
   pgdata:
   caddy_data:
   caddy_config:
+
+networks:
+  proxy:
+  data:
+    internal: true
