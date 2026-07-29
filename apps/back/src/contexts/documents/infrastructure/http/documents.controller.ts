@@ -87,7 +87,7 @@ export class DocumentsController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      limits: { fileSize: MAX_PDF_FILE_SIZE_BYTES },
+      limits: { fileSize: MAX_PDF_FILE_SIZE_BYTES, files: 1, fields: 1, parts: 3, fieldSize: 64 * 1024 },
     }),
   )
   async create(
@@ -198,7 +198,7 @@ export class DocumentsController {
     const errors = await validate(dto, { whitelist: true, forbidNonWhitelisted: true });
 
     if (errors.length > 0) {
-      throw new BadRequestException(errors);
+      throw new BadRequestException('payload is invalid');
     }
 
     return dto;
@@ -239,7 +239,8 @@ export class DocumentsController {
     }
 
     res.set({
-      'Content-Disposition': `inline; filename="${file.fileName}"`,
+      'Cache-Control': 'no-store',
+      'Content-Disposition': `inline; filename*=UTF-8''${encodeURIComponent(file.fileName)}`,
     });
 
     return new StreamableFile(file.content);
