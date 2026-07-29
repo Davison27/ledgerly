@@ -69,7 +69,7 @@ export class DocumentsGlobalController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: memoryStorage(),
-      limits: { fileSize: MAX_PDF_FILE_SIZE_BYTES },
+      limits: { fileSize: MAX_PDF_FILE_SIZE_BYTES, files: 1, fields: 0, parts: 2 },
     }),
   )
   async extract(@UploadedFile() file?: Express.Multer.File): Promise<ExtractedInvoiceResult> {

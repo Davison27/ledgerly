@@ -5,7 +5,7 @@ export const envValidationSchema = Joi.object({
   PORT: Joi.number().default(3000),
   FRONTEND_URL: Joi.when('NODE_ENV', {
     is: 'production',
-    then: Joi.string().uri().required(),
+    then: Joi.string().uri({ scheme: ['https'] }).required(),
     otherwise: Joi.string().uri().default('http://localhost:5173'),
   }),
 
@@ -20,7 +20,7 @@ export const envValidationSchema = Joi.object({
   BOOTSTRAP_ADMIN_EMAIL: Joi.string().email().required(),
   BACKEND_PUBLIC_URL: Joi.when('NODE_ENV', {
     is: 'production',
-    then: Joi.string().uri().required(),
+    then: Joi.string().uri({ scheme: ['https'] }).required(),
     otherwise: Joi.string().uri().default('http://localhost:3005'),
   }),
   COOKIE_SECURE: Joi.when('NODE_ENV', {
@@ -28,5 +28,9 @@ export const envValidationSchema = Joi.object({
     then: Joi.boolean().valid(true).required(),
     otherwise: Joi.boolean().default(false),
   }),
-  TRUST_PROXY: Joi.boolean().default(false),
+  TRUST_PROXY: Joi.when('NODE_ENV', {
+    is: 'production',
+    then: Joi.boolean().valid(true).required(),
+    otherwise: Joi.boolean().default(false),
+  }),
 });

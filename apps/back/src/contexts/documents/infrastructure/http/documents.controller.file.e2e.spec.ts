@@ -293,7 +293,8 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(response.headers['content-type']).toContain('application/pdf');
-      expect(response.headers['content-disposition']).toBe('inline; filename="invoice.pdf"');
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(response.headers['content-disposition']).toBe("inline; filename*=UTF-8''invoice.pdf");
       expect(Buffer.compare(response.body as Buffer, pdf)).toBe(0);
       expect(getFileExecute).toHaveBeenCalledWith('doc-1');
     });

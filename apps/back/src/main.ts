@@ -2,21 +2,28 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './shared/infrastructure/http/domain-exception.filter';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const isProduction = process.env.NODE_ENV === 'production';
 
   app.use(
     helmet({
       crossOriginResourcePolicy: { policy: 'cross-origin' },
+      frameguard: { action: 'sameorigin' },
       referrerPolicy: { policy: 'no-referrer' },
     }),
   );
 
   app.use(cookieParser());
+  app.use((_req: Request, res: Response, next: NextFunction) => {
+    res.setHeader('Cache-Control', 'no-store');
+    next();
+  });
 
   if (process.env.TRUST_PROXY === 'true') {
     app.set('trust proxy', 1);
@@ -36,6 +43,7 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      disableErrorMessages: isProduction,
     }),
   );
 
