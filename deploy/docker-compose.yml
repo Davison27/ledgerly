@@ -1,0 +1,77 @@
+name: ledgerly
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  back:
+    build:
+      context: ..
+      dockerfile: apps/back/Dockerfile
+    image: ledgerly-back:local
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  front:
+    build:
+      context: ..
+      dockerfile: apps/front/Dockerfile
+    image: ledgerly-front:local
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
+  caddy:
+    image: caddy:2.11-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      LEDGERLY_DOMAIN: ${LEDGERLY_DOMAIN}
+      ACME_EMAIL: ${ACME_EMAIL}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - back
+      - front
+
+  migrator:
+    image: ledgerly-back:local
+    pull_policy: never
+    profiles: [tools]
+    env_file: .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["./node_modules/.bin/typeorm", "migration:run", "-d", "dist/database/data-source.js"]
+
+volumes:
+  pgdata:
+  caddy_data:
+  caddy_config:

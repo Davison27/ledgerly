@@ -284,6 +284,13 @@ ahora vive bajo **Google Auth Platform**, con cuatro secciones.
      habitual (`redirect_uri_mismatch`) si no coincide carácter a carácter.
 4. Copiar el **Client ID** y el **Client secret** generados.
 
+En producción, con front y API bajo el mismo dominio
+(`docs/architecture/deployment.md`), los dos valores del cliente OAuth
+cambian de forma simétrica: origen `https://<dominio>` y redirección
+`https://<dominio>/api/auth/google/callback`. No hace falta calcularlos a
+mano: `make setup` los imprime ya resueltos con el dominio introducido, justo
+antes de pedir el client ID y el secreto.
+
 ### 2. Variables de entorno nuevas (`apps/back/.env`)
 
 | Variable | Valor en local |
@@ -299,7 +306,10 @@ ahora vive bajo **Google Auth Platform**, con cuatro secciones.
 cambian. En producción: `COOKIE_SECURE=true` (Joi lo exige a partir de
 `NODE_ENV=production`), `BACKEND_PUBLIC_URL` con `https://…`,
 `TRUST_PROXY=true` si hay proxy delante, y una segunda credencial de Google
-con las URIs de producción.
+con las URIs de producción. Ahí no se editan estas variables a mano:
+`make setup` las escribe en `deploy/.env` a partir de las respuestas de la
+instalación, y `make configure` las cambia después (ver
+`docs/architecture/deployment.md`).
 
 ### 3. Orden de arranque, la primera vez
 
@@ -337,3 +347,6 @@ sirviendo tráfico igualmente.
   real.
 - `docs/architecture/data-layer.md` — `sessionQueries` y
   `companyQueries.branding()`.
+- `docs/architecture/deployment.md` — instalación en un VPS: qué pregunta
+  `make setup`, diagnóstico con `make doctor` y cómo `make configure` cambia
+  el dominio o las credenciales de Google sin reconstruir nada.

@@ -1,0 +1,15 @@
+node_modules
+**/node_modules
+dist
+**/dist
+.git
+.turbo
+**/.turbo
+docs
+coverage
+**/.env
+**/.env.*
+deploy/backups
+deploy/.state
+*.log
+.claude

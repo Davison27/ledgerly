@@ -1,0 +1,16 @@
+{
+	email {$ACME_EMAIL}
+}
+
+{$LEDGERLY_DOMAIN} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy back:3000
+	}
+
+	handle {
+		header Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		reverse_proxy front:8080
+	}
+}
