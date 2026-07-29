@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Header, HttpCode, HttpStatus, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, Header, HttpCode, HttpStatus, Logger, Post, Query, Req, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Throttle } from '@nestjs/throttler';
 import type { Request, Response } from 'express';
@@ -33,6 +33,8 @@ type AuthErrorCode = 'access_denied' | 'expired' | 'failed';
 
 @Controller('auth')
 export class AuthController {
+  private readonly logger = new Logger(AuthController.name);
+
   constructor(
     private readonly getAuthStatusUseCase: GetAuthStatusUseCase,
     private readonly bootstrapFirstAdminUseCase: BootstrapFirstAdminUseCase,
@@ -100,6 +102,7 @@ export class AuthController {
     const existingSessionToken = this.readCookie(req, SESSION_COOKIE_NAME);
 
     if (!code || !state || !transactionToken) {
+      this.logger.warn(`Google OAuth callback is incomplete: code=${Boolean(code)} state=${Boolean(state)} transaction=${Boolean(transactionToken)}`);
       clearOAuthCookie(res, secure);
       res.redirect(HttpStatus.FOUND, `${frontendUrl}/?authError=failed`);
       return;
@@ -117,6 +120,10 @@ export class AuthController {
       setSessionCookies(res, secure, result.sessionToken, result.csrfToken);
       res.redirect(HttpStatus.FOUND, `${frontendUrl}${result.redirectTo}`);
     } catch (error) {
+      this.logger.error(
+        'Google OAuth callback failed',
+        error instanceof Error ? error.stack : String(error),
+      );
       clearOAuthCookie(res, secure);
       res.redirect(HttpStatus.FOUND, `${frontendUrl}/?authError=${this.resolveAuthErrorCode(error)}`);
     }
