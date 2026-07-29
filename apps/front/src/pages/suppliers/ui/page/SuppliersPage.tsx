@@ -21,6 +21,7 @@ import {
   type SupplierDto,
 } from '@/entities/supplier';
 import { ApiError } from '@/shared/api/httpClient';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { SupplierFormModal, type SupplierFormValues } from '../form/SupplierFormModal';
@@ -38,6 +39,8 @@ export function SuppliersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<SupplierDto | null>(null);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('suppliers', 'edit');
 
   const handleAdd = () => {
     setEditingSupplier(null);
@@ -120,12 +123,12 @@ export function SuppliersPage() {
       width: 160,
       render: (phone: string | null | undefined) => phone || '—',
     },
-    {
+    ...(canEdit ? [{
       title: t('suppliers.columns.actions'),
       key: 'actions',
       width: 120,
-      align: 'center',
-      render: (_, record) => (
+      align: 'center' as const,
+      render: (_: unknown, record: SupplierDto) => (
         <Flex gap={4} justify="center">
           <Button
             type="text"
@@ -151,7 +154,7 @@ export function SuppliersPage() {
           </Popconfirm>
         </Flex>
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -160,9 +163,7 @@ export function SuppliersPage() {
         title={t('suppliers.title')}
         subtitle={t('suppliers.subtitle')}
         actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            {t('suppliers.add')}
-          </Button>
+          canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('suppliers.add')}</Button> : undefined
         }
       />
 
@@ -172,9 +173,7 @@ export function SuppliersPage() {
         <Alert type="error" showIcon message={t('suppliers.loadError')} />
       ) : suppliers.length === 0 ? (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('suppliers.empty')}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            {t('suppliers.add')}
-          </Button>
+          {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('suppliers.add')}</Button>}
         </Empty>
       ) : (
         <Table<SupplierDto>

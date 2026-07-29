@@ -17,6 +17,7 @@ export type {
   UpdateWorkspaceMemberPayload,
 } from './api/types';
 export { workspaceMemberQueries } from './api/workspaceMember.queries';
+export { useWorkspaceAccess } from './model/useWorkspaceAccess';
 export {
   PERMISSION_LEVELS,
   moduleSupportsEdit,

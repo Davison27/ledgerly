@@ -1,5 +1,7 @@
 import { Tabs } from 'antd';
+import { Navigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { useWorkspacePage, type WorkspaceTab } from '../../model/useWorkspacePage';
@@ -10,6 +12,11 @@ import { IntegrationsTab } from '../integrationsTab/IntegrationsTab';
 export function WorkspacePage() {
   const { t } = useTranslation();
   const { tab, setTab } = useWorkspacePage();
+  const { isAdmin } = useWorkspaceAccess();
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" />;
+  }
 
   return (
     <PageContainer>

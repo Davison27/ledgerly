@@ -17,6 +17,7 @@ import {
 import { DeleteOutlined, DownloadOutlined, PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { companyNeedsSetup, useCompany } from '@/entities/company';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import {
   createInvoice,
   deleteInvoice,
@@ -50,6 +51,8 @@ export function InvoicesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { canAccess, isAdmin } = useWorkspaceAccess();
+  const canEdit = canAccess('invoices', 'edit');
 
   const companyIncomplete = companyNeedsSetup(company) || !company.taxId;
 
@@ -142,7 +145,7 @@ export function InvoicesPage() {
             disabled={!record.hasPdf}
             onClick={() => window.open(invoicePdfUrl(record.id), '_blank', 'noopener,noreferrer')}
           />
-          <Popconfirm
+          {canEdit && <Popconfirm
             title={t('invoices.deleteConfirm.title')}
             description={t('invoices.deleteConfirm.content', { number: record.fullNumber })}
             okText={t('invoices.deleteConfirm.ok')}
@@ -157,7 +160,7 @@ export function InvoicesPage() {
               aria-label={t('common.delete')}
               loading={deletingId === record.id}
             />
-          </Popconfirm>
+          </Popconfirm>}
         </Flex>
       ),
     },
@@ -168,8 +171,7 @@ export function InvoicesPage() {
       <PageHeader
         title={t('invoices.title')}
         subtitle={t('invoices.subtitle')}
-        actions={
-          <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
+        actions={canEdit ? <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -178,11 +180,10 @@ export function InvoicesPage() {
             >
               {t('invoices.add')}
             </Button>
-          </Tooltip>
-        }
+          </Tooltip> : undefined}
       />
 
-      {companyIncomplete && (
+      {companyIncomplete && isAdmin && (
         <Alert
           type="warning"
           showIcon
@@ -205,7 +206,7 @@ export function InvoicesPage() {
         <Alert type="error" showIcon message={t('invoices.loadError')} />
       ) : invoices.length === 0 ? (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('invoices.empty')}>
-          <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
+          {canEdit && <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -214,7 +215,7 @@ export function InvoicesPage() {
             >
               {t('invoices.add')}
             </Button>
-          </Tooltip>
+          </Tooltip>}
         </Empty>
       ) : (
         <Table<InvoiceDto>

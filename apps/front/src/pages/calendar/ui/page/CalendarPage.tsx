@@ -7,6 +7,7 @@ import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { ApiError } from '@/shared/api/httpClient';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useCalendarBoard, type CalendarView } from '../../model/useCalendarBoard';
 import { buildConflictIndex, staffAssignmentConflicts } from '../../model/conflictIndex';
 import { deriveProjectRanges, DerivedRangeTooLongError } from '../../model/derivedRanges';
@@ -28,6 +29,8 @@ export function CalendarPage() {
   const { message } = App.useApp();
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('calendar', 'edit');
 
   const {
     view,
@@ -232,6 +235,7 @@ export function CalendarPage() {
           <Alert type="error" showIcon message={t('calendar.loadError')} className={styles.loadError} />
         ) : (
           <CalendarDndContext
+            disabled={!canEdit}
             colorForProject={colorForProject}
             onDropProject={handleDropProject}
             onDropDerivedProject={handleDropDerivedProject}
@@ -258,8 +262,8 @@ export function CalendarPage() {
                     projectsById={projectsById}
                     conflictIndex={conflictIndex}
                     colorForProject={colorForProject}
-                    onSelectEvent={setSelectedEvent}
-                    onSelectDerived={handleSelectDerived}
+                    onSelectEvent={canEdit ? setSelectedEvent : () => undefined}
+                    onSelectDerived={canEdit ? handleSelectDerived : () => undefined}
                   />
                 ) : (
                   <WeekGrid
@@ -269,8 +273,8 @@ export function CalendarPage() {
                     projectsById={projectsById}
                     conflictIndex={conflictIndex}
                     colorForProject={colorForProject}
-                    onSelectEvent={setSelectedEvent}
-                    onSelectDerived={handleSelectDerived}
+                    onSelectEvent={canEdit ? setSelectedEvent : () => undefined}
+                    onSelectDerived={canEdit ? handleSelectDerived : () => undefined}
                   />
                 )}
               </div>
