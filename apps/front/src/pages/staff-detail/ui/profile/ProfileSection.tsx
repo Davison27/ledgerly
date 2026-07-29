@@ -4,6 +4,7 @@ import { App, Button, Descriptions, Flex } from 'antd';
 import { EditOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { staffQueries, updateStaffMember } from '@/entities/staff-member';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
@@ -20,6 +21,8 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('staff', 'edit');
 
   const handleSubmit = async (values: StaffMemberFormValues) => {
     setSubmitting(true);
@@ -43,9 +46,7 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
             <SemanticTag tone="neutral">{t('staff.columns.inactive')}</SemanticTag>
           )}
         </Flex>
-        <Button type="primary" icon={<EditOutlined />} onClick={() => setIsFormOpen(true)}>
-          {t('common.edit')}
-        </Button>
+        {canEdit && <Button type="primary" icon={<EditOutlined />} onClick={() => setIsFormOpen(true)}>{t('common.edit')}</Button>}
       </Flex>
 
       <Descriptions column={2} bordered size="small">

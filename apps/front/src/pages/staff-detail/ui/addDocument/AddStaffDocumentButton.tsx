@@ -4,6 +4,7 @@ import { Button, Dropdown, type MenuProps } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { staffDocumentTypeQueries } from '@/entities/staff-member';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { DocumentUploadModal } from '@/features/upload-document';
 import { StaffDocumentUploadModal } from '../upload/StaffDocumentUploadModal';
 
@@ -18,6 +19,8 @@ export function AddStaffDocumentButton({ staffMemberId }: AddStaffDocumentButton
   const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
   const [payrollModalOpen, setPayrollModalOpen] = useState(false);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('staff', 'edit');
 
   const items: MenuProps['items'] = [
     ...documentTypes.map((type) => ({
@@ -35,6 +38,10 @@ export function AddStaffDocumentButton({ staffMemberId }: AddStaffDocumentButton
       setSelectedTypeId(key);
     }
   };
+
+  if (!canEdit) {
+    return null;
+  }
 
   return (
     <>

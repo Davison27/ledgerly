@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from '../../model/types';
 import { projectQueries, updateProject, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import {
   ProjectFormFields,
@@ -22,6 +23,8 @@ export function SettingsSection({ project }: ProjectSectionProps) {
   const [form] = Form.useForm<ProjectFormFieldValues>();
   const [image, setImage] = useState<string | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('projects', 'edit');
 
   const { data: fullProject, isPending: loading, isError } = useQuery(
     projectQueries.detail(project.id),
@@ -100,11 +103,9 @@ export function SettingsSection({ project }: ProjectSectionProps) {
         <Title level={5} className={styles.title}>
           {t('projects.settings.details')}
         </Title>
-        <Button type="primary" loading={saving} onClick={handleSave}>
-          {t('common.save')}
-        </Button>
+        {canEdit && <Button type="primary" loading={saving} onClick={handleSave}>{t('common.save')}</Button>}
       </Flex>
-      <Form<ProjectFormFieldValues> form={form} layout="vertical" requiredMark={false}>
+      <Form<ProjectFormFieldValues> form={form} layout="vertical" requiredMark={false} disabled={!canEdit}>
         <ProjectFormFields image={image} onImageChange={setImage} colorSeed={fullProject.id} />
       </Form>
     </PageContainer>

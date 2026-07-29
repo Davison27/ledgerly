@@ -22,6 +22,7 @@ import {
   type ProductDto,
 } from '@/entities/product';
 import { ApiError } from '@/shared/api/httpClient';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
@@ -43,6 +44,8 @@ export function ProductsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductDto | null>(null);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('products', 'edit');
 
   const handleAdd = () => {
     setEditingProduct(null);
@@ -127,12 +130,12 @@ export function ProductsPage() {
           <Numeric>{stock}</Numeric>
         ),
     },
-    {
+    ...(canEdit ? [{
       title: t('products.columns.actions'),
       key: 'actions',
       width: 120,
-      align: 'center',
-      render: (_, record) => (
+      align: 'center' as const,
+      render: (_: unknown, record: ProductDto) => (
         <Flex gap={4} justify="center">
           <Button
             type="text"
@@ -158,7 +161,7 @@ export function ProductsPage() {
           </Popconfirm>
         </Flex>
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -167,9 +170,7 @@ export function ProductsPage() {
         title={t('products.title')}
         subtitle={t('products.subtitle')}
         actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            {t('products.add')}
-          </Button>
+          canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button> : undefined
         }
       />
 
@@ -179,9 +180,7 @@ export function ProductsPage() {
         <Alert type="error" showIcon message={t('products.loadError')} />
       ) : products.length === 0 ? (
         <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('products.empty')}>
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            {t('products.add')}
-          </Button>
+          {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button>}
         </Empty>
       ) : (
         <Table<ProductDto>

@@ -16,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany, type Company } from '@/entities/company';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { useSettingsMenuItems } from '../../model/useSettingsMenuItems';
 import logoUrl from '@/assets/ledgerly-logo.svg';
@@ -76,6 +77,7 @@ export function AppSider({
   const { company } = useCompany();
   const collapseLabel = collapsed ? t('sider.expand') : t('sider.collapse');
   const workspaceLabel = t('sider.workspace');
+  const { isAdmin } = useWorkspaceAccess();
   const settingsItems = useSettingsMenuItems();
 
   const items = useMemo(
@@ -151,17 +153,19 @@ export function AppSider({
           data-collapsed={collapsed}
           className={styles.header}
         >
-          <Tooltip title={workspaceLabel} placement={collapsed ? 'right' : 'bottom'}>
-            <Button
-              type="text"
-              aria-label={workspaceLabel}
-              className={styles.logoButton}
-              data-active={pathname.startsWith('/workspace') || undefined}
-              onClick={() => void navigate({ to: '/workspace', search: { tab: 'company' } })}
-            >
-              <img src={collapsed ? iconUrl : logoUrl} alt="" className={styles.logo} />
-            </Button>
-          </Tooltip>
+          {isAdmin && (
+            <Tooltip title={workspaceLabel} placement={collapsed ? 'right' : 'bottom'}>
+              <Button
+                type="text"
+                aria-label={workspaceLabel}
+                className={styles.logoButton}
+                data-active={pathname.startsWith('/workspace') || undefined}
+                onClick={() => void navigate({ to: '/workspace', search: { tab: 'company' } })}
+              >
+                <img src={collapsed ? iconUrl : logoUrl} alt="" className={styles.logo} />
+              </Button>
+            </Tooltip>
+          )}
 
           <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
             <Button
