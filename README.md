@@ -1,106 +1,106 @@
 # ledgerly-erp
 
-Monorepo gestionado con [Turborepo](https://turborepo.dev/) y pnpm.
+Monorepo managed with [Turborepo](https://turborepo.dev/) and pnpm.
 
-## Estructura
+## Structure
 
 ```
 ledgerly-erp/
 ├── apps/
 │   ├── front/   # React 19 + Vite + TypeScript
 │   └── back/    # NestJS 11 + TypeScript
-└── packages/    # (código compartido, vacío por ahora)
+└── packages/    # Shared code (currently empty)
 ```
 
-## Puesta en marcha
+## Getting started
 
-Hay dos caminos: desarrollar en local o instalar en un servidor.
+There are two paths: local development or installation on a server.
 
-### Desarrollo
+### Development
 
-Requisitos: Node.js >= 20, pnpm >= 11, Docker (para Postgres).
+Requirements: Node.js >= 20, pnpm >= 11, and Docker (for Postgres).
 
-Un único comando instala dependencias, crea `apps/back/.env`, levanta
-Postgres, ejecuta las migraciones y arranca front + back:
+One command installs dependencies, creates `apps/back/.env`, starts Postgres,
+runs migrations, and starts the frontend and backend:
 
 ```bash
 make dev
 ```
 
-### Instalación en un servidor (VPS)
+### VPS installation
 
-Requisitos en el servidor: `docker`, `docker compose` y `git`. En una imagen
-mínima de Debian, `make` no viene instalado:
+Server requirements: `docker`, `docker compose`, `git`, and `make`. On a
+minimal Debian image, install the latter two first:
 
 ```bash
 sudo apt-get install -y git make
 ```
 
-Con eso:
+Then run:
 
 ```bash
 git clone <repo-url> /opt/ledgerly && cd /opt/ledgerly && make setup
 ```
 
-`make setup` es interactivo: pregunta el dominio, las credenciales de Google
-y el correo del administrador, y deja la aplicación funcionando en
-`https://<dominio>` con HTTPS automático. Detalle completo, guion de
-preguntas y resto de comandos de operación (`doctor`, `configure`, `update`,
-`backup`) en [`docs/architecture/deployment.md`](docs/architecture/deployment.md).
+`make setup` is interactive: it asks for the domain, Google credentials, and
+administrator email, then serves the application at `https://<domain>` with
+automatic HTTPS. For the complete runbook and the remaining operational
+commands (`doctor`, `configure`, `update`, and `backup`), see
+[`docs/architecture/deployment.md`](docs/architecture/deployment.md).
 
-### Comandos (`make help`)
+### Commands (`make help`)
 
-| Familia | Comando | Qué hace |
+| Area | Command | Description |
 | --- | --- | --- |
-| Instalación | `make setup` | Instalación interactiva y guiada en el servidor. Irrepetible. |
-| Instalación | `make doctor` | Diagnostica la instalación y dice qué hacer; sale ≠0 si algo falla. |
-| Instalación | `make configure` | Cambia dominio, credenciales de Google, correo del admin o contraseña de la BD. |
-| Actualización | `make update` | Trae la versión nueva, reconstruye imágenes y migra sin perder datos. |
-| Actualización | `make backup` | Copia de seguridad comprimida de la base de datos. |
-| Actualización | `make restore` | Restaura una copia (pide confirmación escrita). |
-| Ciclo de vida | `make up` | Levanta la pila (producción o el Postgres de desarrollo). |
-| Ciclo de vida | `make down` | La para. |
-| Ciclo de vida | `make restart` | La reinicia. |
-| Ciclo de vida | `make logs` | Sigue los logs; `make logs SERVICE=back` filtra un servicio. |
-| Desarrollo | `make dev` | Bucle local: deps, Postgres, migraciones y `pnpm dev`. |
-| Desarrollo | `make build` | Compila front y back. |
-| Desarrollo | `make lint` | ESLint. |
-| Desarrollo | `make typecheck` | Comprueba tipos. |
-| Desarrollo | `make test` | Tests. |
-| Base de datos | `make migrate` | Aplica migraciones pendientes. |
-| Base de datos | `make reset-db` | Borra el volumen y recrea la BD. Solo desarrollo. |
-| Base de datos | `make seed` | Datos de ejemplo. Solo desarrollo. |
-| Limpieza | `make clean` | Limpia builds, `node_modules` y volúmenes de desarrollo. Se niega en producción. |
+| Installation | `make setup` | One-time guided server installation. |
+| Installation | `make doctor` | Diagnoses the installation and exits non-zero when anything fails. |
+| Installation | `make configure` | Changes the domain, Google credentials, administrator email, or database password. |
+| Updates | `make update` | Fetches the new version, rebuilds images, and migrates without losing data. |
+| Updates | `make backup` | Creates a compressed database backup. |
+| Updates | `make restore` | Restores a backup after typed confirmation. |
+| Lifecycle | `make up` | Starts the production stack or the development Postgres instance. |
+| Lifecycle | `make down` | Stops the active stack. |
+| Lifecycle | `make restart` | Restarts the active stack. |
+| Lifecycle | `make logs` | Follows logs; `make logs SERVICE=back` filters by service. |
+| Development | `make dev` | Runs the local loop: dependencies, Postgres, migrations, and `pnpm dev`. |
+| Development | `make build` | Builds the frontend and backend. |
+| Development | `make lint` | Runs ESLint. |
+| Development | `make typecheck` | Checks types. |
+| Development | `make test` | Runs tests. |
+| Database | `make migrate` | Applies pending migrations. |
+| Database | `make reset-db` | Deletes the volume and recreates the database. Development only. |
+| Database | `make seed` | Loads sample data. Development only. |
+| Cleanup | `make clean` | Removes builds, `node_modules`, and development volumes. Refuses production mode. |
 
-`up`, `down`, `restart`, `logs`, `migrate` y `backup` son **contextuales**:
-actúan sobre la pila de producción si existe `deploy/.env`, y si no sobre el
-Postgres de desarrollo. El mismo comando hace lo correcto en el servidor y en
-el portátil.
+`up`, `down`, `restart`, `logs`, `migrate`, and `backup` are **contextual**:
+they target the production stack when `deploy/.env` exists, otherwise the
+development Postgres instance. The same command selects the appropriate target
+on the server and on a workstation.
 
-## Scripts (desde la raíz)
+## Scripts (from the repository root)
 
-| Comando          | Descripción                             |
-| ---------------- | --------------------------------------- |
-| `pnpm dev`       | Arranca front y back en modo desarrollo |
-| `pnpm build`     | Compila todas las apps                  |
-| `pnpm lint`      | Ejecuta ESLint en todo el monorepo      |
-| `pnpm typecheck` | Comprueba los tipos                     |
-| `pnpm test`      | Ejecuta los tests                       |
-| `pnpm format`    | Formatea con Prettier                   |
+| Command | Description |
+| --- | --- |
+| `pnpm dev` | Starts the frontend and backend in development mode. |
+| `pnpm build` | Builds every application. |
+| `pnpm lint` | Runs ESLint across the monorepo. |
+| `pnpm typecheck` | Checks types. |
+| `pnpm test` | Runs tests. |
+| `pnpm format` | Formats code with Prettier. |
 
-Para un solo paquete usa el filtro de turbo, p. ej.:
+To run one package, use Turbo filtering, for example:
 
 ```bash
 pnpm dev --filter=@ledgerly/front
 pnpm dev --filter=@ledgerly/back
 ```
 
-## Puertos y desarrollo
+## Ports and development
 
 - **Frontend** (Vite): http://localhost:5173
 - **Backend** (NestJS): http://localhost:3000/api
 
-El frontend proxya las peticiones `/api` al backend en desarrollo (ver
-`apps/front/vite.config.ts`), y el backend tiene CORS habilitado para el
-origen del front. Copia `apps/back/.env.example` a `apps/back/.env` para
-personalizar `PORT` y `FRONTEND_URL`.
+The frontend proxies `/api` requests to the backend in development (see
+`apps/front/vite.config.ts`), and the backend enables CORS for the frontend
+origin. Copy `apps/back/.env.example` to `apps/back/.env` to customize `PORT`
+and `FRONTEND_URL`.
