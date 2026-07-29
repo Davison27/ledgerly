@@ -13,6 +13,7 @@ import {
   type ProjectFormValues,
 } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { resolveProjectColor } from '@/shared/lib/palette';
@@ -31,6 +32,8 @@ export function ProjectsPage() {
   const isDark = mode === 'dark';
   const queryClient = useQueryClient();
   const { data: projects, isPending: projectsLoading } = useQuery(projectQueries.list());
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('projects', 'edit');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
@@ -112,9 +115,7 @@ export function ProjectsPage() {
         title={t('projects.title')}
         subtitle={t('projects.subtitle')}
         actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
-            {t('common.add')}
-          </Button>
+          canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>{t('common.add')}</Button> : undefined
         }
       />
 
@@ -130,6 +131,7 @@ export function ProjectsPage() {
               project={project}
               color={resolveProjectColor(project.color ?? null, project.id, isDark)}
               editLoading={loadingEditId === project.id}
+              canEdit={canEdit}
               onOpen={handleOpen}
               onEdit={handleEdit}
               onDelete={handleDelete}

@@ -22,6 +22,7 @@ import {
   type StaffMemberDto,
 } from '@/entities/staff-member';
 import { ApiError } from '@/shared/api/httpClient';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
@@ -45,6 +46,8 @@ export function StaffPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaffMember, setEditingStaffMember] = useState<StaffMemberDto | null>(null);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('staff', 'edit');
 
   const handleAdd = () => {
     setEditingStaffMember(null);
@@ -151,12 +154,12 @@ export function StaffPage() {
       render: (hireDate: string | null | undefined) =>
         hireDate ? <Numeric>{hireDate}</Numeric> : '—',
     },
-    {
+    ...(canEdit ? [{
       title: t('staff.columns.actions'),
       key: 'actions',
       width: 120,
-      align: 'center',
-      render: (_, record) => (
+      align: 'center' as const,
+      render: (_: unknown, record: StaffMemberDto) => (
         <Flex gap={4} justify="center">
           <Button
             type="text"
@@ -184,7 +187,7 @@ export function StaffPage() {
           </Popconfirm>
         </Flex>
       ),
-    },
+    }] : []),
   ];
 
   return (
@@ -192,11 +195,7 @@ export function StaffPage() {
       <PageHeader
         title={t('staff.title')}
         subtitle={t('staff.subtitle')}
-        actions={
-          <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-            {t('staff.add')}
-          </Button>
-        }
+        actions={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('staff.add')}</Button> : undefined}
       />
 
       {loading ? (
@@ -207,11 +206,7 @@ export function StaffPage() {
         <EmptyHint
           icon={<IdcardOutlined />}
           title={t('staff.empty')}
-          action={
-            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              {t('staff.add')}
-            </Button>
-          }
+          action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('staff.add')}</Button> : undefined}
         />
       ) : (
         <Table<StaffMemberDto>

@@ -16,6 +16,7 @@ export interface ProjectCardProps {
   project: Project;
   color: string;
   editLoading?: boolean;
+  canEdit: boolean;
   onOpen: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
@@ -25,6 +26,7 @@ export function ProjectCard({
   project,
   color,
   editLoading,
+  canEdit,
   onOpen,
   onEdit,
   onDelete,
@@ -32,6 +34,7 @@ export function ProjectCard({
   const { t } = useTranslation();
 
   const actions = [
+    ...(canEdit ? [
     <Tooltip key="delete" title={t('common.delete')}>
       <DeleteOutlined
         className={styles.deleteIcon}
@@ -41,7 +44,8 @@ export function ProjectCard({
         }}
       />
     </Tooltip>,
-    <Tooltip key="edit" title={t('common.edit')}>
+    ] : []),
+    ...(canEdit ? [<Tooltip key="edit" title={t('common.edit')}>
       {editLoading ? (
         <LoadingOutlined />
       ) : (
@@ -52,7 +56,7 @@ export function ProjectCard({
           }}
         />
       )}
-    </Tooltip>,
+    </Tooltip>] : []),
     <Tooltip key="open" title={t('common.open')}>
       <ExportOutlined
         className={styles.openIcon}
