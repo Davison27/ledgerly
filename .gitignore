@@ -17,6 +17,10 @@ out/
 .env.*.local
 .env.local
 
+# Instalador (deploy/.env ya lo cubre el patrón .env de arriba)
+deploy/.state
+deploy/backups/
+
 # Logs
 *.log
 npm-debug.log*
