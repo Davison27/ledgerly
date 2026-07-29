@@ -2,51 +2,69 @@
 
 Frontend: `apps/front/src/pages/workspace/` (la página, con sus tres pestañas),
 `apps/front/src/entities/workspace-member/` y
-`apps/front/src/entities/integration/` (los dos slices de datos). Sin
-contrapartida en `apps/back`: es maquetación de frontend, ver más abajo.
+`apps/front/src/entities/integration/` (los dos slices de datos). El backend
+de los miembros del espacio es el contexto `auth`
+(`apps/back/src/contexts/auth/`, ver `docs/architecture/auth.md`);
+integraciones sigue sin contrapartida en `apps/back` y sigue siendo
+maquetación de frontend, ver más abajo.
 
-## Sin backend: los tipos son el contrato futuro
+## `workspace-member` ya habla con el backend real; `integration` sigue siendo maqueta
 
-No hay contexto `workspace` ni `integrations` en `apps/back`, ni migración, ni
-endpoint. Cada `api/*.api.ts` de los dos slices (`workspaceMembers.api.ts`,
-`integrations.api.ts`) resuelve contra un store mutable en memoria
-(`*.fixtures.ts`) envuelto en `fakeLatency` (`shared/lib/fakeLatency.ts`,
-`setTimeout` + `Promise`, 320 ms por defecto). El store no se expone: ni
-`membersStore()` ni las fixtures de integraciones salen por el `index.ts` del
-slice, solo las funciones de `api/` y los tipos. Es la misma disciplina que ya
-sigue `entities/notification` (ver `docs/architecture/notifications.md`) y el
-motivo es el mismo: cuando exista backend, conectar consiste en cambiar el
-cuerpo de esas funciones por un `fetch` real, sin tocar un componente ni un
-tipo, porque el `WorkspaceMemberDto`/`IntegrationDto` que ya consume la UI es
-exactamente la forma que tendrá que devolver la API. El día que haya backend
-de verdad, los ficheros que cambian son `entities/workspace-member/api/*.api.ts`
-y `entities/integration/api/*.api.ts`; los `*.fixtures.ts` y
-`shared/lib/fakeLatency.ts` se borran.
+Los dos slices nacieron con el mismo patrón —tipos como contrato futuro,
+`api/*.api.ts` resolviendo contra un store en memoria— pero ya no están al
+mismo punto. `entities/workspace-member` dejó de ser maqueta: sus fixtures
+(`workspaceMembers.fixtures.ts`) se borraron, y `api/workspaceMembers.api.ts`
+llama al backend real (`GET/POST /workspace/members`,
+`PATCH`/`DELETE /workspace/members/:id`, `GET /auth/me`) a través de
+`shared/api/httpClient.ts`. `entities/integration` sigue exactamente como
+antes: no hay contexto `integrations` en `apps/back`, ni migración, ni
+endpoint, y `api/integrations.api.ts` sigue resolviendo contra
+`integrations.fixtures.ts` envuelto en `fakeLatency`
+(`shared/lib/fakeLatency.ts`, `setTimeout` + `Promise`, 320 ms por defecto).
 
-Las fixtures son **mutables a nivel de módulo** (`let members: WorkspaceMemberDto[]`
-en `workspaceMembers.fixtures.ts`, equivalente en integraciones) a propósito:
-sin mutabilidad, invitar a alguien o conectar una integración no se reflejaría
-al releer la lista tras invalidar la query, y la maqueta dejaría de ser
-creíble. El coste aceptado es que el estado se pierde al recargar la página.
+La promesa que hizo posible la migración de `workspace-member` sin tocar un
+componente sigue demostrada: el `WorkspaceMemberDto`/`PermissionMatrixDto`
+que ya consumía la UI simulada es exactamente la forma que devuelve la API
+real, así que conectar fue cambiar el cuerpo de las funciones de `api/`, no
+reescribir páginas. `integration` está a la espera de la misma migración el
+día que exista un contexto `integrations` en el backend: cuando llegue, los
+ficheros que cambian son `entities/integration/api/*.api.ts`, y se borran
+`integrations.fixtures.ts` y, si para entonces nada más lo usa,
+`shared/lib/fakeLatency.ts`.
 
-## No hay autenticación: por eso existe esta pantalla antes que el modelo de usuarios
+Las fixtures de integraciones son **mutables a nivel de módulo**
+(`let integrations: IntegrationDto[]` en `integrations.fixtures.ts`) a
+propósito: sin mutabilidad, conectar una integración no se reflejaría al
+releer la lista tras invalidar la query, y la maqueta dejaría de ser creíble.
+El coste aceptado es que el estado se pierde al recargar la página.
 
-No existe ningún símbolo `User` en `apps/front/src`, ni sesión, ni credenciales.
-`LoginPage` (`pages/login/ui/page/LoginPage.tsx`) es una bienvenida con un
-único botón que navega a `/onboarding` o `/dashboard` según
-`companyNeedsSetup(company)` (ver `docs/architecture/tenancy.md`): no pide
-usuario ni contraseña porque no hay nada contra lo que autenticar.
+## Autenticación real: el "usuario actual" ya es la sesión, no un fixture
 
-El slice se llama **`workspace-member`**, no `user`, para no confundirse con
-`staff-member` (trabajadores de la empresa, RRHH — un concepto de negocio
-distinto). El "admin" y el "usuario actual" de toda la página son el mismo
-fixture, `wm-1` (David Pérez), devuelto por `getCurrentWorkspaceMember()`
-(`entities/workspace-member/api/workspaceMembers.api.ts`,
-`CURRENT_MEMBER_ID = 'wm-1'`). `useMembersPanel` lo usa para marcar "Tú" en la
-tabla y para las guardas de abajo. Cuando llegue auth,
-`getCurrentWorkspaceMember()` pasa a pedir `/me` y nada más en la página
-cambia — es la misma promesa que ya documenta `useCompany()` en
-`docs/architecture/data-layer.md`.
+Ya existe un contexto `auth` completo en `apps/back` (login por Google,
+sesión propia, guard global deny-by-default) — el porqué de cada pieza está
+en `docs/architecture/auth.md`. `LoginPage`
+(`pages/login/ui/page/LoginPage.tsx`) ya no es una bienvenida sin
+credenciales: resuelto por `useLoginPage`
+(`pages/login/model/useLoginPage.ts`) contra `GET /api/auth/status`, muestra
+un formulario de alta del primer administrador si la instancia está recién
+desplegada, o un botón "Continuar con Google" en cualquier otro caso. La
+redirección a `/onboarding` o `/dashboard` tras iniciar sesión la sigue
+gobernando `companyNeedsSetup(company)` (ver `docs/architecture/tenancy.md`),
+pero ahora es la **segunda** puerta: la primera es tener sesión.
+
+El slice se sigue llamando **`workspace-member`**, no `user`, para no
+confundirse con `staff-member` (trabajadores de la empresa, RRHH — un
+concepto de negocio distinto). El "usuario actual" de toda la página ya no es
+un fixture fijo: `getCurrentWorkspaceMember()`
+(`entities/workspace-member/api/workspaceMembers.api.ts`) pide
+`GET /api/auth/me`, que el backend resuelve contra el miembro de la sesión
+activa. `useMembersPanel` sigue usando ese resultado para marcar "Tú" en la
+tabla y para las guardas de abajo, exactamente como antes de conectar el
+backend — es la misma promesa que ya documentaba `useCompany()` en
+`docs/architecture/data-layer.md`, ahora cumplida.
+`SessionGuard` (`widgets/app-layout/ui/layout/SessionGuard.tsx`) es quien
+consulta `workspaceMemberQueries.current()` al entrar en cualquier pantalla
+protegida y redirige a `/` si la respuesta es `401`.
 
 ## El modelo de permisos: matriz de módulo × nivel, con los roles como preajustes
 
@@ -216,3 +234,5 @@ Fuentes: [Metered APIs in Microsoft Graph](https://learn.microsoft.com/en-us/gra
   página.
 - `docs/architecture/tenancy.md` — `companyNeedsSetup` y el singleton de
   empresa que consume `CompanyTab`.
+- `docs/architecture/auth.md` — el contexto `auth`, el guard global y por qué
+  cada pieza de sesión y permisos es como es.
