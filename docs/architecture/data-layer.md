@@ -100,7 +100,9 @@ Claves realmente en el código:
 
 | Factoría | Consulta | `queryKey` | Nota |
 |---|---|---|---|
-| `companyQueries` (`entities/company/api/company.queries.ts`) | `singleton()` | `['company']` | `staleTime: 300_000`; expone también el hook `useCompany()` (ver D6 más abajo) |
+| `companyQueries` (`entities/company/api/company.queries.ts`) | `singleton()` | `['company']` | `staleTime: 300_000`; expone también el hook `useCompany()` (ver D6 más abajo). `GET /company` exige sesión |
+| | `branding()` | `['company', 'branding']` | `staleTime: 300_000`; pega a `GET /company/branding`, la única ruta de este contexto sin sesión — la usa `LoginPage`, ver `docs/architecture/auth.md` |
+| `sessionQueries` (`entities/session/api/session.queries.ts`) | `status()` | `['session', 'status']` | `staleTime: 0`: una decisión de arranque (¿hace falta el alta del primer admin? ¿ya hay sesión?) no se cachea. La usa `useLoginPage`, ver `docs/architecture/auth.md` |
 | `projectQueries` (`entities/project/api/project.queries.ts`) | `list()` | `['projects', 'list']` | |
 | | `detail(id)` | `['projects', 'detail', id]` | |
 | `supplierQueries` (`entities/supplier/api/supplier.queries.ts`) | `list()` | `['suppliers', 'list']` | |
