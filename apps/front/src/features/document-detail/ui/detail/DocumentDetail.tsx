@@ -10,6 +10,7 @@ import {
   StatusTag,
   type ProjectDocument,
 } from '@/entities/document';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import typography from '@/shared/ui/typography.module.css';
 import styles from './DocumentDetail.module.css';
 
@@ -80,6 +81,8 @@ export function DocumentDetail({
 }: DocumentDetailProps) {
   const { t } = useTranslation();
   const typeLabel = useTypeLabel();
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('documents', 'edit');
   const { state: viewerState, objectUrl } = usePdfObjectUrl(document);
 
   if (!document) {
@@ -151,14 +154,14 @@ export function DocumentDetail({
             {typeLabel(document.type)} · {document.date}
           </Text>
         </div>
-        {(onEdit || onDelete || onGoToProject) && (
+        {(onGoToProject || (canEdit && (onEdit || onDelete))) && (
           <Flex gap={4} className={styles.actions}>
             {onGoToProject && (
               <Button type="text" onClick={() => onGoToProject(document)}>
                 {t('projects.documents.detail.goToProject')}
               </Button>
             )}
-            {onEdit && (
+            {canEdit && onEdit && (
               <Button
                 type="text"
                 icon={<EditOutlined />}
@@ -166,7 +169,7 @@ export function DocumentDetail({
                 onClick={() => onEdit(document)}
               />
             )}
-            {onDelete && (
+            {canEdit && onDelete && (
               <Popconfirm
                 title={t('projects.documents.delete.confirm.title')}
                 description={t('projects.documents.delete.confirm.content', { name: document.name })}

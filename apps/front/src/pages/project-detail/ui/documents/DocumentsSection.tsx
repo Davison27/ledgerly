@@ -23,6 +23,7 @@ import {
   type ProjectDocument,
 } from '@/entities/document';
 import { projectQueries } from '@/entities/project';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import type { ProjectSectionProps } from '../../model/types';
 import { DocumentsListView } from '../documentsList/DocumentsListView';
 import { DocumentsCardsView } from '../documentsCards/DocumentsCardsView';
@@ -41,6 +42,8 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('documents', 'edit');
 
   const {
     documents,
@@ -188,9 +191,7 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
             ]}
             className={styles.layoutSegmented}
           />
-          <Button type="primary" icon={<PlusOutlined />} onClick={() => setUploadOpen(true)}>
-            {t('projects.documents.upload.button')}
-          </Button>
+          {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={() => setUploadOpen(true)}>{t('projects.documents.upload.button')}</Button>}
         </Flex>
 
         {!documentsLoading && (

@@ -10,6 +10,7 @@ import {
   staffQueries,
   type StaffDocumentDto,
 } from '@/entities/staff-member';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Numeric } from '@/shared/ui/Numeric';
@@ -26,6 +27,8 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('staff', 'edit');
 
   const { data: allDocumentTypes = [], isPending: typesLoading } = useQuery(
     staffDocumentTypeQueries.list(),
@@ -88,7 +91,7 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
       title: t('staff.documents.columns.status'),
       key: 'status',
       width: 130,
-      render: (_, record) => (
+      render: (_: unknown, record: StaffDocumentDto) => (
         <SemanticTag tone={getExpiryTone(record.expiryDate)}>
           {t(`staff.expiry.${getExpiryStatus(record.expiryDate)}`)}
         </SemanticTag>
@@ -98,8 +101,8 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
       title: t('staff.documents.columns.actions'),
       key: 'actions',
       width: 140,
-      align: 'center',
-      render: (_, record) => (
+      align: 'center' as const,
+      render: (_: unknown, record: StaffDocumentDto) => (
         <>
           <Button
             type="text"
@@ -107,13 +110,13 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
             aria-label={t('staff.documents.actions.view')}
             onClick={() => window.open(staffDocumentFileUrl(staffMember.id, record.id), '_blank')}
           />
-          <Button
+          {canEdit && <Button
             type="text"
             icon={<EditOutlined />}
             aria-label={t('common.edit')}
             onClick={() => setEditingDocument(record)}
-          />
-          <Popconfirm
+          />}
+          {canEdit && <Popconfirm
             title={t('staff.documents.deleteConfirm.title')}
             description={t('staff.documents.deleteConfirm.content', { name: record.name })}
             okText={t('staff.documents.deleteConfirm.ok')}
@@ -128,7 +131,7 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
               aria-label={t('common.delete')}
               loading={deletingId === record.id}
             />
-          </Popconfirm>
+          </Popconfirm>}
         </>
       ),
     },

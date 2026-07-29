@@ -21,6 +21,7 @@ import { CalendarDragPreview } from '../dragPreview/CalendarDragPreview';
 
 export interface CalendarDndContextProps {
   children: ReactNode;
+  disabled?: boolean;
   colorForProject: (projectId: string, color: string | null) => string;
   onDropProject: (projectId: string, date: string) => void;
   onDropDerivedProject: (project: SchedulableProjectDto, offsetInDays: number) => void;
@@ -49,6 +50,7 @@ const collisionDetection: CollisionDetection = (args) => {
 
 export function CalendarDndContext({
   children,
+  disabled = false,
   colorForProject,
   onDropProject,
   onDropDerivedProject,
@@ -145,11 +147,11 @@ export function CalendarDndContext({
 
   return (
     <DndContext
-      sensors={sensors}
+      sensors={disabled ? [] : sensors}
       collisionDetection={collisionDetection}
       accessibility={{ announcements }}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
+      onDragStart={disabled ? undefined : handleDragStart}
+      onDragEnd={disabled ? undefined : handleDragEnd}
       onDragCancel={() => setActive(null)}
     >
       {children}
