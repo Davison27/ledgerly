@@ -31,7 +31,6 @@ export function LoginPage() {
     sessionNotice,
     bootstrapSubmitting,
     bootstrapError,
-    setBootstrapEmail,
     handleBootstrapSubmit,
     signInSubmitting,
     handleSignIn,
@@ -40,8 +39,7 @@ export function LoginPage() {
   const showBrandPanel = screens.md ?? true;
 
   const handleBootstrapFinish = (values: BootstrapFormValues) => {
-    setBootstrapEmail(values.email);
-    void handleBootstrapSubmit();
+    void handleBootstrapSubmit(values.email);
   };
 
   return (
