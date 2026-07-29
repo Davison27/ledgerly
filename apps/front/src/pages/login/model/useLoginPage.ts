@@ -25,11 +25,9 @@ export interface UseLoginPageResult {
   status: LoginStatus;
   authError: LoginAuthError | undefined;
   sessionNotice: SessionNotice | undefined;
-  bootstrapEmail: string;
-  setBootstrapEmail: (value: string) => void;
   bootstrapSubmitting: boolean;
   bootstrapError: BootstrapErrorCode | undefined;
-  handleBootstrapSubmit: () => Promise<void>;
+  handleBootstrapSubmit: (email: string) => Promise<void>;
   signInSubmitting: boolean;
   handleSignIn: () => Promise<void>;
 }
@@ -39,7 +37,6 @@ export function useLoginPage(): UseLoginPageResult {
   const search = useSearch({ strict: false }) as LoginPageSearch;
   const { data, isLoading } = useQuery(sessionQueries.status());
 
-  const [bootstrapEmail, setBootstrapEmail] = useState('');
   const [bootstrapSubmitting, setBootstrapSubmitting] = useState(false);
   const [bootstrapError, setBootstrapError] = useState<BootstrapErrorCode | undefined>(undefined);
   const [signInSubmitting, setSignInSubmitting] = useState(false);
@@ -57,11 +54,11 @@ export function useLoginPage(): UseLoginPageResult {
     }
   }, [authenticated, navigate]);
 
-  const handleBootstrapSubmit = async () => {
+  const handleBootstrapSubmit = async (email: string) => {
     setBootstrapSubmitting(true);
     try {
-      await bootstrapFirstAdmin(bootstrapEmail);
-      const { authorizationUrl } = await startGoogleLogin(undefined, bootstrapEmail);
+      await bootstrapFirstAdmin(email);
+      const { authorizationUrl } = await startGoogleLogin(undefined, email);
       window.location.assign(authorizationUrl);
     } catch (error) {
       setBootstrapError(error instanceof ApiError && error.status === 403 ? 'notAllowed' : 'failed');
@@ -86,8 +83,6 @@ export function useLoginPage(): UseLoginPageResult {
     status,
     authError,
     sessionNotice,
-    bootstrapEmail,
-    setBootstrapEmail,
     bootstrapSubmitting,
     bootstrapError,
     handleBootstrapSubmit,
