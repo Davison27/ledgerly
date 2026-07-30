@@ -24,7 +24,7 @@ export interface WorkspaceMemberDto {
   invitedAt: string;
   joinedAt: string | null;
   lastActiveAt: string | null;
-  auth: { emailVerified: boolean; createdAt: string; updatedAt: string; providers: string[]; activeSessions: number; lastSessionAt: string | null } | null;
+  auth: { image: string | null; emailVerified: boolean; createdAt: string; updatedAt: string; providers: string[]; activeSessions: number; lastSessionAt: string | null } | null;
 }
 
 export interface InviteWorkspaceMemberPayload {
