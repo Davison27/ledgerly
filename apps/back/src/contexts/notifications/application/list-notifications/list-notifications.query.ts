@@ -1,5 +1,5 @@
 export interface ListNotificationsQuery {
   page: number;
   size: number;
-  onlyUnread: boolean;
+  status: 'unread' | 'open' | 'resolved' | 'all';
 }

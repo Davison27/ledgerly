@@ -14,6 +14,7 @@ export interface NotificationProps {
   createdAt: Date;
   readAt: Date | null;
   emailSentAt: Date | null;
+  resolvedAt?: Date | null;
 }
 
 export class Notification {
@@ -26,6 +27,7 @@ export class Notification {
   private createdAt: Date;
   private readAt: Date | null;
   private emailSentAt: Date | null;
+  private resolvedAt: Date | null;
 
   private constructor(props: NotificationProps) {
     this.id = props.id;
@@ -37,6 +39,7 @@ export class Notification {
     this.createdAt = props.createdAt;
     this.readAt = props.readAt;
     this.emailSentAt = props.emailSentAt;
+    this.resolvedAt = props.resolvedAt ?? null;
   }
 
   static create(props: NotificationProps): Notification {
@@ -111,12 +114,22 @@ export class Notification {
     return this.emailSentAt;
   }
 
+  getResolvedAt(): Date | null {
+    return this.resolvedAt;
+  }
+
   markAsRead(at: Date): Notification {
     if (this.readAt !== null) {
       return this;
     }
 
     return new Notification({ ...this.toPrimitives(), readAt: at });
+  }
+
+  resolve(at: Date): Notification {
+    if (this.resolvedAt !== null) return this;
+
+    return new Notification({ ...this.toPrimitives(), resolvedAt: at, readAt: this.readAt ?? at });
   }
 
   toPrimitives(): NotificationProps {
@@ -130,6 +143,7 @@ export class Notification {
       createdAt: this.createdAt,
       readAt: this.readAt,
       emailSentAt: this.emailSentAt,
+      resolvedAt: this.resolvedAt,
     };
   }
 }

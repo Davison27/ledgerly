@@ -1,13 +1,14 @@
 import { Controller, Get, HttpCode, HttpStatus, Param, Post, Query } from '@nestjs/common';
-import { Authenticated } from '../../../../shared/infrastructure/http/access/authenticated.decorator';
+import { RequiresNotificationAccess } from '../../../../shared/infrastructure/http/access/requires-notification-access.decorator';
 import { ListNotificationsUseCase } from '../../application/list-notifications/list-notifications.use-case';
 import { CountUnreadNotificationsUseCase } from '../../application/count-unread-notifications/count-unread-notifications.use-case';
 import { MarkNotificationReadUseCase } from '../../application/mark-notification-read/mark-notification-read.use-case';
 import { MarkAllNotificationsReadUseCase } from '../../application/mark-all-notifications-read/mark-all-notifications-read.use-case';
+import { ResolveNotificationUseCase } from '../../application/resolve-notification/resolve-notification.use-case';
 import { ListNotificationsQueryDto } from './dtos/list-notifications.query.dto';
 import { NotificationPageResponse } from './notification-page.response';
 
-@Authenticated()
+@RequiresNotificationAccess()
 @Controller('notifications')
 export class NotificationsController {
   constructor(
@@ -15,6 +16,7 @@ export class NotificationsController {
     private readonly countUnreadNotificationsUseCase: CountUnreadNotificationsUseCase,
     private readonly markNotificationReadUseCase: MarkNotificationReadUseCase,
     private readonly markAllNotificationsReadUseCase: MarkAllNotificationsReadUseCase,
+    private readonly resolveNotificationUseCase: ResolveNotificationUseCase,
   ) {}
 
   @Get()
@@ -22,7 +24,7 @@ export class NotificationsController {
     const page = await this.listNotificationsUseCase.execute({
       page: query.page,
       size: query.size,
-      onlyUnread: query.status === 'unread',
+      status: query.status,
     });
 
     return NotificationPageResponse.fromPage(page);
@@ -45,5 +47,11 @@ export class NotificationsController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async markRead(@Param('id') id: string): Promise<void> {
     await this.markNotificationReadUseCase.execute({ id });
+  }
+
+  @Post(':id/resolve')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async resolve(@Param('id') id: string): Promise<void> {
+    await this.resolveNotificationUseCase.execute(id);
   }
 }

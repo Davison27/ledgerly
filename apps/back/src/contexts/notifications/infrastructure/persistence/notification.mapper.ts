@@ -28,6 +28,7 @@ export class NotificationMapper {
       createdAt: orm.createdAt,
       readAt: orm.readAt,
       emailSentAt: orm.emailSentAt,
+      resolvedAt: orm.resolvedAt,
     });
   }
 
@@ -50,6 +51,7 @@ export class NotificationMapper {
     orm.createdAt = primitives.createdAt;
     orm.readAt = primitives.readAt;
     orm.emailSentAt = primitives.emailSentAt;
+    orm.resolvedAt = primitives.resolvedAt ?? null;
 
     return orm;
   }
@@ -69,6 +71,7 @@ export class NotificationMapper {
       resourceProjectId: orm.resourceProjectId,
       createdAt: orm.createdAt,
       readAt: orm.readAt,
+      resolvedAt: orm.resolvedAt,
     };
   }
 }
