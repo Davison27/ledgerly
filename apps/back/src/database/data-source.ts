@@ -11,5 +11,4 @@ export default new DataSource({
   password: process.env.DB_PASSWORD ?? 'ledgerly',
   database: process.env.DB_NAME ?? 'ledgerly',
   entities: [join(__dirname, '..', 'contexts', '**', '*.orm-entity.{ts,js}')],
-  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
 });

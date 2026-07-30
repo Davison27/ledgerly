@@ -111,7 +111,7 @@ dev: _check-tools
 		echo "✓ Creado $(DEV_ENV_FILE) a partir de .env.example"; \
 	fi
 	$(DEV_COMPOSE) up -d --wait
-	pnpm --filter @ledgerly/back run migration:run
+	pnpm --filter @ledgerly/back run db:schema
 	pnpm dev
 
 build:
@@ -131,7 +131,7 @@ migrate: $(DEV_PREREQ)
 ifeq ($(MODE),producción)
 	$(COMPOSE) --profile tools run --rm migrator
 else
-	pnpm --filter @ledgerly/back run migration:run
+	pnpm --filter @ledgerly/back run db:schema
 endif
 
 backup: $(DEV_PREREQ)
