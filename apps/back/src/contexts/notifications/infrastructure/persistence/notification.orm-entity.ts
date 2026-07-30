@@ -38,7 +38,7 @@ export class NotificationOrmEntity {
   @Column({ name: 'resource_project_id', type: 'uuid', nullable: true })
   resourceProjectId: string | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
   @Column({ name: 'read_at', type: 'timestamptz', nullable: true })
