@@ -5,7 +5,6 @@ import { DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined } from '@an
 import { useTranslation } from 'react-i18next';
 import {
   deleteStaffDocument,
-  staffDocumentFileUrl,
   staffDocumentTypeQueries,
   staffQueries,
   type StaffDocumentDto,
@@ -16,9 +15,11 @@ import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { AddStaffDocumentButton } from '../addDocument/AddStaffDocumentButton';
 import { StaffDocumentEditModal } from '../edit/StaffDocumentEditModal';
+import { StaffDocumentPreview } from './StaffDocumentPreview';
 import { getExpiryStatus, getExpiryTone } from '../../model/staffDocumentStatus';
 import type { StaffSectionProps } from '../../model/types';
 import shared from '../staff-detail.module.css';
+import styles from './StaffDocumentsSection.module.css';
 
 const { Title, Text } = Typography;
 
@@ -53,6 +54,8 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [editingDocument, setEditingDocument] = useState<StaffDocumentDto | null>(null);
+  const [selectedDocumentId, setSelectedDocumentId] = useState<string | null>(null);
+  const selectedDocument = documents.find((document) => document.id === selectedDocumentId) ?? null;
 
   const handleDelete = async (document: StaffDocumentDto) => {
     setDeletingId(document.id);
@@ -109,7 +112,7 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
             type="text"
             icon={<EyeOutlined />}
             aria-label={t('staff.documents.actions.view')}
-            onClick={() => window.open(staffDocumentFileUrl(staffMember.id, record.id), '_blank')}
+            onClick={() => setSelectedDocumentId(record.id)}
           />
           {canEdit && <Button
             type="text"
@@ -154,27 +157,37 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
       {!typesLoading && documentTypes.length === 0 ? (
         <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.noTypes')} />
       ) : (
-        <Card className={shared.contentCard}>
-          <Tabs
-            activeKey={activeTypeId ?? undefined}
-            onChange={setActiveTypeId}
-            items={documentTypes.map((type) => ({
-              key: type.id,
-              label: t(`staff.documentTypes.${type.code}`, { defaultValue: type.name }),
-              children: loading ? null : documents.length === 0 ? (
-                <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.empty')} />
-              ) : (
-                <Table<StaffDocumentDto>
-                  columns={columns}
-                  dataSource={documents}
-                  rowKey="id"
-                  size="small"
-                  pagination={false}
-                />
-              ),
-            }))}
-          />
-        </Card>
+        <div className={styles.workspace}>
+          <Card className={styles.listCard}>
+            <Tabs
+              activeKey={activeTypeId ?? undefined}
+              onChange={(typeId) => {
+                setActiveTypeId(typeId);
+                setSelectedDocumentId(null);
+              }}
+              items={documentTypes.map((type) => ({
+                key: type.id,
+                label: t(`staff.documentTypes.${type.code}`, { defaultValue: type.name }),
+                children: loading ? null : documents.length === 0 ? (
+                  <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.empty')} />
+                ) : (
+                  <Table<StaffDocumentDto>
+                    columns={columns}
+                    dataSource={documents}
+                    rowKey="id"
+                    size="small"
+                    pagination={false}
+                    rowClassName={(record) => record.id === selectedDocumentId ? styles.selectedRow : ''}
+                    onRow={(record) => ({ onClick: () => setSelectedDocumentId(record.id) })}
+                  />
+                ),
+              }))}
+            />
+          </Card>
+          <aside className={styles.preview}>
+            <StaffDocumentPreview staffMemberId={staffMember.id} document={selectedDocument} />
+          </aside>
+        </div>
       )}
 
       <StaffDocumentEditModal
