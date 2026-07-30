@@ -1,18 +1,19 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
   Button,
+  Card,
   Empty,
   Flex,
+  Input,
   Popconfirm,
+  Select,
   Skeleton,
-  Table,
   Typography,
-  type TableColumnsType,
 } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, InboxOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   createProduct,
@@ -28,6 +29,8 @@ import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { ProductFormModal, type ProductFormValues } from '../form/ProductFormModal';
+import { ProductDetailModal } from '../detail/ProductDetailModal';
+import styles from './ProductsPage.module.css';
 
 const { Text } = Typography;
 
@@ -44,6 +47,9 @@ export function ProductsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<ProductDto | null>(null);
+  const [viewingProduct, setViewingProduct] = useState<ProductDto | null>(null);
+  const [search, setSearch] = useState('');
+  const [category, setCategory] = useState<string | undefined>();
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('products', 'edit');
 
@@ -53,9 +59,26 @@ export function ProductsPage() {
   };
 
   const handleEdit = (product: ProductDto) => {
+    setViewingProduct(null);
     setEditingProduct(product);
     setIsFormOpen(true);
   };
+
+  const categories = useMemo(
+    () => Array.from(new Set(products.map((product) => product.category).filter((value): value is string => Boolean(value)))).sort(),
+    [products],
+  );
+
+  const filteredProducts = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    return products.filter((product) => {
+      if (category && product.category !== category) return false;
+      if (!query) return true;
+      return [product.name, product.reference, product.category, product.brand, product.description, ...product.tags]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase().includes(query));
+    });
+  }, [category, products, search]);
 
   const handleCancelForm = () => {
     setIsFormOpen(false);
@@ -101,69 +124,6 @@ export function ProductsPage() {
     }
   };
 
-  const columns: TableColumnsType<ProductDto> = [
-    {
-      title: t('products.columns.name'),
-      dataIndex: 'name',
-      key: 'name',
-      sorter: (a, b) => a.name.localeCompare(b.name),
-    },
-    {
-      title: t('products.columns.price'),
-      dataIndex: 'price',
-      key: 'price',
-      width: 160,
-      align: 'right',
-      render: (price: number | null) => (price === null ? '—' : <Amount value={price} />),
-    },
-    {
-      title: t('products.columns.stock'),
-      dataIndex: 'stock',
-      key: 'stock',
-      width: 140,
-      align: 'right',
-      sorter: (a, b) => a.stock - b.stock,
-      render: (stock: number) =>
-        stock === 0 ? (
-          <Text type="secondary">{t('products.stockUnset')}</Text>
-        ) : (
-          <Numeric>{stock}</Numeric>
-        ),
-    },
-    ...(canEdit ? [{
-      title: t('products.columns.actions'),
-      key: 'actions',
-      width: 120,
-      align: 'center' as const,
-      render: (_: unknown, record: ProductDto) => (
-        <Flex gap={4} justify="center">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            aria-label={t('common.edit')}
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title={t('products.deleteConfirm.title')}
-            description={t('products.deleteConfirm.content', { name: record.name })}
-            okText={t('products.deleteConfirm.ok')}
-            cancelText={t('common.cancel')}
-            okButtonProps={{ danger: true }}
-            onConfirm={() => handleDelete(record)}
-          >
-            <Button
-              danger
-              type="text"
-              icon={<DeleteOutlined />}
-              aria-label={t('common.delete')}
-              loading={deletingId === record.id}
-            />
-          </Popconfirm>
-        </Flex>
-      ),
-    }] : []),
-  ];
-
   return (
     <PageContainer>
       <PageHeader
@@ -183,12 +143,74 @@ export function ProductsPage() {
           {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button>}
         </Empty>
       ) : (
-        <Table<ProductDto>
-          columns={columns}
-          dataSource={products}
-          rowKey="id"
-          pagination={false}
-        />
+        <>
+          <Flex gap={12} wrap className={styles.filters}>
+            <Input
+              allowClear
+              prefix={<SearchOutlined />}
+              placeholder={t('products.searchPlaceholder')}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className={styles.search}
+            />
+            <Select
+              allowClear
+              placeholder={t('products.categoryFilter')}
+              value={category}
+              onChange={setCategory}
+              options={categories.map((value) => ({ value, label: value }))}
+              className={styles.categoryFilter}
+            />
+          </Flex>
+          {filteredProducts.length === 0 ? (
+            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('products.emptySearch')} />
+          ) : (
+            <div className={styles.grid}>
+              {filteredProducts.map((product) => (
+                <Card
+                  key={product.id}
+                  hoverable
+                  className={styles.card}
+                  onClick={() => setViewingProduct(product)}
+                  cover={
+                    product.image ? <img src={product.image} alt="" className={styles.coverImage} /> : <div className={styles.coverFallback}><InboxOutlined /></div>
+                  }
+                  actions={canEdit ? [
+                    <Button key="edit" type="text" icon={<EditOutlined />} aria-label={t('common.edit')} onClick={(event) => { event.stopPropagation(); handleEdit(product); }} />,
+                    <Popconfirm
+                      key="delete"
+                      title={t('products.deleteConfirm.title')}
+                      description={t('products.deleteConfirm.content', { name: product.name })}
+                      okText={t('products.deleteConfirm.ok')}
+                      cancelText={t('common.cancel')}
+                      okButtonProps={{ danger: true }}
+                      onConfirm={() => handleDelete(product)}
+                    >
+                      <Button danger type="text" icon={<DeleteOutlined />} aria-label={t('common.delete')} loading={deletingId === product.id} onClick={(event) => event.stopPropagation()} />
+                    </Popconfirm>,
+                  ] : undefined}
+                >
+                  <Card.Meta
+                    title={product.name}
+                    description={
+                      <div className={styles.cardBody}>
+                        <Flex justify="space-between" gap={8}>
+                          <Text type="secondary" ellipsis>{product.reference ?? product.brand ?? '—'}</Text>
+                          {product.category && <span className={styles.category}>{product.category}</span>}
+                        </Flex>
+                        {product.description && <Text type="secondary" className={styles.description} ellipsis={{ tooltip: product.description }}>{product.description}</Text>}
+                        <Flex justify="space-between" align="center" className={styles.metrics}>
+                          <Text strong>{product.price === null ? '—' : <Amount value={product.price} />}</Text>
+                          <Text type="secondary">{product.stock === 0 ? t('products.stockUnset') : <Numeric>{product.stock}</Numeric>}</Text>
+                        </Flex>
+                      </div>
+                    }
+                  />
+                </Card>
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <ProductFormModal
@@ -197,6 +219,13 @@ export function ProductsPage() {
         onCancel={handleCancelForm}
         onSubmit={handleSubmit}
         submitting={submitting}
+      />
+      <ProductDetailModal
+        open={viewingProduct !== null}
+        product={viewingProduct}
+        canEdit={canEdit}
+        onClose={() => setViewingProduct(null)}
+        onEdit={handleEdit}
       />
     </PageContainer>
   );

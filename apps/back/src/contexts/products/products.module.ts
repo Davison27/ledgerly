@@ -19,5 +19,6 @@ import { DeleteProductUseCase } from './application/delete-product/delete-produc
     DeleteProductUseCase,
     { provide: PRODUCT_REPOSITORY, useClass: TypeOrmProductRepository },
   ],
+  exports: [PRODUCT_REPOSITORY],
 })
 export class ProductsModule {}

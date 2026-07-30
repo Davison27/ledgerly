@@ -32,6 +32,13 @@ export class CreateProductUseCase {
       name: command.name,
       price: command.price ?? null,
       stock: command.stock ?? 0,
+      reference: command.reference,
+      category: command.category,
+      brand: command.brand,
+      description: command.description,
+      image: command.image,
+      tags: command.tags,
+      leasingMonthlyFee: command.leasingMonthlyFee,
     });
 
     await this.productRepository.save(product);

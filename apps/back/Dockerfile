@@ -16,8 +16,11 @@ RUN pnpm --filter @ledgerly/back build
 FROM build AS prune
 RUN pnpm deploy --legacy --filter @ledgerly/back --prod /out
 
-FROM node:22-alpine AS runtime
+FROM node:22-bookworm-slim AS runtime
 WORKDIR /app
+RUN apt-get update \
+	&& apt-get install -y --no-install-recommends ocrmypdf tesseract-ocr tesseract-ocr-spa wget \
+	&& rm -rf /var/lib/apt/lists/*
 COPY --from=prune /out/node_modules ./node_modules
 COPY --from=build /app/apps/back/dist ./dist
 USER node

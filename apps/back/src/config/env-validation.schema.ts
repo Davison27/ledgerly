@@ -34,4 +34,8 @@ export const envValidationSchema = Joi.object({
     then: Joi.boolean().valid(true).required(),
     otherwise: Joi.boolean().default(false),
   }),
+  PDF_OCR_ENABLED: Joi.boolean().default(true),
+  PDF_OCR_LANGUAGE: Joi.string().default('spa'),
+  PDF_OCR_MAX_PAGES: Joi.number().integer().min(1).max(50).default(12),
+  PDF_OCR_TIMEOUT_SECONDS: Joi.number().integer().min(10).max(300).default(90),
 });

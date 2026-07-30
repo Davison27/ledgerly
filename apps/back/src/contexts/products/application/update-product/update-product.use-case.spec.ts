@@ -87,6 +87,35 @@ describe('UpdateProductUseCase', () => {
     expect(product.stock).toBe(10);
   });
 
+  it('updates and clears catalog details independently from billing data', async () => {
+    const repository = new InMemoryProductRepository([
+      Product.create({
+        id: 'product-1',
+        name: 'Diseño web',
+        price: 500,
+        stock: 10,
+        reference: 'SERV-001',
+        category: 'Diseño',
+        tags: ['branding'],
+      }),
+    ]);
+    const useCase = new UpdateProductUseCase(repository);
+
+    const product = await useCase.execute({
+      id: 'product-1',
+      description: 'Diseño web corporativo.',
+      category: null,
+      tags: ['web'],
+    });
+
+    expect(product.reference).toBe('SERV-001');
+    expect(product.category).toBeNull();
+    expect(product.description).toBe('Diseño web corporativo.');
+    expect(product.tags).toEqual(['web']);
+    expect(product.price).toBe(500);
+    expect(product.stock).toBe(10);
+  });
+
   it('throws ProductNotFoundException when the product does not exist', async () => {
     const repository = new InMemoryProductRepository();
     const useCase = new UpdateProductUseCase(repository);

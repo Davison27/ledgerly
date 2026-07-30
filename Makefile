@@ -110,9 +110,10 @@ dev: _check-tools
 		cp $(DEV_ENV_EXAMPLE) $(DEV_ENV_FILE); \
 		echo "✓ Creado $(DEV_ENV_FILE) a partir de .env.example"; \
 	fi
-	$(DEV_COMPOSE) up -d --wait
-	pnpm --filter @ledgerly/back run db:schema
-	pnpm dev
+	$(DEV_COMPOSE) up -d --build postgres
+	$(DEV_COMPOSE) run --rm back node dist/database/bootstrap.js
+	$(DEV_COMPOSE) up -d --build --wait back
+	VITE_BACKEND_URL=http://localhost:3005 pnpm --filter @ledgerly/front dev
 
 build:
 	pnpm build
