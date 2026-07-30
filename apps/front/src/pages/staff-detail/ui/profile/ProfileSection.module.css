@@ -1,3 +1,30 @@
-.header {
-  margin-bottom: 20px;
+.card {
+  position: sticky;
+  top: var(--lg-space-lg);
+}
+
+.field {
+  align-items: flex-start;
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  color: var(--ant-color-primary);
+  background: var(--ant-color-primary-bg);
+  border-radius: var(--ant-border-radius-sm);
+}
+
+.label {
+  font-size: 12px;
+}
+
+.notes {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: var(--lg-space-sm);
+  border-top: 1px solid var(--ant-color-border-secondary);
 }

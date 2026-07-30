@@ -1458,6 +1458,8 @@
       "varios": "Other"
     },
     "documents": {
+      "add": "Add document",
+      "subtitle": "Keep employment and compliance documents up to date.",
       "noTypes": "The document type catalogue could not be loaded.",
       "empty": "There are no documents of this type yet.",
       "deleted": "Document deleted",
@@ -1515,6 +1517,8 @@
     },
     "payrolls": {
       "title": "Payrolls",
+      "add": "Add payroll",
+      "subtitle": "Payroll documents linked to this staff member.",
       "empty": "There are no payrolls yet.",
       "columns": {
         "name": "Document",

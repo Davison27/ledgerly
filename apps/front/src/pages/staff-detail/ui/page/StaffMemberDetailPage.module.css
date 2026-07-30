@@ -27,3 +27,39 @@
   min-height: 0;
   overflow: auto;
 }
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: var(--lg-space-xl);
+  width: 100%;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: var(--lg-page-padding-block) var(--lg-page-padding-inline);
+}
+
+.workspace {
+  min-width: 0;
+}
+
+.profileAside {
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .header {
+    height: auto;
+    min-height: var(--lg-section-header-height);
+    padding-block: var(--lg-space-sm);
+    flex-wrap: wrap;
+    justify-content: space-between;
+  }
+
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .profileAside {
+    order: -1;
+  }
+}

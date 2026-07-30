@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { App, Button, Descriptions, Flex } from 'antd';
-import { EditOutlined } from '@ant-design/icons';
+import { App, Button, Card, Flex, Typography } from 'antd';
+import { CalendarOutlined, EditOutlined, IdcardOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { staffQueries, updateStaffMember } from '@/entities/staff-member';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
-import { PageContainer } from '@/shared/ui/PageContainer';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import {
@@ -14,6 +13,8 @@ import {
 } from '@/features/staff-member-form';
 import type { StaffSectionProps } from '../../model/types';
 import styles from './ProfileSection.module.css';
+
+const { Text } = Typography;
 
 export function ProfileSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
@@ -39,45 +40,38 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
   };
 
   return (
-    <PageContainer maxWidth={1080}>
-      <Flex align="center" justify="space-between" className={styles.header}>
-        <Flex align="center" gap={8}>
+    <>
+      <Card
+        className={styles.card}
+        title={t('staff.sections.profile')}
+        extra={
+          canEdit ? <Button type="text" icon={<EditOutlined />} onClick={() => setIsFormOpen(true)}>{t('common.edit')}</Button> : undefined
+        }
+      >
+        <Flex vertical gap={16}>
           {staffMember.endDate && (
             <SemanticTag tone="neutral">{t('staff.columns.inactive')}</SemanticTag>
           )}
+          <ProfileField icon={<IdcardOutlined />} label={t('staff.fields.position')} value={staffMember.position} />
+          <ProfileField icon={<IdcardOutlined />} label={t('staff.fields.taxId')} value={staffMember.taxId} />
+          <ProfileField icon={<MailOutlined />} label={t('staff.fields.email')} value={staffMember.email} />
+          <ProfileField icon={<PhoneOutlined />} label={t('staff.fields.phone')} value={staffMember.phone} />
+          <ProfileField
+            icon={<CalendarOutlined />}
+            label={t('staff.fields.hireDate')}
+            value={staffMember.hireDate ? <Numeric>{staffMember.hireDate}</Numeric> : null}
+          />
+          {staffMember.endDate && (
+            <ProfileField icon={<CalendarOutlined />} label={t('staff.fields.endDate')} value={<Numeric>{staffMember.endDate}</Numeric>} />
+          )}
+          {staffMember.notes && (
+            <div className={styles.notes}>
+              <Text type="secondary">{t('staff.fields.notes')}</Text>
+              <Text>{staffMember.notes}</Text>
+            </div>
+          )}
         </Flex>
-        {canEdit && <Button type="primary" icon={<EditOutlined />} onClick={() => setIsFormOpen(true)}>{t('common.edit')}</Button>}
-      </Flex>
-
-      <Descriptions column={2} bordered size="small">
-        <Descriptions.Item label={t('staff.fields.firstName')}>
-          {staffMember.firstName}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.lastName')}>
-          {staffMember.lastName}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.taxId')}>
-          {staffMember.taxId || '—'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.position')}>
-          {staffMember.position || '—'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.email')}>
-          {staffMember.email || '—'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.phone')}>
-          {staffMember.phone || '—'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.hireDate')}>
-          {staffMember.hireDate ? <Numeric>{staffMember.hireDate}</Numeric> : '—'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.endDate')}>
-          {staffMember.endDate ? <Numeric>{staffMember.endDate}</Numeric> : '—'}
-        </Descriptions.Item>
-        <Descriptions.Item label={t('staff.fields.notes')} span={2}>
-          {staffMember.notes || '—'}
-        </Descriptions.Item>
-      </Descriptions>
+      </Card>
 
       <StaffMemberFormModal
         open={isFormOpen}
@@ -86,6 +80,18 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
         onSubmit={handleSubmit}
         submitting={submitting}
       />
-    </PageContainer>
+    </>
+  );
+}
+
+function ProfileField({ icon, label, value }: { icon: ReactNode; label: string; value: ReactNode | null }) {
+  return (
+    <Flex gap={10} className={styles.field}>
+      <span className={styles.icon}>{icon}</span>
+      <Flex vertical gap={1}>
+        <Text type="secondary" className={styles.label}>{label}</Text>
+        <Text>{value || '—'}</Text>
+      </Flex>
+    </Flex>
   );
 }
