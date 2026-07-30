@@ -34,6 +34,7 @@ import {
   memberInitials,
   moduleSupportsEdit,
   WORKSPACE_MODULES,
+  workspaceMemberAvatarUrl,
   type WorkspaceMemberDto,
 } from '@/entities/workspace-member';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
@@ -211,7 +212,9 @@ export function MembersTab() {
       key: 'member',
       render: (_, record) => (
         <Flex align="center" gap={12}>
-          <Avatar size={36} src={record.auth?.image}>{memberInitials(record.name)}</Avatar>
+          <Avatar size={36} src={record.auth ? workspaceMemberAvatarUrl(record.id) : undefined}>
+            {memberInitials(record.name)}
+          </Avatar>
           <Flex vertical gap={0}>
             <Flex align="center" gap={8}>
               <Text strong>{record.name}</Text>
