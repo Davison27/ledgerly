@@ -13,6 +13,10 @@ export function getCurrentWorkspaceMember(): Promise<WorkspaceMemberDto> {
   return get<WorkspaceMemberDto>('/auth/me');
 }
 
+export function workspaceMemberAvatarUrl(memberId: string): string {
+  return `/api/workspace/members/${encodeURIComponent(memberId)}/avatar`;
+}
+
 export function inviteWorkspaceMember(
   payload: InviteWorkspaceMemberPayload,
 ): Promise<WorkspaceMemberDto> {
