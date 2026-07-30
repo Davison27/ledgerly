@@ -6,12 +6,14 @@ export class CreateStaffDocumentDto {
   @IsUUID()
   typeId: string;
 
+  @IsOptional()
   @IsString()
   @IsNotEmpty()
-  name: string;
+  name?: string;
 
+  @IsOptional()
   @Matches(DATE_PATTERN)
-  issueDate: string;
+  issueDate?: string;
 
   @IsOptional()
   @Matches(DATE_PATTERN)

@@ -59,8 +59,8 @@ export interface StaffDocumentDto {
 
 export interface CreateStaffDocumentPayload {
   typeId: string;
-  name: string;
-  issueDate: string;
+  name?: string;
+  issueDate?: string;
   expiryDate?: string;
   notes?: string;
 }

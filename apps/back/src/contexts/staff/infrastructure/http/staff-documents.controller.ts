@@ -83,8 +83,8 @@ export class StaffDocumentsController {
     const staffDocument = await this.createStaffDocumentUseCase.execute({
       staffMemberId,
       typeId: dto.typeId,
-      name: dto.name,
-      issueDate: dto.issueDate,
+      name: dto.name ?? file.originalname,
+      issueDate: dto.issueDate ?? new Date().toISOString().slice(0, 10),
       expiryDate: dto.expiryDate,
       notes: dto.notes,
       file: {
