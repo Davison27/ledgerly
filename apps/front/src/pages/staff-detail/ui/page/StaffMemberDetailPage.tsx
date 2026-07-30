@@ -19,14 +19,14 @@ import styles from './StaffMemberDetailPage.module.css';
 
 const { Text } = Typography;
 
-type Section = 'profile' | 'documents' | 'payrolls' | 'schedule';
+type Section = 'documents' | 'payrolls' | 'schedule';
 
 const PHOTO_TYPE_CODE = 'foto';
 
 export function StaffMemberDetailPage() {
   const { t } = useTranslation();
   const { staffMemberId } = useParams({ strict: false }) as { staffMemberId?: string };
-  const [section, setSection] = useState<Section>('profile');
+  const [section, setSection] = useState<Section>('documents');
 
   const {
     data: staffMember,
@@ -71,7 +71,6 @@ export function StaffMemberDetailPage() {
   }
 
   const options = [
-    { label: t('staff.sections.profile'), value: 'profile' as const },
     { label: t('staff.sections.documents'), value: 'documents' as const },
     { label: t('staff.sections.payrolls'), value: 'payrolls' as const },
     { label: t('staff.sections.schedule'), value: 'schedule' as const },
@@ -104,10 +103,16 @@ export function StaffMemberDetailPage() {
       </div>
 
       <div className={styles.content}>
-        {section === 'profile' && <ProfileSection staffMember={staffMember} />}
-        {section === 'documents' && <StaffDocumentsSection staffMember={staffMember} />}
-        {section === 'payrolls' && <PayrollsSection staffMember={staffMember} />}
-        {section === 'schedule' && <AgendaSection staffMember={staffMember} />}
+        <div className={styles.layout}>
+          <main className={styles.workspace}>
+            {section === 'documents' && <StaffDocumentsSection staffMember={staffMember} />}
+            {section === 'payrolls' && <PayrollsSection staffMember={staffMember} />}
+            {section === 'schedule' && <AgendaSection staffMember={staffMember} />}
+          </main>
+          <aside className={styles.profileAside}>
+            <ProfileSection staffMember={staffMember} />
+          </aside>
+        </div>
       </div>
     </Flex>
   );

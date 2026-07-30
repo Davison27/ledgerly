@@ -10,11 +10,12 @@ import { StaffDocumentUploadModal } from '../upload/StaffDocumentUploadModal';
 
 interface AddStaffDocumentButtonProps {
   staffMemberId: string;
+  mode?: 'document' | 'payroll' | 'all';
 }
 
 const PAYROLL_MENU_KEY = 'payroll';
 
-export function AddStaffDocumentButton({ staffMemberId }: AddStaffDocumentButtonProps) {
+export function AddStaffDocumentButton({ staffMemberId, mode = 'all' }: AddStaffDocumentButtonProps) {
   const { t } = useTranslation();
   const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
@@ -23,12 +24,12 @@ export function AddStaffDocumentButton({ staffMemberId }: AddStaffDocumentButton
   const canEdit = canAccess('staff', 'edit');
 
   const items: MenuProps['items'] = [
-    ...documentTypes.map((type) => ({
+    ...(mode === 'payroll' ? [] : documentTypes.filter((type) => type.code !== 'nomina').map((type) => ({
       key: type.id,
       label: t(`staff.documentTypes.${type.code}`, { defaultValue: type.name }),
-    })),
-    { type: 'divider' as const },
-    { key: PAYROLL_MENU_KEY, label: t('staff.payrolls.title') },
+    }))),
+    ...(mode === 'all' ? [{ type: 'divider' as const }] : []),
+    ...(mode === 'document' ? [] : [{ key: PAYROLL_MENU_KEY, label: t('staff.payrolls.title') }]),
   ];
 
   const handleClick: MenuProps['onClick'] = ({ key }) => {
@@ -47,7 +48,7 @@ export function AddStaffDocumentButton({ staffMemberId }: AddStaffDocumentButton
     <>
       <Dropdown menu={{ items, onClick: handleClick }} trigger={['click']}>
         <Button type="primary" icon={<PlusOutlined />}>
-          {t('staff.detail.add')}
+          {mode === 'payroll' ? t('staff.payrolls.add') : mode === 'document' ? t('staff.documents.add') : t('staff.detail.add')}
         </Button>
       </Dropdown>
 
