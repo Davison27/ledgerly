@@ -11,11 +11,16 @@ import { StaffDocumentUploadModal } from '../upload/StaffDocumentUploadModal';
 interface AddStaffDocumentButtonProps {
   staffMemberId: string;
   mode?: 'document' | 'payroll' | 'all';
+  documentTypeId?: string | null;
 }
 
 const PAYROLL_MENU_KEY = 'payroll';
 
-export function AddStaffDocumentButton({ staffMemberId, mode = 'all' }: AddStaffDocumentButtonProps) {
+export function AddStaffDocumentButton({
+  staffMemberId,
+  mode = 'all',
+  documentTypeId,
+}: AddStaffDocumentButtonProps) {
   const { t } = useTranslation();
   const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
@@ -44,11 +49,45 @@ export function AddStaffDocumentButton({ staffMemberId, mode = 'all' }: AddStaff
     return null;
   }
 
+  if (mode === 'document' && documentTypeId) {
+    return (
+      <>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setSelectedTypeId(documentTypeId)}>
+          {t('staff.documents.add')}
+        </Button>
+        <StaffDocumentUploadModal
+          open={selectedTypeId !== null}
+          staffMemberId={staffMemberId}
+          documentTypes={documentTypes}
+          initialTypeId={selectedTypeId ?? undefined}
+          onCancel={() => setSelectedTypeId(null)}
+          onCreated={() => setSelectedTypeId(null)}
+        />
+      </>
+    );
+  }
+
+  if (mode === 'payroll') {
+    return (
+      <>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setPayrollModalOpen(true)}>
+          {t('staff.payrolls.add')}
+        </Button>
+        <DocumentUploadModal
+          open={payrollModalOpen}
+          context={{ kind: 'staffPayroll', staffMemberId }}
+          onCancel={() => setPayrollModalOpen(false)}
+          onCreated={() => setPayrollModalOpen(false)}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       <Dropdown menu={{ items, onClick: handleClick }} trigger={['click']}>
         <Button type="primary" icon={<PlusOutlined />}>
-          {mode === 'payroll' ? t('staff.payrolls.add') : mode === 'document' ? t('staff.documents.add') : t('staff.detail.add')}
+          {t('staff.detail.add')}
         </Button>
       </Dropdown>
 
