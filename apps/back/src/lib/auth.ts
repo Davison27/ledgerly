@@ -60,7 +60,7 @@ export const auth = betterAuth({
     cookiePrefix: 'ledgerly',
     ipAddress: {
       disableIpTracking: false,
-      ipAddressHeaders: process.env.TRUST_PROXY === 'true' ? ['x-forwarded-for', 'x-real-ip'] : [],
+      ipAddressHeaders: ['x-forwarded-for', 'x-real-ip'],
     },
   },
   account: {

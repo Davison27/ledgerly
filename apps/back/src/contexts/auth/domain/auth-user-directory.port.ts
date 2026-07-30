@@ -1,6 +1,7 @@
 export const AUTH_USER_DIRECTORY = Symbol('AuthUserDirectory');
 
 export interface AuthUserIdentity {
+  image: string | null;
   emailVerified: boolean;
   createdAt: Date;
   updatedAt: Date;

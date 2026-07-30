@@ -75,6 +75,10 @@ export class AuthController {
       }
     }
 
+    if (!headers.has('x-forwarded-for')) {
+      headers.set('x-forwarded-for', req.ip ?? '127.0.0.1');
+    }
+
     const request = new Request(`${req.protocol}://${req.get('host')}${req.originalUrl}`, {
       method: req.method,
       headers,

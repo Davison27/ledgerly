@@ -11,7 +11,7 @@ interface WorkspaceMemberResponseProps {
   invitedAt: string;
   joinedAt: string | null;
   lastActiveAt: string | null;
-  auth: { emailVerified: boolean; createdAt: string; updatedAt: string; providers: string[]; activeSessions: number; lastSessionAt: string | null } | null;
+  auth: { image: string | null; emailVerified: boolean; createdAt: string; updatedAt: string; providers: string[]; activeSessions: number; lastSessionAt: string | null } | null;
 }
 
 export class WorkspaceMemberResponse {
@@ -51,7 +51,7 @@ export class WorkspaceMemberResponse {
       invitedAt: primitives.invitedAt.toISOString(),
       joinedAt: primitives.joinedAt ? primitives.joinedAt.toISOString() : null,
       lastActiveAt: primitives.lastActiveAt ? primitives.lastActiveAt.toISOString() : null,
-      auth: identity ? { emailVerified: identity.emailVerified, createdAt: identity.createdAt.toISOString(), updatedAt: identity.updatedAt.toISOString(), providers: identity.providers, activeSessions: identity.activeSessions, lastSessionAt: identity.lastSessionAt ? identity.lastSessionAt.toISOString() : null } : null,
+      auth: identity ? { image: identity.image, emailVerified: identity.emailVerified, createdAt: identity.createdAt.toISOString(), updatedAt: identity.updatedAt.toISOString(), providers: identity.providers, activeSessions: identity.activeSessions, lastSessionAt: identity.lastSessionAt ? identity.lastSessionAt.toISOString() : null } : null,
     });
   }
 }
