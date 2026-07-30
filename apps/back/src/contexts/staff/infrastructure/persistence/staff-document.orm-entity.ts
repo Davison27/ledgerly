@@ -35,6 +35,6 @@ export class StaffDocumentOrmEntity {
   @Column({ type: 'bytea', nullable: true, select: false })
   content: Buffer | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

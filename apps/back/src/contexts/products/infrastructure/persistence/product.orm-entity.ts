@@ -14,6 +14,6 @@ export class ProductOrmEntity {
   @Column({ type: 'integer' })
   stock: number;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }
