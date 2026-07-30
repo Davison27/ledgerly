@@ -1,4 +1,5 @@
-import { Flex, Typography } from 'antd';
+import { CheckOutlined } from '@ant-design/icons';
+import { Button, Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import {
   notificationDescriptionKey,
@@ -16,9 +17,10 @@ const { Text } = Typography;
 export interface NotificationItemProps {
   view: NotificationView;
   onSelect: (view: NotificationView) => void;
+  onResolve: (id: string) => void;
 }
 
-export function NotificationItem({ view, onSelect }: NotificationItemProps) {
+export function NotificationItem({ view, onSelect, onResolve }: NotificationItemProps) {
   const { t, i18n } = useTranslation();
 
   const descriptionParams = notificationDescriptionParams(view, i18n.language, (kind) =>
@@ -52,6 +54,20 @@ export function NotificationItem({ view, onSelect }: NotificationItemProps) {
         <Text type="secondary" className={styles.itemDescription}>
           {t(notificationDescriptionKey(view.type), descriptionParams)}
         </Text>
+
+        {!view.resolvedAt && (
+          <Button
+            type="link"
+            size="small"
+            icon={<CheckOutlined />}
+            onClick={(event) => {
+              event.stopPropagation();
+              onResolve(view.id);
+            }}
+          >
+            {t('notifications.resolve')}
+          </Button>
+        )}
 
         {view.context.amount !== null && (
           <Text strong className={styles.amount}>
