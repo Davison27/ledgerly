@@ -26,9 +26,9 @@ export class InvoiceExtractionHintOrmEntity {
   @Column({ type: 'integer', default: 1 })
   occurrences: number;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 
-  @Column({ name: 'updated_at', type: 'timestamptz' })
+  @Column({ name: 'updated_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   updatedAt: Date;
 }

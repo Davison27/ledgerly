@@ -62,6 +62,6 @@ export class InvoiceOrmEntity {
   @Column({ name: 'document_id', type: 'uuid', nullable: true })
   documentId: string | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }
