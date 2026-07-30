@@ -21,6 +21,15 @@
     "signIn": "Entrar",
     "signInWithGoogle": "Continuar con Google",
     "tagline": "Gestiona tus proyectos, documentos y finanzas en un solo lugar.",
+    "product": {
+      "title": "Todo tu negocio, bajo control",
+      "features": {
+        "projects": { "title": "Proyectos", "description": "Planifica y sigue cada entrega." },
+        "documents": { "title": "Documentos", "description": "Centraliza facturas y archivos." },
+        "finance": { "title": "Finanzas", "description": "Controla ingresos, gastos y cobros." },
+        "calendar": { "title": "Agenda", "description": "Coordina fechas y equipos." }
+      }
+    },
     "errors": {
       "accessDenied": "No se ha podido iniciar sesión con esa cuenta. Habla con el administrador del espacio.",
       "expired": "El enlace ha caducado. Vuelve a intentarlo.",

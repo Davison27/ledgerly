@@ -1,5 +1,5 @@
 import { Alert, Button, Flex, Form, Grid, Input, Typography, theme } from 'antd';
-import { GoogleOutlined } from '@ant-design/icons';
+import { CalendarOutlined, FileTextOutlined, GoogleOutlined, TeamOutlined, WalletOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
 import { LanguageSwitcher } from '../language/LanguageSwitcher';
@@ -13,6 +13,13 @@ import styles from './LoginPage.module.css';
 
 const { useBreakpoint } = Grid;
 const { Title, Text } = Typography;
+
+const PRODUCT_FEATURES = [
+  { key: 'projects', icon: <TeamOutlined /> },
+  { key: 'documents', icon: <FileTextOutlined /> },
+  { key: 'finance', icon: <WalletOutlined /> },
+  { key: 'calendar', icon: <CalendarOutlined /> },
+] as const;
 
 interface BootstrapFormValues {
   email: string;
@@ -141,7 +148,21 @@ export function LoginPage() {
         >
           <Flex vertical align="center" gap={SPACE.xl} className={styles.brandContent}>
             <img src={iconUrl} alt="" aria-hidden="true" className={styles.brandIcon} />
-            <Text className={styles.tagline}>{t('login.tagline')}</Text>
+            <Flex vertical align="center" gap={8}>
+              <Title level={2} className={styles.brandTitle}>{t('login.product.title')}</Title>
+              <Text className={styles.tagline}>{t('login.tagline')}</Text>
+            </Flex>
+            <div className={styles.featureList}>
+              {PRODUCT_FEATURES.map(({ key, icon }) => (
+                <div key={key} className={styles.featureItem}>
+                  <span className={styles.featureIcon}>{icon}</span>
+                  <div>
+                    <Text strong className={styles.featureTitle}>{t(`login.product.features.${key}.title`)}</Text>
+                    <Text className={styles.featureDescription}>{t(`login.product.features.${key}.description`)}</Text>
+                  </div>
+                </div>
+              ))}
+            </div>
           </Flex>
         </div>
       )}

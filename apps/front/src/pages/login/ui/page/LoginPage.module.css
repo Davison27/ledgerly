@@ -71,6 +71,7 @@
 .brandContent {
   padding: calc(var(--lg-space-xxl) + var(--lg-space-lg));
   text-align: center;
+  width: min(440px, 100%);
 }
 
 .brandIcon {
@@ -85,4 +86,55 @@
   font-size: 20px;
   max-width: 380px;
   opacity: 0.95;
+}
+
+.brandTitle {
+  color: #ffffff;
+  margin: 0;
+}
+
+.featureList {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  text-align: left;
+}
+
+.featureItem {
+  min-height: 116px;
+  padding: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 36px rgba(5, 28, 64, 0.12);
+  backdrop-filter: blur(10px);
+}
+
+.featureIcon {
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  color: var(--ant-color-primary);
+  background: #ffffff;
+  font-size: 16px;
+}
+
+.featureTitle,
+.featureDescription {
+  display: block;
+  color: #ffffff;
+}
+
+.featureDescription {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.82;
 }

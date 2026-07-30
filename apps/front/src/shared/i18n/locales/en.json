@@ -21,6 +21,15 @@
     "signIn": "Sign in",
     "signInWithGoogle": "Continue with Google",
     "tagline": "Manage your projects, documents and finances in one place.",
+    "product": {
+      "title": "Your business, under control",
+      "features": {
+        "projects": { "title": "Projects", "description": "Plan and track every delivery." },
+        "documents": { "title": "Documents", "description": "Keep invoices and files together." },
+        "finance": { "title": "Finance", "description": "Track income, spending and payments." },
+        "calendar": { "title": "Schedule", "description": "Coordinate dates and teams." }
+      }
+    },
     "errors": {
       "accessDenied": "We couldn't sign you in with that account. Contact your workspace admin.",
       "expired": "That link has expired. Please try again.",
