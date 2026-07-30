@@ -1,6 +1,7 @@
 import 'dotenv/config';
+import { randomUUID } from 'node:crypto';
 import { betterAuth } from 'better-auth';
-import { Kysely, PostgresDialect } from 'kysely';
+import { Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool } from 'pg';
 
 const pool = new Pool({
@@ -16,16 +17,37 @@ export const authDatabase = new Kysely({ dialect: new PostgresDialect({ pool }) 
 const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
 const backendUrl = process.env.BACKEND_PUBLIC_URL ?? 'http://localhost:3005';
 
+async function recordSecurityAudit(
+  event: string,
+  subjectId: string | null,
+  metadata: Record<string, string | null>,
+): Promise<void> {
+  try {
+    await sql`
+      INSERT INTO security_audit_logs (id, event, subject_id, metadata, created_at)
+      VALUES (${randomUUID()}, ${event}, ${subjectId}, ${JSON.stringify(metadata)}::jsonb, NOW())
+    `.execute(authDatabase);
+  } catch (error) {
+    // Authentication must remain available if audit storage is temporarily unavailable.
+    console.error('Failed to record security audit event', error);
+  }
+}
+
+function requestMetadata(request: Request | undefined): Record<string, string | null> {
+  const forwardedFor = request?.headers.get('x-forwarded-for');
+
+  return {
+    ipAddress: forwardedFor?.split(',')[0]?.trim() ?? request?.headers.get('x-real-ip') ?? null,
+    userAgent: request?.headers.get('user-agent') ?? null,
+  };
+}
+
 export const auth = betterAuth({
   appName: 'Ledgerly',
   baseURL: backendUrl,
   database: { db: authDatabase, type: 'postgres' },
   emailAndPassword: {
-    enabled: true,
-    minPasswordLength: 12,
-    maxPasswordLength: 128,
-    revokeSessionsOnPasswordReset: true,
-    resetPasswordTokenExpiresIn: 60 * 30,
+    enabled: false,
   },
   socialProviders:
     process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -38,8 +60,9 @@ export const auth = betterAuth({
       : undefined,
   trustedOrigins: [frontendUrl],
   session: {
-    expiresIn: 60 * 60 * 24 * 7,
-    updateAge: 60 * 60 * 24,
+    expiresIn: 60 * 60 * 24,
+    updateAge: 60 * 60,
+    freshAge: 60 * 60,
   },
   rateLimit: {
     enabled: true,
@@ -64,8 +87,38 @@ export const auth = betterAuth({
     },
   },
   account: {
+    encryptOAuthTokens: true,
     accountLinking: {
       enabled: false,
+    },
+  },
+  databaseHooks: {
+    session: {
+      create: {
+        after: async (session, context) =>
+          recordSecurityAudit('session.created', session.userId, {
+            sessionId: session.id,
+            ...requestMetadata(context?.request),
+          }),
+      },
+      delete: {
+        before: async (session, context) => {
+          await recordSecurityAudit('session.revoked', session.userId, {
+            sessionId: session.id,
+            ...requestMetadata(context?.request),
+          });
+        },
+      },
+    },
+    account: {
+      create: {
+        after: async (account, context) =>
+          recordSecurityAudit('account.linked', account.userId, {
+            accountId: account.id,
+            provider: account.providerId,
+            ...requestMetadata(context?.request),
+          }),
+      },
     },
   },
 });
