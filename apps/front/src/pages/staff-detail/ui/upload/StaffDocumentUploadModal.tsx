@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { App, Button, DatePicker, Form, Input, Modal, Select, Upload } from 'antd';
+import { App, Button, DatePicker, Form, Modal, Select, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
+import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { createStaffDocument, staffQueries, type StaffDocumentTypeDto } from '@/entities/staff-member';
 import { documentQueries } from '@/entities/document';
 import styles from './StaffDocumentUploadModal.module.css';
 
 const { Dragger } = Upload;
-const { TextArea } = Input;
 
 const ACCEPTED_MIME_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 
@@ -28,10 +28,7 @@ interface StaffDocumentUploadModalProps {
 
 interface StaffDocumentFormFields {
   typeId: string;
-  name: string;
-  issueDate: Dayjs;
   expiryDate?: Dayjs;
-  notes?: string;
 }
 
 export function StaffDocumentUploadModal({
@@ -60,17 +57,15 @@ export function StaffDocumentUploadModal({
   }, [open, initialTypeId, form]);
 
   const typeIdWatch = Form.useWatch('typeId', form);
-  const issueDateWatch = Form.useWatch('issueDate', form);
   const selectedType = documentTypes.find((type) => type.id === typeIdWatch);
-  const showExpiryDate = selectedType?.expires ?? true;
 
   useEffect(() => {
-    if (!selectedType?.defaultValidityMonths || !issueDateWatch) return;
+    if (!selectedType?.defaultValidityMonths) return;
     if (form.getFieldValue('expiryDate')) return;
     form.setFieldsValue({
-      expiryDate: issueDateWatch.add(selectedType.defaultValidityMonths, 'month'),
+      expiryDate: dayjs().add(selectedType.defaultValidityMonths, 'month'),
     });
-  }, [selectedType, issueDateWatch, form]);
+  }, [selectedType, form]);
 
   const handleCancel = () => {
     form.resetFields();
@@ -101,10 +96,7 @@ export function StaffDocumentUploadModal({
           staffMemberId,
           {
             typeId: values.typeId,
-            name: values.name,
-            issueDate: values.issueDate.format('YYYY-MM-DD'),
             expiryDate: values.expiryDate ? values.expiryDate.format('YYYY-MM-DD') : undefined,
-            notes: values.notes,
           },
           file,
         )
@@ -152,29 +144,8 @@ export function StaffDocumentUploadModal({
             }))}
           />
         </Form.Item>
-        <Form.Item
-          name="name"
-          label={t('staff.documents.upload.fields.name')}
-          rules={[{ required: true, message: t('staff.documents.upload.validation.nameRequired') }]}
-        >
-          <Input placeholder={t('staff.documents.upload.placeholders.name')} />
-        </Form.Item>
-        <Form.Item
-          name="issueDate"
-          label={t('staff.documents.upload.fields.issueDate')}
-          rules={[
-            { required: true, message: t('staff.documents.upload.validation.issueDateRequired') },
-          ]}
-        >
+        <Form.Item name="expiryDate" label={t('staff.documents.upload.fields.expiryDate')}>
           <DatePicker format="YYYY-MM-DD" />
-        </Form.Item>
-        {showExpiryDate && (
-          <Form.Item name="expiryDate" label={t('staff.documents.upload.fields.expiryDate')}>
-            <DatePicker format="YYYY-MM-DD" />
-          </Form.Item>
-        )}
-        <Form.Item name="notes" label={t('staff.documents.upload.fields.notes')}>
-          <TextArea rows={2} placeholder={t('staff.documents.upload.placeholders.notes')} />
         </Form.Item>
         <Form.Item label={t('staff.documents.upload.fields.file')}>
           <Dragger

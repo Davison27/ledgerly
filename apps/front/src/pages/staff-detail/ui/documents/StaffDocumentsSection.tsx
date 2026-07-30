@@ -148,7 +148,6 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
         <AddStaffDocumentButton
           staffMemberId={staffMember.id}
           mode="document"
-          documentTypeId={activeTypeId}
         />
       </Flex>
 

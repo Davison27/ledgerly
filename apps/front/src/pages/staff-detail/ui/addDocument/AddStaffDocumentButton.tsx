@@ -11,7 +11,6 @@ import { StaffDocumentUploadModal } from '../upload/StaffDocumentUploadModal';
 interface AddStaffDocumentButtonProps {
   staffMemberId: string;
   mode?: 'document' | 'payroll' | 'all';
-  documentTypeId?: string | null;
 }
 
 const PAYROLL_MENU_KEY = 'payroll';
@@ -19,11 +18,11 @@ const PAYROLL_MENU_KEY = 'payroll';
 export function AddStaffDocumentButton({
   staffMemberId,
   mode = 'all',
-  documentTypeId,
 }: AddStaffDocumentButtonProps) {
   const { t } = useTranslation();
   const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
   const [selectedTypeId, setSelectedTypeId] = useState<string | null>(null);
+  const [documentModalOpen, setDocumentModalOpen] = useState(false);
   const [payrollModalOpen, setPayrollModalOpen] = useState(false);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('staff', 'edit');
@@ -49,19 +48,18 @@ export function AddStaffDocumentButton({
     return null;
   }
 
-  if (mode === 'document' && documentTypeId) {
+  if (mode === 'document') {
     return (
       <>
-        <Button type="primary" icon={<PlusOutlined />} onClick={() => setSelectedTypeId(documentTypeId)}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={() => setDocumentModalOpen(true)}>
           {t('staff.documents.add')}
         </Button>
         <StaffDocumentUploadModal
-          open={selectedTypeId !== null}
+          open={documentModalOpen}
           staffMemberId={staffMemberId}
           documentTypes={documentTypes}
-          initialTypeId={selectedTypeId ?? undefined}
-          onCancel={() => setSelectedTypeId(null)}
-          onCreated={() => setSelectedTypeId(null)}
+          onCancel={() => setDocumentModalOpen(false)}
+          onCreated={() => setDocumentModalOpen(false)}
         />
       </>
     );
