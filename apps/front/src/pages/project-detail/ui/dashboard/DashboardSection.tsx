@@ -3,6 +3,8 @@ import { Flex } from 'antd';
 import type { ProjectSectionProps } from '../../model/types';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { useProjectDocuments } from '../../model/useProjectDocuments';
+import { projectProductQueries } from '@/entities/project-product';
+import { useQuery } from '@tanstack/react-query';
 import {
   deriveDashboardData,
   KpiRow,
@@ -18,7 +20,8 @@ import {
 
 export function DashboardSection({ project, color }: ProjectSectionProps) {
   const { documents } = useProjectDocuments(project.id);
-  const data = useMemo(() => deriveDashboardData(documents), [documents]);
+  const { data: products = [] } = useQuery(projectProductQueries.list(project.id));
+  const data = useMemo(() => deriveDashboardData(documents, products.flatMap((product) => product.leaseExpense !== null && product.leaseExpenseDate ? [{ amount: product.leaseExpense, date: product.leaseExpenseDate }] : [])), [documents, products]);
 
   return (
     <PageContainer>

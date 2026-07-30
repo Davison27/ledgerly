@@ -54,6 +54,11 @@ export function ProductDetailModal({ open, product, canEdit, onClose, onEdit }: 
             <Descriptions.Item label={t('products.fields.stock')}>
               {product.stock === 0 ? <Text type="secondary">{t('products.stockUnset')}</Text> : <Numeric>{product.stock}</Numeric>}
             </Descriptions.Item>
+            {product.leasingMonthlyFee !== null && (
+              <Descriptions.Item label={t('products.fields.leasingMonthlyFee')}>
+                <Amount value={product.leasingMonthlyFee} />
+              </Descriptions.Item>
+            )}
           </Descriptions>
           {product.tags.length > 0 && <div className={styles.tags}>{product.tags.map((tag) => <Tag key={tag}>{tag}</Tag>)}</div>}
         </div>

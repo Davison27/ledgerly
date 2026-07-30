@@ -32,6 +32,9 @@ export class ProductOrmEntity {
   @Column({ type: 'text', array: true, default: () => "'{}'" })
   tags: string[];
 
+  @Column({ name: 'leasing_monthly_fee', type: 'numeric', precision: 12, scale: 2, nullable: true })
+  leasingMonthlyFee: string | null;
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

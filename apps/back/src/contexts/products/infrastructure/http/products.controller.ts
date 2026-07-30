@@ -48,6 +48,7 @@ export class ProductsController {
       description: dto.description,
       image: dto.image,
       tags: dto.tags,
+      leasingMonthlyFee: dto.leasingMonthlyFee,
     });
 
     return ProductResponse.fromDomain(product);
@@ -70,6 +71,7 @@ export class ProductsController {
       description: dto.description,
       image: dto.image,
       tags: dto.tags,
+      leasingMonthlyFee: dto.leasingMonthlyFee,
     });
 
     return ProductResponse.fromDomain(product);

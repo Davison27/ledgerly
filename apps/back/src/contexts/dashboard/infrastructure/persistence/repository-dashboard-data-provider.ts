@@ -2,12 +2,14 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../../documents/domain/document.repository';
 import { deriveEffectiveStatus } from '../../../documents/domain/effective-status';
 import { PROJECT_REPOSITORY, ProjectRepository } from '../../../projects/domain/project.repository';
+import { PROJECT_PRODUCT_REPOSITORY, ProjectProductRepository } from '../../../projects/domain/project-product.repository';
 import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 import {
   DashboardDataProvider,
   DashboardDocumentRow,
   DashboardProjectRow,
   DashboardProjectSummary,
+  DashboardLeaseExpenseRow,
 } from '../../domain/dashboard-data-provider.port';
 
 @Injectable()
@@ -15,6 +17,7 @@ export class RepositoryDashboardDataProvider implements DashboardDataProvider {
   constructor(
     @Inject(DOCUMENT_REPOSITORY) private readonly documentRepository: DocumentRepository,
     @Inject(PROJECT_REPOSITORY) private readonly projectRepository: ProjectRepository,
+    @Inject(PROJECT_PRODUCT_REPOSITORY) private readonly projectProductRepository: ProjectProductRepository,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
@@ -44,5 +47,9 @@ export class RepositoryDashboardDataProvider implements DashboardDataProvider {
 
   findAllProjectRows(): Promise<DashboardProjectRow[]> {
     return this.projectRepository.findAllForDashboard();
+  }
+
+  findAllLeaseExpenseRows(): Promise<DashboardLeaseExpenseRow[]> {
+    return this.projectProductRepository.findAllLeaseExpenseRows();
   }
 }

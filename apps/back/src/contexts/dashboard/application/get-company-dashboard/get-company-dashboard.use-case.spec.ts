@@ -4,6 +4,7 @@ import {
   DashboardDocumentRow,
   DashboardProjectRow,
   DashboardProjectSummary,
+  DashboardLeaseExpenseRow,
 } from '../../domain/dashboard-data-provider.port';
 import { SystemClock } from '../../../../shared/infrastructure/system-clock';
 
@@ -12,6 +13,7 @@ class FakeDashboardDataProvider implements DashboardDataProvider {
     private readonly rows: DashboardDocumentRow[],
     private readonly summaries: DashboardProjectSummary[],
     private readonly projectRows: DashboardProjectRow[] = [],
+    private readonly leaseExpenses: DashboardLeaseExpenseRow[] = [],
   ) {}
 
   findAllDocumentRows(): Promise<DashboardDocumentRow[]> {
@@ -24,6 +26,10 @@ class FakeDashboardDataProvider implements DashboardDataProvider {
 
   findAllProjectRows(): Promise<DashboardProjectRow[]> {
     return Promise.resolve(this.projectRows);
+  }
+
+  findAllLeaseExpenseRows(): Promise<DashboardLeaseExpenseRow[]> {
+    return Promise.resolve(this.leaseExpenses);
   }
 }
 
@@ -506,5 +512,25 @@ describe('GetCompanyDashboardUseCase', () => {
       expect(result.vatByQuarter[0]).toEqual({ quarter: 1, outputVat: 210, inputVat: 80, balance: 130 });
       expect(result.cashflowForecast.months[0]).toEqual({ month: '2026-08', inflow: 1000, outflow: 400, net: 600 });
     });
+  });
+
+  it('includes manually assigned project leasing expenses in financial totals and budgets', async () => {
+    mockToday('2026-07-18T12:00:00.000Z');
+    const useCase = new GetCompanyDashboardUseCase(
+      new FakeDashboardDataProvider(
+        [buildRow({ projectId: 'project-1', amount: 1000, date: '2026-01-15', month: 1 })],
+        [buildSummary()],
+        [buildProjectDashboardRow({ budget: 1000 })],
+        [{ projectId: 'project-1', amount: 250, date: '2026-03-10' }],
+      ),
+      new SystemClock(),
+    );
+
+    const result = await useCase.execute(2026);
+
+    expect(result.expenses).toBe(250);
+    expect(result.profit).toBe(750);
+    expect(result.monthlyExpenses[2]).toBe(250);
+    expect(result.budgetVsActual[0]).toMatchObject({ projectId: 'project-1', expenses: 250, consumptionPct: 0.25 });
   });
 });

@@ -25,8 +25,15 @@ export interface DashboardProjectRow {
   currency: string;
 }
 
+export interface DashboardLeaseExpenseRow {
+  projectId: string;
+  amount: number;
+  date: string;
+}
+
 export interface DashboardDataProvider {
   findAllDocumentRows(): Promise<DashboardDocumentRow[]>;
   findAllProjectSummaries(): Promise<DashboardProjectSummary[]>;
   findAllProjectRows(): Promise<DashboardProjectRow[]>;
+  findAllLeaseExpenseRows(): Promise<DashboardLeaseExpenseRow[]>;
 }

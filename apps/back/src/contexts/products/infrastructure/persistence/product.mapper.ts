@@ -14,6 +14,7 @@ export class ProductMapper {
       description: orm.description,
       image: orm.image,
       tags: orm.tags,
+      leasingMonthlyFee: orm.leasingMonthlyFee === null ? null : Number(orm.leasingMonthlyFee),
     });
   }
 
@@ -31,6 +32,7 @@ export class ProductMapper {
     orm.description = primitives.description ?? null;
     orm.image = primitives.image ?? null;
     orm.tags = primitives.tags ?? [];
+    orm.leasingMonthlyFee = primitives.leasingMonthlyFee?.toString() ?? null;
 
     return orm;
   }

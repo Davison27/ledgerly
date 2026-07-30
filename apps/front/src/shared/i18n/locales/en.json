@@ -599,6 +599,7 @@
     },
     "sections": {
       "documents": "Documents",
+      "products": "Products",
       "dashboard": "Dashboard",
       "schedule": "Calendar",
       "settings": "Settings"
@@ -613,6 +614,26 @@
         "days": "Days",
         "staff": "Staff",
         "products": "Products"
+      }
+    },
+    "products": {
+      "add": "Add product",
+      "addTitle": "Add product to project",
+      "empty": "There are no products assigned to this project.",
+      "saved": "Product saved in project",
+      "deleted": "Product removed from project",
+      "saveError": "The product could not be saved in the project.",
+      "deleteError": "The product could not be removed from the project.",
+      "expenseHelp": "Optional one-off leasing expense assumed by this project.",
+      "columns": {
+        "product": "Product",
+        "catalogLease": "Catalog monthly lease",
+        "projectExpense": "Project leasing expense",
+        "date": "Expense date"
+      },
+      "validation": {
+        "productRequired": "Select a product",
+        "dateRequired": "An expense date is required"
       }
     },
     "documents": {
@@ -1185,6 +1206,7 @@
       "description": "Description",
       "tags": "Tags",
       "image": "Image"
+      ,"leasingMonthlyFee": "Monthly leasing payment"
     },
     "columns": {
       "name": "Name",
@@ -1205,6 +1227,7 @@
       "duplicateName": "A product with that name already exists.",
       "priceHelp": "Leave it empty if you haven't decided yet.",
       "stockHelp": "0 means the stock hasn't been set yet.",
+      "leasingMonthlyFeeHelp": "Optional catalog reference. It is not charged to a project automatically.",
       "tagsHelp": "Add up to 8 tags to improve searching.",
       "imageUpload": "Upload image",
       "removeImage": "Remove image",
@@ -1218,6 +1241,7 @@
         "brand": "E.g. Own brand",
         "description": "Briefly explain what this product offers.",
         "tags": "E.g. urgent, premium"
+        ,"leasingMonthlyFee": "E.g. 2000"
       },
       "validation": {
         "nameRequired": "Name is required"

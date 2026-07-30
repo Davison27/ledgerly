@@ -11,6 +11,7 @@ export class ProductResponse {
   description: string | null;
   image: string | null;
   tags: string[];
+  leasingMonthlyFee: number | null;
 
   static fromDomain(product: Product): ProductResponse {
     const response = new ProductResponse();
@@ -26,6 +27,7 @@ export class ProductResponse {
     response.description = primitives.description ?? null;
     response.image = primitives.image ?? null;
     response.tags = primitives.tags ?? [];
+    response.leasingMonthlyFee = primitives.leasingMonthlyFee ?? null;
 
     return response;
   }

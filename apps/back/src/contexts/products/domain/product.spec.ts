@@ -20,6 +20,7 @@ describe('Product', () => {
       description: null,
       image: null,
       tags: [],
+      leasingMonthlyFee: null,
     });
   });
 
@@ -98,6 +99,22 @@ describe('Product', () => {
     const product = Product.create(BASE_PRIMITIVES);
 
     expect(() => product.changePrice(-10)).toThrow(InvalidValueException);
+  });
+
+  it('stores an optional monthly leasing payment', () => {
+    const product = Product.create({ ...BASE_PRIMITIVES, leasingMonthlyFee: 1250 });
+
+    expect(product.leasingMonthlyFee).toBe(1250);
+
+    product.changeLeasingMonthlyFee(null);
+
+    expect(product.leasingMonthlyFee).toBeNull();
+  });
+
+  it('throws when the monthly leasing payment is negative', () => {
+    expect(() => Product.create({ ...BASE_PRIMITIVES, leasingMonthlyFee: -1 })).toThrow(
+      InvalidValueException,
+    );
   });
 
   it('changes the stock', () => {
