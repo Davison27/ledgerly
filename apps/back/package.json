@@ -14,9 +14,8 @@
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
-    "migration:generate": "typeorm-ts-node-commonjs migration:generate -d src/database/data-source.ts",
-    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts",
+    "db:schema": "ts-node src/database/bootstrap.ts",
+    "db:reset": "docker compose down -v && docker compose up -d && pnpm db:schema",
     "seed": "ts-node src/database/seeds/seed.ts",
     "clean": "rm -rf dist .turbo"
   },

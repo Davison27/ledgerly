@@ -21,7 +21,7 @@ There are two paths: local development or installation on a server.
 Requirements: Node.js >= 20, pnpm >= 11, and Docker (for Postgres).
 
 One command installs dependencies, creates `apps/back/.env`, starts Postgres,
-runs migrations, and starts the frontend and backend:
+rebuilds the development schema, and starts the frontend and backend:
 
 ```bash
 make dev
@@ -62,12 +62,12 @@ commands (`doctor`, `configure`, `update`, and `backup`), see
 | Lifecycle | `make down` | Stops the active stack. |
 | Lifecycle | `make restart` | Restarts the active stack. |
 | Lifecycle | `make logs` | Follows logs; `make logs SERVICE=back` filters by service. |
-| Development | `make dev` | Runs the local loop: dependencies, Postgres, migrations, and `pnpm dev`. |
+| Development | `make dev` | Runs the local loop: dependencies, Postgres, schema bootstrap, and `pnpm dev`. |
 | Development | `make build` | Builds the frontend and backend. |
 | Development | `make lint` | Runs ESLint. |
 | Development | `make typecheck` | Checks types. |
 | Development | `make test` | Runs tests. |
-| Database | `make migrate` | Applies pending migrations. |
+| Database | `make migrate` | Reconciles the schema with the current application definitions. |
 | Database | `make reset-db` | Deletes the volume and recreates the database. Development only. |
 | Database | `make seed` | Loads sample data. Development only. |
 | Cleanup | `make clean` | Removes builds, `node_modules`, and development volumes. Refuses production mode. |
