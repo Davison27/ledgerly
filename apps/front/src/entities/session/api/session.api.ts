@@ -1,4 +1,4 @@
-import { get, post } from '@/shared/api/httpClient';
+import { get, post, setSigningOut } from '@/shared/api/httpClient';
 import { authClient } from '@/shared/api/auth-client';
 import type { AuthStatusDto, BootstrapFirstAdminResultDto } from './types';
 
@@ -19,9 +19,11 @@ export async function signInWithGoogle(callbackURL: string): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
+  setSigningOut(true);
   const { error } = await authClient.signOut();
 
   if (error) {
+    setSigningOut(false);
     throw new Error(error.message);
   }
 }

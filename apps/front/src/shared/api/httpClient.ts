@@ -37,9 +37,14 @@ const UNSAFE_METHODS = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 type UnauthorizedHandler = () => void;
 
 let unauthorizedHandler: UnauthorizedHandler | undefined;
+let signingOut = false;
 
 export function setUnauthorizedHandler(handler: UnauthorizedHandler): void {
   unauthorizedHandler = handler;
+}
+
+export function setSigningOut(value: boolean): void {
+  signingOut = value;
 }
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
@@ -57,7 +62,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const body = await parseBody(response);
 
   if (!response.ok) {
-    if (response.status === 401) {
+    if (response.status === 401 && !signingOut) {
       unauthorizedHandler?.();
     }
     throw new ApiError(response.status, body, messageFromBody(body));
