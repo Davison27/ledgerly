@@ -1,5 +1,6 @@
 export {
   listWorkspaceMembers,
+  workspaceMemberAvatarUrl,
   getCurrentWorkspaceMember,
   inviteWorkspaceMember,
   updateWorkspaceMember,
