@@ -63,6 +63,13 @@
     "markAllRead": "Marcar todo como leído",
     "loadMore": "Ver más",
     "loadError": "No se pudieron cargar las notificaciones",
+    "resolve": "Resolver",
+    "filters": {
+      "open": "Abiertas",
+      "unread": "Sin leer",
+      "resolved": "Resueltas",
+      "all": "Todas"
+    },
     "severity": {
       "error": "Urgente",
       "warning": "Atención",

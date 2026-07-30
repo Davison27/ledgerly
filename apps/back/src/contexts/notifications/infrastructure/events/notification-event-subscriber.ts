@@ -11,6 +11,8 @@ import { ScheduleEventSavedEvent } from '../../../schedule/domain/events/schedul
 import { NotifyDuplicateDocumentUseCase } from '../../application/notify-duplicate-document/notify-duplicate-document.use-case';
 import { NotifyFailedExtractionUseCase } from '../../application/notify-failed-extraction/notify-failed-extraction.use-case';
 import { NotifyScheduleConflictsUseCase } from '../../application/notify-schedule-conflicts/notify-schedule-conflicts.use-case';
+import { TypeOrmNotificationEventRetryRepository } from '../persistence/typeorm-notification-event-retry.repository';
+import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 
 @Injectable()
 export class NotificationEventSubscriber implements DomainEventSubscriber, OnModuleInit {
@@ -19,6 +21,8 @@ export class NotificationEventSubscriber implements DomainEventSubscriber, OnMod
     private readonly notifyDuplicateDocumentUseCase: NotifyDuplicateDocumentUseCase,
     private readonly notifyFailedExtractionUseCase: NotifyFailedExtractionUseCase,
     private readonly notifyScheduleConflictsUseCase: NotifyScheduleConflictsUseCase,
+    private readonly retryRepository: TypeOrmNotificationEventRetryRepository,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   onModuleInit(): void {
@@ -34,6 +38,30 @@ export class NotificationEventSubscriber implements DomainEventSubscriber, OnMod
   }
 
   async handle(event: DomainEvent): Promise<void> {
+    try {
+      await this.dispatch(event);
+    } catch (error) {
+      const payload = Object.fromEntries(Object.entries(event).filter(([key]) => key !== 'name'));
+      await this.retryRepository.enqueue(event.name, payload, `${event.name}:${JSON.stringify(payload)}`, this.clock.now());
+      throw error;
+    }
+  }
+
+  async replay(eventName: string, payload: Record<string, unknown>): Promise<void> {
+    switch (eventName) {
+      case DocumentCreatedEvent.EVENT_NAME:
+        await this.handleDocumentCreated(new DocumentCreatedEvent(payload as never));
+        return;
+      case InvoiceExtractionFailedEvent.EVENT_NAME:
+        await this.handleExtractionFailed(new InvoiceExtractionFailedEvent(payload as never));
+        return;
+      case ScheduleEventSavedEvent.EVENT_NAME:
+        await this.handleScheduleEventSaved(new ScheduleEventSavedEvent(payload as never));
+        return;
+    }
+  }
+
+  private async dispatch(event: DomainEvent): Promise<void> {
     switch (event.name) {
       case DocumentCreatedEvent.EVENT_NAME:
         await this.handleDocumentCreated(event as DocumentCreatedEvent);

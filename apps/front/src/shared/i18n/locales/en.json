@@ -63,6 +63,13 @@
     "markAllRead": "Mark all as read",
     "loadMore": "Load more",
     "loadError": "Notifications could not be loaded",
+    "resolve": "Resolve",
+    "filters": {
+      "open": "Open",
+      "unread": "Unread",
+      "resolved": "Resolved",
+      "all": "All"
+    },
     "severity": {
       "error": "Urgent",
       "warning": "Attention",

@@ -1,4 +1,4 @@
-import { Button, Flex, Spin, Typography } from 'antd';
+import { Button, Flex, Segmented, Spin, Typography } from 'antd';
 import { BellOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { groupBySeverity } from '@/entities/notification';
@@ -27,6 +27,15 @@ export function NotificationPanel({ center }: NotificationPanelProps) {
           </Button>
         )}
       </Flex>
+      <Segmented
+        size="small"
+        value={center.status}
+        onChange={(value) => center.setStatus(value as typeof center.status)}
+        options={['open', 'unread', 'resolved', 'all'].map((status) => ({
+          label: t(`notifications.filters.${status}`),
+          value: status,
+        }))}
+      />
 
       <div className={styles.body}>
         {center.loading ? (
@@ -47,7 +56,7 @@ export function NotificationPanel({ center }: NotificationPanelProps) {
                   {t(`notifications.severity.${group.severity}`)}
                 </Text>
                 {group.items.map((view) => (
-                  <NotificationItem key={view.id} view={view} onSelect={center.onSelect} />
+                  <NotificationItem key={view.id} view={view} onSelect={center.onSelect} onResolve={center.onResolve} />
                 ))}
               </div>
             ))}

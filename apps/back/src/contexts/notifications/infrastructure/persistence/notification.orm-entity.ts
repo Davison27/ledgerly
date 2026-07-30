@@ -44,6 +44,9 @@ export class NotificationOrmEntity {
   @Column({ name: 'read_at', type: 'timestamptz', nullable: true })
   readAt: Date | null;
 
+  @Column({ name: 'resolved_at', type: 'timestamptz', nullable: true })
+  resolvedAt: Date | null;
+
   @Column({ name: 'email_sent_at', type: 'timestamptz', nullable: true })
   emailSentAt: Date | null;
 }

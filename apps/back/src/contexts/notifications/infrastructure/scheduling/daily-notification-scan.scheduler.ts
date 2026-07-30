@@ -28,7 +28,7 @@ export class DailyNotificationScanScheduler implements OnModuleInit, OnModuleDes
   ) {}
 
   onModuleInit(): void {
-    this.scheduleNext();
+    void this.runScan();
   }
 
   onModuleDestroy(): void {

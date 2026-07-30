@@ -20,6 +20,6 @@ export class ListNotificationsQueryDto {
   size: number = DEFAULT_SIZE;
 
   @IsOptional()
-  @IsIn(['unread', 'all'])
-  status: 'unread' | 'all' = 'all';
+  @IsIn(['unread', 'open', 'resolved', 'all'])
+  status: 'unread' | 'open' | 'resolved' | 'all' = 'open';
 }

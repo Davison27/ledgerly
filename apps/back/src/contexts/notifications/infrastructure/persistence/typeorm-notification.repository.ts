@@ -50,8 +50,12 @@ export class TypeOrmNotificationRepository implements NotificationRepository {
   async findPage(query: NotificationPageQuery): Promise<Page<NotificationListRow>> {
     const queryBuilder = this.repository.createQueryBuilder('notification');
 
-    if (query.onlyUnread) {
-      queryBuilder.andWhere('notification.read_at IS NULL');
+    if (query.status === 'unread') {
+      queryBuilder.andWhere('notification.read_at IS NULL AND notification.resolved_at IS NULL');
+    } else if (query.status === 'open') {
+      queryBuilder.andWhere('notification.resolved_at IS NULL');
+    } else if (query.status === 'resolved') {
+      queryBuilder.andWhere('notification.resolved_at IS NOT NULL');
     }
 
     const total = await queryBuilder.getCount();
@@ -72,7 +76,7 @@ export class TypeOrmNotificationRepository implements NotificationRepository {
   }
 
   countUnread(): Promise<number> {
-    return this.repository.count({ where: { readAt: IsNull() } });
+    return this.repository.count({ where: { readAt: IsNull(), resolvedAt: IsNull() } });
   }
 
   async markAllRead(readAt: Date): Promise<void> {
@@ -82,6 +86,23 @@ export class TypeOrmNotificationRepository implements NotificationRepository {
       .set({ readAt })
       .where('read_at IS NULL')
       .execute();
+  }
+
+  async resolveActiveExcept(types: string[], activeDedupeKeys: string[], resolvedAt: Date): Promise<void> {
+    if (types.length === 0) return;
+
+    const query = this.repository
+      .createQueryBuilder()
+      .update(NotificationOrmEntity)
+      .set({ resolvedAt, readAt: () => 'COALESCE(read_at, :resolvedAt)' })
+      .where('resolved_at IS NULL')
+      .andWhere('type IN (:...types)', { types, resolvedAt });
+
+    if (activeDedupeKeys.length > 0) {
+      query.andWhere('dedupe_key NOT IN (:...activeDedupeKeys)', { activeDedupeKeys });
+    }
+
+    await query.execute();
   }
 
   async deleteReadBefore(threshold: Date): Promise<number> {

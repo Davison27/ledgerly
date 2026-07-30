@@ -7,7 +7,7 @@ export const NOTIFICATION_REPOSITORY = Symbol('NotificationRepository');
 export interface NotificationPageQuery {
   page: number;
   size: number;
-  onlyUnread: boolean;
+  status: 'unread' | 'open' | 'resolved' | 'all';
 }
 
 export interface NotificationRepository {
@@ -17,5 +17,6 @@ export interface NotificationRepository {
   findPage(query: NotificationPageQuery): Promise<Page<NotificationListRow>>;
   countUnread(): Promise<number>;
   markAllRead(readAt: Date): Promise<void>;
+  resolveActiveExcept?(types: string[], activeDedupeKeys: string[], resolvedAt: Date): Promise<void>;
   deleteReadBefore(threshold: Date): Promise<number>;
 }

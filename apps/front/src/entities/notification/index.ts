@@ -3,6 +3,7 @@ export {
   getUnreadCount,
   markNotificationRead,
   markAllNotificationsRead,
+  resolveNotification,
 } from './api/notifications.api';
 export type {
   NotificationTypeDto,
