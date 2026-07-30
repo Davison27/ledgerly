@@ -36,6 +36,7 @@ export class WorkspaceMemberResponse {
     this.invitedAt = props.invitedAt;
     this.joinedAt = props.joinedAt;
     this.lastActiveAt = props.lastActiveAt;
+    this.auth = props.auth;
   }
 
   static fromDomain(member: WorkspaceMember, identity?: AuthUserIdentity): WorkspaceMemberResponse {
