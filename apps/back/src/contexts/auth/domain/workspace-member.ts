@@ -139,6 +139,17 @@ export class WorkspaceMember {
     return this.props.status === 'disabled';
   }
 
+  activate(at: Date): void {
+    if (this.isDisabled()) {
+      throw new InvalidValueException('disabled workspace member cannot be activated');
+    }
+
+    if (this.props.status === 'invited') {
+      this.props.status = 'active';
+      this.props.joinedAt = at;
+    }
+  }
+
   rename(name: string): void {
     const trimmed = name.trim();
 

@@ -1,5 +1,6 @@
 import { get, post } from '@/shared/api/httpClient';
-import type { AuthStatusDto, BootstrapFirstAdminResultDto, StartGoogleLoginResultDto } from './types';
+import { authClient } from '@/shared/api/auth-client';
+import type { AuthStatusDto, BootstrapFirstAdminResultDto } from './types';
 
 export function getAuthStatus(): Promise<AuthStatusDto> {
   return get<AuthStatusDto>('/auth/status');
@@ -9,13 +10,18 @@ export function bootstrapFirstAdmin(email: string): Promise<BootstrapFirstAdminR
   return post<BootstrapFirstAdminResultDto>('/auth/bootstrap', { email });
 }
 
-export function startGoogleLogin(
-  redirectTo?: string,
-  loginHint?: string,
-): Promise<StartGoogleLoginResultDto> {
-  return post<StartGoogleLoginResultDto>('/auth/google/start', { redirectTo, loginHint });
+export async function signInWithGoogle(callbackURL: string): Promise<void> {
+  const { error } = await authClient.signIn.social({ provider: 'google', callbackURL });
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }
 
-export function logout(): Promise<void> {
-  return post<void>('/auth/logout');
+export async function logout(): Promise<void> {
+  const { error } = await authClient.signOut();
+
+  if (error) {
+    throw new Error(error.message);
+  }
 }

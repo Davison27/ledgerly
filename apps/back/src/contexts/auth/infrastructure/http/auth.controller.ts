@@ -1,59 +1,40 @@
-import { Body, Controller, Get, Header, HttpCode, HttpStatus, Logger, Post, Query, Req, Res } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { All, Body, Controller, Get, Header, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import type { Request, Response } from 'express';
+import { fromNodeHeaders } from 'better-auth/node';
+import type { Request } from 'express';
+import { auth } from '../../../../lib/auth';
 import { Authenticated } from '../../../../shared/infrastructure/http/access/authenticated.decorator';
 import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
 import { Public } from '../../../../shared/infrastructure/http/access/public.decorator';
 import { BootstrapFirstAdminUseCase } from '../../application/bootstrap-first-admin/bootstrap-first-admin.use-case';
-import { CompleteGoogleLoginUseCase } from '../../application/complete-google-login/complete-google-login.use-case';
-import { GetAuthStatusUseCase } from '../../application/get-auth-status/get-auth-status.use-case';
 import { GetCurrentMemberUseCase } from '../../application/get-current-member/get-current-member.use-case';
-import { LogoutUseCase } from '../../application/logout/logout.use-case';
-import { StartGoogleLoginUseCase } from '../../application/start-google-login/start-google-login.use-case';
-import { GoogleIdentityRejectedException } from '../../domain/errors/google-identity-rejected.exception';
-import { OAuthAttemptExpiredException } from '../../domain/errors/oauth-attempt-expired.exception';
+import { WORKSPACE_MEMBER_REPOSITORY, WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
 import { WorkspaceMember } from '../../domain/workspace-member';
-import {
-  clearOAuthCookie,
-  clearSessionCookies,
-  OAUTH_COOKIE_NAME,
-  SESSION_COOKIE_NAME,
-  setOAuthCookie,
-  setSessionCookies,
-} from './auth-cookies';
-import { AuthStatusResponse } from './auth-status.response';
 import { BootstrapFirstAdminResponse } from './bootstrap-first-admin.response';
 import { BootstrapFirstAdminDto } from './dtos/bootstrap-first-admin.dto';
-import { StartGoogleLoginDto } from './dtos/start-google-login.dto';
-import { StartGoogleLoginResponse } from './start-google-login.response';
 import { WorkspaceMemberResponse } from './workspace-member.response';
-
-type AuthErrorCode = 'access_denied' | 'expired' | 'failed';
+import { Inject } from '@nestjs/common';
 
 @Controller('auth')
 export class AuthController {
-  private readonly logger = new Logger(AuthController.name);
-
   constructor(
-    private readonly getAuthStatusUseCase: GetAuthStatusUseCase,
     private readonly bootstrapFirstAdminUseCase: BootstrapFirstAdminUseCase,
-    private readonly startGoogleLoginUseCase: StartGoogleLoginUseCase,
-    private readonly completeGoogleLoginUseCase: CompleteGoogleLoginUseCase,
-    private readonly logoutUseCase: LogoutUseCase,
     private readonly getCurrentMemberUseCase: GetCurrentMemberUseCase,
-    private readonly configService: ConfigService,
+    @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
   ) {}
 
   @Public()
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @Get('status')
   @Header('Cache-Control', 'no-store')
-  async status(@Req() req: Request): Promise<AuthStatusResponse> {
-    const sessionToken = this.readCookie(req, SESSION_COOKIE_NAME);
-    const result = await this.getAuthStatusUseCase.execute({ sessionToken });
+  async status(@Req() req: Request): Promise<{ bootstrapNeeded: boolean; authenticated: boolean }> {
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+    const member = session ? await this.memberRepository.findByEmail(session.user.email) : null;
 
-    return AuthStatusResponse.fromResult(result);
+    return {
+      bootstrapNeeded: (await this.memberRepository.countAll()) === 0,
+      authenticated: member?.isActive() ?? false,
+    };
   }
 
   @Public()
@@ -67,84 +48,6 @@ export class AuthController {
     return BootstrapFirstAdminResponse.fromDomain(member);
   }
 
-  @Public()
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
-  @Post('google/start')
-  @HttpCode(HttpStatus.OK)
-  @Header('Cache-Control', 'no-store')
-  async startGoogleLogin(
-    @Body() dto: StartGoogleLoginDto,
-    @Res({ passthrough: true }) res: Response,
-  ): Promise<StartGoogleLoginResponse> {
-    const result = await this.startGoogleLoginUseCase.execute({
-      redirectTo: dto.redirectTo,
-      loginHint: dto.loginHint,
-    });
-
-    setOAuthCookie(res, this.isCookieSecure(), result.transactionToken);
-
-    return StartGoogleLoginResponse.fromUrl(result.authorizationUrl);
-  }
-
-  @Public()
-  @Throttle({ default: { limit: 20, ttl: 60_000 } })
-  @Get('google/callback')
-  @Header('Cache-Control', 'no-store')
-  async googleCallback(
-    @Query('code') code: string | undefined,
-    @Query('state') state: string | undefined,
-    @Req() req: Request,
-    @Res({ passthrough: false }) res: Response,
-  ): Promise<void> {
-    const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:5173');
-    const secure = this.isCookieSecure();
-    const transactionToken = this.readCookie(req, OAUTH_COOKIE_NAME);
-    const existingSessionToken = this.readCookie(req, SESSION_COOKIE_NAME);
-
-    if (!code || !state || !transactionToken) {
-      this.logger.warn(`Google OAuth callback is incomplete: code=${Boolean(code)} state=${Boolean(state)} transaction=${Boolean(transactionToken)}`);
-      clearOAuthCookie(res, secure);
-      res.redirect(HttpStatus.FOUND, `${frontendUrl}/?authError=failed`);
-      return;
-    }
-
-    try {
-      const result = await this.completeGoogleLoginUseCase.execute({
-        transactionToken,
-        code,
-        state,
-        existingSessionToken,
-      });
-
-      clearOAuthCookie(res, secure);
-      setSessionCookies(res, secure, result.sessionToken, result.csrfToken);
-      res.redirect(HttpStatus.FOUND, `${frontendUrl}${result.redirectTo}`);
-    } catch (error) {
-      this.logger.error(
-        'Google OAuth callback failed',
-        error instanceof Error ? error.stack : String(error),
-      );
-      clearOAuthCookie(res, secure);
-      res.redirect(HttpStatus.FOUND, `${frontendUrl}/?authError=${this.resolveAuthErrorCode(error)}`);
-    }
-  }
-
-  @Authenticated()
-  @Throttle({ default: { limit: 30, ttl: 60_000 } })
-  @Post('logout')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  @Header('Cache-Control', 'no-store')
-  async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response): Promise<void> {
-    const sessionToken = this.readCookie(req, SESSION_COOKIE_NAME);
-
-    if (sessionToken !== null) {
-      await this.logoutUseCase.execute({ sessionToken });
-    }
-
-    clearSessionCookies(res, this.isCookieSecure());
-    clearOAuthCookie(res, this.isCookieSecure());
-  }
-
   @Authenticated()
   @Get('me')
   @Header('Cache-Control', 'no-store')
@@ -154,25 +57,26 @@ export class AuthController {
     return WorkspaceMemberResponse.fromDomain(current);
   }
 
-  private isCookieSecure(): boolean {
-    return this.configService.get<boolean>('COOKIE_SECURE', false);
-  }
+  @Public()
+  @All('*')
+  async handler(@Req() req: Request, @Res() res: { status: (status: number) => void; setHeader: (name: string, value: string) => void; send: (body: string) => void }): Promise<void> {
+    const headers = new Headers();
 
-  private readCookie(req: Request, name: string): string | null {
-    const cookies = req.cookies as Record<string, string | undefined> | undefined;
-
-    return cookies?.[name] ?? null;
-  }
-
-  private resolveAuthErrorCode(error: unknown): AuthErrorCode {
-    if (error instanceof OAuthAttemptExpiredException) {
-      return 'expired';
+    for (const [name, value] of Object.entries(req.headers)) {
+      if (value !== undefined) {
+        headers.set(name, Array.isArray(value) ? value.join(', ') : value);
+      }
     }
 
-    if (error instanceof GoogleIdentityRejectedException) {
-      return 'access_denied';
-    }
+    const request = new Request(`${req.protocol}://${req.get('host')}${req.originalUrl}`, {
+      method: req.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
+    });
+    const response = await auth.handler(request);
 
-    return 'failed';
+    response.headers.forEach((value, name) => res.setHeader(name, value));
+    res.status(response.status);
+    res.send(await response.text());
   }
 }

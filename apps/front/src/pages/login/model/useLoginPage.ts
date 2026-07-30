@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '@/shared/api/httpClient';
-import { bootstrapFirstAdmin, sessionQueries, startGoogleLogin } from '@/entities/session';
+import { bootstrapFirstAdmin, sessionQueries, signInWithGoogle } from '@/entities/session';
 
 export type LoginStatus = 'loading' | 'bootstrap' | 'signIn';
 export type LoginAuthError = 'accessDenied' | 'expired' | 'failed';
@@ -58,8 +58,7 @@ export function useLoginPage(): UseLoginPageResult {
     setBootstrapSubmitting(true);
     try {
       await bootstrapFirstAdmin(email);
-      const { authorizationUrl } = await startGoogleLogin(undefined, email);
-      window.location.assign(authorizationUrl);
+      await signInWithGoogle(`${window.location.origin}/dashboard`);
     } catch (error) {
       setBootstrapError(error instanceof ApiError && error.status === 403 ? 'notAllowed' : 'failed');
       setBootstrapSubmitting(false);
@@ -69,8 +68,7 @@ export function useLoginPage(): UseLoginPageResult {
   const handleSignIn = async () => {
     setSignInSubmitting(true);
     try {
-      const { authorizationUrl } = await startGoogleLogin();
-      window.location.assign(authorizationUrl);
+      await signInWithGoogle(`${window.location.origin}/dashboard`);
     } catch {
       setSignInSubmitting(false);
     }
