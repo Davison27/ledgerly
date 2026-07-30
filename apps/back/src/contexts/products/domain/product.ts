@@ -11,6 +11,7 @@ export interface ProductPrimitives {
   description?: string | null;
   image?: string | null;
   tags?: string[];
+  leasingMonthlyFee?: number | null;
 }
 
 interface ProductProps {
@@ -24,6 +25,7 @@ interface ProductProps {
   description: string | null;
   image: string | null;
   tags: string[];
+  leasingMonthlyFee: number | null;
 }
 
 export class Product {
@@ -37,6 +39,7 @@ export class Product {
   private description_: string | null;
   private image_: string | null;
   private tags_: string[];
+  private leasingMonthlyFee_: number | null;
 
   private constructor(props: ProductProps) {
     this.id_ = props.id;
@@ -49,6 +52,7 @@ export class Product {
     this.description_ = props.description;
     this.image_ = props.image;
     this.tags_ = props.tags;
+    this.leasingMonthlyFee_ = props.leasingMonthlyFee;
   }
 
   static create(params: ProductPrimitives): Product {
@@ -61,6 +65,7 @@ export class Product {
     const description = Product.normaliseOptionalText(params.description, 2000, 'Product description');
     const image = Product.normaliseImage(params.image);
     const tags = Product.normaliseTags(params.tags);
+    Product.validateLeasingMonthlyFee(params.leasingMonthlyFee ?? null);
 
     return new Product({
       id: params.id,
@@ -73,6 +78,7 @@ export class Product {
       description,
       image,
       tags,
+      leasingMonthlyFee: params.leasingMonthlyFee ?? null,
     });
   }
 
@@ -95,6 +101,12 @@ export class Product {
   private static validateStock(stock: number): void {
     if (!Number.isInteger(stock) || stock < 0) {
       throw new InvalidValueException('Product stock must be a non-negative integer');
+    }
+  }
+
+  private static validateLeasingMonthlyFee(fee: number | null): void {
+    if (fee !== null && fee < 0) {
+      throw new InvalidValueException('Product leasing monthly fee must not be negative');
     }
   }
 
@@ -152,6 +164,11 @@ export class Product {
     this.stock_ = stock;
   }
 
+  changeLeasingMonthlyFee(fee: number | null): void {
+    Product.validateLeasingMonthlyFee(fee);
+    this.leasingMonthlyFee_ = fee;
+  }
+
   changeDetails(details: Pick<ProductPrimitives, 'reference' | 'category' | 'brand' | 'description' | 'image' | 'tags'>): void {
     this.reference_ = Product.normaliseOptionalText(details.reference, 100, 'Product reference');
     this.category_ = Product.normaliseOptionalText(details.category, 100, 'Product category');
@@ -201,6 +218,10 @@ export class Product {
     return [...this.tags_];
   }
 
+  get leasingMonthlyFee(): number | null {
+    return this.leasingMonthlyFee_;
+  }
+
   toPrimitives(): ProductPrimitives {
     return {
       id: this.id_,
@@ -213,6 +234,7 @@ export class Product {
       description: this.description_,
       image: this.image_,
       tags: this.tags,
+      leasingMonthlyFee: this.leasingMonthlyFee_,
     };
   }
 }

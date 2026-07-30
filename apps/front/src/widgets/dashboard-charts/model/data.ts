@@ -32,9 +32,14 @@ export interface DashboardData {
   topIssuers: TopIssuer[];
 }
 
+export interface ManualExpense {
+  amount: number;
+  date: string;
+}
+
 const TOP_ISSUERS_LIMIT = 6;
 
-export function deriveDashboardData(docs: ProjectDocument[]): DashboardData {
+export function deriveDashboardData(docs: ProjectDocument[], manualExpenses: ManualExpense[] = []): DashboardData {
   const monthlyIncome = Array<number>(12).fill(0);
   const monthlyExpenses = Array<number>(12).fill(0);
   const categoryTotals: Record<DocumentType, number> = {
@@ -85,6 +90,12 @@ export function deriveDashboardData(docs: ProjectDocument[]): DashboardData {
     } else {
       issuerTotals.set(issuerKey, { name: issuerName, total: doc.amount });
     }
+  }
+
+  for (const expense of manualExpenses) {
+    expenses += expense.amount;
+    const index = Number(expense.date.slice(5, 7)) - 1;
+    if (index >= 0 && index < 12) monthlyExpenses[index] += expense.amount;
   }
 
   const monthlyProfit = monthlyIncome.map((v, i) => v - monthlyExpenses[i]);

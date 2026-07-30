@@ -38,6 +38,7 @@ export class CreateProductUseCase {
       description: command.description,
       image: command.image,
       tags: command.tags,
+      leasingMonthlyFee: command.leasingMonthlyFee,
     });
 
     await this.productRepository.save(product);

@@ -8,4 +8,5 @@ export interface CreateProductCommand {
   description?: string | null;
   image?: string | null;
   tags?: string[];
+  leasingMonthlyFee?: number | null;
 }

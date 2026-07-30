@@ -47,4 +47,9 @@ export class UpdateProductDto {
   @IsString({ each: true })
   @MaxLength(40, { each: true })
   tags?: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  leasingMonthlyFee?: number | null;
 }

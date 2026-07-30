@@ -15,6 +15,7 @@ export interface ProductFormValues {
   description?: string | null;
   image?: string | null;
   tags?: string[];
+  leasingMonthlyFee?: number | null;
 }
 
 interface ProductFormModalProps {
@@ -50,6 +51,7 @@ export function ProductFormModal({
         description: product?.description ?? null,
         image: product?.image ?? null,
         tags: product?.tags ?? [],
+        leasingMonthlyFee: product?.leasingMonthlyFee ?? undefined,
       });
     }
   }, [open, product, form]);
@@ -141,6 +143,11 @@ export function ProductFormModal({
           <Col xs={24} sm={12}>
             <Form.Item name="price" label={t('products.fields.price')} extra={t('products.form.priceHelp')}>
               <InputNumber min={0} className={styles.fullWidth} placeholder={t('products.form.placeholders.price')} />
+            </Form.Item>
+          </Col>
+          <Col xs={24} sm={12}>
+            <Form.Item name="leasingMonthlyFee" label={t('products.fields.leasingMonthlyFee')} extra={t('products.form.leasingMonthlyFeeHelp')}>
+              <InputNumber min={0} className={styles.fullWidth} placeholder={t('products.form.placeholders.leasingMonthlyFee')} />
             </Form.Item>
           </Col>
           <Col xs={24} sm={12}>

@@ -9,4 +9,5 @@ export interface UpdateProductCommand {
   description?: string | null;
   image?: string | null;
   tags?: string[];
+  leasingMonthlyFee?: number | null;
 }

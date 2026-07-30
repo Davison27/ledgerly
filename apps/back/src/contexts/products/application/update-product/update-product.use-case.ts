@@ -42,6 +42,10 @@ export class UpdateProductUseCase {
       product.changeStock(command.stock);
     }
 
+    if (command.leasingMonthlyFee !== undefined) {
+      product.changeLeasingMonthlyFee(command.leasingMonthlyFee);
+    }
+
     if (
       command.reference !== undefined ||
       command.category !== undefined ||

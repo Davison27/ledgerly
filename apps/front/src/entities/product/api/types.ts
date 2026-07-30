@@ -9,6 +9,7 @@ export interface ProductDto {
   description: string | null;
   image: string | null;
   tags: string[];
+  leasingMonthlyFee: number | null;
 }
 
 export interface CreateProductPayload {
@@ -21,6 +22,7 @@ export interface CreateProductPayload {
   description?: string | null;
   image?: string | null;
   tags?: string[];
+  leasingMonthlyFee?: number | null;
 }
 
 export interface UpdateProductPayload {
@@ -33,4 +35,5 @@ export interface UpdateProductPayload {
   description?: string | null;
   image?: string | null;
   tags?: string[];
+  leasingMonthlyFee?: number | null;
 }

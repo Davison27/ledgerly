@@ -599,6 +599,7 @@
     },
     "sections": {
       "documents": "Documentos",
+      "products": "Productos",
       "dashboard": "Panel",
       "schedule": "Calendario",
       "settings": "Configuración"
@@ -613,6 +614,26 @@
         "days": "Días",
         "staff": "Personal",
         "products": "Productos"
+      }
+    },
+    "products": {
+      "add": "Añadir producto",
+      "addTitle": "Añadir producto al proyecto",
+      "empty": "No hay productos asignados a este proyecto.",
+      "saved": "Producto guardado en el proyecto",
+      "deleted": "Producto eliminado del proyecto",
+      "saveError": "No se ha podido guardar el producto en el proyecto.",
+      "deleteError": "No se ha podido eliminar el producto del proyecto.",
+      "expenseHelp": "Gasto único de leasing opcional asumido por este proyecto.",
+      "columns": {
+        "product": "Producto",
+        "catalogLease": "Cuota mensual de catálogo",
+        "projectExpense": "Gasto de leasing del proyecto",
+        "date": "Fecha del gasto"
+      },
+      "validation": {
+        "productRequired": "Selecciona un producto",
+        "dateRequired": "La fecha del gasto es obligatoria"
       }
     },
     "documents": {
@@ -1185,6 +1206,7 @@
       "description": "Descripción",
       "tags": "Etiquetas",
       "image": "Imagen"
+      ,"leasingMonthlyFee": "Cuota mensual de leasing"
     },
     "columns": {
       "name": "Nombre",
@@ -1205,6 +1227,7 @@
       "duplicateName": "Ya existe un producto con ese nombre.",
       "priceHelp": "Déjalo vacío si aún no lo has decidido.",
       "stockHelp": "0 significa que el stock todavía no se ha configurado.",
+      "leasingMonthlyFeeHelp": "Referencia opcional de catálogo. No se carga automáticamente a un proyecto.",
       "tagsHelp": "Añade hasta 8 etiquetas para mejorar la búsqueda.",
       "imageUpload": "Subir imagen",
       "removeImage": "Quitar imagen",
@@ -1218,6 +1241,7 @@
         "brand": "Ej. Marca propia",
         "description": "Explica brevemente qué ofrece este producto.",
         "tags": "Ej. urgente, premium"
+        ,"leasingMonthlyFee": "Ej. 2000"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio"

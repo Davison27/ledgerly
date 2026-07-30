@@ -5,6 +5,7 @@ import {
   DashboardDataProvider,
   DashboardDocumentRow,
   DashboardProjectRow,
+  DashboardLeaseExpenseRow,
 } from '../../domain/dashboard-data-provider.port';
 import {
   AmountByStatus,
@@ -53,7 +54,7 @@ function addMonths(date: Date, months: number): Date {
   return new Date(date.getFullYear(), date.getMonth() + months, 1);
 }
 
-function computeHeadlineTotals(rows: DashboardDocumentRow[]): HeadlineTotals {
+function computeHeadlineTotals(rows: DashboardDocumentRow[], leaseExpenses: DashboardLeaseExpenseRow[] = []): HeadlineTotals {
   let income = 0;
   let expenses = 0;
 
@@ -61,6 +62,7 @@ function computeHeadlineTotals(rows: DashboardDocumentRow[]): HeadlineTotals {
     if (row.direction === 'ingreso') income += row.amount;
     else expenses += row.amount;
   }
+  for (const leaseExpense of leaseExpenses) expenses += leaseExpense.amount;
 
   const profit = income - expenses;
   const margin = income > 0 ? profit / income : 0;
@@ -68,8 +70,9 @@ function computeHeadlineTotals(rows: DashboardDocumentRow[]): HeadlineTotals {
   return { income, expenses, profit, margin, totalDocuments: rows.length };
 }
 
-function computeAvailableYears(rows: DashboardDocumentRow[], today: Date): number[] {
+function computeAvailableYears(rows: DashboardDocumentRow[], leaseExpenses: DashboardLeaseExpenseRow[], today: Date): number[] {
   const years = new Set<number>(rows.map((row) => yearOf(row.date)));
+  for (const expense of leaseExpenses) years.add(yearOf(expense.date));
   years.add(today.getFullYear());
 
   return Array.from(years).sort((a, b) => b - a);
@@ -101,6 +104,7 @@ function computeVatByQuarter(rows: DashboardDocumentRow[]): VatByQuarter[] {
 
 function computeBudgetVsActual(
   yearRows: DashboardDocumentRow[],
+  leaseExpenses: DashboardLeaseExpenseRow[],
   projectRows: DashboardProjectRow[],
 ): BudgetVsActual[] {
   const activityByProject = new Map<string, { income: number; expenses: number }>();
@@ -110,6 +114,11 @@ function computeBudgetVsActual(
     if (row.direction === 'ingreso') activity.income += row.amount;
     else activity.expenses += row.amount;
     activityByProject.set(row.projectId, activity);
+  }
+  for (const expense of leaseExpenses) {
+    const activity = activityByProject.get(expense.projectId) ?? { income: 0, expenses: 0 };
+    activity.expenses += expense.amount;
+    activityByProject.set(expense.projectId, activity);
   }
 
   const projectById = new Map(projectRows.map((project) => [project.id, project]));
@@ -191,14 +200,17 @@ export class GetCompanyDashboardUseCase {
     const today = this.clock.now();
     const selectedYear = year ?? today.getFullYear();
 
-    const [rows, summaries, projectRows] = await Promise.all([
+    const [rows, summaries, projectRows, leaseExpenses] = await Promise.all([
       this.dashboardDataProvider.findAllDocumentRows(),
       this.dashboardDataProvider.findAllProjectSummaries(),
       this.dashboardDataProvider.findAllProjectRows(),
+      this.dashboardDataProvider.findAllLeaseExpenseRows(),
     ]);
 
     const yearRows = rows.filter((row) => yearOf(row.date) === selectedYear);
     const previousYearRows = rows.filter((row) => yearOf(row.date) === selectedYear - 1);
+    const yearLeaseExpenses = leaseExpenses.filter((expense) => yearOf(expense.date) === selectedYear);
+    const previousYearLeaseExpenses = leaseExpenses.filter((expense) => yearOf(expense.date) === selectedYear - 1);
 
     const monthlyIncome = Array<number>(MONTHS_IN_YEAR).fill(0);
     const monthlyExpenses = Array<number>(MONTHS_IN_YEAR).fill(0);
@@ -248,6 +260,11 @@ export class GetCompanyDashboardUseCase {
       }
     }
 
+    for (const expense of yearLeaseExpenses) {
+      const month = Number(expense.date.slice(5, 7)) - 1;
+      if (month >= 0 && month < MONTHS_IN_YEAR) monthlyExpenses[month] += expense.amount;
+    }
+
     const monthlyProfit = monthlyIncome.map((value, i) => value - monthlyExpenses[i]);
     const cumulativeProfit = monthlyProfit.reduce<number[]>((acc, value, i) => {
       acc.push((acc[i - 1] ?? 0) + value);
@@ -282,16 +299,16 @@ export class GetCompanyDashboardUseCase {
       .sort((a, b) => b.total - a.total)
       .slice(0, TOP_PROJECTS_LIMIT);
 
-    const { income, expenses, profit, margin } = computeHeadlineTotals(yearRows);
+    const { income, expenses, profit, margin } = computeHeadlineTotals(yearRows, yearLeaseExpenses);
 
     const previousYear: PreviousYearSummary = {
       year: selectedYear - 1,
-      ...computeHeadlineTotals(previousYearRows),
+      ...computeHeadlineTotals(previousYearRows, previousYearLeaseExpenses),
     };
 
     return {
       year: selectedYear,
-      availableYears: computeAvailableYears(rows, today),
+      availableYears: computeAvailableYears(rows, leaseExpenses, today),
       projectCount: summaries.length,
       totalDocuments: yearRows.length,
       income,
@@ -311,7 +328,7 @@ export class GetCompanyDashboardUseCase {
       topIssuers,
       topProjects,
       previousYear,
-      budgetVsActual: computeBudgetVsActual(yearRows, projectRows),
+      budgetVsActual: computeBudgetVsActual(yearRows, yearLeaseExpenses, projectRows),
       vatByQuarter: computeVatByQuarter(yearRows),
       cashflowForecast: computeCashflowForecast(rows, today),
     };
