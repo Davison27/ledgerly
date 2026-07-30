@@ -14,6 +14,24 @@ export class ProductOrmEntity {
   @Column({ type: 'integer' })
   stock: number;
 
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  reference: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  category: string | null;
+
+  @Column({ type: 'varchar', length: 100, nullable: true })
+  brand: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  description: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  image: string | null;
+
+  @Column({ type: 'text', array: true, default: () => "'{}'" })
+  tags: string[];
+
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

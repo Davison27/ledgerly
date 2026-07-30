@@ -34,10 +34,30 @@ export class UpdateProductUseCase {
       product.rename(command.name);
     }
 
-    product.changePrice(command.price);
+    if (command.price !== undefined) {
+      product.changePrice(command.price);
+    }
 
     if (command.stock !== undefined) {
       product.changeStock(command.stock);
+    }
+
+    if (
+      command.reference !== undefined ||
+      command.category !== undefined ||
+      command.brand !== undefined ||
+      command.description !== undefined ||
+      command.image !== undefined ||
+      command.tags !== undefined
+    ) {
+      product.changeDetails({
+        reference: command.reference === undefined ? product.reference : command.reference,
+        category: command.category === undefined ? product.category : command.category,
+        brand: command.brand === undefined ? product.brand : command.brand,
+        description: command.description === undefined ? product.description : command.description,
+        image: command.image === undefined ? product.image : command.image,
+        tags: command.tags === undefined ? product.tags : command.tags,
+      });
     }
 
     await this.productRepository.save(product);

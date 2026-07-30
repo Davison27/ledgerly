@@ -79,6 +79,12 @@ describe('ProductsController (HTTP, no DB)', () => {
           name: 'Diseño web',
           price: null,
           stock: 0,
+          reference: null,
+          category: null,
+          brand: null,
+          description: null,
+          image: null,
+          tags: [],
         },
       ]);
       expect(listExecute).toHaveBeenCalledTimes(1);
@@ -137,14 +143,14 @@ describe('ProductsController (HTTP, no DB)', () => {
       );
     });
 
-    it('clears the price when it is omitted from the payload', async () => {
+    it('does not overwrite price when it is omitted from the payload', async () => {
       const response = await request(httpServer)
         .patch('/products/product-1')
         .send({ name: 'Diseño gráfico' });
 
       expect(response.status).toBe(200);
       expect(updateExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'product-1', name: 'Diseño gráfico', price: null }),
+        expect.objectContaining({ id: 'product-1', name: 'Diseño gráfico', price: undefined }),
       );
     });
 

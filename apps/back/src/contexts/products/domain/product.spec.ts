@@ -12,7 +12,15 @@ describe('Product', () => {
   it('creates a product from valid primitives', () => {
     const product = Product.create(BASE_PRIMITIVES);
 
-    expect(product.toPrimitives()).toEqual(BASE_PRIMITIVES);
+    expect(product.toPrimitives()).toEqual({
+      ...BASE_PRIMITIVES,
+      reference: null,
+      category: null,
+      brand: null,
+      description: null,
+      image: null,
+      tags: [],
+    });
   });
 
   it('allows the price to be null', () => {
@@ -104,5 +112,23 @@ describe('Product', () => {
     const product = Product.create(BASE_PRIMITIVES);
 
     expect(() => product.changeStock(-1)).toThrow(InvalidValueException);
+  });
+
+  it('stores searchable catalog details', () => {
+    const product = Product.create({
+      ...BASE_PRIMITIVES,
+      reference: 'SERV-001',
+      category: 'Diseño',
+      brand: 'Ledgerly Studio',
+      description: 'Diseño de identidad visual para pequeñas empresas.',
+      tags: ['branding', 'premium', 'branding'],
+    });
+
+    expect(product.toPrimitives()).toMatchObject({
+      reference: 'SERV-001',
+      category: 'Diseño',
+      brand: 'Ledgerly Studio',
+      tags: ['branding', 'premium'],
+    });
   });
 });
