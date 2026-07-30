@@ -6,6 +6,8 @@ import { ListWorkspaceMembersUseCase } from '../../application/list-workspace-me
 import { RemoveWorkspaceMemberUseCase } from '../../application/remove-workspace-member/remove-workspace-member.use-case';
 import { UpdateWorkspaceMemberUseCase } from '../../application/update-workspace-member/update-workspace-member.use-case';
 import { WorkspaceMember } from '../../domain/workspace-member';
+import { AUTH_USER_DIRECTORY, AuthUserDirectory } from '../../domain/auth-user-directory.port';
+import { Inject } from '@nestjs/common';
 import { InviteWorkspaceMemberDto } from './dtos/invite-workspace-member.dto';
 import { UpdateWorkspaceMemberDto } from './dtos/update-workspace-member.dto';
 import { WorkspaceMemberResponse } from './workspace-member.response';
@@ -18,13 +20,15 @@ export class WorkspaceMembersController {
     private readonly inviteWorkspaceMemberUseCase: InviteWorkspaceMemberUseCase,
     private readonly updateWorkspaceMemberUseCase: UpdateWorkspaceMemberUseCase,
     private readonly removeWorkspaceMemberUseCase: RemoveWorkspaceMemberUseCase,
+    @Inject(AUTH_USER_DIRECTORY) private readonly userDirectory: AuthUserDirectory,
   ) {}
 
   @Get()
   async list(): Promise<WorkspaceMemberResponse[]> {
     const members = await this.listWorkspaceMembersUseCase.execute();
 
-    return members.map((member) => WorkspaceMemberResponse.fromDomain(member));
+    const identities = await this.userDirectory.findByEmails(members.map((member) => member.getEmail()));
+    return members.map((member) => WorkspaceMemberResponse.fromDomain(member, identities.get(member.getEmail())));
   }
 
   @Post()

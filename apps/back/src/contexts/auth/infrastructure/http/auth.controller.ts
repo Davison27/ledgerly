@@ -14,6 +14,7 @@ import { BootstrapFirstAdminResponse } from './bootstrap-first-admin.response';
 import { BootstrapFirstAdminDto } from './dtos/bootstrap-first-admin.dto';
 import { WorkspaceMemberResponse } from './workspace-member.response';
 import { Inject } from '@nestjs/common';
+import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 
 @Controller('auth')
 export class AuthController {
@@ -21,6 +22,7 @@ export class AuthController {
     private readonly bootstrapFirstAdminUseCase: BootstrapFirstAdminUseCase,
     private readonly getCurrentMemberUseCase: GetCurrentMemberUseCase,
     @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
+    @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
   @Public()
@@ -30,6 +32,11 @@ export class AuthController {
   async status(@Req() req: Request): Promise<{ bootstrapNeeded: boolean; authenticated: boolean }> {
     const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
     const member = session ? await this.memberRepository.findByEmail(session.user.email) : null;
+
+    if (member?.getStatus() === 'invited') {
+      member.activate(this.clock.now());
+      await this.memberRepository.save(member);
+    }
 
     return {
       bootstrapNeeded: (await this.memberRepository.countAll()) === 0,
