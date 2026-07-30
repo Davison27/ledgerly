@@ -28,7 +28,7 @@ export class WorkspaceMembersController {
     const members = await this.listWorkspaceMembersUseCase.execute();
 
     const identities = await this.userDirectory.findByEmails(members.map((member) => member.getEmail()));
-    return members.map((member) => WorkspaceMemberResponse.fromDomain(member, identities.get(member.getEmail())));
+    return members.map((member) => WorkspaceMemberResponse.fromDomain(member, identities.get(member.getEmail().toLowerCase())));
   }
 
   @Post()

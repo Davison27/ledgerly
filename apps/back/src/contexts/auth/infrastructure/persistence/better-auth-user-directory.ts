@@ -20,9 +20,9 @@ export class BetterAuthUserDirectory implements AuthUserDirectory {
       return new Map();
     }
 
-    const result = await sql<AuthUserRow>`SELECT u.email, u."emailVerified", u."createdAt", u."updatedAt", ARRAY_REMOVE(ARRAY_AGG(DISTINCT a."providerId"), NULL) AS providers, COUNT(DISTINCT s.id) FILTER (WHERE s."expiresAt" > NOW()) AS "activeSessions", MAX(s."updatedAt") AS "lastSessionAt" FROM "user" u LEFT JOIN account a ON a."userId" = u.id LEFT JOIN session s ON s."userId" = u.id WHERE u.email IN (${sql.join(emails)}) GROUP BY u.id`.execute(authDatabase);
+    const result = await sql<AuthUserRow>`SELECT u.email, u."emailVerified", u."createdAt", u."updatedAt", ARRAY_REMOVE(ARRAY_AGG(DISTINCT a."providerId"), NULL) AS providers, COUNT(DISTINCT s.id) FILTER (WHERE s."expiresAt" > NOW()) AS "activeSessions", MAX(s."updatedAt") AS "lastSessionAt" FROM "user" u LEFT JOIN account a ON a."userId" = u.id LEFT JOIN session s ON s."userId" = u.id WHERE LOWER(u.email) IN (${sql.join(emails.map((email) => email.toLowerCase()))}) GROUP BY u.id`.execute(authDatabase);
 
-    return new Map(result.rows.map((row) => [row.email, {
+    return new Map(result.rows.map((row) => [row.email.toLowerCase(), {
       emailVerified: row.emailVerified,
       createdAt: row.createdAt,
       updatedAt: row.updatedAt,
