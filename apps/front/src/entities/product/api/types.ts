@@ -3,16 +3,34 @@ export interface ProductDto {
   name: string;
   price: number | null;
   stock: number;
+  reference: string | null;
+  category: string | null;
+  brand: string | null;
+  description: string | null;
+  image: string | null;
+  tags: string[];
 }
 
 export interface CreateProductPayload {
   name: string;
   price?: number;
   stock?: number;
+  reference?: string | null;
+  category?: string | null;
+  brand?: string | null;
+  description?: string | null;
+  image?: string | null;
+  tags?: string[];
 }
 
 export interface UpdateProductPayload {
   name?: string;
   price?: number;
   stock?: number;
+  reference?: string | null;
+  category?: string | null;
+  brand?: string | null;
+  description?: string | null;
+  image?: string | null;
+  tags?: string[];
 }
