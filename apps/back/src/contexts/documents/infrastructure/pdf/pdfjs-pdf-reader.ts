@@ -56,7 +56,7 @@ export class PdfjsPdfReader implements PdfReader {
     const text = await this.readText(document);
     const attachments = await this.readAttachments(document);
 
-    return { text, attachments };
+    return { text, attachments, pageCount: document.numPages };
   }
 
   private async readText(document: PdfJsDocument): Promise<string> {

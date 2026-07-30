@@ -18,10 +18,11 @@ There are two paths: local development or installation on a server.
 
 ### Development
 
-Requirements: Node.js >= 20, pnpm >= 11, and Docker (for Postgres).
+Requirements: Node.js >= 20, pnpm >= 11, and Docker.
 
-One command installs dependencies, creates `apps/back/.env`, starts Postgres,
-rebuilds the development schema, and starts the frontend and backend:
+One command installs dependencies, creates `apps/back/.env`, builds and starts
+the same backend container used on the VPS, rebuilds the development schema, and
+starts the frontend with hot reload:
 
 ```bash
 make dev
@@ -58,11 +59,11 @@ commands (`doctor`, `configure`, `update`, and `backup`), see
 | Updates | `make update` | Fetches the new version, rebuilds images, and migrates without losing data. |
 | Updates | `make backup` | Creates a compressed database backup. |
 | Updates | `make restore` | Restores a backup after typed confirmation. |
-| Lifecycle | `make up` | Starts the production stack or the development Postgres instance. |
+| Lifecycle | `make up` | Starts the production stack or the local development containers. |
 | Lifecycle | `make down` | Stops the active stack. |
 | Lifecycle | `make restart` | Restarts the active stack. |
 | Lifecycle | `make logs` | Follows logs; `make logs SERVICE=back` filters by service. |
-| Development | `make dev` | Runs the local loop: dependencies, Postgres, schema bootstrap, and `pnpm dev`. |
+| Development | `make dev` | Runs the local loop: dependencies, production-equivalent backend container, schema bootstrap, and frontend hot reload. |
 | Development | `make build` | Builds the frontend and backend. |
 | Development | `make lint` | Runs ESLint. |
 | Development | `make typecheck` | Checks types. |

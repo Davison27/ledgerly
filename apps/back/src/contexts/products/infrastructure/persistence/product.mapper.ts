@@ -8,6 +8,13 @@ export class ProductMapper {
       name: orm.name,
       price: orm.price === null ? null : Number(orm.price),
       stock: orm.stock,
+      reference: orm.reference,
+      category: orm.category,
+      brand: orm.brand,
+      description: orm.description,
+      image: orm.image,
+      tags: orm.tags,
+      leasingMonthlyFee: orm.leasingMonthlyFee === null ? null : Number(orm.leasingMonthlyFee),
     });
   }
 
@@ -19,6 +26,13 @@ export class ProductMapper {
     orm.name = primitives.name;
     orm.price = primitives.price?.toString() ?? null;
     orm.stock = primitives.stock;
+    orm.reference = primitives.reference ?? null;
+    orm.category = primitives.category ?? null;
+    orm.brand = primitives.brand ?? null;
+    orm.description = primitives.description ?? null;
+    orm.image = primitives.image ?? null;
+    orm.tags = primitives.tags ?? [];
+    orm.leasingMonthlyFee = primitives.leasingMonthlyFee?.toString() ?? null;
 
     return orm;
   }

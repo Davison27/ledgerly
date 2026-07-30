@@ -12,6 +12,9 @@ export class TypeOrmDemoProjectPurger implements DemoProjectPurger {
       await manager.query(
         `DELETE FROM documents WHERE project_id IN (SELECT id FROM projects WHERE is_demo = true)`,
       );
+      await manager.query(
+        `DELETE FROM project_products WHERE project_id IN (SELECT id FROM projects WHERE is_demo = true)`,
+      );
       await manager.query(`DELETE FROM projects WHERE is_demo = true`);
     });
   }

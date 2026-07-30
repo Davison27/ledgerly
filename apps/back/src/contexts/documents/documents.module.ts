@@ -21,6 +21,8 @@ import { DocumentsGlobalController } from './infrastructure/http/documents-globa
 import { ExtractionHintsController } from './infrastructure/http/extraction-hints.controller';
 import { ExtractionQualityController } from './infrastructure/http/extraction-quality.controller';
 import { PdfjsPdfReader } from './infrastructure/pdf/pdfjs-pdf-reader';
+import { OcrPdfReader } from './infrastructure/pdf/ocr-pdf-reader';
+import { LocalPdfOcr } from './infrastructure/pdf/local-pdf-ocr';
 import { ListDocumentsUseCase } from './application/list-documents/list-documents.use-case';
 import { ListAllDocumentsUseCase } from './application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from './application/check-document-duplicate/check-document-duplicate.use-case';
@@ -72,7 +74,9 @@ import { ProjectRepositoryNameProvider } from './infrastructure/projects/project
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: SUPPLIER_EXISTENCE_CHECKER, useClass: TypeOrmSupplierExistenceChecker },
     { provide: STAFF_MEMBER_EXISTENCE_CHECKER, useClass: TypeOrmStaffMemberExistenceChecker },
-    { provide: PDF_READER, useClass: PdfjsPdfReader },
+    PdfjsPdfReader,
+    LocalPdfOcr,
+    { provide: PDF_READER, useClass: OcrPdfReader },
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },
     { provide: EXTRACTION_OUTCOME_REPOSITORY, useClass: TypeOrmExtractionOutcomeRepository },
   ],

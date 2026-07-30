@@ -1,3 +1,17 @@
 .lastItem {
   margin-bottom: 0;
 }
+
+.imageField :global(.ant-upload-wrapper) {
+  display: block;
+}
+
+.imagePreview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fullWidth {
+  width: 100%;
+}

@@ -17,5 +17,23 @@ services:
       timeout: 5s
       retries: 10
 
+  back:
+    build:
+      context: ../..
+      dockerfile: apps/back/Dockerfile
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      NODE_ENV: development
+      PORT: 3000
+    ports:
+      - "${BACKEND_PORT:-3005}:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    init: true
+    security_opt:
+      - no-new-privileges:true
+
 volumes:
   ledgerly-pgdata:

@@ -6,18 +6,22 @@ import { DOCUMENT_REPOSITORY } from '../documents/domain/document.repository';
 import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project.orm-entity';
 import { TypeOrmProjectRepository } from '../projects/infrastructure/persistence/typeorm-project.repository';
 import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
+import { ProjectProductOrmEntity } from '../projects/infrastructure/persistence/project-product.orm-entity';
+import { TypeOrmProjectProductRepository } from '../projects/infrastructure/persistence/typeorm-project-product.repository';
+import { PROJECT_PRODUCT_REPOSITORY } from '../projects/domain/project-product.repository';
 import { DASHBOARD_DATA_PROVIDER } from './domain/dashboard-data-provider.port';
 import { RepositoryDashboardDataProvider } from './infrastructure/persistence/repository-dashboard-data-provider';
 import { DashboardController } from './infrastructure/http/dashboard.controller';
 import { GetCompanyDashboardUseCase } from './application/get-company-dashboard/get-company-dashboard.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DocumentOrmEntity, ProjectOrmEntity])],
+  imports: [TypeOrmModule.forFeature([DocumentOrmEntity, ProjectOrmEntity, ProjectProductOrmEntity])],
   controllers: [DashboardController],
   providers: [
     GetCompanyDashboardUseCase,
     { provide: DOCUMENT_REPOSITORY, useClass: TypeOrmDocumentRepository },
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+    { provide: PROJECT_PRODUCT_REPOSITORY, useClass: TypeOrmProjectProductRepository },
     { provide: DASHBOARD_DATA_PROVIDER, useClass: RepositoryDashboardDataProvider },
   ],
 })
