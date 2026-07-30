@@ -1458,6 +1458,8 @@
       "varios": "Varios"
     },
     "documents": {
+      "add": "Añadir documento",
+      "subtitle": "Mantén al día la documentación laboral y de cumplimiento.",
       "noTypes": "No se ha podido cargar el catálogo de tipos de documento.",
       "empty": "Todavía no hay documentos de este tipo.",
       "deleted": "Documento eliminado",
@@ -1515,6 +1517,8 @@
     },
     "payrolls": {
       "title": "Nóminas",
+      "add": "Añadir nómina",
+      "subtitle": "Documentos de nómina vinculados a este trabajador.",
       "empty": "Todavía no hay nóminas.",
       "columns": {
         "name": "Documento",
