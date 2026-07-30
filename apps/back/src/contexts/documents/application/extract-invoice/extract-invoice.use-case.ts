@@ -58,7 +58,8 @@ export class ExtractInvoiceUseCase {
   ) {}
 
   async execute(command: ExtractInvoiceCommand): Promise<ExtractedInvoiceResult> {
-    const { text, attachments } = await this.pdfReader.read(command.fileBuffer);
+    const readResult = await this.pdfReader.read(command.fileBuffer);
+    const { text, attachments } = readResult;
 
     const structuredResult = this.tryStructuredExtraction(attachments);
     if (structuredResult) {
@@ -75,6 +76,10 @@ export class ExtractInvoiceUseCase {
 
     const { fields, warnings } = extractInvoiceHeuristics(text);
     const improvedFields = await this.applyLearnedHints(fields, text);
+
+    if (readResult.ocrApplied) {
+      warnings.push('El texto se ha reconocido mediante OCR local');
+    }
 
     return buildResult('heuristic', computeHeuristicConfidence(improvedFields), improvedFields, warnings);
   }

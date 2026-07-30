@@ -6,6 +6,8 @@ export interface PdfAttachment {
 export interface PdfReadResult {
   text: string;
   attachments: PdfAttachment[];
+  pageCount?: number;
+  ocrApplied?: boolean;
 }
 
 export const PDF_READER = Symbol('PdfReader');
