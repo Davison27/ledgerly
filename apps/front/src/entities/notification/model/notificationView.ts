@@ -13,6 +13,7 @@ export interface NotificationView {
   severity: NotificationSeverityDto;
   createdAt: Date;
   readAt: Date | null;
+  resolvedAt: Date | null;
   resource: NotificationResourceDto;
   context: NotificationContextDto;
 }
@@ -24,6 +25,7 @@ export function mapNotificationDto(dto: NotificationDto): NotificationView {
     severity: dto.severity,
     createdAt: new Date(dto.createdAt),
     readAt: dto.readAt ? new Date(dto.readAt) : null,
+    resolvedAt: dto.resolvedAt ? new Date(dto.resolvedAt) : null,
     resource: dto.resource,
     context: dto.context,
   };

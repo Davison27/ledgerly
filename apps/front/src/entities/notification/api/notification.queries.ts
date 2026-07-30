@@ -14,10 +14,10 @@ export const notificationQueries = {
       refetchOnWindowFocus: true,
       staleTime: UNREAD_COUNT_STALE_TIME_MS,
     }),
-  list: (size: number) =>
+  list: (size: number, status: 'unread' | 'open' | 'resolved' | 'all') =>
     infiniteQueryOptions({
-      queryKey: ['notifications', 'list', size] as const,
-      queryFn: ({ pageParam }) => listNotifications({ page: pageParam, size }),
+      queryKey: ['notifications', 'list', size, status] as const,
+      queryFn: ({ pageParam }) => listNotifications({ page: pageParam, size, status }),
       initialPageParam: 1,
       getNextPageParam: (lastPage) =>
         lastPage.page * lastPage.size < lastPage.total ? lastPage.page + 1 : undefined,

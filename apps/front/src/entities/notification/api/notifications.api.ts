@@ -21,3 +21,7 @@ export function markNotificationRead(id: string): Promise<void> {
 export function markAllNotificationsRead(): Promise<void> {
   return post<void>('/notifications/read-all');
 }
+
+export function resolveNotification(id: string): Promise<void> {
+  return post<void>(`/notifications/${id}/resolve`);
+}
