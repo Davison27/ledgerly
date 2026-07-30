@@ -11,7 +11,7 @@ const pool = new Pool({
   database: process.env.DB_NAME,
 });
 
-const database = new Kysely({ dialect: new PostgresDialect({ pool }) });
+export const authDatabase = new Kysely({ dialect: new PostgresDialect({ pool }) });
 
 const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
 const backendUrl = process.env.BACKEND_PUBLIC_URL ?? 'http://localhost:3005';
@@ -19,7 +19,7 @@ const backendUrl = process.env.BACKEND_PUBLIC_URL ?? 'http://localhost:3005';
 export const auth = betterAuth({
   appName: 'Ledgerly',
   baseURL: backendUrl,
-  database: { db: database, type: 'postgres' },
+  database: { db: authDatabase, type: 'postgres' },
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 12,
