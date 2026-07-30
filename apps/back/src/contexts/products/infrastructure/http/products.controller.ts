@@ -42,6 +42,12 @@ export class ProductsController {
       name: dto.name,
       price: dto.price,
       stock: dto.stock,
+      reference: dto.reference,
+      category: dto.category,
+      brand: dto.brand,
+      description: dto.description,
+      image: dto.image,
+      tags: dto.tags,
     });
 
     return ProductResponse.fromDomain(product);
@@ -56,8 +62,14 @@ export class ProductsController {
     const product = await this.updateProductUseCase.execute({
       id,
       name: dto.name,
-      price: dto.price ?? null,
+      price: dto.price,
       stock: dto.stock,
+      reference: dto.reference,
+      category: dto.category,
+      brand: dto.brand,
+      description: dto.description,
+      image: dto.image,
+      tags: dto.tags,
     });
 
     return ProductResponse.fromDomain(product);
