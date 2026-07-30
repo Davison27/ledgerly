@@ -71,10 +71,11 @@ export class AccessGuard implements CanActivate {
 
     const member = await this.memberRepository.findByEmail(session.user.email);
 
-    if (member === null || !member.isActive()) {
-      if (member === null || member.isDisabled()) {
-        throw new UnauthorizedException();
-      }
+    if (member === null || member.isDisabled()) {
+      throw new ForbiddenException();
+    }
+
+    if (!member.isActive()) {
 
       member.activate(this.clock.now());
       await this.memberRepository.save(member);
