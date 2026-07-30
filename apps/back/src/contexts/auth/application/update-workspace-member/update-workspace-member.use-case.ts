@@ -1,12 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 import { LastAdminException } from '../../domain/errors/last-admin.exception';
 import { SelfAccessChangeException } from '../../domain/errors/self-access-change.exception';
 import { WorkspaceMemberNotFoundException } from '../../domain/errors/workspace-member-not-found.exception';
 import { PermissionMatrix } from '../../domain/value-objects/permission-matrix';
 import { WorkspaceMember } from '../../domain/workspace-member';
 import { WORKSPACE_MEMBER_REPOSITORY, WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
-import { SESSION_REPOSITORY, SessionRepository } from '../../domain/session.repository';
+import { AUTH_SESSION_REVOKER, AuthSessionRevoker } from '../../domain/auth-session-revoker.port';
 import { UpdateWorkspaceMemberCommand } from './update-workspace-member.command';
 
 function touchesAccess(command: UpdateWorkspaceMemberCommand): boolean {
@@ -17,8 +16,7 @@ function touchesAccess(command: UpdateWorkspaceMemberCommand): boolean {
 export class UpdateWorkspaceMemberUseCase {
   constructor(
     @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
-    @Inject(SESSION_REPOSITORY) private readonly sessionRepository: SessionRepository,
-    @Inject(CLOCK) private readonly clock: Clock,
+    @Inject(AUTH_SESSION_REVOKER) private readonly sessionRevoker: AuthSessionRevoker,
   ) {}
 
   async execute(command: UpdateWorkspaceMemberCommand): Promise<WorkspaceMember> {
@@ -57,7 +55,9 @@ export class UpdateWorkspaceMemberUseCase {
     }
 
     await this.memberRepository.save(member);
-    await this.sessionRepository.revokeAllForMember(member.getId(), this.clock.now());
+    if (touchesAccess(command)) {
+      await this.sessionRevoker.revokeAllForEmail(member.getEmail());
+    }
 
     return member;
   }

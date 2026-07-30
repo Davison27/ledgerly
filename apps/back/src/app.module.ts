@@ -22,6 +22,7 @@ import { DemoModule } from './contexts/demo/demo.module';
 import { StaffModule } from './contexts/staff/staff.module';
 import { ScheduleModule } from './contexts/schedule/schedule.module';
 import { NotificationsModule } from './contexts/notifications/notifications.module';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { NotificationsModule } from './contexts/notifications/notifications.modu
     StaffModule,
     ScheduleModule,
     NotificationsModule,
+    HealthModule,
   ],
   controllers: [AppController],
   providers: [

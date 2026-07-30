@@ -6,8 +6,7 @@ import { MemberEmail } from '../../domain/value-objects/member-email';
 import { PermissionMatrix, WORKSPACE_MODULES } from '../../domain/value-objects/permission-matrix';
 import { WorkspaceMember } from '../../domain/workspace-member';
 import { WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
-import { SessionRepository, SessionWithMember } from '../../domain/session.repository';
-import { Clock } from '../../../../shared/domain/clock.port';
+import { AuthSessionRevoker } from '../../domain/auth-session-revoker.port';
 
 class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   saved: WorkspaceMember[] = [];
@@ -57,40 +56,12 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   }
 }
 
-class InMemorySessionRepository implements SessionRepository {
-  revokedMemberIds: string[] = [];
+class InMemorySessionRevoker implements AuthSessionRevoker {
+  revokedEmails: string[] = [];
 
-  findActiveByTokenHash(): Promise<SessionWithMember | null> {
-    return Promise.resolve(null);
-  }
-
-  save(): Promise<void> {
+  revokeAllForEmail(email: string): Promise<void> {
+    this.revokedEmails.push(email);
     return Promise.resolve();
-  }
-
-  revokeById(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  revokeAllForMember(memberId: string): Promise<void> {
-    this.revokedMemberIds.push(memberId);
-    return Promise.resolve();
-  }
-
-  deleteExpired(): Promise<number> {
-    return Promise.resolve(0);
-  }
-}
-
-class FixedClock implements Clock {
-  constructor(private readonly value: Date) {}
-
-  now(): Date {
-    return this.value;
-  }
-
-  todayIso(): string {
-    return this.value.toISOString().slice(0, 10);
   }
 }
 
@@ -123,8 +94,8 @@ function adminMember(id: string): WorkspaceMember {
 describe('UpdateWorkspaceMemberUseCase', () => {
   it('throws when the target member does not exist', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([]);
-    const sessionRepository = new InMemorySessionRepository();
-    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository, new FixedClock(NOW));
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     await expect(
       useCase.execute({ id: 'missing', actingMemberId: 'admin-1', name: 'New Name' }),
@@ -133,8 +104,8 @@ describe('UpdateWorkspaceMemberUseCase', () => {
 
   it('rejects changing your own permissions or status', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
-    const sessionRepository = new InMemorySessionRepository();
-    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository, new FixedClock(NOW));
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     await expect(
       useCase.execute({ id: 'admin-1', actingMemberId: 'admin-1', status: 'disabled' }),
@@ -143,8 +114,8 @@ describe('UpdateWorkspaceMemberUseCase', () => {
 
   it('allows changing your own name', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1')]);
-    const sessionRepository = new InMemorySessionRepository();
-    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository, new FixedClock(NOW));
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     const updated = await useCase.execute({ id: 'admin-1', actingMemberId: 'admin-1', name: 'New Name' });
 
@@ -153,8 +124,8 @@ describe('UpdateWorkspaceMemberUseCase', () => {
 
   it('rejects disabling the last active admin', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1')]);
-    const sessionRepository = new InMemorySessionRepository();
-    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository, new FixedClock(NOW));
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     await expect(
       useCase.execute({ id: 'admin-1', actingMemberId: 'other-actor', status: 'disabled' }),
@@ -163,19 +134,19 @@ describe('UpdateWorkspaceMemberUseCase', () => {
 
   it('allows disabling an admin when another active admin remains, and revokes sessions', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
-    const sessionRepository = new InMemorySessionRepository();
-    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository, new FixedClock(NOW));
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     const updated = await useCase.execute({ id: 'admin-1', actingMemberId: 'other-actor', status: 'disabled' });
 
     expect(updated.getStatus()).toBe('disabled');
-    expect(sessionRepository.revokedMemberIds).toEqual(['admin-1']);
+    expect(sessionRepository.revokedEmails).toEqual(['admin-1@ledgerly.dev']);
   });
 
   it('allows demoting an admin to viewer when another admin remains', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
-    const sessionRepository = new InMemorySessionRepository();
-    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository, new FixedClock(NOW));
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     const updated = await useCase.execute({
       id: 'admin-1',
