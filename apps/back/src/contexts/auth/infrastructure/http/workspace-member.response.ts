@@ -1,4 +1,5 @@
 import { WorkspaceMember } from '../../domain/workspace-member';
+import { AuthUserIdentity } from '../../domain/auth-user-directory.port';
 
 interface WorkspaceMemberResponseProps {
   id: string;
@@ -10,6 +11,7 @@ interface WorkspaceMemberResponseProps {
   invitedAt: string;
   joinedAt: string | null;
   lastActiveAt: string | null;
+  auth: { emailVerified: boolean; createdAt: string; updatedAt: string; providers: string[]; activeSessions: number; lastSessionAt: string | null } | null;
 }
 
 export class WorkspaceMemberResponse {
@@ -22,6 +24,7 @@ export class WorkspaceMemberResponse {
   invitedAt: string;
   joinedAt: string | null;
   lastActiveAt: string | null;
+  auth: WorkspaceMemberResponseProps['auth'];
 
   private constructor(props: WorkspaceMemberResponseProps) {
     this.id = props.id;
@@ -35,7 +38,7 @@ export class WorkspaceMemberResponse {
     this.lastActiveAt = props.lastActiveAt;
   }
 
-  static fromDomain(member: WorkspaceMember): WorkspaceMemberResponse {
+  static fromDomain(member: WorkspaceMember, identity?: AuthUserIdentity): WorkspaceMemberResponse {
     const primitives = member.toPrimitives();
 
     return new WorkspaceMemberResponse({
@@ -48,6 +51,7 @@ export class WorkspaceMemberResponse {
       invitedAt: primitives.invitedAt.toISOString(),
       joinedAt: primitives.joinedAt ? primitives.joinedAt.toISOString() : null,
       lastActiveAt: primitives.lastActiveAt ? primitives.lastActiveAt.toISOString() : null,
+      auth: identity ? { emailVerified: identity.emailVerified, createdAt: identity.createdAt.toISOString(), updatedAt: identity.updatedAt.toISOString(), providers: identity.providers, activeSessions: identity.activeSessions, lastSessionAt: identity.lastSessionAt ? identity.lastSessionAt.toISOString() : null } : null,
     });
   }
 }

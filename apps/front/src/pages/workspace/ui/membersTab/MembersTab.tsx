@@ -220,6 +220,11 @@ export function MembersTab() {
             <Text type="secondary" className={typography.caption}>
               {record.email}
             </Text>
+            <Text type="secondary" className={typography.caption}>
+              {record.auth
+                ? `${record.auth.emailVerified ? '✓' : '!' } ${record.auth.providers.join(', ') || 'email'} · ${record.auth.activeSessions} sesiones`
+                : 'Sin cuenta Better Auth'}
+            </Text>
           </Flex>
         </Flex>
       ),
@@ -248,6 +253,19 @@ export function MembersTab() {
         record.lastActiveAt
           ? formatRelativeTime(new Date(record.lastActiveAt), i18n.language)
           : t('workspace.members.neverActive'),
+    },
+    {
+      title: 'Identidad',
+      key: 'identity',
+      responsive: ['xl'],
+      render: (_, record) =>
+        record.auth ? (
+          <Tooltip title={`Creada: ${new Date(record.auth.createdAt).toLocaleString(i18n.language)}`}>
+            <span>{record.auth.emailVerified ? 'Verificada' : 'Sin verificar'} · {record.auth.activeSessions} sesiones</span>
+          </Tooltip>
+        ) : (
+          <span>Sin cuenta</span>
+        ),
     },
     {
       key: 'actions',
