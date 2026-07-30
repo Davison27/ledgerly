@@ -1170,12 +1170,21 @@
     "subtitle": "Manage the catalog of products and services you invoice.",
     "add": "New product",
     "empty": "There are no products yet.",
+    "emptySearch": "No products match your search.",
+    "searchPlaceholder": "Search by name, reference, category, or tag",
+    "categoryFilter": "All categories",
     "loadError": "Products could not be loaded.",
     "deleted": "Product deleted",
     "fields": {
       "name": "Name",
       "price": "Price",
-      "stock": "Stock"
+      "stock": "Stock",
+      "reference": "Reference",
+      "category": "Category",
+      "brand": "Brand",
+      "description": "Description",
+      "tags": "Tags",
+      "image": "Image"
     },
     "columns": {
       "name": "Name",
@@ -1196,10 +1205,19 @@
       "duplicateName": "A product with that name already exists.",
       "priceHelp": "Leave it empty if you haven't decided yet.",
       "stockHelp": "0 means the stock hasn't been set yet.",
+      "tagsHelp": "Add up to 8 tags to improve searching.",
+      "imageUpload": "Upload image",
+      "removeImage": "Remove image",
+      "imageInvalid": "Upload a PNG, JPG, or WEBP image up to 2 MB.",
       "placeholders": {
         "name": "E.g. Logo design",
         "price": "E.g. 150",
-        "stock": "E.g. 10"
+        "stock": "E.g. 10",
+        "reference": "E.g. SERV-001",
+        "category": "E.g. Design",
+        "brand": "E.g. Own brand",
+        "description": "Briefly explain what this product offers.",
+        "tags": "E.g. urgent, premium"
       },
       "validation": {
         "nameRequired": "Name is required"

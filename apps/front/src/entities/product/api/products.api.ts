@@ -14,7 +14,7 @@ export function updateProduct(
   productId: string,
   payload: UpdateProductPayload,
 ): Promise<ProductDto> {
-  return patch<ProductDto>(`/products/${productId}`, stripEmpty(payload));
+  return patch<ProductDto>(`/products/${productId}`, payload);
 }
 
 export function deleteProduct(productId: string): Promise<void> {

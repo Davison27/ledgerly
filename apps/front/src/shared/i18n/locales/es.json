@@ -1170,12 +1170,21 @@
     "subtitle": "Gestiona el catálogo de productos y servicios que facturas.",
     "add": "Nuevo producto",
     "empty": "Todavía no hay productos.",
+    "emptySearch": "No hay productos que coincidan con la búsqueda.",
+    "searchPlaceholder": "Buscar por nombre, referencia, categoría o etiqueta",
+    "categoryFilter": "Todas las categorías",
     "loadError": "No se han podido cargar los productos.",
     "deleted": "Producto eliminado",
     "fields": {
       "name": "Nombre",
       "price": "Precio",
-      "stock": "Stock"
+      "stock": "Stock",
+      "reference": "Referencia",
+      "category": "Categoría",
+      "brand": "Marca",
+      "description": "Descripción",
+      "tags": "Etiquetas",
+      "image": "Imagen"
     },
     "columns": {
       "name": "Nombre",
@@ -1196,10 +1205,19 @@
       "duplicateName": "Ya existe un producto con ese nombre.",
       "priceHelp": "Déjalo vacío si aún no lo has decidido.",
       "stockHelp": "0 significa que el stock todavía no se ha configurado.",
+      "tagsHelp": "Añade hasta 8 etiquetas para mejorar la búsqueda.",
+      "imageUpload": "Subir imagen",
+      "removeImage": "Quitar imagen",
+      "imageInvalid": "Sube una imagen PNG, JPG o WEBP de hasta 2 MB.",
       "placeholders": {
         "name": "Ej. Diseño de logotipo",
         "price": "Ej. 150",
-        "stock": "Ej. 10"
+        "stock": "Ej. 10",
+        "reference": "Ej. SERV-001",
+        "category": "Ej. Diseño",
+        "brand": "Ej. Marca propia",
+        "description": "Explica brevemente qué ofrece este producto.",
+        "tags": "Ej. urgente, premium"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio"
