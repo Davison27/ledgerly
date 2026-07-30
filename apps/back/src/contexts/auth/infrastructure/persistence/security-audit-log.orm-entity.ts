@@ -14,6 +14,6 @@ export class SecurityAuditLogOrmEntity {
   @Column({ type: 'jsonb' })
   metadata: Record<string, string | null>;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }

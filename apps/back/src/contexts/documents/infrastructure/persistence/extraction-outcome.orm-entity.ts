@@ -17,6 +17,6 @@ export class ExtractionOutcomeOrmEntity {
   @Column({ name: 'issuer_name', type: 'varchar', length: 200, nullable: true })
   issuerName: string | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }
