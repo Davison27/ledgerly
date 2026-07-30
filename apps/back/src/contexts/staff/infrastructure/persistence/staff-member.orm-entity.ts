@@ -32,6 +32,6 @@ export class StaffMemberOrmEntity {
   @Column({ type: 'text', nullable: true })
   notes: string | null;
 
-  @Column({ name: 'created_at', type: 'timestamptz' })
+  @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;
 }
