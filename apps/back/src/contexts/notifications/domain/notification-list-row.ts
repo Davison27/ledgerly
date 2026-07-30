@@ -17,4 +17,5 @@ export interface NotificationListRow {
   resourceProjectId: string | null;
   createdAt: Date;
   readAt: Date | null;
+  resolvedAt?: Date | null;
 }

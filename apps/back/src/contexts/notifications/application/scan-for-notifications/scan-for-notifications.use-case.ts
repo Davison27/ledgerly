@@ -28,6 +28,16 @@ import {
 } from '../../domain/schedule-notification-rules';
 import { ScanForNotificationsResult } from './scan-for-notifications.result';
 
+const SCANNED_NOTIFICATION_TYPES = [
+  'document_overdue',
+  'document_due_soon',
+  'document_incomplete',
+  'staff_document_expired',
+  'staff_document_expiring',
+  'schedule_event_upcoming',
+  'schedule_conflict',
+];
+
 function addDaysToIsoDate(date: string, days: number): string {
   const parsed = new Date(`${date}T00:00:00Z`);
   parsed.setUTCDate(parsed.getUTCDate() + days);
@@ -78,9 +88,15 @@ export class ScanForNotificationsUseCase {
         createdAt: now,
         readAt: null,
         emailSentAt: null,
+        resolvedAt: null,
       }),
     );
 
+    await this.repository.resolveActiveExcept?.(
+      SCANNED_NOTIFICATION_TYPES,
+      drafts.map((draft) => draft.dedupeKey),
+      now,
+    );
     const created = await this.repository.insertIfAbsent(candidates);
     await this.delivery.deliver(created);
 

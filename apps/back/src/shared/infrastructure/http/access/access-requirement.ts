@@ -4,5 +4,6 @@ export const ACCESS_REQUIREMENT_KEY = 'auth:accessRequirement';
 
 export type AccessRequirement =
   | { kind: 'authenticated' }
+  | { kind: 'notifications' }
   | { kind: 'admin' }
   | { kind: 'access'; module: WorkspaceModule; level: PermissionLevel };

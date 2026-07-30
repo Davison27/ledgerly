@@ -89,6 +89,14 @@ export class AccessGuard implements CanActivate {
       return;
     }
 
+    if (requirement.kind === 'notifications') {
+      if (member.getRole() === 'viewer') {
+        throw new ForbiddenException();
+      }
+
+      return;
+    }
+
     if (requirement.kind === 'admin') {
       if (!member.isAdmin()) {
         throw new ForbiddenException();

@@ -41,6 +41,7 @@ export interface NotificationDto {
   severity: NotificationSeverityDto;
   createdAt: string;
   readAt: string | null;
+  resolvedAt: string | null;
   resource: NotificationResourceDto;
   context: NotificationContextDto;
 }
@@ -60,5 +61,5 @@ export interface NotificationUnreadCountDto {
 export interface ListNotificationsParams {
   page?: number;
   size?: number;
-  status?: 'unread' | 'all';
+  status?: 'unread' | 'open' | 'resolved' | 'all';
 }

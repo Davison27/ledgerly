@@ -5,6 +5,7 @@ import {
   mapNotificationDto,
   markAllNotificationsRead,
   markNotificationRead,
+  resolveNotification,
   notificationQueries,
   notificationTarget,
   type NotificationView,
@@ -14,6 +15,7 @@ const PAGE_SIZE = 20;
 
 export function useNotificationCenter() {
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<'unread' | 'open' | 'resolved' | 'all'>('open');
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -30,7 +32,7 @@ export function useNotificationCenter() {
     isFetchingNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    ...notificationQueries.list(PAGE_SIZE),
+    ...notificationQueries.list(PAGE_SIZE, status),
     enabled: open,
   });
 
@@ -50,6 +52,8 @@ export function useNotificationCenter() {
     () => void markAllNotificationsRead().then(invalidateAll),
     [invalidateAll],
   );
+
+  const resolve = useCallback((id: string) => void resolveNotification(id).then(invalidateAll), [invalidateAll]);
 
   const onSelect = useCallback(
     (view: NotificationView) => {
@@ -72,6 +76,8 @@ export function useNotificationCenter() {
   return {
     open,
     setOpen,
+    status,
+    setStatus,
     unreadCount,
     items,
     loading,
@@ -81,6 +87,7 @@ export function useNotificationCenter() {
     loadMore: () => void fetchNextPage(),
     onSelect,
     onMarkAllRead: markAllRead,
+    onResolve: resolve,
   };
 }
 

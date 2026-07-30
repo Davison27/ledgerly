@@ -7,6 +7,7 @@ import { ListNotificationsUseCase } from '../../application/list-notifications/l
 import { CountUnreadNotificationsUseCase } from '../../application/count-unread-notifications/count-unread-notifications.use-case';
 import { MarkNotificationReadUseCase } from '../../application/mark-notification-read/mark-notification-read.use-case';
 import { MarkAllNotificationsReadUseCase } from '../../application/mark-all-notifications-read/mark-all-notifications-read.use-case';
+import { ResolveNotificationUseCase } from '../../application/resolve-notification/resolve-notification.use-case';
 import { NotificationsPage } from '../../application/list-notifications/notifications-page';
 import { NotificationNotFoundException } from '../../domain/errors/notification-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
@@ -28,6 +29,7 @@ function buildPage(overrides: Partial<NotificationsPage> = {}): NotificationsPag
         resourceProjectId: 'project-1',
         createdAt: new Date('2026-07-27T05:00:00.000Z'),
         readAt: null,
+        resolvedAt: null,
       },
     ],
     total: 37,
@@ -45,12 +47,14 @@ describe('NotificationsController (HTTP, no DB)', () => {
   let unreadCountExecute: jest.Mock;
   let markReadExecute: jest.Mock;
   let markAllReadExecute: jest.Mock;
+  let resolveExecute: jest.Mock;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve(buildPage()));
     unreadCountExecute = jest.fn(() => Promise.resolve(12));
     markReadExecute = jest.fn(() => Promise.resolve(undefined));
     markAllReadExecute = jest.fn(() => Promise.resolve(undefined));
+    resolveExecute = jest.fn(() => Promise.resolve(undefined));
 
     const moduleRef = await Test.createTestingModule({
       controllers: [NotificationsController],
@@ -59,6 +63,7 @@ describe('NotificationsController (HTTP, no DB)', () => {
         { provide: CountUnreadNotificationsUseCase, useValue: { execute: unreadCountExecute } },
         { provide: MarkNotificationReadUseCase, useValue: { execute: markReadExecute } },
         { provide: MarkAllNotificationsReadUseCase, useValue: { execute: markAllReadExecute } },
+        { provide: ResolveNotificationUseCase, useValue: { execute: resolveExecute } },
       ],
     }).compile();
 
@@ -74,6 +79,7 @@ describe('NotificationsController (HTTP, no DB)', () => {
     unreadCountExecute.mockClear();
     markReadExecute.mockClear();
     markAllReadExecute.mockClear();
+    resolveExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -93,6 +99,7 @@ describe('NotificationsController (HTTP, no DB)', () => {
             severity: 'error',
             createdAt: '2026-07-27T05:00:00.000Z',
             readAt: null,
+            resolvedAt: null,
             resource: { kind: 'document', id: 'doc-1', projectId: 'project-1' },
             context: {
               subject: 'Acme SL - INV-1024',
@@ -108,13 +115,13 @@ describe('NotificationsController (HTTP, no DB)', () => {
         size: 20,
         unreadCount: 12,
       });
-      expect(listExecute).toHaveBeenCalledWith({ page: 1, size: 20, onlyUnread: false });
+      expect(listExecute).toHaveBeenCalledWith({ page: 1, size: 20, status: 'open' });
     });
 
     it('forwards pagination and the unread filter', async () => {
       await request(httpServer).get('/notifications').query({ page: '2', size: '10', status: 'unread' });
 
-      expect(listExecute).toHaveBeenCalledWith({ page: 2, size: 10, onlyUnread: true });
+      expect(listExecute).toHaveBeenCalledWith({ page: 2, size: 10, status: 'unread' });
     });
 
     it('rejects a size above the maximum', async () => {

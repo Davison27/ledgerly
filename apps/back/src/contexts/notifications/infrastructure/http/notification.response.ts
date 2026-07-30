@@ -24,6 +24,7 @@ export class NotificationResponse {
   severity: NotificationSeverity;
   createdAt: string;
   readAt: string | null;
+  resolvedAt: string | null;
   resource: NotificationResourceResponse;
   context: NotificationContextResponse;
 
@@ -35,6 +36,7 @@ export class NotificationResponse {
     response.severity = row.severity;
     response.createdAt = row.createdAt.toISOString();
     response.readAt = row.readAt ? row.readAt.toISOString() : null;
+    response.resolvedAt = row.resolvedAt ? row.resolvedAt.toISOString() : null;
     response.resource = {
       kind: row.resourceKind,
       id: row.resourceId,
