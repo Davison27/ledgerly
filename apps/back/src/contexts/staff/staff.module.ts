@@ -7,6 +7,7 @@ import { TypeOrmStaffMemberRepository } from './infrastructure/persistence/typeo
 import { TypeOrmStaffDocumentRepository } from './infrastructure/persistence/typeorm-staff-document.repository';
 import { TypeOrmStaffDocumentTypeRepository } from './infrastructure/persistence/typeorm-staff-document-type.repository';
 import { TypeOrmStaffPayrollCounter } from './infrastructure/persistence/typeorm-staff-payroll-counter';
+import { StaffDocumentTypeCatalogInitializer } from './infrastructure/persistence/staff-document-type-catalog.initializer';
 import { StaffController } from './infrastructure/http/staff.controller';
 import { StaffDocumentsController } from './infrastructure/http/staff-documents.controller';
 import { StaffDocumentTypesController } from './infrastructure/http/staff-document-types.controller';
@@ -43,6 +44,7 @@ import { GetStaffDocumentFileUseCase } from './application/get-staff-document-fi
     UpdateStaffDocumentUseCase,
     DeleteStaffDocumentUseCase,
     GetStaffDocumentFileUseCase,
+    StaffDocumentTypeCatalogInitializer,
     { provide: STAFF_MEMBER_REPOSITORY, useClass: TypeOrmStaffMemberRepository },
     { provide: STAFF_DOCUMENT_REPOSITORY, useClass: TypeOrmStaffDocumentRepository },
     { provide: STAFF_DOCUMENT_TYPE_REPOSITORY, useClass: TypeOrmStaffDocumentTypeRepository },
