@@ -15,8 +15,9 @@ export const envValidationSchema = Joi.object({
   DB_USER: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
 
-  GOOGLE_CLIENT_ID: Joi.string().required(),
-  GOOGLE_CLIENT_SECRET: Joi.string().required(),
+  BETTER_AUTH_SECRET: Joi.string().min(32).required(),
+  GOOGLE_CLIENT_ID: Joi.string().allow('').optional(),
+  GOOGLE_CLIENT_SECRET: Joi.string().allow('').optional(),
   BOOTSTRAP_ADMIN_EMAIL: Joi.string().email().required(),
   BACKEND_PUBLIC_URL: Joi.when('NODE_ENV', {
     is: 'production',

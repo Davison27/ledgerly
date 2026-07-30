@@ -7,11 +7,10 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { Request } from 'express';
 import { CLOCK, Clock } from '../../../domain/clock.port';
-import { Session } from '../../../../contexts/auth/domain/session';
-import { SESSION_REPOSITORY, SessionRepository } from '../../../../contexts/auth/domain/session.repository';
-import { TOKEN_GENERATOR, TokenGenerator } from '../../../../contexts/auth/domain/token-generator.port';
+import { Request } from 'express';
+import { fromNodeHeaders } from 'better-auth/node';
+import { auth } from '../../../../lib/auth';
 import { WorkspaceMember } from '../../../../contexts/auth/domain/workspace-member';
 import {
   WORKSPACE_MEMBER_REPOSITORY,
@@ -19,10 +18,6 @@ import {
 } from '../../../../contexts/auth/domain/workspace-member.repository';
 import { AccessRequirement, ACCESS_REQUIREMENT_KEY } from './access-requirement';
 import { IS_PUBLIC_KEY } from './public.decorator';
-
-const UNSAFE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-const SESSION_COOKIE_NAME = 'lg_session';
-const CSRF_HEADER_NAME = 'x-csrf-token';
 
 interface RequestWithMember extends Request {
   member?: WorkspaceMember;
@@ -32,9 +27,7 @@ interface RequestWithMember extends Request {
 export class AccessGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
-    @Inject(SESSION_REPOSITORY) private readonly sessionRepository: SessionRepository,
     @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
-    @Inject(TOKEN_GENERATOR) private readonly tokenGenerator: TokenGenerator,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
@@ -58,61 +51,36 @@ export class AccessGuard implements CanActivate {
     }
 
     const request = context.switchToHttp().getRequest<RequestWithMember>();
-    const now = this.clock.now();
-    const { session, member } = await this.resolveActiveSession(request, now);
-
-    if (UNSAFE_METHODS.has(request.method)) {
-      this.assertCsrf(request, session);
-    }
+    const member = await this.resolveActiveMember(request);
 
     this.assertRequirement(requirement, member);
 
     request.member = member;
 
-    await this.touchIfNeeded(session, member, now);
-
     return true;
   }
 
-  private async resolveActiveSession(
+  private async resolveActiveMember(
     request: RequestWithMember,
-    now: Date,
-  ): Promise<{ session: Session; member: WorkspaceMember }> {
-    const sessionToken = this.readCookie(request, SESSION_COOKIE_NAME);
+  ): Promise<WorkspaceMember> {
+    const session = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
 
-    if (sessionToken === null) {
+    if (session === null) {
       throw new UnauthorizedException();
     }
 
-    const tokenHash = this.tokenGenerator.hash(sessionToken);
-    const found = await this.sessionRepository.findActiveByTokenHash(tokenHash, now);
+    const member = await this.memberRepository.findByEmail(session.user.email);
 
-    if (found === null) {
-      throw new UnauthorizedException();
+    if (member === null || !member.isActive()) {
+      if (member === null || member.isDisabled()) {
+        throw new UnauthorizedException();
+      }
+
+      member.activate(this.clock.now());
+      await this.memberRepository.save(member);
     }
 
-    if (found.session.isExpired(now) || found.session.isIdle(now) || !found.member.isActive()) {
-      throw new UnauthorizedException();
-    }
-
-    return found;
-  }
-
-  private assertCsrf(
-    request: Request,
-    session: Session,
-  ): void {
-    const csrfHeader = request.get(CSRF_HEADER_NAME);
-
-    if (!csrfHeader) {
-      throw new ForbiddenException();
-    }
-
-    const csrfHash = this.tokenGenerator.hash(csrfHeader);
-
-    if (!session.matchesCsrfHash(csrfHash)) {
-      throw new ForbiddenException();
-    }
+    return member;
   }
 
   private assertRequirement(requirement: AccessRequirement, member: WorkspaceMember): void {
@@ -133,23 +101,4 @@ export class AccessGuard implements CanActivate {
     }
   }
 
-  private async touchIfNeeded(
-    session: Session,
-    member: WorkspaceMember,
-    now: Date,
-  ): Promise<void> {
-    if (!session.needsTouch(now)) {
-      return;
-    }
-
-    session.touch(now);
-    await this.sessionRepository.save(session);
-    await this.memberRepository.touchLastActive(member.getId(), now);
-  }
-
-  private readCookie(request: Request, name: string): string | null {
-    const cookies = request.cookies as Record<string, string | undefined> | undefined;
-
-    return cookies?.[name] ?? null;
-  }
 }

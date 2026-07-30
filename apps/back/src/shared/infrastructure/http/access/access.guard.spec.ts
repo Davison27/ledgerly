@@ -142,12 +142,10 @@ function buildContext(
   } as unknown as ExecutionContext;
 }
 
-function buildGuard(sessionRepository: FakeSessionRepository): AccessGuard {
+function buildGuard(_sessionRepository: FakeSessionRepository): AccessGuard {
   return new AccessGuard(
     new Reflector(),
-    sessionRepository,
     new FakeWorkspaceMemberRepository() as unknown as WorkspaceMemberRepository,
-    new FakeTokenGenerator(),
     new FixedClock(NOW),
   );
 }
