@@ -1,5 +1,23 @@
-.actionsBar {
+.section {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: var(--lg-space-md);
+  flex-direction: column;
+  gap: var(--lg-space-lg);
+}
+
+.sectionHeader {
+  min-height: 40px;
+}
+
+.title {
+  margin: 0 !important;
+}
+
+.contentCard {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .sectionHeader {
+    flex-direction: column;
+  }
 }

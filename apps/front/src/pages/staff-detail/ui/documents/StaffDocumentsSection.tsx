@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Popconfirm, Table, Tabs, type TableColumnsType } from 'antd';
+import { App, Button, Card, Flex, Popconfirm, Table, Tabs, Typography, type TableColumnsType } from 'antd';
 import { DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,7 +11,6 @@ import {
   type StaffDocumentDto,
 } from '@/entities/staff-member';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
-import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
@@ -20,6 +19,8 @@ import { StaffDocumentEditModal } from '../edit/StaffDocumentEditModal';
 import { getExpiryStatus, getExpiryTone } from '../../model/staffDocumentStatus';
 import type { StaffSectionProps } from '../../model/types';
 import shared from '../staff-detail.module.css';
+
+const { Title, Text } = Typography;
 
 const PAYROLL_TYPE_CODE = 'nomina';
 
@@ -138,33 +139,39 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
   ];
 
   return (
-    <PageContainer>
-      <div className={shared.actionsBar}>
-        <AddStaffDocumentButton staffMemberId={staffMember.id} />
-      </div>
+    <section className={shared.section}>
+      <Flex align="flex-start" justify="space-between" gap={16} className={shared.sectionHeader}>
+        <div>
+          <Title level={3} className={shared.title}>{t('staff.sections.documents')}</Title>
+          <Text type="secondary">{t('staff.documents.subtitle')}</Text>
+        </div>
+        <AddStaffDocumentButton staffMemberId={staffMember.id} mode="document" />
+      </Flex>
 
       {!typesLoading && documentTypes.length === 0 ? (
         <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.noTypes')} />
       ) : (
-        <Tabs
-          activeKey={activeTypeId ?? undefined}
-          onChange={setActiveTypeId}
-          items={documentTypes.map((type) => ({
-            key: type.id,
-            label: t(`staff.documentTypes.${type.code}`, { defaultValue: type.name }),
-            children: loading ? null : documents.length === 0 ? (
-              <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.empty')} />
-            ) : (
-              <Table<StaffDocumentDto>
-                columns={columns}
-                dataSource={documents}
-                rowKey="id"
-                size="small"
-                pagination={false}
-              />
-            ),
-          }))}
-        />
+        <Card className={shared.contentCard}>
+          <Tabs
+            activeKey={activeTypeId ?? undefined}
+            onChange={setActiveTypeId}
+            items={documentTypes.map((type) => ({
+              key: type.id,
+              label: t(`staff.documentTypes.${type.code}`, { defaultValue: type.name }),
+              children: loading ? null : documents.length === 0 ? (
+                <EmptyHint icon={<FileTextOutlined />} title={t('staff.documents.empty')} />
+              ) : (
+                <Table<StaffDocumentDto>
+                  columns={columns}
+                  dataSource={documents}
+                  rowKey="id"
+                  size="small"
+                  pagination={false}
+                />
+              ),
+            }))}
+          />
+        </Card>
       )}
 
       <StaffDocumentEditModal
@@ -175,6 +182,6 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
         onCancel={() => setEditingDocument(null)}
         onUpdated={() => setEditingDocument(null)}
       />
-    </PageContainer>
+    </section>
   );
 }

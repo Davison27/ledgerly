@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
-import { Table, type TableColumnsType } from 'antd';
+import { Card, Flex, Table, Typography, type TableColumnsType } from 'antd';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { documentQueries, STATUS_TONE, type DocumentListItemDto } from '@/entities/document';
-import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
@@ -11,6 +10,8 @@ import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { AddStaffDocumentButton } from '../addDocument/AddStaffDocumentButton';
 import type { StaffSectionProps } from '../../model/types';
 import shared from '../staff-detail.module.css';
+
+const { Title, Text } = Typography;
 
 export function PayrollsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
@@ -58,22 +59,28 @@ export function PayrollsSection({ staffMember }: StaffSectionProps) {
   ];
 
   return (
-    <PageContainer>
-      <div className={shared.actionsBar}>
-        <AddStaffDocumentButton staffMemberId={staffMember.id} />
-      </div>
+    <section className={shared.section}>
+      <Flex align="flex-start" justify="space-between" gap={16} className={shared.sectionHeader}>
+        <div>
+          <Title level={3} className={shared.title}>{t('staff.sections.payrolls')}</Title>
+          <Text type="secondary">{t('staff.payrolls.subtitle')}</Text>
+        </div>
+        <AddStaffDocumentButton staffMemberId={staffMember.id} mode="payroll" />
+      </Flex>
 
       {!loading && payrolls.length === 0 ? (
         <EmptyHint icon={<FileDoneOutlined />} title={t('staff.payrolls.empty')} />
       ) : (
-        <Table<DocumentListItemDto>
-          columns={columns}
-          dataSource={payrolls}
-          rowKey="id"
-          loading={loading}
-          pagination={false}
-        />
+        <Card className={shared.contentCard}>
+          <Table<DocumentListItemDto>
+            columns={columns}
+            dataSource={payrolls}
+            rowKey="id"
+            loading={loading}
+            pagination={false}
+          />
+        </Card>
       )}
-    </PageContainer>
+    </section>
   );
 }
