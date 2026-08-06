@@ -1,5 +1,5 @@
 .page {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding: var(--lg-space-xl);
 }
 
@@ -44,7 +44,7 @@
 }
 
 .uploadIcon {
-  font-size: 20px;
+  font-size: var(--lg-font-size-2xl);
 }
 
 .uploadHint {

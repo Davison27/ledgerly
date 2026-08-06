@@ -1,7 +1,7 @@
 .tag {
   border-radius: var(--ant-border-radius-sm);
   padding: 1px 8px;
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
   font-weight: 500;
   margin-inline-end: 0;
   line-height: 20px;

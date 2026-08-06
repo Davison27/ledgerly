@@ -5,7 +5,7 @@
 
 .consumed {
   flex: none;
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
 }
 
 .noBudgetLabel {
@@ -13,5 +13,5 @@
 }
 
 .overBudgetWarning {
-  font-size: 11px;
+  font-size: var(--lg-font-size-2xs);
 }

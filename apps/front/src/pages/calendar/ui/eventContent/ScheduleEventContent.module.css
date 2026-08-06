@@ -3,18 +3,18 @@
 }
 
 .title {
-  font-size: 13px;
+  font-size: var(--lg-font-size-sm);
   font-weight: 500;
 }
 
 .statusTag {
   margin-inline-end: 0;
-  font-size: 10px;
+  font-size: var(--lg-font-size-3xs);
   line-height: 16px;
 }
 
 .scheduleLabel {
-  font-size: 11px;
+  font-size: var(--lg-font-size-2xs);
 }
 
 .chip {
@@ -24,11 +24,11 @@
 }
 
 .chipName {
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
 }
 
 .hiddenCount {
-  font-size: 11px;
+  font-size: var(--lg-font-size-2xs);
 }
 
 .avatarOverlap:not(:first-child) {
@@ -36,6 +36,6 @@
 }
 
 .productTag {
-  font-size: 11px;
+  font-size: var(--lg-font-size-2xs);
   margin-inline-end: 0;
 }

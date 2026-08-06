@@ -41,7 +41,7 @@
   max-width: 420px;
 }
 
-@media (max-width: 575px) {
+@media (max-width: 640px) {
   .row {
     flex-direction: column;
     align-items: stretch;

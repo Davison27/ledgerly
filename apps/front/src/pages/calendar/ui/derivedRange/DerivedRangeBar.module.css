@@ -18,11 +18,11 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
 }
 
 .badge {
-  font-size: 10px;
+  font-size: var(--lg-font-size-3xs);
   margin-inline-end: 0;
   flex: none;
 }

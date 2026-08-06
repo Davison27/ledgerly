@@ -15,7 +15,7 @@
 }
 
 .projectName {
-  font-size: 16px;
+  font-size: var(--lg-font-size-lg);
 }
 
 .content {

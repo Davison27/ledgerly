@@ -18,7 +18,7 @@
 }
 
 .label {
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
 }
 
 .notes {

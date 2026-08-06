@@ -45,7 +45,7 @@
   white-space: pre-wrap;
 }
 
-@media (max-width: 576px) {
+@media (max-width: 640px) {
   .content {
     grid-template-columns: 1fr;
   }

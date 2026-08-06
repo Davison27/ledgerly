@@ -12,4 +12,20 @@
   --lg-page-padding-block: 24px;
   --lg-page-padding-inline: 32px;
   --lg-content-max-width: 1440px;
+
+  --lg-font-size-3xs: 10px;
+  --lg-font-size-2xs: 11px;
+  --lg-font-size-xs: 12px;
+  --lg-font-size-sm: 13px;
+  --lg-font-size-md: 14px;
+  --lg-font-size-lg: 16px;
+  --lg-font-size-xl: 18px;
+  --lg-font-size-2xl: 20px;
+  --lg-font-size-3xl: 22px;
+  --lg-font-size-4xl: 30px;
+
+  --lg-duration-fast: 120ms;
+  --lg-duration-base: 180ms;
+  --lg-duration-slow: 260ms;
+  --lg-ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
 }
