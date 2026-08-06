@@ -1,0 +1,55 @@
+.bar {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, #7c3aed 55%, transparent);
+  border-inline-start-width: 3px;
+  border-radius: var(--ant-border-radius-sm);
+  background: color-mix(in srgb, #7c3aed 14%, var(--ant-color-bg-container));
+  cursor: pointer;
+  overflow: hidden;
+  outline: none;
+}
+
+.bar:hover,
+.bar:focus-visible {
+  background: color-mix(in srgb, #7c3aed 22%, var(--ant-color-bg-container));
+  box-shadow: 0 0 0 2px color-mix(in srgb, #7c3aed 20%, transparent);
+}
+
+.titleRow {
+  min-width: 0;
+}
+
+.code,
+.title,
+.project {
+  min-width: 0;
+  font-size: 11px;
+}
+
+.code {
+  flex: none;
+  color: #7c3aed;
+  font-weight: 700;
+}
+
+.title {
+  color: var(--ant-color-text);
+  font-weight: 500;
+}
+
+.project {
+  color: var(--ant-color-text-secondary);
+}
+
+.badge {
+  flex: none;
+  margin-inline-end: 0;
+  font-size: 10px;
+  line-height: 16px;
+}

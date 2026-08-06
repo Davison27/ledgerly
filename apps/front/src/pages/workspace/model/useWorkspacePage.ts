@@ -1,8 +1,13 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 
-export type WorkspaceTab = 'company' | 'members' | 'integrations';
+export type WorkspaceTab = 'company' | 'members' | 'integrations' | 'tax-compliance';
 
-const WORKSPACE_TABS: readonly WorkspaceTab[] = ['company', 'members', 'integrations'];
+const WORKSPACE_TABS: readonly WorkspaceTab[] = [
+  'company',
+  'members',
+  'integrations',
+  'tax-compliance',
+];
 
 function isWorkspaceTab(value: unknown): value is WorkspaceTab {
   return typeof value === 'string' && (WORKSPACE_TABS as readonly string[]).includes(value);

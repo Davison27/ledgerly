@@ -2,7 +2,14 @@ import { useMemo } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { type MenuProps } from 'antd';
-import { ApiOutlined, BulbOutlined, PoweroffOutlined, ShopOutlined, TeamOutlined } from '@ant-design/icons';
+import {
+  ApiOutlined,
+  BulbOutlined,
+  PoweroffOutlined,
+  SafetyCertificateOutlined,
+  ShopOutlined,
+  TeamOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { logout } from '@/entities/session';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
@@ -16,22 +23,34 @@ export function useSettingsMenuItems(): MenuProps['items'] {
 
   return useMemo(
     () => [
-      ...(isAdmin ? [{
-        key: 'company',
-        label: t('workspace.tabs.company'),
-        icon: <ShopOutlined className={styles.menuIcon} />,
-        onClick: () => void navigate({ to: '/workspace', search: { tab: 'company' } }),
-      }, {
-        key: 'members',
-        label: t('workspace.tabs.members'),
-        icon: <TeamOutlined className={styles.menuIcon} />,
-        onClick: () => void navigate({ to: '/workspace', search: { tab: 'members' } }),
-      }, {
-        key: 'integrations',
-        label: t('workspace.tabs.integrations'),
-        icon: <ApiOutlined className={styles.menuIcon} />,
-        onClick: () => void navigate({ to: '/workspace', search: { tab: 'integrations' } }),
-      }] : []),
+      ...(isAdmin
+        ? [
+            {
+              key: 'company',
+              label: t('workspace.tabs.company'),
+              icon: <ShopOutlined className={styles.menuIcon} />,
+              onClick: () => void navigate({ to: '/workspace', search: { tab: 'company' } }),
+            },
+            {
+              key: 'members',
+              label: t('workspace.tabs.members'),
+              icon: <TeamOutlined className={styles.menuIcon} />,
+              onClick: () => void navigate({ to: '/workspace', search: { tab: 'members' } }),
+            },
+            {
+              key: 'integrations',
+              label: t('workspace.tabs.integrations'),
+              icon: <ApiOutlined className={styles.menuIcon} />,
+              onClick: () => void navigate({ to: '/workspace', search: { tab: 'integrations' } }),
+            },
+            {
+              key: 'tax-compliance',
+              label: t('workspace.tabs.taxCompliance'),
+              icon: <SafetyCertificateOutlined className={styles.menuIcon} />,
+              onClick: () => void navigate({ to: '/workspace', search: { tab: 'tax-compliance' } }),
+            },
+          ]
+        : []),
       {
         key: 'extraction-hints',
         label: t('extractionHints.navLabel'),

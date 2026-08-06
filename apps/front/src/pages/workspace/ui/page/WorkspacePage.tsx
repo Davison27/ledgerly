@@ -8,6 +8,7 @@ import { useWorkspacePage, type WorkspaceTab } from '../../model/useWorkspacePag
 import { CompanyTab } from '../companyTab/CompanyTab';
 import { MembersTab } from '../membersTab/MembersTab';
 import { IntegrationsTab } from '../integrationsTab/IntegrationsTab';
+import { TaxComplianceTab } from '../taxComplianceTab/TaxComplianceTab';
 
 export function WorkspacePage() {
   const { t } = useTranslation();
@@ -40,6 +41,11 @@ export function WorkspacePage() {
             key: 'integrations',
             label: t('workspace.tabs.integrations'),
             children: <IntegrationsTab />,
+          },
+          {
+            key: 'tax-compliance',
+            label: t('workspace.tabs.taxCompliance'),
+            children: <TaxComplianceTab />,
           },
         ]}
       />

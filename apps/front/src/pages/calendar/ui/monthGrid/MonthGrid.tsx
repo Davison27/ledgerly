@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import type { TaxDeadlineDto } from '@/entities/tax-compliance';
 import type { ConflictIndex } from '../../model/conflictIndex';
 import type { LaneItem } from '../../model/lanes';
 import { WeekRow } from '../weekRow/WeekRow';
@@ -16,10 +17,12 @@ export interface MonthGridProps {
   cursor: string;
   items: LaneItem[];
   eventsById: Map<string, ScheduleEventDto>;
+  deadlinesById: Map<string, TaxDeadlineDto>;
   projectsById: Map<string, SchedulableProjectDto>;
   conflictIndex: ConflictIndex;
   colorForProject: (projectId: string, color: string | null) => string;
   onSelectEvent: (event: ScheduleEventDto) => void;
+  onSelectTaxDeadline: (deadline: TaxDeadlineDto) => void;
   onSelectDerived: (project: SchedulableProjectDto) => void;
 }
 
@@ -27,10 +30,12 @@ export function MonthGrid({
   cursor,
   items,
   eventsById,
+  deadlinesById,
   projectsById,
   conflictIndex,
   colorForProject,
   onSelectEvent,
+  onSelectTaxDeadline,
   onSelectDerived,
 }: MonthGridProps) {
   const { t } = useTranslation();
@@ -60,18 +65,25 @@ export function MonthGrid({
             key={weekDates[0]}
             weekDates={weekDates}
             dayHeaders={weekDates.map((date) => (
-              <Text key={date} strong={date === today} className={styles.dayHeaderLabel} data-today={date === today}>
+              <Text
+                key={date}
+                strong={date === today}
+                className={styles.dayHeaderLabel}
+                data-today={date === today}
+              >
                 {dayjs(date).date()}
               </Text>
             ))}
             mutedDays={weekDates.map((date) => dayjs(date).month() !== monthStart.month())}
             items={items}
             eventsById={eventsById}
+            deadlinesById={deadlinesById}
             projectsById={projectsById}
             conflictIndex={conflictIndex}
             colorForProject={colorForProject}
             variant="month"
             onSelectEvent={onSelectEvent}
+            onSelectTaxDeadline={onSelectTaxDeadline}
             onSelectDerived={onSelectDerived}
           />
         ))}

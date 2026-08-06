@@ -1,10 +1,14 @@
 import { contiguousRuns, type ScheduleEventDto } from '@/entities/schedule-event';
+import type { TaxDeadlineDto } from '@/entities/tax-compliance';
 import type { DerivedProjectRange } from './derivedRanges';
+
+export type CalendarLaneKind = 'event' | 'tax' | 'derived';
 
 export interface CalendarBar {
   key: string;
-  kind: 'event' | 'derived';
+  kind: CalendarLaneKind;
   eventId: string | null;
+  taxDeadlineId: string | null;
   projectId: string;
   startIndex: number;
   span: number;
@@ -17,8 +21,9 @@ export interface CalendarBar {
 
 export interface LaneItem {
   key: string;
-  kind: 'event' | 'derived';
+  kind: CalendarLaneKind;
   eventId: string | null;
+  taxDeadlineId: string | null;
   projectId: string;
   startDate: string;
   endDate: string;
@@ -32,6 +37,7 @@ export function buildEventLaneItems(events: ScheduleEventDto[]): LaneItem[] {
       key: `event-${event.id}-${index}`,
       kind: 'event' as const,
       eventId: event.id,
+      taxDeadlineId: null,
       projectId: event.projectId,
       startDate: run[0].date,
       endDate: run[run.length - 1].date,
@@ -46,6 +52,7 @@ export function buildDerivedLaneItems(ranges: DerivedProjectRange[]): LaneItem[]
     key: `derived-${range.projectId}`,
     kind: 'derived' as const,
     eventId: null,
+    taxDeadlineId: null,
     projectId: range.projectId,
     startDate: range.startDate,
     endDate: range.endDate,
@@ -54,8 +61,24 @@ export function buildDerivedLaneItems(ranges: DerivedProjectRange[]): LaneItem[]
   }));
 }
 
-function kindRank(kind: 'event' | 'derived'): number {
-  return kind === 'event' ? 0 : 1;
+export function buildTaxDeadlineLaneItems(deadlines: TaxDeadlineDto[]): LaneItem[] {
+  return deadlines.map((deadline) => ({
+    key: `tax-${deadline.id}`,
+    kind: 'tax' as const,
+    eventId: null,
+    taxDeadlineId: deadline.id,
+    projectId: deadline.projectId,
+    startDate: deadline.startDate,
+    endDate: deadline.endDate,
+    ownsStartHandle: true,
+    ownsEndHandle: true,
+  }));
+}
+
+function kindRank(kind: CalendarLaneKind): number {
+  if (kind === 'event') return 0;
+  if (kind === 'tax') return 1;
+  return 2;
 }
 
 function compareBars(a: CalendarBar, b: CalendarBar): number {
@@ -81,6 +104,7 @@ function clipToWeek(item: LaneItem, weekDates: string[]): CalendarBar | null {
     key: item.key,
     kind: item.kind,
     eventId: item.eventId,
+    taxDeadlineId: item.taxDeadlineId,
     projectId: item.projectId,
     startIndex,
     span: endIndex - startIndex + 1,

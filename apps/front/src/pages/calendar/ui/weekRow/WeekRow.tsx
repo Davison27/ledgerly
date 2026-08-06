@@ -2,6 +2,7 @@ import { useMemo, type ReactNode } from 'react';
 import { Popover, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import type { TaxDeadlineDto } from '@/entities/tax-compliance';
 import type { ConflictIndex } from '../../model/conflictIndex';
 import { conflictsForEventInRange } from '../../model/conflictIndex';
 import { WEEK_BAR_HEIGHT } from '../../model/eventDensity';
@@ -9,6 +10,7 @@ import { layoutWeek, type CalendarBar, type LaneItem } from '../../model/lanes';
 import { DayCell } from '../dayCell/DayCell';
 import { EventBar } from '../eventBar/EventBar';
 import { DerivedRangeBar } from '../derivedRange/DerivedRangeBar';
+import { TaxDeadlineBar } from '../taxDeadline/TaxDeadlineBar';
 import styles from './WeekRow.module.css';
 
 const { Text } = Typography;
@@ -29,22 +31,29 @@ export interface WeekRowProps {
   mutedDays?: boolean[];
   items: LaneItem[];
   eventsById: Map<string, ScheduleEventDto>;
+  deadlinesById: Map<string, TaxDeadlineDto>;
   projectsById: Map<string, SchedulableProjectDto>;
   conflictIndex: ConflictIndex;
   colorForProject: (projectId: string, color: string | null) => string;
   variant: CalendarRowVariant;
   onSelectEvent: (event: ScheduleEventDto) => void;
+  onSelectTaxDeadline: (deadline: TaxDeadlineDto) => void;
   onSelectDerived: (project: SchedulableProjectDto) => void;
 }
 
 function barLabel(
   bar: CalendarBar,
   eventsById: Map<string, ScheduleEventDto>,
+  deadlinesById: Map<string, TaxDeadlineDto>,
   projectsById: Map<string, SchedulableProjectDto>,
 ): string {
   if (bar.kind === 'event') {
     const event = eventsById.get(bar.eventId ?? '');
     return event ? event.title?.trim() || event.project.name : '';
+  }
+  if (bar.kind === 'tax') {
+    const deadline = deadlinesById.get(bar.taxDeadlineId ?? '');
+    return deadline ? `${deadline.title} · ${deadline.projectName}` : '';
   }
   return projectsById.get(bar.projectId)?.name ?? '';
 }
@@ -55,11 +64,13 @@ export function WeekRow({
   mutedDays,
   items,
   eventsById,
+  deadlinesById,
   projectsById,
   conflictIndex,
   colorForProject,
   variant,
   onSelectEvent,
+  onSelectTaxDeadline,
   onSelectDerived,
 }: WeekRowProps) {
   const { t } = useTranslation();
@@ -92,18 +103,26 @@ export function WeekRow({
           <DayCell key={date} date={date} header={dayHeaders[index]} muted={mutedDays?.[index]} />
         ))}
       </div>
-      <div className={styles.barsLayer} style={{ top: headerHeight, gridAutoRows: barHeight + BAR_GAP }}>
+      <div
+        className={styles.barsLayer}
+        style={{ top: headerHeight, gridAutoRows: barHeight + BAR_GAP }}
+      >
         {visibleBars.map((bar) => {
           const segmentStart = weekDates[bar.startIndex];
           const segmentEnd = weekDates[bar.startIndex + bar.span - 1];
           const event = bar.kind === 'event' ? eventsById.get(bar.eventId ?? '') : undefined;
+          const deadline =
+            bar.kind === 'tax' ? deadlinesById.get(bar.taxDeadlineId ?? '') : undefined;
           const project = bar.kind === 'derived' ? projectsById.get(bar.projectId) : undefined;
 
           return (
             <div
               key={bar.key}
               className={styles.barCell}
-              style={{ gridColumn: `${bar.startIndex + 1} / span ${bar.span}`, gridRow: bar.lane + 1 }}
+              style={{
+                gridColumn: `${bar.startIndex + 1} / span ${bar.span}`,
+                gridRow: bar.lane + 1,
+              }}
             >
               {bar.kind === 'event' && event && (
                 <EventBar
@@ -117,7 +136,12 @@ export function WeekRow({
                   span={bar.span}
                   variant={variant}
                   color={colorForProject(bar.projectId, event.project.color)}
-                  conflicts={conflictsForEventInRange(conflictIndex, bar.eventId ?? '', segmentStart, segmentEnd)}
+                  conflicts={conflictsForEventInRange(
+                    conflictIndex,
+                    bar.eventId ?? '',
+                    segmentStart,
+                    segmentEnd,
+                  )}
                   onSelect={onSelectEvent}
                 />
               )}
@@ -127,6 +151,16 @@ export function WeekRow({
                   rowKey={rowKey}
                   color={colorForProject(bar.projectId, project.color)}
                   onSelect={onSelectDerived}
+                />
+              )}
+              {bar.kind === 'tax' && deadline && (
+                <TaxDeadlineBar
+                  deadline={deadline}
+                  barKey={bar.key}
+                  rowKey={rowKey}
+                  span={bar.span}
+                  variant={variant}
+                  onSelect={onSelectTaxDeadline}
                 />
               )}
             </div>
@@ -154,13 +188,16 @@ export function WeekRow({
                             if (bar.kind === 'event') {
                               const event = eventsById.get(bar.eventId ?? '');
                               if (event) onSelectEvent(event);
+                            } else if (bar.kind === 'tax') {
+                              const deadline = deadlinesById.get(bar.taxDeadlineId ?? '');
+                              if (deadline) onSelectTaxDeadline(deadline);
                             } else {
                               const project = projectsById.get(bar.projectId);
                               if (project) onSelectDerived(project);
                             }
                           }}
                         >
-                          {barLabel(bar, eventsById, projectsById)}
+                          {barLabel(bar, eventsById, deadlinesById, projectsById)}
                         </Text>
                       ))}
                     </div>
