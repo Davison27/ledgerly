@@ -145,7 +145,7 @@ detect_timezone() {
 
 write_env_file() {
   local domain="$1" admin_email="$2" timezone="$3" db_password="$4"
-  local google_client_id="$5" google_client_secret="$6"
+  local google_client_id="$5" google_client_secret="$6" auth_secret="$7"
   env_set LEDGERLY_DOMAIN "$domain"
   env_set ACME_EMAIL "$admin_email"
   env_set TZ "$timezone"
@@ -160,6 +160,7 @@ write_env_file() {
   env_set DB_NAME "ledgerly"
   env_set DB_USER "ledgerly"
   env_set DB_PASSWORD "$db_password"
+  env_set BETTER_AUTH_SECRET "$auth_secret"
   env_set GOOGLE_CLIENT_ID "$google_client_id"
   env_set GOOGLE_CLIENT_SECRET "$google_client_secret"
   env_set BOOTSTRAP_ADMIN_EMAIL "$admin_email"
@@ -285,6 +286,13 @@ EOF
     db_password="$(gen_password)"
   fi
 
+  local auth_secret
+  if [ "$resuming" -eq 1 ]; then
+    auth_secret="$(env_get BETTER_AUTH_SECRET || gen_password)"
+  else
+    auth_secret="$(gen_password)"
+  fi
+
   step "[5/6] Resumen"
   summary_row "Dominio" "$domain"
   summary_row "URL final" "https://${domain}"
@@ -292,6 +300,7 @@ EOF
   summary_row "Cliente de Google" "$google_client_id"
   summary_row "Client secret" "guardado (no se mostrará nunca)"
   summary_row "Contraseña de Postgres" "generada, 32 caracteres aleatorios"
+  summary_row "Secreto de autenticación" "generado, 32 caracteres aleatorios"
   summary_row "Datos" "volumen docker ledgerly_pgdata"
   summary_row "Configuración" "deploy/.env, solo lectura para tu usuario"
   cat <<'EOF'
@@ -310,7 +319,7 @@ EOF
 
   progress_start "Escribiendo deploy/.env"
   write_env_file "$domain" "$admin_email" "$timezone" "$db_password" \
-    "$google_client_id" "$google_client_secret"
+    "$google_client_id" "$google_client_secret" "$auth_secret"
   state_set "in_progress"
   progress_done
 
