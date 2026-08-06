@@ -293,7 +293,8 @@
     "tabs": {
       "company": "Company",
       "members": "Users and permissions",
-      "integrations": "Integrations"
+      "integrations": "Integrations",
+      "taxCompliance": "Tax compliance"
     },
     "company": {
       "identity": "Identity and branding",
@@ -584,6 +585,85 @@
           "description": "Give programmatic access to Ledgerly from your scripts"
         }
       }
+    },
+    "taxCompliance": {
+      "title": "Tax compliance",
+      "subtitle": "Enable the tax calendar and configure each client's obligations.",
+      "card": {
+        "title": "Tax calendar",
+        "description": "Calculate and show client tax deadlines inside the Ledgerly calendar.",
+        "hint": "It does not sync with Google or Outlook and can be disabled without deleting configuration.",
+        "enabledLabel": "Enable tax calendar"
+      },
+      "sources": {
+        "title": "Official sources",
+        "checkNow": "Check now",
+        "source": "Source",
+        "officialSource": "View AEAT source",
+        "status": "Status",
+        "statuses": {
+          "never_checked": "Not checked",
+          "current": "Up to date",
+          "changed": "Change pending",
+          "error": "Fetch error"
+        },
+        "lastChecked": "Last checked",
+        "sourceUpdated": "Source update",
+        "changes": "Changes",
+        "changeCount": "{{count}} change(s)",
+        "changeKinds": {
+          "added": "Added",
+          "removed": "Removed",
+          "modified": "Modified"
+        },
+        "noChanges": "No pending changes",
+        "review": "Mark reviewed",
+        "checked": "Official sources checked",
+        "checkError": "The official sources could not be checked",
+        "reviewed": "Change marked as reviewed; rules were not modified automatically",
+        "reviewError": "The change could not be marked as reviewed",
+        "legalNote": "Source: Agencia Tributaria. The official link and check date are preserved; changes require administrator review."
+      },
+      "toast": {
+        "enabled": "Tax compliance enabled",
+        "disabled": "Tax compliance disabled",
+        "error": "Tax compliance could not be updated"
+      },
+      "disabled": {
+        "title": "The tax calendar is disabled",
+        "hint": "Enable it to configure client obligations and show deadlines in the calendar."
+      },
+      "clients": {
+        "title": "Clients and obligations",
+        "client": "Client",
+        "status": "Status",
+        "obligations": "Obligations",
+        "configured": "Configured",
+        "pending": "Pending",
+        "configure": "Configure",
+        "empty": "There are no clients configured yet"
+      },
+      "entityTypes": {
+        "autonomo": "Self-employed",
+        "sociedad": "Company",
+        "particular": "Individual"
+      },
+      "profile": {
+        "title": "Tax profile · {{name}}",
+        "country": "Country",
+        "spain": "Spain",
+        "entityType": "Client type",
+        "entityTypeRequired": "Select the client type",
+        "region": "Region or autonomous community",
+        "regionHint": "This will be used for regional holidays and rules in a future version.",
+        "regionPlaceholder": "E.g. MD",
+        "enabled": "Profile active",
+        "obligations": "Active obligations",
+        "obligationRequired": "Select at least one obligation",
+        "saved": "Tax profile saved",
+        "saveError": "The tax profile could not be saved"
+      },
+      "loadError": "Tax compliance could not be loaded"
     }
   },
   "projects": {
@@ -1205,8 +1285,8 @@
       "brand": "Brand",
       "description": "Description",
       "tags": "Tags",
-      "image": "Image"
-      ,"leasingMonthlyFee": "Monthly leasing payment"
+      "image": "Image",
+      "leasingMonthlyFee": "Monthly leasing payment"
     },
     "columns": {
       "name": "Name",
@@ -1240,8 +1320,8 @@
         "category": "E.g. Design",
         "brand": "E.g. Own brand",
         "description": "Briefly explain what this product offers.",
-        "tags": "E.g. urgent, premium"
-        ,"leasingMonthlyFee": "E.g. 2000"
+        "tags": "E.g. urgent, premium",
+        "leasingMonthlyFee": "E.g. 2000"
       },
       "validation": {
         "nameRequired": "Name is required"
@@ -1297,6 +1377,24 @@
       "tooLong": "The project's date range is too long to schedule automatically.",
       "materialized": "Block created from the project's dates",
       "materializeError": "The block could not be created. Please try again."
+    },
+    "tax": {
+      "loadError": "Tax deadlines could not be loaded. The rest of the calendar is still available.",
+      "status": {
+        "pending": "Pending",
+        "in_progress": "In progress",
+        "submitted": "Submitted",
+        "paid": "Paid",
+        "dismissed": "Dismissed"
+      },
+      "modal": {
+        "dueDate": "Due date",
+        "period": "Tax period",
+        "status": "Status",
+        "source": "Official source",
+        "openSource": "Open official calendar",
+        "sourceVersion": "version {{version}}"
+      }
     },
     "event": {
       "resizeStart": "Adjust the block's start",

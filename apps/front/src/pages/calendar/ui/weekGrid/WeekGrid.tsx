@@ -4,9 +4,15 @@ import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import type { TaxDeadlineDto } from '@/entities/tax-compliance';
 import type { ConflictIndex } from '../../model/conflictIndex';
 import type { LaneItem } from '../../model/lanes';
-import { buildTimedSegments, HOUR_GUTTER_WIDTH, HOUR_HEIGHT, HOURS_IN_DAY } from '../../model/timeGrid';
+import {
+  buildTimedSegments,
+  HOUR_GUTTER_WIDTH,
+  HOUR_HEIGHT,
+  HOURS_IN_DAY,
+} from '../../model/timeGrid';
 import { WeekRow } from '../weekRow/WeekRow';
 import { TimeGrid } from '../timeGrid/TimeGrid';
 import styles from './WeekGrid.module.css';
@@ -19,10 +25,12 @@ export interface WeekGridProps {
   cursor: string;
   items: LaneItem[];
   eventsById: Map<string, ScheduleEventDto>;
+  deadlinesById: Map<string, TaxDeadlineDto>;
   projectsById: Map<string, SchedulableProjectDto>;
   conflictIndex: ConflictIndex;
   colorForProject: (projectId: string, color: string | null) => string;
   onSelectEvent: (event: ScheduleEventDto) => void;
+  onSelectTaxDeadline: (deadline: TaxDeadlineDto) => void;
   onSelectDerived: (project: SchedulableProjectDto) => void;
 }
 
@@ -30,16 +38,20 @@ export function WeekGrid({
   cursor,
   items,
   eventsById,
+  deadlinesById,
   projectsById,
   conflictIndex,
   colorForProject,
   onSelectEvent,
+  onSelectTaxDeadline,
   onSelectDerived,
 }: WeekGridProps) {
   const { t } = useTranslation();
 
   const monday = dayjs(cursor).subtract((dayjs(cursor).day() + 6) % 7, 'day');
-  const weekDates = Array.from({ length: 7 }, (_, index) => monday.add(index, 'day').format('YYYY-MM-DD'));
+  const weekDates = Array.from({ length: 7 }, (_, index) =>
+    monday.add(index, 'day').format('YYYY-MM-DD'),
+  );
   const today = dayjs().format('YYYY-MM-DD');
 
   const segments = useMemo(
@@ -88,11 +100,13 @@ export function WeekGrid({
             dayHeaders={weekDates.map(() => null)}
             items={items}
             eventsById={eventsById}
+            deadlinesById={deadlinesById}
             projectsById={projectsById}
             conflictIndex={conflictIndex}
             colorForProject={colorForProject}
             variant="week"
             onSelectEvent={onSelectEvent}
+            onSelectTaxDeadline={onSelectTaxDeadline}
             onSelectDerived={onSelectDerived}
           />
         </div>

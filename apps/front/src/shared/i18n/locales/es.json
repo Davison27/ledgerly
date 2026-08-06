@@ -293,7 +293,8 @@
     "tabs": {
       "company": "Empresa",
       "members": "Usuarios y permisos",
-      "integrations": "Integraciones"
+      "integrations": "Integraciones",
+      "taxCompliance": "Cumplimiento fiscal"
     },
     "company": {
       "identity": "Identidad y marca",
@@ -584,6 +585,85 @@
           "description": "Da acceso programático a Ledgerly desde tus scripts"
         }
       }
+    },
+    "taxCompliance": {
+      "title": "Cumplimiento fiscal",
+      "subtitle": "Activa el calendario fiscal y configura las obligaciones de cada cliente.",
+      "card": {
+        "title": "Calendario fiscal",
+        "description": "Calcula y muestra los vencimientos fiscales de los clientes dentro de la agenda.",
+        "hint": "No sincroniza con Google ni Outlook y se puede desactivar sin borrar la configuración.",
+        "enabledLabel": "Activar calendario fiscal"
+      },
+      "sources": {
+        "title": "Fuentes oficiales",
+        "checkNow": "Comprobar ahora",
+        "source": "Fuente",
+        "officialSource": "Ver fuente AEAT",
+        "status": "Estado",
+        "statuses": {
+          "never_checked": "Sin comprobar",
+          "current": "Actualizada",
+          "changed": "Cambio pendiente",
+          "error": "Error de consulta"
+        },
+        "lastChecked": "Última consulta",
+        "sourceUpdated": "Actualización de fuente",
+        "changes": "Cambios",
+        "changeCount": "{{count}} cambio(s)",
+        "changeKinds": {
+          "added": "Añadido",
+          "removed": "Retirado",
+          "modified": "Modificado"
+        },
+        "noChanges": "Sin cambios pendientes",
+        "review": "Marcar revisado",
+        "checked": "Fuentes oficiales comprobadas",
+        "checkError": "No se han podido comprobar las fuentes oficiales",
+        "reviewed": "Cambio marcado como revisado; no se han modificado las reglas automáticamente",
+        "reviewError": "No se ha podido marcar el cambio como revisado",
+        "legalNote": "Fuente: Agencia Tributaria. Se conserva la fecha de consulta y el enlace oficial; los cambios requieren revisión del administrador."
+      },
+      "toast": {
+        "enabled": "Cumplimiento fiscal activado",
+        "disabled": "Cumplimiento fiscal desactivado",
+        "error": "No se ha podido actualizar el cumplimiento fiscal"
+      },
+      "disabled": {
+        "title": "El calendario fiscal está desactivado",
+        "hint": "Actívalo para configurar obligaciones por cliente y ver sus vencimientos en la agenda."
+      },
+      "clients": {
+        "title": "Clientes y obligaciones",
+        "client": "Cliente",
+        "status": "Estado",
+        "obligations": "Obligaciones",
+        "configured": "Configurado",
+        "pending": "Pendiente",
+        "configure": "Configurar",
+        "empty": "Todavía no hay clientes configurados"
+      },
+      "entityTypes": {
+        "autonomo": "Autónomo",
+        "sociedad": "Sociedad",
+        "particular": "Particular"
+      },
+      "profile": {
+        "title": "Perfil fiscal · {{name}}",
+        "country": "País",
+        "spain": "España",
+        "entityType": "Tipo de cliente",
+        "entityTypeRequired": "Selecciona el tipo de cliente",
+        "region": "Región o comunidad autónoma",
+        "regionHint": "Se utilizará para añadir festivos y reglas regionales en futuras versiones.",
+        "regionPlaceholder": "Ej. MD",
+        "enabled": "Perfil activo",
+        "obligations": "Obligaciones activas",
+        "obligationRequired": "Selecciona al menos una obligación",
+        "saved": "Perfil fiscal guardado",
+        "saveError": "No se ha podido guardar el perfil fiscal"
+      },
+      "loadError": "No se ha podido cargar el cumplimiento fiscal"
     }
   },
   "projects": {
@@ -1205,8 +1285,8 @@
       "brand": "Marca",
       "description": "Descripción",
       "tags": "Etiquetas",
-      "image": "Imagen"
-      ,"leasingMonthlyFee": "Cuota mensual de leasing"
+      "image": "Imagen",
+      "leasingMonthlyFee": "Cuota mensual de leasing"
     },
     "columns": {
       "name": "Nombre",
@@ -1240,8 +1320,8 @@
         "category": "Ej. Diseño",
         "brand": "Ej. Marca propia",
         "description": "Explica brevemente qué ofrece este producto.",
-        "tags": "Ej. urgente, premium"
-        ,"leasingMonthlyFee": "Ej. 2000"
+        "tags": "Ej. urgente, premium",
+        "leasingMonthlyFee": "Ej. 2000"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio"
@@ -1297,6 +1377,24 @@
       "tooLong": "El rango de fechas del proyecto es demasiado largo para planificarlo automáticamente.",
       "materialized": "Bloque creado a partir de las fechas del proyecto",
       "materializeError": "No se ha podido crear el bloque. Inténtalo de nuevo."
+    },
+    "tax": {
+      "loadError": "No se han podido cargar los vencimientos fiscales. El resto del calendario sigue disponible.",
+      "status": {
+        "pending": "Pendiente",
+        "in_progress": "En curso",
+        "submitted": "Presentado",
+        "paid": "Pagado",
+        "dismissed": "Descartado"
+      },
+      "modal": {
+        "dueDate": "Fecha límite",
+        "period": "Periodo fiscal",
+        "status": "Estado",
+        "source": "Fuente oficial",
+        "openSource": "Consultar calendario oficial",
+        "sourceVersion": "versión {{version}}"
+      }
     },
     "event": {
       "resizeStart": "Ajustar inicio del bloque",

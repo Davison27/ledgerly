@@ -7,11 +7,16 @@ import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { ApiError } from '@/shared/api/httpClient';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import { useTaxComplianceCalendar, type TaxDeadlineDto } from '@/entities/tax-compliance';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useCalendarBoard, type CalendarView } from '../../model/useCalendarBoard';
 import { buildConflictIndex, staffAssignmentConflicts } from '../../model/conflictIndex';
 import { deriveProjectRanges, DerivedRangeTooLongError } from '../../model/derivedRanges';
-import { buildDerivedLaneItems, buildEventLaneItems } from '../../model/lanes';
+import {
+  buildDerivedLaneItems,
+  buildEventLaneItems,
+  buildTaxDeadlineLaneItems,
+} from '../../model/lanes';
 import { resizeEventDays } from '../../model/resizeDays';
 import { CalendarDndContext } from '../dnd/CalendarDndContext';
 import { SchedulablePanel } from '../schedulable/SchedulablePanel';
@@ -20,6 +25,7 @@ import { MonthGrid } from '../monthGrid/MonthGrid';
 import { WeekGrid } from '../weekGrid/WeekGrid';
 import { ConflictSummary } from '../conflicts/ConflictSummary';
 import { EventEditorModal } from '../eventEditor/EventEditorModal';
+import { TaxDeadlineModal } from '../taxDeadline/TaxDeadlineModal';
 import styles from './CalendarPage.module.css';
 
 const { Text } = Typography;
@@ -36,6 +42,7 @@ export function CalendarPage() {
     view,
     setView,
     cursor,
+    range,
     board,
     loading,
     loadError,
@@ -54,7 +61,10 @@ export function CalendarPage() {
     assignStaffToEvent,
   } = useCalendarBoard();
 
+  const taxCalendar = useTaxComplianceCalendar(range.from, range.to);
+
   const [selectedEvent, setSelectedEvent] = useState<ScheduleEventDto | null>(null);
+  const [selectedTaxDeadline, setSelectedTaxDeadline] = useState<TaxDeadlineDto | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -67,11 +77,22 @@ export function CalendarPage() {
     () => new Map((board?.events ?? []).map((event) => [event.id, event])),
     [board?.events],
   );
-  const projectsById = useMemo(() => new Map(projects.map((project) => [project.id, project])), [projects]);
+  const projectsById = useMemo(
+    () => new Map(projects.map((project) => [project.id, project])),
+    [projects],
+  );
+  const deadlinesById = useMemo(
+    () => new Map(taxCalendar.deadlines.map((deadline) => [deadline.id, deadline])),
+    [taxCalendar.deadlines],
+  );
   const derivedRanges = useMemo(() => deriveProjectRanges(projects), [projects]);
   const laneItems = useMemo(
-    () => [...buildEventLaneItems(board?.events ?? []), ...buildDerivedLaneItems(derivedRanges)],
-    [board?.events, derivedRanges],
+    () => [
+      ...buildEventLaneItems(board?.events ?? []),
+      ...buildTaxDeadlineLaneItems(taxCalendar.deadlines),
+      ...buildDerivedLaneItems(derivedRanges),
+    ],
+    [board?.events, derivedRanges, taxCalendar.deadlines],
   );
 
   const colorForProject = useCallback(
@@ -82,14 +103,21 @@ export function CalendarPage() {
   const handleDropProject = (projectId: string, date: string) => {
     createFromDrop(projectId, date)
       .then(() => void message.success(t('calendar.event.created')))
-      .catch((error: unknown) =>
-        void message.error(
-          error instanceof ApiError && error.message ? error.message : t('calendar.event.createError'),
-        ),
+      .catch(
+        (error: unknown) =>
+          void message.error(
+            error instanceof ApiError && error.message
+              ? error.message
+              : t('calendar.event.createError'),
+          ),
       );
   };
 
-  const handleMaterialize = (project: SchedulableProjectDto, offsetInDays: number, openEditor: boolean) => {
+  const handleMaterialize = (
+    project: SchedulableProjectDto,
+    offsetInDays: number,
+    openEditor: boolean,
+  ) => {
     materializeDerivedRange(project, offsetInDays)
       .then((created) => {
         void message.success(t('calendar.derived.materialized'));
@@ -101,7 +129,9 @@ export function CalendarPage() {
           return;
         }
         void message.error(
-          error instanceof ApiError && error.message ? error.message : t('calendar.derived.materializeError'),
+          error instanceof ApiError && error.message
+            ? error.message
+            : t('calendar.derived.materializeError'),
         );
       });
   };
@@ -117,20 +147,26 @@ export function CalendarPage() {
   const handleMoveEvent = (event: ScheduleEventDto, offsetInDays: number) => {
     moveEvent(event, offsetInDays)
       .then(() => void message.success(t('calendar.event.moved')))
-      .catch((error: unknown) =>
-        void message.error(
-          error instanceof ApiError && error.message ? error.message : t('calendar.event.moveError'),
-        ),
+      .catch(
+        (error: unknown) =>
+          void message.error(
+            error instanceof ApiError && error.message
+              ? error.message
+              : t('calendar.event.moveError'),
+          ),
       );
   };
 
   const handleResizeEvent = (event: ScheduleEventDto, edge: 'start' | 'end', date: string) => {
     resizeEvent(event, resizeEventDays(event.days, edge, date))
       .then(() => void message.success(t('calendar.event.resized')))
-      .catch((error: unknown) =>
-        void message.error(
-          error instanceof ApiError && error.message ? error.message : t('calendar.event.resizeError'),
-        ),
+      .catch(
+        (error: unknown) =>
+          void message.error(
+            error instanceof ApiError && error.message
+              ? error.message
+              : t('calendar.event.resizeError'),
+          ),
       );
   };
 
@@ -146,12 +182,17 @@ export function CalendarPage() {
         }
         void message.success(t('calendar.event.staffAssigned'));
         const newConflicts = staffAssignmentConflicts(result.board, eventId, staffMemberId);
-        newConflicts.forEach((conflict) => void message.warning(t(`calendar.conflicts.kind.${conflict.kind}`)));
+        newConflicts.forEach(
+          (conflict) => void message.warning(t(`calendar.conflicts.kind.${conflict.kind}`)),
+        );
       })
-      .catch((error: unknown) =>
-        void message.error(
-          error instanceof ApiError && error.message ? error.message : t('calendar.event.staffAssignError'),
-        ),
+      .catch(
+        (error: unknown) =>
+          void message.error(
+            error instanceof ApiError && error.message
+              ? error.message
+              : t('calendar.event.staffAssignError'),
+          ),
       );
   };
 
@@ -178,7 +219,9 @@ export function CalendarPage() {
       setSelectedEvent(null);
     } catch (error) {
       void message.error(
-        error instanceof ApiError && error.message ? error.message : t('calendar.event.deleteError'),
+        error instanceof ApiError && error.message
+          ? error.message
+          : t('calendar.event.deleteError'),
       );
     } finally {
       setDeleting(false);
@@ -232,54 +275,73 @@ export function CalendarPage() {
         {loading ? (
           <Skeleton active paragraph={{ rows: 8 }} className={styles.loadingSkeleton} />
         ) : loadError ? (
-          <Alert type="error" showIcon message={t('calendar.loadError')} className={styles.loadError} />
+          <Alert
+            type="error"
+            showIcon
+            message={t('calendar.loadError')}
+            className={styles.loadError}
+          />
         ) : (
-          <CalendarDndContext
-            disabled={!canEdit}
-            colorForProject={colorForProject}
-            onDropProject={handleDropProject}
-            onDropDerivedProject={handleDropDerivedProject}
-            onMoveEvent={handleMoveEvent}
-            onResizeEvent={handleResizeEvent}
-            onAssignStaff={handleAssignStaff}
-          >
-            <Flex className={styles.boardRow}>
-              <Flex vertical className={styles.sidePanel}>
-                <div className={styles.schedulablePanelSlot}>
-                  <SchedulablePanel projects={projects} colorForProject={colorForProject} />
-                </div>
-                <div className={styles.staffPanelSlot}>
-                  <StaffPanel staffMembers={staffMembers} />
+          <>
+            {taxCalendar.loadError && (
+              <Alert
+                type="warning"
+                showIcon
+                message={t('calendar.tax.loadError')}
+                className={styles.taxLoadError}
+              />
+            )}
+            <CalendarDndContext
+              disabled={!canEdit}
+              colorForProject={colorForProject}
+              onDropProject={handleDropProject}
+              onDropDerivedProject={handleDropDerivedProject}
+              onMoveEvent={handleMoveEvent}
+              onResizeEvent={handleResizeEvent}
+              onAssignStaff={handleAssignStaff}
+            >
+              <Flex className={styles.boardRow}>
+                <Flex vertical className={styles.sidePanel}>
+                  <div className={styles.schedulablePanelSlot}>
+                    <SchedulablePanel projects={projects} colorForProject={colorForProject} />
+                  </div>
+                  <div className={styles.staffPanelSlot}>
+                    <StaffPanel staffMembers={staffMembers} />
+                  </div>
+                </Flex>
+
+                <div className={styles.gridSlot}>
+                  {view === 'month' ? (
+                    <MonthGrid
+                      cursor={cursor}
+                      items={laneItems}
+                      eventsById={eventsById}
+                      deadlinesById={deadlinesById}
+                      projectsById={projectsById}
+                      conflictIndex={conflictIndex}
+                      colorForProject={colorForProject}
+                      onSelectEvent={canEdit ? setSelectedEvent : () => undefined}
+                      onSelectTaxDeadline={setSelectedTaxDeadline}
+                      onSelectDerived={canEdit ? handleSelectDerived : () => undefined}
+                    />
+                  ) : (
+                    <WeekGrid
+                      cursor={cursor}
+                      items={laneItems}
+                      eventsById={eventsById}
+                      deadlinesById={deadlinesById}
+                      projectsById={projectsById}
+                      conflictIndex={conflictIndex}
+                      colorForProject={colorForProject}
+                      onSelectEvent={canEdit ? setSelectedEvent : () => undefined}
+                      onSelectTaxDeadline={setSelectedTaxDeadline}
+                      onSelectDerived={canEdit ? handleSelectDerived : () => undefined}
+                    />
+                  )}
                 </div>
               </Flex>
-
-              <div className={styles.gridSlot}>
-                {view === 'month' ? (
-                  <MonthGrid
-                    cursor={cursor}
-                    items={laneItems}
-                    eventsById={eventsById}
-                    projectsById={projectsById}
-                    conflictIndex={conflictIndex}
-                    colorForProject={colorForProject}
-                    onSelectEvent={canEdit ? setSelectedEvent : () => undefined}
-                    onSelectDerived={canEdit ? handleSelectDerived : () => undefined}
-                  />
-                ) : (
-                  <WeekGrid
-                    cursor={cursor}
-                    items={laneItems}
-                    eventsById={eventsById}
-                    projectsById={projectsById}
-                    conflictIndex={conflictIndex}
-                    colorForProject={colorForProject}
-                    onSelectEvent={canEdit ? setSelectedEvent : () => undefined}
-                    onSelectDerived={canEdit ? handleSelectDerived : () => undefined}
-                  />
-                )}
-              </div>
-            </Flex>
-          </CalendarDndContext>
+            </CalendarDndContext>
+          </>
         )}
       </div>
 
@@ -293,6 +355,12 @@ export function CalendarPage() {
         onDelete={handleDelete}
         submitting={saving}
         deleting={deleting}
+      />
+
+      <TaxDeadlineModal
+        open={selectedTaxDeadline !== null}
+        deadline={selectedTaxDeadline}
+        onClose={() => setSelectedTaxDeadline(null)}
       />
     </Flex>
   );
