@@ -17,15 +17,15 @@ export class TypeOrmNotificationStaffReader implements NotificationStaffReader {
 
   findExpiringUpTo(limitDate: string): Promise<NotificationStaffDocumentRow[]> {
     return this.repository
-      .createQueryBuilder('staffDocument')
-      .innerJoin(StaffMemberOrmEntity, 'staffMember', 'staffMember.id = staffDocument.staff_member_id')
-      .select('staffDocument.id', 'id')
-      .addSelect('staffDocument.staff_member_id', 'staffMemberId')
-      .addSelect("staffMember.first_name || ' ' || staffMember.last_name", 'staffMemberName')
-      .addSelect('staffDocument.name', 'name')
-      .addSelect('staffDocument.expiry_date::text', 'expiryDate')
-      .where('staffDocument.expiry_date IS NOT NULL')
-      .andWhere('staffDocument.expiry_date <= :limitDate', { limitDate })
+      .createQueryBuilder('staff_document')
+      .innerJoin(StaffMemberOrmEntity, 'staff_member', 'staff_member.id = staff_document.staff_member_id')
+      .select('staff_document.id', 'id')
+      .addSelect('staff_document.staff_member_id', 'staffMemberId')
+      .addSelect("staff_member.first_name || ' ' || staff_member.last_name", 'staffMemberName')
+      .addSelect('staff_document.name', 'name')
+      .addSelect('staff_document.expiry_date::text', 'expiryDate')
+      .where('staff_document.expiry_date IS NOT NULL')
+      .andWhere('staff_document.expiry_date <= :limitDate', { limitDate })
       .getRawMany<NotificationStaffDocumentRow>();
   }
 }
