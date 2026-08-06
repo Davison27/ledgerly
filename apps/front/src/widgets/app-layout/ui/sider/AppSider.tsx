@@ -76,9 +76,10 @@ export function AppSider({
   const selectedKey = getSelectedKey(pathname);
   const { company } = useCompany();
   const collapseLabel = collapsed ? t('sider.expand') : t('sider.collapse');
-  const workspaceLabel = t('sider.workspace');
   const { isAdmin } = useWorkspaceAccess();
   const settingsItems = useSettingsMenuItems();
+  const isSettingsRouteActive =
+    pathname.startsWith('/workspace') || pathname.startsWith('/extraction-hints');
 
   const items = useMemo(
     () => [
@@ -153,19 +154,7 @@ export function AppSider({
           data-collapsed={collapsed}
           className={styles.header}
         >
-          {isAdmin && (
-            <Tooltip title={workspaceLabel} placement={collapsed ? 'right' : 'bottom'}>
-              <Button
-                type="text"
-                aria-label={workspaceLabel}
-                className={styles.logoButton}
-                data-active={pathname.startsWith('/workspace') || undefined}
-                onClick={() => void navigate({ to: '/workspace', search: { tab: 'company' } })}
-              >
-                <img src={collapsed ? iconUrl : logoUrl} alt="" className={styles.logo} />
-              </Button>
-            </Tooltip>
-          )}
+          {isAdmin && <img src={collapsed ? iconUrl : logoUrl} alt="" className={styles.logo} />}
 
           <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
             <Button
@@ -193,7 +182,7 @@ export function AppSider({
                 trigger={['click']}
               >
                 <Tooltip title={company.name} placement="right">
-                  <div className={styles.trigger}>
+                  <div className={styles.trigger} data-active={isSettingsRouteActive || undefined}>
                     <CompanyMark company={company} size={36} />
                   </div>
                 </Tooltip>
@@ -204,7 +193,12 @@ export function AppSider({
               menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
               trigger={['click']}
             >
-              <Flex align="center" gap={SPACE.sm} className={styles.identityRow}>
+              <Flex
+                align="center"
+                gap={SPACE.sm}
+                className={styles.identityRow}
+                data-active={isSettingsRouteActive || undefined}
+              >
                 <CompanyMark company={company} size={36} />
                 <Flex align="center" justify="space-between" gap={SPACE.sm} className={styles.identityDetails}>
                   <Text strong ellipsis className={styles.identityName}>
