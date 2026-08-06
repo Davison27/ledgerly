@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from '@tanstack/react-router';
 import { Avatar, Flex, Segmented, Skeleton, Typography } from 'antd';
@@ -10,7 +10,8 @@ import {
   staffQueries,
 } from '@/entities/staff-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import typography from '@/shared/ui/typography.module.css';
+import { DetailPageHeader } from '@/shared/ui/DetailPageHeader';
+import { useStaffDetailSection, type StaffDetailSection } from '../../model/useStaffDetailSection';
 import { ProfileSection } from '../profile/ProfileSection';
 import { StaffDocumentsSection } from '../documents/StaffDocumentsSection';
 import { PayrollsSection } from '../payrolls/PayrollsSection';
@@ -19,14 +20,12 @@ import styles from './StaffMemberDetailPage.module.css';
 
 const { Text } = Typography;
 
-type Section = 'documents' | 'payrolls' | 'schedule';
-
 const PHOTO_TYPE_CODE = 'foto';
 
 export function StaffMemberDetailPage() {
   const { t } = useTranslation();
   const { staffMemberId } = useParams({ strict: false }) as { staffMemberId?: string };
-  const [section, setSection] = useState<Section>('documents');
+  const { section, setSection } = useStaffDetailSection(staffMemberId);
 
   const {
     data: staffMember,
@@ -79,28 +78,24 @@ export function StaffMemberDetailPage() {
   const avatarSrc =
     latestPhoto && staffMemberId ? staffDocumentFileUrl(staffMemberId, latestPhoto.id) : undefined;
 
+  const avatar = avatarSrc ? (
+    <Avatar size={28} src={avatarSrc} />
+  ) : (
+    <Avatar size={28} className={styles.avatarFallback} icon={<IdcardOutlined />} />
+  );
+
   return (
     <Flex vertical className={styles.page}>
-      <div className={styles.header}>
-        <Flex align="center" gap={10}>
-          {avatarSrc ? (
-            <Avatar size={28} src={avatarSrc} />
-          ) : (
-            <Avatar size={28} className={styles.avatarFallback} icon={<IdcardOutlined />} />
-          )}
-          <Flex align="baseline" gap={8}>
-            <Text strong className={styles.staffName}>
-              {staffMember.firstName} {staffMember.lastName}
-            </Text>
-            {staffMember.position && (
-              <Text type="secondary" className={typography.caption}>
-                {staffMember.position}
-              </Text>
-            )}
-          </Flex>
-        </Flex>
-        <Segmented<Section> value={section} onChange={setSection} options={options} />
-      </div>
+      <DetailPageHeader
+        backTo="/staff"
+        backLabel={t('staff.detail.back')}
+        avatar={avatar}
+        title={`${staffMember.firstName} ${staffMember.lastName}`}
+        subtitle={staffMember.position}
+        sections={
+          <Segmented<StaffDetailSection> value={section} onChange={setSection} options={options} />
+        }
+      />
 
       <div className={styles.content}>
         <div className={styles.layout}>

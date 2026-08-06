@@ -670,6 +670,7 @@
     "title": "Proyectos",
     "subtitle": "Selecciona un proyecto para continuar",
     "notFound": "Proyecto no encontrado",
+    "back": "Volver a proyectos",
     "docSummary": "{{docs}} documentos · {{pending}} pendientes",
     "deleteConfirm": {
       "title": "Eliminar proyecto",
@@ -1556,7 +1557,8 @@
     },
     "detail": {
       "notFound": "Trabajador no encontrado",
-      "add": "Añadir"
+      "add": "Añadir",
+      "back": "Volver a personal"
     },
     "sections": {
       "profile": "Perfil",

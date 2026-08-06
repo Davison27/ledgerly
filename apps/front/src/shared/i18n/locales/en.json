@@ -670,6 +670,7 @@
     "title": "Projects",
     "subtitle": "Select a project to continue",
     "notFound": "Project not found",
+    "back": "Back to projects",
     "docSummary": "{{docs}} documents · {{pending}} pending",
     "deleteConfirm": {
       "title": "Delete project",
@@ -1556,7 +1557,8 @@
     },
     "detail": {
       "notFound": "Staff member not found",
-      "add": "Add"
+      "add": "Add",
+      "back": "Back to staff"
     },
     "sections": {
       "profile": "Profile",

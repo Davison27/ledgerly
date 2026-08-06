@@ -3,21 +3,6 @@
   min-height: 0;
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  gap: var(--lg-space-xxl);
-  flex: none;
-  height: var(--lg-section-header-height);
-  padding: 0 var(--lg-page-padding-inline);
-  background: var(--ant-color-bg-container);
-  border-bottom: 1px solid var(--ant-color-border-secondary);
-}
-
-.projectName {
-  font-size: var(--lg-font-size-lg);
-}
-
 .content {
   flex: 1;
   min-height: 0;

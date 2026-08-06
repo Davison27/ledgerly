@@ -7,7 +7,7 @@ import { LoginPage } from '@/pages/login';
 import { OnboardingPage } from '@/pages/onboarding';
 import { DashboardPage } from '@/pages/dashboard';
 import { ProjectsPage } from '@/pages/projects';
-import { ProjectDetailPage } from '@/pages/project-detail';
+import { ProjectDetailPage, type ProjectDetailSection } from '@/pages/project-detail';
 import { CalendarPage } from '@/pages/calendar';
 import { ExtractionHintsPage } from '@/pages/extraction-hints';
 import { SuppliersPage } from '@/pages/suppliers';
@@ -15,7 +15,7 @@ import { DocumentsPage } from '@/pages/documents';
 import { InvoicesPage } from '@/pages/invoices';
 import { ProductsPage } from '@/pages/products';
 import { StaffPage } from '@/pages/staff';
-import { StaffMemberDetailPage } from '@/pages/staff-detail';
+import { StaffMemberDetailPage, type StaffDetailSection } from '@/pages/staff-detail';
 import { WorkspacePage, type WorkspaceTab } from '@/pages/workspace';
 
 interface LoginSearch {
@@ -72,6 +72,15 @@ const projectsRoute = createRoute({
 const projectDetailRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/projects/$projectId',
+  validateSearch: (search: Record<string, unknown>): { section?: ProjectDetailSection } => ({
+    section:
+      search.section === 'products' ||
+      search.section === 'dashboard' ||
+      search.section === 'schedule' ||
+      search.section === 'settings'
+        ? search.section
+        : undefined,
+  }),
   component: ProjectDetailPage,
 });
 
@@ -120,6 +129,10 @@ const staffRoute = createRoute({
 const staffMemberDetailRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/staff/$staffMemberId',
+  validateSearch: (search: Record<string, unknown>): { section?: StaffDetailSection } => ({
+    section:
+      search.section === 'payrolls' || search.section === 'schedule' ? search.section : undefined,
+  }),
   component: StaffMemberDetailPage,
 });
 

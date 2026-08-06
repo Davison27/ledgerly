@@ -24,13 +24,6 @@
   object-fit: contain;
 }
 
-.logoButton {
-  height: auto;
-  padding: 0;
-  border: none;
-  background: transparent;
-}
-
 .menu {
   flex: 1;
   min-height: 0;
@@ -47,11 +40,27 @@
 
 .trigger {
   cursor: pointer;
+  margin: calc(var(--lg-space-xs) * -1);
+  padding: var(--lg-space-xs);
+  border-radius: var(--ant-border-radius);
+  transition: background-color var(--lg-duration-fast) var(--lg-ease-standard);
+}
+
+.trigger[data-active='true'] {
+  background: color-mix(in srgb, var(--ant-color-primary) 14%, transparent);
 }
 
 .identityRow {
   cursor: pointer;
   min-width: 0;
+  margin: calc(var(--lg-space-xs) * -1) calc(var(--lg-space-sm) * -1);
+  padding: var(--lg-space-xs) var(--lg-space-sm);
+  border-radius: var(--ant-border-radius);
+  transition: background-color var(--lg-duration-fast) var(--lg-ease-standard);
+}
+
+.identityRow[data-active='true'] {
+  background: color-mix(in srgb, var(--ant-color-primary) 14%, transparent);
 }
 
 .identityDetails {

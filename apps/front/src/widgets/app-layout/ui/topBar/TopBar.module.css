@@ -32,9 +32,3 @@
 .icon {
   font-size: var(--lg-font-size-xl);
 }
-
-.logo {
-  height: 28px;
-  display: block;
-  object-fit: contain;
-}
