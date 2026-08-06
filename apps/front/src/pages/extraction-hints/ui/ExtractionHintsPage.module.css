@@ -1,3 +1,27 @@
 .metricRow {
   margin-bottom: var(--lg-space-xs);
 }
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--lg-space-lg);
+}
+
+.sourceGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--lg-space-lg);
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 768px) {
+  .sourceGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

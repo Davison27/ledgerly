@@ -1,17 +1,32 @@
-.skeletonKpi {
-  flex: 1 1 220px;
-  min-width: 220px;
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--lg-space-lg);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--lg-space-lg);
 }
 
 .skeletonWide {
-  flex: 2 1 480px;
-  min-width: 360px;
+  grid-column: span 2;
+  min-width: 0;
 }
 
 .yearSelect {
-  width: 110px;
+  width: 140px;
+}
+
+.detailSection {
+  margin-top: var(--lg-space-xxl);
+}
+
+.detailDivider {
+  margin: 0 0 var(--lg-space-lg);
 }
 
 .detailTitle {
-  margin-bottom: var(--lg-space-md);
+  margin: 0;
 }

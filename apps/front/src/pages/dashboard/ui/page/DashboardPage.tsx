@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Alert, Button, Card, Empty, Flex, Select, Skeleton, Typography, theme } from 'antd';
+import { Alert, Button, Card, Collapse, Divider, Empty, Flex, Select, Skeleton, Typography, theme } from 'antd';
 import {
   ArrowDownOutlined,
   ArrowUpOutlined,
@@ -15,7 +15,6 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
-import typography from '@/shared/ui/typography.module.css';
 import { dashboardQueries } from '../../api/dashboard.queries';
 import {
   MonthlyChart,
@@ -53,8 +52,7 @@ function SkeletonCard({
   variant?: SkeletonVariant;
   rows?: number;
 }) {
-  const skeletonClass =
-    variant === 'kpi' ? styles.skeletonKpi : variant === 'wide' ? styles.skeletonWide : dashboard.card;
+  const skeletonClass = variant === 'wide' ? styles.skeletonWide : dashboard.card;
 
   return (
     <Card className={skeletonClass}>
@@ -131,79 +129,73 @@ export function DashboardPage() {
         subtitle={t('dashboard.subtitle')}
         actions={
           data && (
-            <Flex vertical gap={4} align="flex-end">
-              <Text type="secondary" className={typography.caption}>
-                {t('dashboard.yearSelector.label')}
-              </Text>
-              <Select
-                size="small"
-                value={selectedYear}
-                options={yearOptions}
-                className={styles.yearSelect}
-                onChange={(value: number) => setYear(value)}
-                aria-label={t('dashboard.yearSelector.label')}
-              />
-            </Flex>
+            <Select
+              value={selectedYear}
+              options={yearOptions}
+              className={styles.yearSelect}
+              onChange={(value: number) => setYear(value)}
+              aria-label={t('dashboard.yearSelector.label')}
+            />
           )
         }
       />
 
-      <Flex vertical gap={SPACE.lg}>
-        {loading && (
-          <>
-            <Flex gap={SPACE.lg} wrap align="stretch">
-              <SkeletonCard variant="kpi" rows={2} />
-              <SkeletonCard variant="kpi" rows={2} />
-              <SkeletonCard variant="kpi" rows={2} />
-              <SkeletonCard variant="kpi" rows={2} />
-            </Flex>
-            <Flex gap={SPACE.lg} wrap align="stretch">
-              <SkeletonCard variant="wide" rows={6} />
-              <SkeletonCard variant="card" rows={6} />
-            </Flex>
-            <Flex gap={SPACE.lg} wrap align="stretch">
-              <SkeletonCard rows={4} />
-              <SkeletonCard rows={4} />
-              <SkeletonCard rows={4} />
-            </Flex>
-          </>
-        )}
+      {loading && (
+        <Flex vertical gap={SPACE.lg}>
+          <div className={styles.kpiGrid}>
+            <SkeletonCard variant="kpi" rows={2} />
+            <SkeletonCard variant="kpi" rows={2} />
+            <SkeletonCard variant="kpi" rows={2} />
+            <SkeletonCard variant="kpi" rows={2} />
+          </div>
+          <div className={styles.cardGrid}>
+            <SkeletonCard variant="wide" rows={6} />
+            <SkeletonCard variant="card" rows={6} />
+          </div>
+          <div className={styles.cardGrid}>
+            <SkeletonCard rows={4} />
+            <SkeletonCard rows={4} />
+            <SkeletonCard rows={4} />
+          </div>
+        </Flex>
+      )}
 
-        {!loading && error && (
-          <Alert type="error" showIcon message={t('dashboard.loadError')} />
-        )}
+      {!loading && error && (
+        <Alert type="error" showIcon message={t('dashboard.loadError')} />
+      )}
 
-        {!loading && !error && data && isEmpty && (
-          <>
-            <Card>
-              <Empty
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                description={
-                  <Flex vertical gap={4} align="center">
-                    <Text strong>{t('dashboard.empty.title')}</Text>
-                    <Text type="secondary">{t('dashboard.empty.description')}</Text>
-                  </Flex>
-                }
-              >
-                <Button type="primary" onClick={() => void navigate({ to: '/projects' })}>
-                  {t('dashboard.empty.cta')}
-                </Button>
-              </Empty>
-            </Card>
+      {!loading && !error && data && isEmpty && (
+        <Flex vertical gap={SPACE.lg}>
+          <Card>
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description={
+                <Flex vertical gap={4} align="center">
+                  <Text strong>{t('dashboard.empty.title')}</Text>
+                  <Text type="secondary">{t('dashboard.empty.description')}</Text>
+                </Flex>
+              }
+            >
+              <Button type="primary" onClick={() => void navigate({ to: '/projects' })}>
+                {t('dashboard.empty.cta')}
+              </Button>
+            </Empty>
+          </Card>
 
-            <TipsPanel tips={tips} />
-          </>
-        )}
+          <TipsPanel tips={tips} />
+        </Flex>
+      )}
 
-        {!loading && !error && data && !isEmpty && (
-          <>
-            <Flex gap={SPACE.lg} wrap align="stretch">
+      {!loading && !error && data && !isEmpty && (
+        <>
+          <Flex vertical gap={SPACE.lg}>
+            <div className={styles.kpiGrid}>
               {kpis.map((kpi) => (
                 <KpiCard key={kpi.label} {...kpi} />
               ))}
-            </Flex>
+            </div>
 
-            <Flex gap={SPACE.lg} wrap align="stretch">
+            <div className={styles.cardGrid}>
               <MonthlyChart
                 income={data.monthlyIncome}
                 expenses={data.monthlyExpenses}
@@ -214,53 +206,66 @@ export function DashboardPage() {
                 pending={data.pendingCount}
                 overdue={data.overdueCount}
               />
-            </Flex>
+            </div>
 
-            <Flex gap={SPACE.lg} wrap align="stretch">
+            <div className={styles.cardGrid}>
               <TopProjectsCard topProjects={data.topProjects} />
               <TopIssuers topIssuers={data.topIssuers} />
               <UpcomingScheduleCard />
-            </Flex>
-
-            <div>
-              <Title level={4} className={styles.detailTitle}>
-                {t('dashboard.detail.title')}
-              </Title>
-
-              <Flex vertical gap={SPACE.lg}>
-                <Flex gap={SPACE.lg} wrap align="stretch">
-                  <CategoryDonut
-                    categoryTotals={data.categoryTotals}
-                    totalDocs={data.totalDocuments}
-                    color={token.colorPrimary}
-                  />
-                  <CashflowByStatus
-                    pagado={data.amountByStatus.pagado}
-                    pendiente={data.amountByStatus.pendiente}
-                    vencido={data.amountByStatus.vencido}
-                  />
-                  <MonthlyProfitChart profit={data.monthlyProfit} />
-                  <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
-                  <MarginTrendChart
-                    monthlyMargin={data.monthlyMargin}
-                    color={token.colorPrimary}
-                  />
-                </Flex>
-
-                <Flex gap={SPACE.lg} wrap align="stretch">
-                  <BudgetVsActualCard budgetVsActual={data.budgetVsActual} />
-                  <VatByQuarterCard vatByQuarter={data.vatByQuarter} />
-                </Flex>
-
-                <Flex gap={SPACE.lg} wrap align="stretch">
-                  <CashflowForecastCard cashflowForecast={data.cashflowForecast} />
-                  <TipsPanel tips={tips} />
-                </Flex>
-              </Flex>
             </div>
-          </>
-        )}
-      </Flex>
+          </Flex>
+
+          <div className={styles.detailSection}>
+            <Divider className={styles.detailDivider} />
+            <Collapse
+              ghost
+              defaultActiveKey={['detail']}
+              items={[
+                {
+                  key: 'detail',
+                  label: (
+                    <Title level={4} className={styles.detailTitle}>
+                      {t('dashboard.detail.title')}
+                    </Title>
+                  ),
+                  children: (
+                    <Flex vertical gap={SPACE.lg}>
+                      <div className={styles.cardGrid}>
+                        <CategoryDonut
+                          categoryTotals={data.categoryTotals}
+                          totalDocs={data.totalDocuments}
+                          color={token.colorPrimary}
+                        />
+                        <CashflowByStatus
+                          pagado={data.amountByStatus.pagado}
+                          pendiente={data.amountByStatus.pendiente}
+                          vencido={data.amountByStatus.vencido}
+                        />
+                        <MonthlyProfitChart profit={data.monthlyProfit} />
+                        <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
+                        <MarginTrendChart
+                          monthlyMargin={data.monthlyMargin}
+                          color={token.colorPrimary}
+                        />
+                      </div>
+
+                      <div className={styles.cardGrid}>
+                        <BudgetVsActualCard budgetVsActual={data.budgetVsActual} />
+                        <VatByQuarterCard vatByQuarter={data.vatByQuarter} />
+                      </div>
+
+                      <div className={styles.cardGrid}>
+                        <CashflowForecastCard cashflowForecast={data.cashflowForecast} />
+                        <TipsPanel tips={tips} />
+                      </div>
+                    </Flex>
+                  ),
+                },
+              ]}
+            />
+          </div>
+        </>
+      )}
     </PageContainer>
   );
 }

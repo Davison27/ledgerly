@@ -1,9 +1,8 @@
 .card {
-  flex: 1 1 320px;
-  min-width: 300px;
+  min-width: 0;
 }
 
 .wideCard {
-  flex: 1 1 420px;
-  min-width: 320px;
+  grid-column: span 2;
+  min-width: 0;
 }

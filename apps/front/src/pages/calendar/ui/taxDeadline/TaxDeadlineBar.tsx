@@ -1,6 +1,8 @@
+import type { CSSProperties } from 'react';
 import { Flex, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { TaxDeadlineDto } from '@/entities/tax-compliance';
+import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import styles from './TaxDeadlineBar.module.css';
 
 const { Text } = Typography;
@@ -23,6 +25,7 @@ export function TaxDeadlineBar({
   onSelect,
 }: TaxDeadlineBarProps) {
   const { t } = useTranslation();
+  const colors = useSemanticColors();
   const statusLabel = t(`calendar.tax.status.${deadline.status}`);
 
   return (
@@ -33,6 +36,7 @@ export function TaxDeadlineBar({
       data-row-key={rowKey}
       role="button"
       tabIndex={0}
+      style={{ '--deadline-color': colors.accentCool } as CSSProperties}
       onClick={() => onSelect(deadline)}
       onKeyDown={(event) => {
         if (event.key === 'Enter' || event.key === ' ') {

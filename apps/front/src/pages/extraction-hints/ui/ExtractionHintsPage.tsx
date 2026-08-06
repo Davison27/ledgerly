@@ -5,13 +5,11 @@ import {
   Alert,
   Button,
   Card,
-  Col,
   Collapse,
   Empty,
   Flex,
   Popconfirm,
   Progress,
-  Row,
   Skeleton,
   Statistic,
   Table,
@@ -89,85 +87,75 @@ function QualityPanel() {
 
   return (
     <Flex vertical gap={24}>
-      <Row gutter={16}>
-        <Col xs={24} sm={8}>
-          <Card size="small">
-            <Statistic
-              title={t('extractionHints.quality.totalExtractions')}
-              value={quality.totalExtractions}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card size="small">
-            <Statistic
-              title={t('extractionHints.quality.avgCorrectedFields')}
-              value={quality.avgCorrectedFields}
-              precision={2}
-            />
-          </Card>
-        </Col>
-        <Col xs={24} sm={8}>
-          <Card size="small">
-            <Statistic
-              title={t('extractionHints.quality.correctionRate')}
-              value={quality.correctionRate * 100}
-              precision={1}
-              suffix="%"
-            />
-          </Card>
-        </Col>
-      </Row>
+      <div className={styles.statsGrid}>
+        <Card size="small">
+          <Statistic
+            title={t('extractionHints.quality.totalExtractions')}
+            value={quality.totalExtractions}
+          />
+        </Card>
+        <Card size="small">
+          <Statistic
+            title={t('extractionHints.quality.avgCorrectedFields')}
+            value={quality.avgCorrectedFields}
+            precision={2}
+          />
+        </Card>
+        <Card size="small">
+          <Statistic
+            title={t('extractionHints.quality.correctionRate')}
+            value={quality.correctionRate * 100}
+            precision={1}
+            suffix="%"
+          />
+        </Card>
+      </div>
 
-      <Row gutter={16}>
-        <Col xs={24} md={12}>
-          <Card size="small" title={t('extractionHints.quality.bySource')}>
-            <Flex vertical gap={12}>
-              {QUALITY_SOURCES.map((source) => {
-                const count = quality.bySource[source] ?? 0;
-                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
-                return (
-                  <div key={source}>
-                    <Flex justify="space-between" className={styles.metricRow}>
-                      <SemanticTag tone="neutral">
-                        {t(`projects.documents.upload.extraction.source.${source}`)}
-                      </SemanticTag>
-                      <Text type="secondary">{count}</Text>
-                    </Flex>
-                    <Progress percent={percent} showInfo={false} size="small" />
-                  </div>
-                );
-              })}
-            </Flex>
-          </Card>
-        </Col>
-        <Col xs={24} md={12}>
-          <Card size="small" title={t('extractionHints.quality.byConfidence')}>
-            <Flex vertical gap={12}>
-              {QUALITY_CONFIDENCES.map((confidence) => {
-                const count = quality.byConfidence[confidence] ?? 0;
-                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
-                return (
-                  <div key={confidence}>
-                    <Flex justify="space-between" className={styles.metricRow}>
-                      <SemanticTag tone={CONFIDENCE_TONE[confidence]}>
-                        {t(`projects.documents.upload.extraction.confidence.${confidence}`)}
-                      </SemanticTag>
-                      <Text type="secondary">{count}</Text>
-                    </Flex>
-                    <Progress
-                      percent={percent}
-                      showInfo={false}
-                      size="small"
-                      status={confidence === 'low' ? 'exception' : undefined}
-                    />
-                  </div>
-                );
-              })}
-            </Flex>
-          </Card>
-        </Col>
-      </Row>
+      <div className={styles.sourceGrid}>
+        <Card size="small" title={t('extractionHints.quality.bySource')}>
+          <Flex vertical gap={12}>
+            {QUALITY_SOURCES.map((source) => {
+              const count = quality.bySource[source] ?? 0;
+              const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+              return (
+                <div key={source}>
+                  <Flex justify="space-between" className={styles.metricRow}>
+                    <SemanticTag tone="neutral">
+                      {t(`projects.documents.upload.extraction.source.${source}`)}
+                    </SemanticTag>
+                    <Text type="secondary">{count}</Text>
+                  </Flex>
+                  <Progress percent={percent} showInfo={false} size="small" />
+                </div>
+              );
+            })}
+          </Flex>
+        </Card>
+        <Card size="small" title={t('extractionHints.quality.byConfidence')}>
+          <Flex vertical gap={12}>
+            {QUALITY_CONFIDENCES.map((confidence) => {
+              const count = quality.byConfidence[confidence] ?? 0;
+              const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+              return (
+                <div key={confidence}>
+                  <Flex justify="space-between" className={styles.metricRow}>
+                    <SemanticTag tone={CONFIDENCE_TONE[confidence]}>
+                      {t(`projects.documents.upload.extraction.confidence.${confidence}`)}
+                    </SemanticTag>
+                    <Text type="secondary">{count}</Text>
+                  </Flex>
+                  <Progress
+                    percent={percent}
+                    showInfo={false}
+                    size="small"
+                    status={confidence === 'low' ? 'exception' : undefined}
+                  />
+                </div>
+              );
+            })}
+          </Flex>
+        </Card>
+      </div>
 
       <Card size="small" title={t('extractionHints.quality.topHints')}>
         {quality.topHints.length === 0 ? (
