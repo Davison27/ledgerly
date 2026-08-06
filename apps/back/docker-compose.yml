@@ -31,9 +31,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
     init: true
     security_opt:
       - no-new-privileges:true
+
+  migrator:
+    build:
+      context: ../..
+      dockerfile: apps/back/Dockerfile
+    env_file: .env
+    environment:
+      DB_HOST: postgres
+      NODE_ENV: development
+    depends_on:
+      postgres:
+        condition: service_healthy
+    command: ["node", "dist/database/bootstrap.js"]
+    restart: "no"
 
 volumes:
   ledgerly-pgdata:
