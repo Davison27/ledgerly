@@ -1,8 +1,4 @@
-import {
-  createRootRoute,
-  createRoute,
-  createRouter,
-} from '@tanstack/react-router';
+import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
 
 import { AppShell } from './AppShell';
 import { RootLayout } from './RootLayout';
@@ -131,7 +127,10 @@ const workspaceRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/workspace',
   validateSearch: (search: Record<string, unknown>): { tab: WorkspaceTab } => ({
-    tab: search.tab === 'members' || search.tab === 'integrations' ? search.tab : 'company',
+    tab:
+      search.tab === 'members' || search.tab === 'integrations' || search.tab === 'tax-compliance'
+        ? search.tab
+        : 'company',
   }),
   component: WorkspacePage,
 });
