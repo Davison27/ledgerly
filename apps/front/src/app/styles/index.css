@@ -24,9 +24,9 @@ body,
 .ant-menu-item,
 .ant-btn {
   transition:
-    background-color 0.18s ease,
-    border-color 0.18s ease,
-    color 0.18s ease;
+    background-color var(--lg-duration-base) var(--lg-ease-standard),
+    border-color var(--lg-duration-base) var(--lg-ease-standard),
+    color var(--lg-duration-base) var(--lg-ease-standard);
 }
 
 .ant-menu-item-selected {
@@ -35,22 +35,33 @@ body,
 
 .ant-card.ant-card-hoverable {
   transition:
-    box-shadow 0.18s ease,
-    transform 0.18s ease,
-    background-color 0.18s ease,
-    border-color 0.18s ease;
+    box-shadow var(--lg-duration-base) var(--lg-ease-standard),
+    transform var(--lg-duration-base) var(--lg-ease-standard),
+    background-color var(--lg-duration-base) var(--lg-ease-standard),
+    border-color var(--lg-duration-base) var(--lg-ease-standard);
 }
 
 .ant-card.ant-card-hoverable:hover {
   transform: translateY(-2px);
 }
 
-.ledgerly-search-trigger:focus-visible {
-  outline: 2px solid #00609c;
+:focus-visible {
+  outline: 2px solid var(--ant-color-primary);
   outline-offset: 2px;
 }
 
 .ant-form-item .ant-input-number,
 .ant-form-item .ant-picker {
   width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

@@ -12,6 +12,8 @@ export const LAYOUT = {
   contentMaxWidth: 1440,
 } as const;
 
+export const BREAKPOINT = { sm: 640, md: 768, lg: 960, xl: 1280 } as const;
+
 export const BRAND_DEFAULT = '#00609c';
 
 export interface SemanticPalette {

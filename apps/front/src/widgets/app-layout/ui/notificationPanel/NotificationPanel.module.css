@@ -23,7 +23,7 @@
 .groupHeader {
   display: block;
   padding: var(--lg-space-xs) var(--lg-space-lg);
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }

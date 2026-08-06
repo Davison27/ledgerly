@@ -16,7 +16,7 @@
 }
 
 .dateMonth {
-  font-size: 10px;
+  font-size: var(--lg-font-size-3xs);
   letter-spacing: 0.04em;
   text-transform: uppercase;
 }

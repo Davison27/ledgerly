@@ -30,7 +30,7 @@
 }
 
 .icon {
-  font-size: 18px;
+  font-size: var(--lg-font-size-xl);
 }
 
 .logo {

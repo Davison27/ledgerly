@@ -33,6 +33,6 @@
 }
 
 .delta {
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
   font-weight: 600;
 }

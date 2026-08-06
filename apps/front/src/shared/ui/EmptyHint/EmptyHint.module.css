@@ -5,7 +5,7 @@
 
 .icon {
   display: flex;
-  font-size: 20px;
+  font-size: var(--lg-font-size-2xl);
   color: var(--ant-color-text-quaternary);
 }
 

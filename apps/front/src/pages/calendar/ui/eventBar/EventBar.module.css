@@ -63,13 +63,13 @@
 }
 
 .monthTitle {
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
   font-weight: 500;
 }
 
 .monthStatusTag {
   margin-inline-end: 0;
-  font-size: 10px;
+  font-size: var(--lg-font-size-3xs);
   line-height: 16px;
 }
 
@@ -78,6 +78,6 @@
 }
 
 .monthHiddenCount {
-  font-size: 10px;
+  font-size: var(--lg-font-size-3xs);
   margin-inline-start: 2px;
 }

@@ -21,7 +21,7 @@
 }
 
 .sectionLabel {
-  font-size: 13px;
+  font-size: var(--lg-font-size-sm);
 }
 
 .modeItem {
@@ -68,5 +68,5 @@
 }
 
 .noProductsHint {
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
 }

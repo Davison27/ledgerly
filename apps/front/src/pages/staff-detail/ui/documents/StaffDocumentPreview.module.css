@@ -35,7 +35,7 @@
 }
 
 .metadata {
-  font-size: 13px;
+  font-size: var(--lg-font-size-sm);
 }
 
 .footer {

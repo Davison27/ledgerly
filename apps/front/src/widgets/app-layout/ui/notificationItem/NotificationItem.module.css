@@ -33,18 +33,18 @@
 
 .time {
   flex: none;
-  font-size: 12px;
+  font-size: var(--lg-font-size-xs);
   white-space: nowrap;
 }
 
 .itemTitle {
-  font-size: 13px;
+  font-size: var(--lg-font-size-sm);
 }
 
 .itemDescription {
-  font-size: 13px;
+  font-size: var(--lg-font-size-sm);
 }
 
 .amount {
-  font-size: 13px;
+  font-size: var(--lg-font-size-sm);
 }

@@ -25,7 +25,7 @@
   background: var(--ant-color-primary-bg) !important;
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1280px) {
   .workspace {
     grid-template-columns: minmax(0, 1fr);
   }
