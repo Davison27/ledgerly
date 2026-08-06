@@ -1,6 +1,5 @@
 .card {
-  flex: 1 1 220px;
-  min-width: 220px;
+  min-width: 0;
   position: relative;
   overflow: hidden;
 }

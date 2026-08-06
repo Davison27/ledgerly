@@ -1,6 +1,6 @@
 .card {
-  flex: 2 1 480px;
-  min-width: 360px;
+  grid-column: span 2;
+  min-width: 0;
 }
 
 .chartWrap {

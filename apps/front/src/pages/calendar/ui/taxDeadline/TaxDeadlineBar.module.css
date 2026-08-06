@@ -6,10 +6,11 @@
   gap: 1px;
   min-width: 0;
   padding: 2px 6px;
-  border: 1px solid color-mix(in srgb, #7c3aed 55%, transparent);
-  border-inline-start-width: 3px;
+  border: 1px solid color-mix(in srgb, var(--deadline-color) 55%, transparent);
+  border-inline-start-width: 4px;
+  border-inline-start-style: dotted;
   border-radius: var(--ant-border-radius-sm);
-  background: color-mix(in srgb, #7c3aed 14%, var(--ant-color-bg-container));
+  background: color-mix(in srgb, var(--deadline-color) 14%, var(--ant-color-bg-container));
   cursor: pointer;
   overflow: hidden;
   outline: none;
@@ -17,8 +18,8 @@
 
 .bar:hover,
 .bar:focus-visible {
-  background: color-mix(in srgb, #7c3aed 22%, var(--ant-color-bg-container));
-  box-shadow: 0 0 0 2px color-mix(in srgb, #7c3aed 20%, transparent);
+  background: color-mix(in srgb, var(--deadline-color) 22%, var(--ant-color-bg-container));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--deadline-color) 20%, transparent);
 }
 
 .titleRow {
@@ -34,7 +35,7 @@
 
 .code {
   flex: none;
-  color: #7c3aed;
+  color: var(--deadline-color);
   font-weight: 700;
 }
 
