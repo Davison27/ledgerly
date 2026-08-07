@@ -2,6 +2,7 @@ import { Flex, Popover, Tag, Typography } from 'antd';
 import { ExclamationCircleOutlined, InfoCircleOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { ScheduleBoardSummaryDto, ScheduleConflictKind } from '@/entities/schedule-event';
+import { SPACE } from '@/shared/config/theme';
 import styles from './ConflictSummary.module.css';
 
 const { Text } = Typography;
@@ -42,7 +43,7 @@ export function ConflictSummary({ summary }: ConflictSummaryProps) {
 
   return (
     <Popover title={t('calendar.conflicts.title')} content={content} trigger="click">
-      <Flex align="center" gap={10} className={styles.trigger}>
+      <Flex align="center" gap={SPACE.md} className={styles.trigger}>
         <Flex align="center" gap={4}>
           <ExclamationCircleOutlined className={styles.errorIcon} />
           <Tag color={errorCount > 0 ? 'error' : 'default'}>{errorCount}</Tag>
