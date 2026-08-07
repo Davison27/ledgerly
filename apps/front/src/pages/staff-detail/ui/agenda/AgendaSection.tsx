@@ -6,6 +6,7 @@ import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { scheduleQueries } from '@/entities/schedule-event';
+import { SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import typography from '@/shared/ui/typography.module.css';
@@ -63,7 +64,7 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
           }
         />
       ) : (
-        <Flex vertical gap={28}>
+        <Flex vertical gap={SPACE.xl}>
           <Flex gap={32}>
             <Flex vertical gap={2}>
               <div className={typography.kpiValueSm}>{stats.blocks}</div>

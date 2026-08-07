@@ -28,5 +28,5 @@
 }
 
 .roleRadio {
-  margin-top: 2px;
+  margin-top: var(--lg-space-3xs);
 }

@@ -643,7 +643,8 @@
         "configured": "Configured",
         "pending": "Pending",
         "configure": "Configure",
-        "empty": "There are no clients configured yet"
+        "empty": "There are no clients configured yet",
+        "emptyHint": "Clients are managed as projects: create one to start configuring its tax obligations."
       },
       "entityTypes": {
         "autonomo": "Self-employed",

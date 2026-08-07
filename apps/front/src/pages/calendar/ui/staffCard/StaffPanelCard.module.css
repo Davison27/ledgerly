@@ -1,6 +1,6 @@
 .card {
   width: 100%;
-  padding: 6px;
+  padding: var(--lg-space-2xs);
 }
 
 .name {

@@ -279,6 +279,7 @@ export function TaxComplianceTab() {
             <EmptyHint
               icon={<TeamOutlined />}
               title={t('workspace.taxCompliance.clients.empty')}
+              hint={t('workspace.taxCompliance.clients.emptyHint')}
             />
           ) : (
             <Card

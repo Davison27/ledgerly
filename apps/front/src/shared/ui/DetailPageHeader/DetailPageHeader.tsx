@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { Button, Flex, Typography } from 'antd';
 import { ArrowLeftOutlined } from '@ant-design/icons';
+import { SPACE } from '@/shared/config/theme';
 import typography from '../typography.module.css';
 import styles from './DetailPageHeader.module.css';
 
@@ -36,7 +37,7 @@ export function DetailPageHeader({
           onClick={() => void navigate({ to: backTo })}
           className={styles.backButton}
         />
-        <Flex align="center" gap={10}>
+        <Flex align="center" gap={SPACE.md}>
           {avatar}
           <Flex align="baseline" gap={8}>
             <Title level={3} className={styles.title}>

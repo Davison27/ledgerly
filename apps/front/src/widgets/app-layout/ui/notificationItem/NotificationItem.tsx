@@ -9,6 +9,7 @@ import {
   type NotificationView,
 } from '@/entities/notification';
 import { formatRelativeTime } from '@/shared/lib/dates';
+import { SPACE } from '@/shared/config/theme';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import styles from './NotificationItem.module.css';
 
@@ -29,7 +30,7 @@ export function NotificationItem({ view, onSelect, onResolve }: NotificationItem
 
   return (
     <Flex
-      gap={10}
+      gap={SPACE.md}
       align="flex-start"
       className={styles.item}
       data-unread={!view.readAt}

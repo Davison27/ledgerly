@@ -67,7 +67,7 @@
 }
 
 .dragText {
-  margin-bottom: 2px;
+  margin-bottom: var(--lg-space-3xs);
 }
 
 .filePanel {
@@ -82,7 +82,7 @@
 
 .warningsList {
   margin: 0;
-  padding-inline-start: 18px;
+  padding-inline-start: var(--lg-space-lg);
   max-width: 280px;
 }
 
@@ -111,7 +111,7 @@
 
 .duplicateList {
   margin: 0;
-  padding-inline-start: 18px;
+  padding-inline-start: var(--lg-space-lg);
 }
 
 .sectionLabel {

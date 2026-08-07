@@ -5,7 +5,7 @@
   justify-content: center;
   gap: 1px;
   min-width: 0;
-  padding: 2px 6px;
+  padding: var(--lg-space-3xs) var(--lg-space-2xs);
   border: 1px solid color-mix(in srgb, var(--deadline-color) 55%, transparent);
   border-inline-start-width: 4px;
   border-inline-start-style: dotted;

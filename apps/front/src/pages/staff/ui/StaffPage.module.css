@@ -2,3 +2,15 @@
   width: min(100%, 420px);
   margin-bottom: var(--lg-space-lg);
 }
+
+.nameLink {
+  color: var(--ant-color-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nameLink:hover,
+.nameLink:focus-visible {
+  color: var(--ant-color-primary);
+  text-decoration: underline;
+}

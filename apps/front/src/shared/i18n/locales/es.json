@@ -643,7 +643,8 @@
         "configured": "Configurado",
         "pending": "Pendiente",
         "configure": "Configurar",
-        "empty": "Todavía no hay clientes configurados"
+        "empty": "Todavía no hay clientes configurados",
+        "emptyHint": "Los clientes se gestionan como proyectos: crea uno para empezar a configurar sus obligaciones fiscales."
       },
       "entityTypes": {
         "autonomo": "Autónomo",

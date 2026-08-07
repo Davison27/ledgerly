@@ -3,6 +3,7 @@ import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentStatus } from '@/entities/document';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { SPACE } from '@/shared/config/theme';
 import { Numeric } from '@/shared/ui/Numeric';
 import { vividOverdue } from '../../model/data';
 import dashboardCharts from '../dashboardCharts.module.css';
@@ -54,7 +55,7 @@ export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps
 
   return (
     <Card size="small" title={t('projects.dashboard.statusBreakdown')} className={dashboardCharts.card}>
-      <Flex align="center" gap={28} wrap>
+      <Flex align="center" gap={SPACE.xl} wrap>
         <div className={styles.ring} style={{ background }}>
           <div className={styles.ringCenter}>
             <Text strong className={styles.ringLabel}>
