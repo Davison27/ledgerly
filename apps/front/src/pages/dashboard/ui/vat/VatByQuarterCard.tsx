@@ -54,7 +54,7 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
   ];
 
   return (
-    <Card size="small" title={t('dashboard.vat.title')} className={dashboard.wideCard}>
+    <Card size="small" title={t('dashboard.vat.title')} className={dashboard.card}>
       <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}

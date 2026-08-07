@@ -47,7 +47,7 @@ export function UpcomingScheduleCard() {
           {t('dashboard.upcomingSchedule.viewAll')}
         </Button>
       }
-      className={dashboard.card}
+      className={`${dashboard.card} ${dashboard.list}`}
       loading={loading}
     >
       {!loading && error ? (

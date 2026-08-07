@@ -41,7 +41,11 @@ export function TopIssuers({ topIssuers }: TopIssuersProps) {
   });
 
   return (
-    <Card size="small" title={t('projects.dashboard.topIssuers.title')} className={dashboardCharts.card}>
+    <Card
+      size="small"
+      title={t('projects.dashboard.topIssuers.title')}
+      className={`${dashboardCharts.card} ${dashboardCharts.list}`}
+    >
       {rows.length === 0 ? (
         <Empty
           description={t('projects.dashboard.topIssuers.empty')}

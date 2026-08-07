@@ -55,6 +55,7 @@ export function MarginTrendChart({ monthlyMargin }: MarginTrendChartProps) {
 
   return (
     <Card
+      size="small"
       title={t('projects.dashboard.marginTrend.title')}
       className={dashboardCharts.card}
     >

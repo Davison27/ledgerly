@@ -9,11 +9,12 @@
   inset-inline: 0;
   bottom: 0;
   height: 44px;
-  opacity: 0.6;
+  opacity: 0.45;
 }
 
 .body {
   position: relative;
+  padding-bottom: calc(44px + var(--lg-space-lg));
 }
 
 .label {

@@ -54,7 +54,7 @@ export function MonthlyProfitChart({ profit }: MonthlyProfitChartProps) {
   };
 
   return (
-    <Card title={t('projects.dashboard.monthlyProfit.title')} className={dashboardCharts.card}>
+    <Card size="small" title={t('projects.dashboard.monthlyProfit.title')} className={dashboardCharts.card}>
       <div className={styles.chartWrap}>
         <svg
           viewBox={`0 0 ${W} ${H}`}
