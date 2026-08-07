@@ -13,7 +13,9 @@
     "close": "Cerrar",
     "open": "Abrir",
     "save": "Guardar",
-    "comingSoon": "Esta función estará disponible próximamente"
+    "comingSoon": "Esta función estará disponible próximamente",
+    "clearFilters": "Limpiar filtros",
+    "noSearchResults": "No hay resultados para tu búsqueda."
   },
   "login": {
     "welcome": "Bienvenido a Ledgerly",
@@ -671,7 +673,11 @@
     "subtitle": "Selecciona un proyecto para continuar",
     "notFound": "Proyecto no encontrado",
     "back": "Volver a proyectos",
-    "docSummary": "{{docs}} documentos · {{pending}} pendientes",
+    "empty": "Todavía no hay proyectos.",
+    "card": {
+      "documents": "Documentos",
+      "pending": "Pendientes"
+    },
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
@@ -1105,6 +1111,7 @@
     "subtitle": "Gestiona los proveedores compartidos por todos los proyectos.",
     "add": "Añadir proveedor",
     "empty": "Todavía no hay proveedores.",
+    "searchPlaceholder": "Buscar por nombre o CIF/NIF",
     "loadError": "No se han podido cargar los proveedores.",
     "deleted": "Proveedor eliminado",
     "fields": {
@@ -1157,17 +1164,22 @@
   "documents": {
     "title": "Documentos",
     "subtitle": "Busca y filtra todos los documentos de todos los proyectos.",
-    "empty": "No hay documentos que coincidan con los filtros.",
+    "empty": "Todavía no hay documentos.",
+    "emptyFiltered": "No hay documentos que coincidan con los filtros.",
     "loadError": "No se han podido cargar los documentos.",
     "filters": {
       "search": "Buscar por nombre, emisor o nº de factura...",
+      "searchChip": "Búsqueda: {{query}}",
       "allTypes": "Todos los tipos",
       "allStatuses": "Todos los estados",
       "direction": "Ingreso / gasto",
+      "dateRange": "Fechas",
       "amountMin": "Importe mín.",
       "amountMax": "Importe máx.",
       "allProjects": "Todos los proyectos",
-      "allSuppliers": "Todos los proveedores"
+      "allSuppliers": "Todos los proveedores",
+      "more": "Más filtros",
+      "clearAll": "Limpiar todo"
     },
     "columns": {
       "project": "Proyecto",
@@ -1194,10 +1206,12 @@
     "subtitle": "Emite facturas para tus proyectos y descárgalas en PDF.",
     "add": "Nueva factura",
     "empty": "Todavía no hay facturas.",
+    "searchPlaceholder": "Buscar por número o cliente",
     "loadError": "No se han podido cargar las facturas.",
     "deleted": "Factura eliminada",
     "noLedgerEntry": "Sin reflejo contable",
     "companyIncomplete": "Completa el nombre y el NIF/CIF de tu empresa en ajustes antes de emitir facturas.",
+    "summaryLabel": "Total filtrado",
     "columns": {
       "number": "Número",
       "issueDate": "Fecha",
@@ -1275,6 +1289,12 @@
     "emptySearch": "No hay productos que coincidan con la búsqueda.",
     "searchPlaceholder": "Buscar por nombre, referencia, categoría o etiqueta",
     "categoryFilter": "Todas las categorías",
+    "sort": {
+      "label": "Ordenar por",
+      "nameAsc": "Nombre (A-Z)",
+      "priceAsc": "Precio: menor a mayor",
+      "priceDesc": "Precio: mayor a menor"
+    },
     "loadError": "No se han podido cargar los productos.",
     "deleted": "Producto eliminado",
     "fields": {
@@ -1499,6 +1519,7 @@
     "subtitle": "Gestiona a las personas que trabajan en la empresa y su documentación laboral.",
     "add": "Añadir trabajador",
     "empty": "Todavía no hay trabajadores.",
+    "searchPlaceholder": "Buscar por nombre, CIF/NIF o puesto",
     "loadError": "No se ha podido cargar el personal.",
     "deleted": "Trabajador eliminado",
     "columns": {

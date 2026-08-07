@@ -162,8 +162,9 @@ export function buildThemeConfig(mode: 'light' | 'dark', brandColor?: string): T
     components: {
       Table: {
         rowHoverBg: isDark ? 'rgba(255, 255, 255, 0.06)' : `${primary}0F`,
-        headerBg: derived.colorFillTertiary,
+        headerBg: derived.colorFillSecondary,
         headerColor: derived.colorTextSecondary,
+        headerSplitColor: derived.colorBorderSecondary,
         cellPaddingBlock: 12,
         cellPaddingBlockSM: 8,
         borderColor: derived.colorBorderSecondary,

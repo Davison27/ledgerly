@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   addProject,
@@ -16,6 +16,7 @@ import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectCard } from '../card/ProjectCard';
@@ -27,7 +28,7 @@ const SKELETON_CARD_COUNT = 6;
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
   const queryClient = useQueryClient();
@@ -37,6 +38,7 @@ export function ProjectsPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const handleOpen = (project: Project) => {
     void navigate({
@@ -63,22 +65,16 @@ export function ProjectsPage() {
     }
   };
 
-  const handleDelete = (project: Project) => {
-    modal.confirm({
-      title: t('projects.deleteConfirm.title'),
-      content: t('projects.deleteConfirm.content', { name: project.name }),
-      okText: t('projects.deleteConfirm.ok'),
-      cancelText: t('common.cancel'),
-      okButtonProps: { danger: true },
-      onOk: async () => {
-        try {
-          await removeProject(project.id);
-          await queryClient.invalidateQueries({ queryKey: projectQueries.all });
-        } catch {
-          void message.error(t('projects.deleteConfirm.error'));
-        }
-      },
-    });
+  const handleDelete = async (project: Project) => {
+    setDeletingId(project.id);
+    try {
+      await removeProject(project.id);
+      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+    } catch {
+      void message.error(t('projects.deleteConfirm.error'));
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const handleFormCancel = () => {
@@ -119,26 +115,35 @@ export function ProjectsPage() {
         }
       />
 
-      <div className={styles.grid}>
-        {projectsLoading ? (
-          Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+      {projectsLoading ? (
+        <div className={styles.grid}>
+          {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
             <Card key={index} loading />
-          ))
-        ) : (
-          (projects ?? []).map((project) => (
+          ))}
+        </div>
+      ) : (projects ?? []).length === 0 ? (
+        <EmptyHint
+          icon={<ProjectOutlined />}
+          title={t('projects.empty')}
+          action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>{t('common.add')}</Button> : undefined}
+        />
+      ) : (
+        <div className={styles.grid}>
+          {(projects ?? []).map((project) => (
             <ProjectCard
               key={project.id}
               project={project}
               color={resolveProjectColor(project.color ?? null, project.id, isDark)}
               editLoading={loadingEditId === project.id}
+              deleteLoading={deletingId === project.id}
               canEdit={canEdit}
               onOpen={handleOpen}
               onEdit={handleEdit}
               onDelete={handleDelete}
             />
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
       <ProjectFormModal
         open={isFormOpen}

@@ -3,21 +3,23 @@ import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-quer
 import {
   Alert,
   App,
+  Badge,
   Button,
   DatePicker,
   Drawer,
-  Empty,
   Flex,
   Input,
   InputNumber,
+  Popover,
   Select,
   Skeleton,
   Table,
+  Tag,
   Tooltip,
   Typography,
   type TableColumnsType,
 } from 'antd';
-import { EyeOutlined, ExportOutlined, SearchOutlined } from '@ant-design/icons';
+import { EyeOutlined, ExportOutlined, FileTextOutlined, FilterOutlined, SearchOutlined } from '@ant-design/icons';
 import { useNavigate } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 import type { Dayjs } from 'dayjs';
@@ -38,6 +40,8 @@ import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { TableSurface } from '@/shared/ui/TableSurface';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { DocumentDetail, DocumentEditModal } from '@/features/document-detail';
@@ -52,6 +56,12 @@ const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const SEARCH_DEBOUNCE_MS = 350;
 
 type DateRangeValue = [Dayjs | null, Dayjs | null] | null;
+
+interface FilterChip {
+  key: string;
+  label: string;
+  onClose: () => void;
+}
 
 function filterByLabel(input: string, option?: { label?: string }): boolean {
   return (option?.label ?? '').toLowerCase().includes(input.toLowerCase());
@@ -117,6 +127,92 @@ export function DocumentsPage() {
     ...documentQueries.detail(selected?.projectId ?? '', selected?.id ?? ''),
     enabled: selected !== null,
   });
+
+  const advancedFilterCount = [
+    direction !== undefined,
+    Boolean(dateRange?.[0] || dateRange?.[1]),
+    amountMin !== undefined,
+    amountMax !== undefined,
+    projectId !== undefined,
+    supplierId !== undefined,
+  ].filter(Boolean).length;
+
+  const chips: FilterChip[] = [];
+  if (search) {
+    chips.push({
+      key: 'search',
+      label: t('documents.filters.searchChip', { query: search }),
+      onClose: () => setSearchInput(''),
+    });
+  }
+  if (type) {
+    chips.push({ key: 'type', label: typeLabel(type), onClose: () => setType(undefined) });
+  }
+  if (status) {
+    chips.push({
+      key: 'status',
+      label: t(`projects.documents.statuses.${status}`),
+      onClose: () => setStatus(undefined),
+    });
+  }
+  if (direction) {
+    chips.push({
+      key: 'direction',
+      label: t(`projects.documents.directions.${direction}`),
+      onClose: () => setDirection(undefined),
+    });
+  }
+  if (dateRange?.[0] || dateRange?.[1]) {
+    const from = dateRange?.[0]?.format('YYYY-MM-DD') ?? '…';
+    const to = dateRange?.[1]?.format('YYYY-MM-DD') ?? '…';
+    chips.push({
+      key: 'dateRange',
+      label: `${t('documents.filters.dateRange')}: ${from} – ${to}`,
+      onClose: () => setDateRange(null),
+    });
+  }
+  if (amountMin !== undefined) {
+    chips.push({
+      key: 'amountMin',
+      label: `${t('documents.filters.amountMin')}: ${amountMin}`,
+      onClose: () => setAmountMin(undefined),
+    });
+  }
+  if (amountMax !== undefined) {
+    chips.push({
+      key: 'amountMax',
+      label: `${t('documents.filters.amountMax')}: ${amountMax}`,
+      onClose: () => setAmountMax(undefined),
+    });
+  }
+  if (projectId) {
+    chips.push({
+      key: 'project',
+      label: projects.find((project) => project.id === projectId)?.name ?? projectId,
+      onClose: () => setProjectId(undefined),
+    });
+  }
+  if (supplierId) {
+    chips.push({
+      key: 'supplier',
+      label: suppliers.find((supplier) => supplier.id === supplierId)?.name ?? supplierId,
+      onClose: () => setSupplierId(undefined),
+    });
+  }
+
+  const hasActiveFilters = chips.length > 0;
+
+  const clearAllFilters = () => {
+    setSearchInput('');
+    setType(undefined);
+    setStatus(undefined);
+    setDirection(undefined);
+    setDateRange(null);
+    setAmountMin(undefined);
+    setAmountMax(undefined);
+    setProjectId(undefined);
+    setSupplierId(undefined);
+  };
 
   const goToProject = (projectId: string) => {
     void navigate({ to: '/projects/$projectId', params: { projectId } });
@@ -289,75 +385,109 @@ export function DocumentsPage() {
             label: t(`projects.documents.statuses.${value}`),
           }))}
         />
-        <Select<DocumentDirectionDto>
-          allowClear
-          placeholder={t('documents.filters.direction')}
-          value={direction}
-          onChange={setDirection}
-          className={styles.filterSelect}
-          options={DOCUMENT_DIRECTIONS.map((value) => ({
-            value,
-            label: t(`projects.documents.directions.${value}`),
-          }))}
-        />
-        <RangePicker
-          value={dateRange}
-          onChange={(values) => setDateRange(values)}
-          format="YYYY-MM-DD"
-        />
-        <InputNumber
-          placeholder={t('documents.filters.amountMin')}
-          value={amountMin}
-          onChange={(value) => setAmountMin(value ?? undefined)}
-          className={styles.amountInput}
-          min={0}
-        />
-        <InputNumber
-          placeholder={t('documents.filters.amountMax')}
-          value={amountMax}
-          onChange={(value) => setAmountMax(value ?? undefined)}
-          className={styles.amountInput}
-          min={0}
-        />
-        <Select
-          allowClear
-          showSearch
-          placeholder={t('documents.filters.allProjects')}
-          value={projectId}
-          onChange={setProjectId}
-          className={styles.entitySelect}
-          filterOption={filterByLabel}
-          options={projects.map((project) => ({ value: project.id, label: project.name }))}
-        />
-        <Select
-          allowClear
-          showSearch
-          placeholder={t('documents.filters.allSuppliers')}
-          value={supplierId}
-          onChange={setSupplierId}
-          className={styles.entitySelect}
-          filterOption={filterByLabel}
-          options={suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
-        />
+        <Popover
+          trigger="click"
+          placement="bottomLeft"
+          overlayClassName={styles.advancedFiltersPopover}
+          content={
+            <Flex vertical gap={12} className={styles.advancedFilters}>
+              <Select<DocumentDirectionDto>
+                allowClear
+                placeholder={t('documents.filters.direction')}
+                value={direction}
+                onChange={setDirection}
+                className={styles.advancedField}
+                options={DOCUMENT_DIRECTIONS.map((value) => ({
+                  value,
+                  label: t(`projects.documents.directions.${value}`),
+                }))}
+              />
+              <RangePicker
+                value={dateRange}
+                onChange={(values) => setDateRange(values)}
+                format="YYYY-MM-DD"
+                className={styles.advancedField}
+              />
+              <InputNumber
+                placeholder={t('documents.filters.amountMin')}
+                value={amountMin}
+                onChange={(value) => setAmountMin(value ?? undefined)}
+                min={0}
+                className={styles.advancedField}
+              />
+              <InputNumber
+                placeholder={t('documents.filters.amountMax')}
+                value={amountMax}
+                onChange={(value) => setAmountMax(value ?? undefined)}
+                min={0}
+                className={styles.advancedField}
+              />
+              <Select
+                allowClear
+                showSearch
+                placeholder={t('documents.filters.allProjects')}
+                value={projectId}
+                onChange={setProjectId}
+                filterOption={filterByLabel}
+                className={styles.advancedField}
+                options={projects.map((project) => ({ value: project.id, label: project.name }))}
+              />
+              <Select
+                allowClear
+                showSearch
+                placeholder={t('documents.filters.allSuppliers')}
+                value={supplierId}
+                onChange={setSupplierId}
+                filterOption={filterByLabel}
+                className={styles.advancedField}
+                options={suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
+              />
+            </Flex>
+          }
+        >
+          <Badge count={advancedFilterCount} size="small">
+            <Button icon={<FilterOutlined />}>{t('documents.filters.more')}</Button>
+          </Badge>
+        </Popover>
       </Flex>
+
+      {hasActiveFilters && (
+        <Flex gap={8} wrap align="center" className={styles.chipsBar}>
+          {chips.map((chip) => (
+            <Tag key={chip.key} closable onClose={chip.onClose}>
+              {chip.label}
+            </Tag>
+          ))}
+          <Button type="link" size="small" onClick={clearAllFilters}>
+            {t('documents.filters.clearAll')}
+          </Button>
+        </Flex>
+      )}
 
       {loading ? (
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('documents.loadError')} />
       ) : documents.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('documents.empty')} />
-      ) : (
-        <Table<DocumentListItemDto>
-          columns={columns}
-          dataSource={documents}
-          rowKey="id"
-          pagination={{ pageSize: 20, showSizeChanger: true }}
-          onRow={(record) => ({
-            onClick: () => openDocument(record),
-            style: { cursor: 'pointer' },
-          })}
+        <EmptyHint
+          icon={<FileTextOutlined />}
+          title={hasActiveFilters ? t('documents.emptyFiltered') : t('documents.empty')}
+          action={hasActiveFilters ? <Button onClick={clearAllFilters}>{t('common.clearFilters')}</Button> : undefined}
         />
+      ) : (
+        <TableSurface>
+          <Table<DocumentListItemDto>
+            columns={columns}
+            dataSource={documents}
+            rowKey="id"
+            sticky
+            pagination={{ pageSize: 20, showSizeChanger: true }}
+            onRow={(record) => ({
+              onClick: () => openDocument(record),
+              style: { cursor: 'pointer' },
+            })}
+          />
+        </TableSurface>
       )}
 
       <Drawer

@@ -5,7 +5,6 @@ import {
   Alert,
   Button,
   Card,
-  Empty,
   Flex,
   Input,
   Popconfirm,
@@ -13,7 +12,7 @@ import {
   Skeleton,
   Typography,
 } from 'antd';
-import { DeleteOutlined, EditOutlined, InboxOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, InboxOutlined, PlusOutlined, SearchOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   createProduct,
@@ -26,6 +25,7 @@ import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { ProductFormModal, type ProductFormValues } from '../form/ProductFormModal';
@@ -33,6 +33,8 @@ import { ProductDetailModal } from '../detail/ProductDetailModal';
 import styles from './ProductsPage.module.css';
 
 const { Text } = Typography;
+
+type ProductSortOrder = 'nameAsc' | 'priceAsc' | 'priceDesc';
 
 export function ProductsPage() {
   const { t } = useTranslation();
@@ -50,6 +52,7 @@ export function ProductsPage() {
   const [viewingProduct, setViewingProduct] = useState<ProductDto | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | undefined>();
+  const [sortOrder, setSortOrder] = useState<ProductSortOrder>('nameAsc');
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('products', 'edit');
 
@@ -71,14 +74,30 @@ export function ProductsPage() {
 
   const filteredProducts = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
-    return products.filter((product) => {
+    const filtered = products.filter((product) => {
       if (category && product.category !== category) return false;
       if (!query) return true;
       return [product.name, product.reference, product.category, product.brand, product.description, ...product.tags]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLocaleLowerCase().includes(query));
     });
-  }, [category, products, search]);
+    const sorted = [...filtered];
+    if (sortOrder === 'nameAsc') {
+      sorted.sort((a, b) => a.name.localeCompare(b.name));
+    } else {
+      sorted.sort((a, b) => {
+        if (a.price === null) return 1;
+        if (b.price === null) return -1;
+        return sortOrder === 'priceAsc' ? a.price - b.price : b.price - a.price;
+      });
+    }
+    return sorted;
+  }, [category, products, search, sortOrder]);
+
+  const handleClearFilters = () => {
+    setSearch('');
+    setCategory(undefined);
+  };
 
   const handleCancelForm = () => {
     setIsFormOpen(false);
@@ -139,9 +158,11 @@ export function ProductsPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('products.loadError')} />
       ) : products.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('products.empty')}>
-          {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button>}
-        </Empty>
+        <EmptyHint
+          icon={<ShoppingOutlined />}
+          title={t('products.empty')}
+          action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button> : undefined}
+        />
       ) : (
         <>
           <Flex gap={12} wrap className={styles.filters}>
@@ -161,9 +182,23 @@ export function ProductsPage() {
               options={categories.map((value) => ({ value, label: value }))}
               className={styles.categoryFilter}
             />
+            <Select<ProductSortOrder>
+              value={sortOrder}
+              onChange={setSortOrder}
+              className={styles.sortSelect}
+              options={[
+                { value: 'nameAsc', label: t('products.sort.nameAsc') },
+                { value: 'priceAsc', label: t('products.sort.priceAsc') },
+                { value: 'priceDesc', label: t('products.sort.priceDesc') },
+              ]}
+            />
           </Flex>
           {filteredProducts.length === 0 ? (
-            <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('products.emptySearch')} />
+            <EmptyHint
+              icon={<ShoppingOutlined />}
+              title={t('products.emptySearch')}
+              action={<Button onClick={handleClearFilters}>{t('common.clearFilters')}</Button>}
+            />
           ) : (
             <div className={styles.grid}>
               {filteredProducts.map((product) => (
