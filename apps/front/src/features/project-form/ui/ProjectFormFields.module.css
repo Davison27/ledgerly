@@ -47,7 +47,7 @@
 }
 
 .sectionDivider {
-  margin-top: 6px;
+  margin-top: var(--lg-space-2xs);
   margin-bottom: var(--lg-space-md);
 }
 

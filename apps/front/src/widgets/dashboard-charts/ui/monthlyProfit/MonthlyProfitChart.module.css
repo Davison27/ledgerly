@@ -20,7 +20,7 @@
   border: 1px solid var(--ant-color-border-secondary);
   border-radius: var(--ant-border-radius-sm);
   box-shadow: var(--ant-box-shadow-secondary);
-  padding: 6px 10px;
+  padding: var(--lg-space-2xs) var(--lg-space-md);
   pointer-events: none;
   white-space: nowrap;
   z-index: 1;

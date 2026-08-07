@@ -1,4 +1,6 @@
 :root {
+  --lg-space-3xs: 2px;
+  --lg-space-2xs: 6px;
   --lg-space-xs: 4px;
   --lg-space-sm: 8px;
   --lg-space-md: 12px;

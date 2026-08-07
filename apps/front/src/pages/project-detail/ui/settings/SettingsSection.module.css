@@ -1,5 +1,5 @@
 .header {
-  margin-bottom: 20px;
+  margin-bottom: var(--lg-space-xl);
 }
 
 .title {

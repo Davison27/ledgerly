@@ -71,7 +71,7 @@ export function KpiRow({ income, expenses, pending, overdue, profit, margin }: K
   ];
 
   return (
-    <Flex gap={12} wrap>
+    <div className={styles.grid}>
       {items.map((item) => (
         <Card key={item.key} size="small" className={styles.card}>
           <Flex justify="space-between" align="flex-start">
@@ -108,6 +108,6 @@ export function KpiRow({ income, expenses, pending, overdue, profit, margin }: K
           {t('projects.dashboard.profit.margin')} <Numeric>{formatPct(margin)}</Numeric>
         </Text>
       </Card>
-    </Flex>
+    </div>
   );
 }

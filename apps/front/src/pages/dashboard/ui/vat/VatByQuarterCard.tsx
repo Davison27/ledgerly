@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import type { CompanyDashboardDto } from '../../api/types';
 import { formatEur } from '@/widgets/dashboard-charts';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { SPACE } from '@/shared/config/theme';
 import typography from '@/shared/ui/typography.module.css';
 import dashboard from '../dashboard.module.css';
 import styles from './VatByQuarterCard.module.css';
@@ -130,7 +131,7 @@ export function VatByQuarterCard({ vatByQuarter }: VatByQuarterCardProps) {
         </svg>
       </div>
 
-      <Flex gap={20} className={styles.legend}>
+      <Flex gap={SPACE.xl} className={styles.legend}>
         {legend.map((item) => (
           <Flex key={item.key} align="center" gap={8}>
             <span className={styles.legendSwatch} style={{ background: item.color }} />

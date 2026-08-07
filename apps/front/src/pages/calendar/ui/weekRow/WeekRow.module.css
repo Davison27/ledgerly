@@ -15,7 +15,7 @@
   bottom: 0;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  padding: 0 6px;
+  padding: 0 var(--lg-space-2xs);
   pointer-events: none;
 }
 

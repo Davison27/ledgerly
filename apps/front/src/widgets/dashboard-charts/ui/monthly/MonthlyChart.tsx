@@ -2,6 +2,7 @@ import { useId, useState, type MouseEvent } from 'react';
 import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { SPACE } from '@/shared/config/theme';
 import { Amount } from '@/shared/ui/Amount';
 import typography from '@/shared/ui/typography.module.css';
 import styles from './MonthlyChart.module.css';
@@ -166,7 +167,7 @@ export function MonthlyChart({ income, expenses, color }: MonthlyChartProps) {
         )}
       </div>
 
-      <Flex gap={20} className={styles.legend}>
+      <Flex gap={SPACE.xl} className={styles.legend}>
         {legend.map((item) => (
           <Flex key={item.key} align="center" gap={8}>
             <span className={styles.legendSwatch} style={{ background: item.color }} />

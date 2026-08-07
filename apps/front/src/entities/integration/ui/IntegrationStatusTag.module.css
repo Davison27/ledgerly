@@ -3,5 +3,5 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  margin-inline-end: 6px;
+  margin-inline-end: var(--lg-space-2xs);
 }

@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 6px;
+  padding: var(--lg-space-2xs);
   background: var(--ant-color-bg-container);
   border: 1px solid var(--ant-color-border-secondary);
   opacity: 1;

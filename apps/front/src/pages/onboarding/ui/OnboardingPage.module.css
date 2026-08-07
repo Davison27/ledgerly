@@ -10,7 +10,7 @@
 }
 
 .intro {
-  margin-bottom: 20px;
+  margin-bottom: var(--lg-space-xl);
 }
 
 .title {
@@ -18,7 +18,7 @@
 }
 
 .demoAlert {
-  margin-bottom: 20px;
+  margin-bottom: var(--lg-space-xl);
 }
 
 .steps {

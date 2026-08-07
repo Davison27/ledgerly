@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from '@tanstack/react-router';
+import { Link, useNavigate } from '@tanstack/react-router';
 import {
   App,
   Alert,
@@ -33,7 +33,7 @@ import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { StaffMemberFormModal, type StaffMemberFormValues } from '@/features/staff-member-form';
 import styles from './StaffPage.module.css';
 
-const { Text, Link: TypographyLink } = Typography;
+const { Text } = Typography;
 
 export function StaffPage() {
   const { t } = useTranslation();
@@ -141,9 +141,13 @@ export function StaffPage() {
       defaultSortOrder: 'ascend',
       render: (_, record) => (
         <Flex align="center" gap={8}>
-          <TypographyLink onClick={() => handleOpen(record)}>
+          <Link
+            to="/staff/$staffMemberId"
+            params={{ staffMemberId: record.id }}
+            className={styles.nameLink}
+          >
             {record.firstName} {record.lastName}
-          </TypographyLink>
+          </Link>
           {record.endDate && <SemanticTag tone="neutral">{t('staff.columns.inactive')}</SemanticTag>}
         </Flex>
       ),

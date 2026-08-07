@@ -1,6 +1,6 @@
 .row {
   border-radius: var(--ant-border-radius-sm);
-  padding: 4px 6px;
+  padding: 4px var(--lg-space-2xs);
   margin-inline: -6px;
   transition: background 0.15s ease;
 }

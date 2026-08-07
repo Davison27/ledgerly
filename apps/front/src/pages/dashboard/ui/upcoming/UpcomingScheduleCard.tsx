@@ -6,6 +6,7 @@ import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { scheduleQueries, ScheduleDaysSummary } from '@/entities/schedule-event';
+import { SPACE } from '@/shared/config/theme';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import dashboard from '../dashboard.module.css';
 import styles from './UpcomingScheduleCard.module.css';
@@ -55,7 +56,7 @@ export function UpcomingScheduleCard() {
       ) : !loading && upcoming.length === 0 ? (
         <EmptyHint icon={<CalendarOutlined />} title={t('dashboard.upcomingSchedule.empty')} />
       ) : (
-        <Flex vertical gap={10}>
+        <Flex vertical gap={SPACE.md}>
           {upcoming.map((event) => {
             const start = dayjs(event.startDate);
             return (

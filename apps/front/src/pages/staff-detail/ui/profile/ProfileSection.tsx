@@ -5,6 +5,7 @@ import { CalendarOutlined, EditOutlined, IdcardOutlined, MailOutlined, PhoneOutl
 import { useTranslation } from 'react-i18next';
 import { staffQueries, updateStaffMember } from '@/entities/staff-member';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
+import { SPACE } from '@/shared/config/theme';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import {
@@ -86,7 +87,7 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
 
 function ProfileField({ icon, label, value }: { icon: ReactNode; label: string; value: ReactNode | null }) {
   return (
-    <Flex gap={10} className={styles.field}>
+    <Flex gap={SPACE.md} className={styles.field}>
       <span className={styles.icon}>{icon}</span>
       <Flex vertical gap={1}>
         <Text type="secondary" className={styles.label}>{label}</Text>

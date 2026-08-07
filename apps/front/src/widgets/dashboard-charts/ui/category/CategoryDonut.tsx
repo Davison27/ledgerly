@@ -3,6 +3,7 @@ import { Card, Flex, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { DocumentType } from '@/entities/document';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { SPACE } from '@/shared/config/theme';
 import { Numeric } from '@/shared/ui/Numeric';
 import dashboardCharts from '../dashboardCharts.module.css';
 import styles from './CategoryDonut.module.css';
@@ -58,7 +59,7 @@ export function CategoryDonut({
       title={t('projects.dashboard.category')}
       className={dashboardCharts.card}
     >
-      <Flex align="center" gap={28} wrap>
+      <Flex align="center" gap={SPACE.xl} wrap>
         <div className={styles.ring} style={{ background }}>
           <div className={styles.ringCenter}>
             <Text strong className={styles.ringLabel}>

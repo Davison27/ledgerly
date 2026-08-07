@@ -56,7 +56,7 @@ export function LoginPage() {
           <LanguageSwitcher />
         </div>
 
-        <Flex vertical align="center" gap={20} className={styles.formCard}>
+        <Flex vertical align="center" gap={SPACE.xl} className={styles.formCard}>
           <img src={branding?.logo || logoUrl} alt={t('common.appName')} className={styles.logo} />
           <Flex vertical align="center" gap={4}>
             <Title level={3} className={styles.title}>
