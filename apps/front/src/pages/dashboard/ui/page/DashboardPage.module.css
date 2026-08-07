@@ -4,15 +4,52 @@
   gap: var(--lg-space-lg);
 }
 
-.cardGrid {
+.heroGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--lg-space-lg);
 }
 
-.skeletonWide {
-  grid-column: span 2;
-  min-width: 0;
+.tripleGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--lg-space-lg);
+}
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--lg-space-lg);
+}
+
+@media (min-width: 768px) {
+  .tripleGrid,
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .tripleGrid > *:last-child,
+  .detailGrid > *:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 960px) {
+  .heroGrid {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1280px) {
+  .tripleGrid,
+  .detailGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .tripleGrid > *:last-child,
+  .detailGrid > *:last-child {
+    grid-column: auto;
+  }
 }
 
 .yearSelect {

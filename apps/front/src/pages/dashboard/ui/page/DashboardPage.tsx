@@ -43,19 +43,9 @@ import styles from './DashboardPage.module.css';
 const { Title, Text } = Typography;
 const { useToken } = theme;
 
-type SkeletonVariant = 'kpi' | 'wide' | 'card';
-
-function SkeletonCard({
-  variant = 'card',
-  rows = 3,
-}: {
-  variant?: SkeletonVariant;
-  rows?: number;
-}) {
-  const skeletonClass = variant === 'wide' ? styles.skeletonWide : dashboard.card;
-
+function SkeletonCard({ rows = 3 }: { rows?: number }) {
   return (
-    <Card className={skeletonClass}>
+    <Card className={dashboard.card}>
       <Skeleton active title paragraph={{ rows }} />
     </Card>
   );
@@ -143,16 +133,16 @@ export function DashboardPage() {
       {loading && (
         <Flex vertical gap={SPACE.lg}>
           <div className={styles.kpiGrid}>
-            <SkeletonCard variant="kpi" rows={2} />
-            <SkeletonCard variant="kpi" rows={2} />
-            <SkeletonCard variant="kpi" rows={2} />
-            <SkeletonCard variant="kpi" rows={2} />
+            <SkeletonCard rows={2} />
+            <SkeletonCard rows={2} />
+            <SkeletonCard rows={2} />
+            <SkeletonCard rows={2} />
           </div>
-          <div className={styles.cardGrid}>
-            <SkeletonCard variant="wide" rows={6} />
-            <SkeletonCard variant="card" rows={6} />
+          <div className={styles.heroGrid}>
+            <SkeletonCard rows={6} />
+            <SkeletonCard rows={6} />
           </div>
-          <div className={styles.cardGrid}>
+          <div className={styles.tripleGrid}>
             <SkeletonCard rows={4} />
             <SkeletonCard rows={4} />
             <SkeletonCard rows={4} />
@@ -195,7 +185,7 @@ export function DashboardPage() {
               ))}
             </div>
 
-            <div className={styles.cardGrid}>
+            <div className={styles.heroGrid}>
               <MonthlyChart
                 income={data.monthlyIncome}
                 expenses={data.monthlyExpenses}
@@ -208,7 +198,7 @@ export function DashboardPage() {
               />
             </div>
 
-            <div className={styles.cardGrid}>
+            <div className={styles.tripleGrid}>
               <TopProjectsCard topProjects={data.topProjects} />
               <TopIssuers topIssuers={data.topIssuers} />
               <UpcomingScheduleCard />
@@ -229,36 +219,28 @@ export function DashboardPage() {
                     </Title>
                   ),
                   children: (
-                    <Flex vertical gap={SPACE.lg}>
-                      <div className={styles.cardGrid}>
-                        <CategoryDonut
-                          categoryTotals={data.categoryTotals}
-                          totalDocs={data.totalDocuments}
-                          color={token.colorPrimary}
-                        />
-                        <CashflowByStatus
-                          pagado={data.amountByStatus.pagado}
-                          pendiente={data.amountByStatus.pendiente}
-                          vencido={data.amountByStatus.vencido}
-                        />
-                        <MonthlyProfitChart profit={data.monthlyProfit} />
-                        <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
-                        <MarginTrendChart
-                          monthlyMargin={data.monthlyMargin}
-                          color={token.colorPrimary}
-                        />
-                      </div>
-
-                      <div className={styles.cardGrid}>
-                        <BudgetVsActualCard budgetVsActual={data.budgetVsActual} />
-                        <VatByQuarterCard vatByQuarter={data.vatByQuarter} />
-                      </div>
-
-                      <div className={styles.cardGrid}>
-                        <CashflowForecastCard cashflowForecast={data.cashflowForecast} />
-                        <TipsPanel tips={tips} />
-                      </div>
-                    </Flex>
+                    <div className={styles.detailGrid}>
+                      <CategoryDonut
+                        categoryTotals={data.categoryTotals}
+                        totalDocs={data.totalDocuments}
+                        color={token.colorPrimary}
+                      />
+                      <CashflowByStatus
+                        pagado={data.amountByStatus.pagado}
+                        pendiente={data.amountByStatus.pendiente}
+                        vencido={data.amountByStatus.vencido}
+                      />
+                      <MonthlyProfitChart profit={data.monthlyProfit} />
+                      <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
+                      <MarginTrendChart
+                        monthlyMargin={data.monthlyMargin}
+                        color={token.colorPrimary}
+                      />
+                      <BudgetVsActualCard budgetVsActual={data.budgetVsActual} />
+                      <VatByQuarterCard vatByQuarter={data.vatByQuarter} />
+                      <CashflowForecastCard cashflowForecast={data.cashflowForecast} />
+                      <TipsPanel tips={tips} />
+                    </div>
                   ),
                 },
               ]}

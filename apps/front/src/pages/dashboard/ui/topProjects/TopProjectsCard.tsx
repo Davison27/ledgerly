@@ -22,7 +22,11 @@ export function TopProjectsCard({ topProjects }: TopProjectsCardProps) {
   const max = Math.max(1, ...topProjects.map((p) => p.total));
 
   return (
-    <Card size="small" title={t('dashboard.topProjects.title')} className={dashboard.card}>
+    <Card
+      size="small"
+      title={t('dashboard.topProjects.title')}
+      className={`${dashboard.card} ${dashboard.list}`}
+    >
       {topProjects.length === 0 ? (
         <EmptyHint icon={<FolderOpenOutlined />} title={t('dashboard.topProjects.empty')} />
       ) : (

@@ -61,6 +61,7 @@ export function CumulativeProfitChart({
 
   return (
     <Card
+      size="small"
       title={t('projects.dashboard.cumulativeProfit.title')}
       className={dashboardCharts.card}
     >

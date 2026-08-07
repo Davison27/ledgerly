@@ -22,7 +22,11 @@ export function BudgetVsActualCard({ budgetVsActual }: BudgetVsActualCardProps) 
   const overdueVivid = vividOverdue(colors.mode);
 
   return (
-    <Card size="small" title={t('dashboard.budget.title')} className={dashboard.wideCard}>
+    <Card
+      size="small"
+      title={t('dashboard.budget.title')}
+      className={`${dashboard.card} ${dashboard.list}`}
+    >
       {budgetVsActual.length === 0 ? (
         <Empty description={t('dashboard.budget.empty')} image={Empty.PRESENTED_IMAGE_SIMPLE} />
       ) : (

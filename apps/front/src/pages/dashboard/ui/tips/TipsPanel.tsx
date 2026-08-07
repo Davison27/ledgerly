@@ -13,7 +13,11 @@ export function TipsPanel({ tips }: TipsPanelProps) {
   const { t } = useTranslation();
 
   return (
-    <Card size="small" title={t('dashboard.tips.title')} className={dashboard.card}>
+    <Card
+      size="small"
+      title={t('dashboard.tips.title')}
+      className={`${dashboard.card} ${dashboard.list}`}
+    >
       {tips.length === 0 ? (
         <EmptyHint icon={<BulbOutlined />} title={t('dashboard.tips.generic')} />
       ) : (

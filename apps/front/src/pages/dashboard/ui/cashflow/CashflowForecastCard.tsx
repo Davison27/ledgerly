@@ -62,7 +62,7 @@ export function CashflowForecastCard({ cashflowForecast }: CashflowForecastCardP
   };
 
   return (
-    <Card size="small" title={t('dashboard.cashflow.title')} className={dashboard.wideCard}>
+    <Card size="small" title={t('dashboard.cashflow.title')} className={dashboard.card}>
       <Flex vertical gap={4} className={styles.overdueSection}>
         <Text type="secondary" className={typography.caption}>
           {t('dashboard.cashflow.overdue')}
