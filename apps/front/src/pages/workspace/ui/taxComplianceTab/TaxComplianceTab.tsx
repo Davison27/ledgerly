@@ -6,12 +6,10 @@ import {
   App,
   Button,
   Card,
-  Empty,
   Flex,
   Skeleton,
   Switch,
   Table,
-  Tag,
   Typography,
 } from 'antd';
 import {
@@ -19,6 +17,7 @@ import {
   ReloadOutlined,
   SafetyCertificateOutlined,
   SettingOutlined,
+  TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { projectQueries, type Project } from '@/entities/project';
@@ -32,16 +31,18 @@ import {
 } from '@/entities/tax-compliance';
 import { ApiError } from '@/shared/api/httpClient';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 import workspace from '../workspace.module.css';
+import styles from './TaxComplianceTab.module.css';
 import { TaxProfileModal } from './TaxProfileModal';
 
 const { Title, Text } = Typography;
 
-function sourceStatusColor(status: TaxSourceStateDto['status']): string | undefined {
-  if (status === 'current') return 'green';
-  if (status === 'changed') return 'gold';
-  if (status === 'error') return 'red';
-  return undefined;
+function sourceStatusTone(status: TaxSourceStateDto['status']): SemanticTone {
+  if (status === 'current') return 'income';
+  if (status === 'changed') return 'pending';
+  if (status === 'error') return 'overdue';
+  return 'neutral';
 }
 
 export function TaxComplianceTab() {
@@ -146,9 +147,7 @@ export function TaxComplianceTab() {
       <Card size="small">
         <Flex align="flex-start" justify="space-between" gap={16}>
           <Flex gap={12} align="flex-start">
-            <SafetyCertificateOutlined
-              style={{ fontSize: 24, color: 'var(--ant-color-primary)' }}
-            />
+            <SafetyCertificateOutlined className={styles.cardIcon} />
             <Flex vertical gap={4}>
               <Text strong>{t('workspace.taxCompliance.card.title')}</Text>
               <Text type="secondary">{t('workspace.taxCompliance.card.description')}</Text>
@@ -191,9 +190,11 @@ export function TaxComplianceTab() {
                 {t('workspace.taxCompliance.sources.checkNow')}
               </Button>
             }
+            classNames={{ body: styles.sourcesBody }}
           >
             <Table<TaxSourceStateDto>
               rowKey="sourceKey"
+              size="small"
               dataSource={sources}
               pagination={false}
               columns={[
@@ -214,9 +215,9 @@ export function TaxComplianceTab() {
                   title: t('workspace.taxCompliance.sources.status'),
                   key: 'status',
                   render: (_, source) => (
-                    <Tag color={sourceStatusColor(source.status)}>
+                    <SemanticTag tone={sourceStatusTone(source.status)}>
                       {t(`workspace.taxCompliance.sources.statuses.${source.status}`)}
-                    </Tag>
+                    </SemanticTag>
                   ),
                 },
                 {
@@ -241,11 +242,11 @@ export function TaxComplianceTab() {
                   render: (_, source) =>
                     source.changes.length > 0 ? (
                       <Flex vertical gap={2}>
-                        <Tag color="gold">
+                        <SemanticTag tone="pending">
                           {t('workspace.taxCompliance.sources.changeCount', {
                             count: source.changes.length,
                           })}
-                        </Tag>
+                        </SemanticTag>
                         {source.changes.slice(0, 2).map((change) => (
                           <Text type="secondary" ellipsis key={`${change.kind}-${change.uid}`}>
                             {t(`workspace.taxCompliance.sources.changeKinds.${change.kind}`)} ·{' '}
@@ -269,11 +270,16 @@ export function TaxComplianceTab() {
                 },
               ]}
             />
-            <Text type="secondary">{t('workspace.taxCompliance.sources.legalNote')}</Text>
+            <Text type="secondary" className={styles.legalNote}>
+              {t('workspace.taxCompliance.sources.legalNote')}
+            </Text>
           </Card>
 
           {projects.length === 0 ? (
-            <Empty description={t('workspace.taxCompliance.clients.empty')} />
+            <EmptyHint
+              icon={<TeamOutlined />}
+              title={t('workspace.taxCompliance.clients.empty')}
+            />
           ) : (
             <Card
               size="small"
@@ -286,6 +292,7 @@ export function TaxComplianceTab() {
             >
               <Table<Project>
                 rowKey="id"
+                size="small"
                 dataSource={projects}
                 pagination={false}
                 columns={[
@@ -307,9 +314,13 @@ export function TaxComplianceTab() {
                         project.id,
                       );
                       return profile?.enabled && profile.obligationKeys.length > 0 ? (
-                        <Tag color="green">{t('workspace.taxCompliance.clients.configured')}</Tag>
+                        <SemanticTag tone="income">
+                          {t('workspace.taxCompliance.clients.configured')}
+                        </SemanticTag>
                       ) : (
-                        <Tag>{t('workspace.taxCompliance.clients.pending')}</Tag>
+                        <SemanticTag tone="pending">
+                          {t('workspace.taxCompliance.clients.pending')}
+                        </SemanticTag>
                       );
                     },
                   },
