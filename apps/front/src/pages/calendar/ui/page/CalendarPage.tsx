@@ -238,7 +238,7 @@ export function CalendarPage() {
   return (
     <Flex vertical className={styles.page}>
       <Flex align="center" gap={SPACE.lg} className={styles.header}>
-        <Flex align="center" gap={10}>
+        <Flex align="center" gap={SPACE.md}>
           <CalendarOutlined className={styles.titleIcon} />
           <Text strong className={styles.titleText}>
             {t('calendar.title')}

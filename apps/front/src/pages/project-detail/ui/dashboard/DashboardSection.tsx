@@ -17,6 +17,7 @@ import {
   CashflowByStatus,
   TopIssuers,
 } from '@/widgets/dashboard-charts';
+import styles from './DashboardSection.module.css';
 
 export function DashboardSection({ project, color }: ProjectSectionProps) {
   const { documents } = useProjectDocuments(project.id);
@@ -35,7 +36,7 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
           margin={data.margin}
         />
 
-        <Flex gap={12} wrap align="stretch">
+        <div className={styles.chartsGrid}>
           <MonthlyChart
             income={data.monthlyIncome}
             expenses={data.monthlyExpenses}
@@ -44,9 +45,9 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
           <MonthlyProfitChart profit={data.monthlyProfit} />
           <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />
           <MarginTrendChart monthlyMargin={data.monthlyMargin} color={color} />
-        </Flex>
+        </div>
 
-        <Flex gap={12} wrap align="stretch">
+        <div className={styles.chartsGrid}>
           <CategoryDonut
             categoryTotals={data.categoryTotals}
             totalDocs={data.totalDocs}
@@ -63,7 +64,7 @@ export function DashboardSection({ project, color }: ProjectSectionProps) {
             vencido={data.amountByStatus.vencido}
           />
           <TopIssuers topIssuers={data.topIssuers} />
-        </Flex>
+        </div>
       </Flex>
     </PageContainer>
   );
