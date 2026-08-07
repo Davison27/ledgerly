@@ -13,7 +13,9 @@
     "close": "Close",
     "open": "Open",
     "save": "Save",
-    "comingSoon": "This feature will be available soon"
+    "comingSoon": "This feature will be available soon",
+    "clearFilters": "Clear filters",
+    "noSearchResults": "No results for your search."
   },
   "login": {
     "welcome": "Welcome to Ledgerly",
@@ -671,7 +673,11 @@
     "subtitle": "Select a project to continue",
     "notFound": "Project not found",
     "back": "Back to projects",
-    "docSummary": "{{docs}} documents · {{pending}} pending",
+    "empty": "There are no projects yet.",
+    "card": {
+      "documents": "Documents",
+      "pending": "Pending"
+    },
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
@@ -1105,6 +1111,7 @@
     "subtitle": "Manage the suppliers shared across all projects.",
     "add": "Add supplier",
     "empty": "There are no suppliers yet.",
+    "searchPlaceholder": "Search by name or tax ID",
     "loadError": "Suppliers could not be loaded.",
     "deleted": "Supplier deleted",
     "fields": {
@@ -1157,17 +1164,22 @@
   "documents": {
     "title": "Documents",
     "subtitle": "Search and filter every document across all projects.",
-    "empty": "No documents match the filters.",
+    "empty": "There are no documents yet.",
+    "emptyFiltered": "No documents match the filters.",
     "loadError": "Documents could not be loaded.",
     "filters": {
       "search": "Search by name, issuer or invoice number...",
+      "searchChip": "Search: {{query}}",
       "allTypes": "All types",
       "allStatuses": "All statuses",
       "direction": "Income / expense",
+      "dateRange": "Dates",
       "amountMin": "Min amount",
       "amountMax": "Max amount",
       "allProjects": "All projects",
-      "allSuppliers": "All suppliers"
+      "allSuppliers": "All suppliers",
+      "more": "More filters",
+      "clearAll": "Clear all"
     },
     "columns": {
       "project": "Project",
@@ -1194,10 +1206,12 @@
     "subtitle": "Issue invoices for your projects and download them as PDF.",
     "add": "New invoice",
     "empty": "There are no invoices yet.",
+    "searchPlaceholder": "Search by number or customer",
     "loadError": "Invoices could not be loaded.",
     "deleted": "Invoice deleted",
     "noLedgerEntry": "No ledger entry",
     "companyIncomplete": "Complete your company's name and tax ID in settings before issuing invoices.",
+    "summaryLabel": "Filtered total",
     "columns": {
       "number": "Number",
       "issueDate": "Date",
@@ -1275,6 +1289,12 @@
     "emptySearch": "No products match your search.",
     "searchPlaceholder": "Search by name, reference, category, or tag",
     "categoryFilter": "All categories",
+    "sort": {
+      "label": "Sort by",
+      "nameAsc": "Name (A-Z)",
+      "priceAsc": "Price: low to high",
+      "priceDesc": "Price: high to low"
+    },
     "loadError": "Products could not be loaded.",
     "deleted": "Product deleted",
     "fields": {
@@ -1499,6 +1519,7 @@
     "subtitle": "Manage the people who work at the company and their employment records.",
     "add": "Add staff member",
     "empty": "There are no staff members yet.",
+    "searchPlaceholder": "Search by name, tax ID or position",
     "loadError": "Staff could not be loaded.",
     "deleted": "Staff member deleted",
     "columns": {

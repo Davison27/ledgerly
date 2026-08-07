@@ -1,20 +1,19 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
   Button,
-  Empty,
   Flex,
+  Input,
   Popconfirm,
   Skeleton,
   Table,
-  Tooltip,
   Typography,
   type TableColumnsType,
 } from 'antd';
-import { DeleteOutlined, DownloadOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, DownloadOutlined, FileDoneOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { companyNeedsSetup, useCompany } from '@/entities/company';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
@@ -29,6 +28,8 @@ import {
 import { documentQueries } from '@/entities/document';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { TableSurface } from '@/shared/ui/TableSurface';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
@@ -51,10 +52,34 @@ export function InvoicesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [search, setSearch] = useState('');
   const { canAccess, isAdmin } = useWorkspaceAccess();
   const canEdit = canAccess('invoices', 'edit');
 
   const companyIncomplete = companyNeedsSetup(company) || !company.taxId;
+
+  const filteredInvoices = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    if (!query) return invoices;
+    return invoices.filter((invoice) =>
+      [invoice.fullNumber, invoice.customerName]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase().includes(query)),
+    );
+  }, [invoices, search]);
+
+  const summaryByCurrency = useMemo(() => {
+    const totals = new Map<string, { taxBase: number; total: number }>();
+    for (const invoice of filteredInvoices) {
+      const current = totals.get(invoice.currency) ?? { taxBase: 0, total: 0 };
+      current.taxBase += invoice.taxBase;
+      current.total += invoice.total;
+      totals.set(invoice.currency, current);
+    }
+    return Array.from(totals.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([currency, values]) => ({ currency, ...values }));
+  }, [filteredInvoices]);
 
   const handleAdd = () => setIsFormOpen(true);
 
@@ -108,6 +133,8 @@ export function InvoicesPage() {
       dataIndex: 'issueDate',
       key: 'issueDate',
       width: 120,
+      sorter: (a, b) => a.issueDate.localeCompare(b.issueDate),
+      defaultSortOrder: 'descend',
       render: (issueDate: string) => <Numeric>{issueDate}</Numeric>,
     },
     {
@@ -171,16 +198,16 @@ export function InvoicesPage() {
       <PageHeader
         title={t('invoices.title')}
         subtitle={t('invoices.subtitle')}
-        actions={canEdit ? <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
-            <Button
-              type="primary"
-              icon={<PlusOutlined />}
-              disabled={companyIncomplete}
-              onClick={handleAdd}
-            >
-              {t('invoices.add')}
-            </Button>
-          </Tooltip> : undefined}
+        actions={canEdit ? (
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            disabled={companyIncomplete}
+            onClick={handleAdd}
+          >
+            {t('invoices.add')}
+          </Button>
+        ) : undefined}
       />
 
       {companyIncomplete && isAdmin && (
@@ -205,8 +232,10 @@ export function InvoicesPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('invoices.loadError')} />
       ) : invoices.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('invoices.empty')}>
-          {canEdit && <Tooltip title={companyIncomplete ? t('invoices.companyIncomplete') : undefined}>
+        <EmptyHint
+          icon={<FileDoneOutlined />}
+          title={t('invoices.empty')}
+          action={canEdit ? (
             <Button
               type="primary"
               icon={<PlusOutlined />}
@@ -215,15 +244,47 @@ export function InvoicesPage() {
             >
               {t('invoices.add')}
             </Button>
-          </Tooltip>}
-        </Empty>
-      ) : (
-        <Table<InvoiceDto>
-          columns={columns}
-          dataSource={invoices}
-          rowKey="id"
-          pagination={false}
+          ) : undefined}
         />
+      ) : (
+        <>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder={t('invoices.searchPlaceholder')}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className={styles.search}
+          />
+          <TableSurface>
+            <Table<InvoiceDto>
+              columns={columns}
+              dataSource={filteredInvoices}
+              rowKey="id"
+              sticky
+              pagination={{ pageSize: 20, showSizeChanger: true }}
+              locale={{ emptyText: <EmptyHint icon={<FileDoneOutlined />} title={t('common.noSearchResults')} /> }}
+              summary={() => (
+                <>
+                  {summaryByCurrency.map(({ currency, taxBase, total }) => (
+                    <Table.Summary.Row key={currency}>
+                      <Table.Summary.Cell index={0} colSpan={3}>
+                        <Text strong>{t('invoices.summaryLabel')}</Text>
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={1} align="right">
+                        <Amount value={taxBase} currency={currency} strong />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={2} align="right">
+                        <Amount value={total} currency={currency} strong />
+                      </Table.Summary.Cell>
+                      <Table.Summary.Cell index={3} />
+                    </Table.Summary.Row>
+                  ))}
+                </>
+              )}
+            />
+          </TableSurface>
+        </>
       )}
 
       <InvoiceFormModal

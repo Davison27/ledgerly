@@ -1,5 +1,9 @@
 .filterBar {
-  margin-bottom: var(--lg-space-xl);
+  margin-bottom: var(--lg-space-lg);
+}
+
+.chipsBar {
+  margin-bottom: var(--lg-space-lg);
 }
 
 .searchInput {
@@ -10,12 +14,16 @@
   width: 150px;
 }
 
-.amountInput {
-  width: 130px;
+.advancedFiltersPopover {
+  width: min(320px, 92vw);
 }
 
-.entitySelect {
-  width: 200px;
+.advancedFilters {
+  width: 100%;
+}
+
+.advancedField {
+  width: 100%;
 }
 
 .drawerBody {

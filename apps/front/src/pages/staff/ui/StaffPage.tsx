@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -6,13 +6,14 @@ import {
   Alert,
   Button,
   Flex,
+  Input,
   Popconfirm,
   Skeleton,
   Table,
   Typography,
   type TableColumnsType,
 } from 'antd';
-import { DeleteOutlined, EditOutlined, IdcardOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, IdcardOutlined, PlusOutlined, SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   createStaffMember,
@@ -26,9 +27,11 @@ import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { TableSurface } from '@/shared/ui/TableSurface';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { StaffMemberFormModal, type StaffMemberFormValues } from '@/features/staff-member-form';
+import styles from './StaffPage.module.css';
 
 const { Text, Link: TypographyLink } = Typography;
 
@@ -46,8 +49,19 @@ export function StaffPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaffMember, setEditingStaffMember] = useState<StaffMemberDto | null>(null);
+  const [search, setSearch] = useState('');
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('staff', 'edit');
+
+  const filteredStaffMembers = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    if (!query) return staffMembers;
+    return staffMembers.filter((staffMember) =>
+      [`${staffMember.firstName} ${staffMember.lastName}`, staffMember.taxId, staffMember.position]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase().includes(query)),
+    );
+  }, [search, staffMembers]);
 
   const handleAdd = () => {
     setEditingStaffMember(null);
@@ -124,6 +138,7 @@ export function StaffPage() {
       title: t('staff.columns.name'),
       key: 'name',
       sorter: (a, b) => `${a.firstName} ${a.lastName}`.localeCompare(`${b.firstName} ${b.lastName}`),
+      defaultSortOrder: 'ascend',
       render: (_, record) => (
         <Flex align="center" gap={8}>
           <TypographyLink onClick={() => handleOpen(record)}>
@@ -209,12 +224,26 @@ export function StaffPage() {
           action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('staff.add')}</Button> : undefined}
         />
       ) : (
-        <Table<StaffMemberDto>
-          columns={columns}
-          dataSource={staffMembers}
-          rowKey="id"
-          pagination={false}
-        />
+        <>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder={t('staff.searchPlaceholder')}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className={styles.search}
+          />
+          <TableSurface>
+            <Table<StaffMemberDto>
+              columns={columns}
+              dataSource={filteredStaffMembers}
+              rowKey="id"
+              sticky
+              pagination={{ pageSize: 20, showSizeChanger: true }}
+              locale={{ emptyText: <EmptyHint icon={<IdcardOutlined />} title={t('common.noSearchResults')} /> }}
+            />
+          </TableSurface>
+        </>
       )}
 
       <StaffMemberFormModal

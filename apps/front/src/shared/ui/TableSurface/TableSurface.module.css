@@ -1,0 +1,10 @@
+.surface {
+  background: var(--ant-color-bg-container);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: var(--ant-border-radius-lg);
+  overflow: hidden;
+}
+
+.surface :global(.ant-table-pagination) {
+  padding-inline: var(--lg-space-lg);
+}

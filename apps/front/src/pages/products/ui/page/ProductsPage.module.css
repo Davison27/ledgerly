@@ -10,6 +10,10 @@
   width: min(100%, 220px);
 }
 
+.sortSelect {
+  width: min(100%, 220px);
+}
+
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -67,7 +71,8 @@
 
 @media (max-width: 640px) {
   .search,
-  .categoryFilter {
+  .categoryFilter,
+  .sortSelect {
     width: 100%;
   }
 }

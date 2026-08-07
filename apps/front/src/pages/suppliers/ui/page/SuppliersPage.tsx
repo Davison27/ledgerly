@@ -1,17 +1,17 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   App,
   Alert,
   Button,
-  Empty,
   Flex,
+  Input,
   Popconfirm,
   Skeleton,
   Table,
   type TableColumnsType,
 } from 'antd';
-import { DeleteOutlined, EditOutlined, PlusOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, PlusOutlined, SearchOutlined, TeamOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   createSupplier,
@@ -24,7 +24,10 @@ import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
+import { TableSurface } from '@/shared/ui/TableSurface';
 import { SupplierFormModal, type SupplierFormValues } from '../form/SupplierFormModal';
+import styles from './SuppliersPage.module.css';
 
 export function SuppliersPage() {
   const { t } = useTranslation();
@@ -39,8 +42,19 @@ export function SuppliersPage() {
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingSupplier, setEditingSupplier] = useState<SupplierDto | null>(null);
+  const [search, setSearch] = useState('');
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('suppliers', 'edit');
+
+  const filteredSuppliers = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase();
+    if (!query) return suppliers;
+    return suppliers.filter((supplier) =>
+      [supplier.name, supplier.taxId]
+        .filter((value): value is string => Boolean(value))
+        .some((value) => value.toLocaleLowerCase().includes(query)),
+    );
+  }, [search, suppliers]);
 
   const handleAdd = () => {
     setEditingSupplier(null);
@@ -102,6 +116,7 @@ export function SuppliersPage() {
       dataIndex: 'name',
       key: 'name',
       sorter: (a, b) => a.name.localeCompare(b.name),
+      defaultSortOrder: 'ascend',
     },
     {
       title: t('suppliers.columns.taxId'),
@@ -172,16 +187,32 @@ export function SuppliersPage() {
       ) : loadError ? (
         <Alert type="error" showIcon message={t('suppliers.loadError')} />
       ) : suppliers.length === 0 ? (
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('suppliers.empty')}>
-          {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('suppliers.add')}</Button>}
-        </Empty>
-      ) : (
-        <Table<SupplierDto>
-          columns={columns}
-          dataSource={suppliers}
-          rowKey="id"
-          pagination={false}
+        <EmptyHint
+          icon={<TeamOutlined />}
+          title={t('suppliers.empty')}
+          action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('suppliers.add')}</Button> : undefined}
         />
+      ) : (
+        <>
+          <Input
+            allowClear
+            prefix={<SearchOutlined />}
+            placeholder={t('suppliers.searchPlaceholder')}
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            className={styles.search}
+          />
+          <TableSurface>
+            <Table<SupplierDto>
+              columns={columns}
+              dataSource={filteredSuppliers}
+              rowKey="id"
+              sticky
+              pagination={{ pageSize: 20, showSizeChanger: true }}
+              locale={{ emptyText: <EmptyHint icon={<TeamOutlined />} title={t('common.noSearchResults')} /> }}
+            />
+          </TableSurface>
+        </>
       )}
 
       <SupplierFormModal
