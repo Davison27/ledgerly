@@ -1,9 +1,9 @@
 import { API_URL, del, get, post } from '@/shared/api/httpClient';
 import { stripEmpty } from '@/shared/api/sanitize';
-import type { CreateInvoicePayload, InvoiceDto } from './types';
+import type { CreateInvoicePayload, InvoiceDto, InvoiceListItemDto } from './types';
 
-export function listInvoices(): Promise<InvoiceDto[]> {
-  return get<InvoiceDto[]>('/invoices');
+export function listInvoices(): Promise<InvoiceListItemDto[]> {
+  return get<InvoiceListItemDto[]>('/invoices');
 }
 
 export function getInvoice(id: string): Promise<InvoiceDto> {

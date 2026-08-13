@@ -8,6 +8,7 @@ import {
 import type {
   CreateProjectPayload,
   ProjectDto,
+  ProjectFinancialsDto,
   ProjectSummaryDto,
   UpdateProjectPayload,
 } from '../api/types';
@@ -27,12 +28,21 @@ export type ProjectStatus = 'active' | 'on_hold' | 'completed' | 'archived';
 
 export type ProjectCurrency = 'EUR' | 'USD' | 'GBP';
 
+export interface ProjectFinancials {
+  currency: string;
+  income: number;
+  expenses: number;
+  profit: number;
+  margin: number | null;
+}
+
 export interface Project {
   id: string;
   name: string;
   code: string;
   documentCount: number;
   pendingCount: number;
+  financials?: ProjectFinancials[];
   type?: ProjectType;
   status?: ProjectStatus;
   description?: string;
@@ -52,13 +62,25 @@ export interface Project {
   color?: ProjectColorToken;
 }
 
-export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingCount'>;
+export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingCount' | 'financials'>;
+
+function mapProjectFinancials(dto: ProjectFinancialsDto): ProjectFinancials {
+  return {
+    currency: dto.currency,
+    income: dto.income,
+    expenses: dto.expenses,
+    profit: dto.profit,
+    margin: dto.margin,
+  };
+}
 
 function mapProjectSummary(dto: ProjectSummaryDto): Project {
   return {
     id: dto.id,
     name: dto.name,
     code: dto.code,
+    currency: dto.currency,
+    financials: dto.financials.map(mapProjectFinancials),
     documentCount: dto.documentCount,
     pendingCount: dto.pendingCount,
     image: dto.image ?? undefined,

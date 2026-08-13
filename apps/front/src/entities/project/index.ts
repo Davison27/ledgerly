@@ -1,5 +1,5 @@
 export { listProjects, getProject } from './api/projects.api';
-export type { ProjectSummaryDto, ProjectCurrencyDto } from './api/types';
+export type { ProjectSummaryDto, ProjectCurrencyDto, ProjectFinancialsDto } from './api/types';
 export {
   fetchProjects,
   fetchProject,
@@ -12,6 +12,7 @@ export type {
   ProjectType,
   ProjectStatus,
   ProjectCurrency,
+  ProjectFinancials,
   ProjectFormValues,
   ProjectColorToken,
 } from './model/project';

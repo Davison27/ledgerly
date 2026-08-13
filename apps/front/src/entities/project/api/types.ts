@@ -12,10 +12,20 @@ export type ProjectStatusDto = 'active' | 'on_hold' | 'completed' | 'archived';
 
 export type ProjectCurrencyDto = 'EUR' | 'USD' | 'GBP';
 
+export interface ProjectFinancialsDto {
+  currency: string;
+  income: number;
+  expenses: number;
+  profit: number;
+  margin: number | null;
+}
+
 export interface ProjectSummaryDto {
   id: string;
   name: string;
   code: string;
+  currency: ProjectCurrencyDto;
+  financials: ProjectFinancialsDto[];
   documentCount: number;
   pendingCount: number;
   image?: string | null;

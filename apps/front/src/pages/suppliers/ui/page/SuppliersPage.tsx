@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import {
   App,
   Alert,
@@ -19,6 +20,8 @@ import {
   supplierQueries,
   updateSupplier,
   type SupplierDto,
+  type SupplierSpendDto,
+  type SupplierSummaryDto,
 } from '@/entities/supplier';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
@@ -26,6 +29,8 @@ import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { TableSurface } from '@/shared/ui/TableSurface';
+import { Amount } from '@/shared/ui/Amount';
+import { Numeric } from '@/shared/ui/Numeric';
 import { SupplierFormModal, type SupplierFormValues } from '../form/SupplierFormModal';
 import styles from './SuppliersPage.module.css';
 
@@ -110,7 +115,7 @@ export function SuppliersPage() {
     }
   };
 
-  const columns: TableColumnsType<SupplierDto> = [
+  const columns: TableColumnsType<SupplierSummaryDto> = [
     {
       title: t('suppliers.columns.name'),
       dataIndex: 'name',
@@ -137,6 +142,45 @@ export function SuppliersPage() {
       key: 'phone',
       width: 160,
       render: (phone: string | null | undefined) => phone || '—',
+    },
+    {
+      title: t('suppliers.columns.documents'),
+      dataIndex: 'documentCount',
+      key: 'documentCount',
+      width: 120,
+      align: 'right',
+      sorter: (a, b) => a.documentCount - b.documentCount,
+      render: (documentCount: number, record) =>
+        documentCount > 0 ? (
+          <Link to="/documents" search={{ supplierId: record.id }}>
+            <Numeric>{documentCount}</Numeric>
+          </Link>
+        ) : (
+          '—'
+        ),
+    },
+    {
+      title: t('suppliers.columns.spend'),
+      dataIndex: 'spend',
+      key: 'spend',
+      width: 160,
+      align: 'right',
+      sorter: (a, b) => (a.spend[0]?.total ?? 0) - (b.spend[0]?.total ?? 0),
+      render: (spend: SupplierSpendDto[]) =>
+        spend.length > 0 ? (
+          <Flex vertical align="end" gap={2}>
+            {spend.map((entry) => (
+              <Amount
+                key={entry.currency}
+                value={entry.total}
+                currency={entry.currency}
+                tone="expense"
+              />
+            ))}
+          </Flex>
+        ) : (
+          '—'
+        ),
     },
     ...(canEdit ? [{
       title: t('suppliers.columns.actions'),
@@ -203,7 +247,7 @@ export function SuppliersPage() {
             className={styles.search}
           />
           <TableSurface>
-            <Table<SupplierDto>
+            <Table<SupplierSummaryDto>
               columns={columns}
               dataSource={filteredSuppliers}
               rowKey="id"

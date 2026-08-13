@@ -1,4 +1,10 @@
 export { listInvoices, createInvoice, deleteInvoice, invoicePdfUrl } from './api/invoices.api';
-export type { InvoiceDto, CreateInvoicePayload, CreateInvoiceLinePayload } from './api/types';
+export type {
+  InvoiceDto,
+  InvoiceListItemDto,
+  InvoicePaymentStatusDto,
+  CreateInvoicePayload,
+  CreateInvoiceLinePayload,
+} from './api/types';
 export { computeInvoiceTotals } from './model/totals';
 export { invoiceQueries } from './api/invoice.queries';

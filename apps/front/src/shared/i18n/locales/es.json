@@ -676,8 +676,10 @@
     "back": "Volver a proyectos",
     "empty": "Todavía no hay proyectos.",
     "card": {
-      "documents": "Documentos",
-      "pending": "Pendientes"
+      "income": "Ingresos",
+      "expenses": "Gastos",
+      "margin": "Margen",
+      "otherCurrencies": "Otras divisas"
     },
     "deleteConfirm": {
       "title": "Eliminar proyecto",
@@ -1129,6 +1131,8 @@
       "taxId": "CIF / NIF",
       "email": "Email",
       "phone": "Teléfono",
+      "documents": "Documentos",
+      "spend": "Gasto total",
       "actions": "Acciones"
     },
     "form": {
@@ -1217,6 +1221,7 @@
       "number": "Número",
       "issueDate": "Fecha",
       "customerName": "Cliente",
+      "paymentStatus": "Estado de cobro",
       "taxBase": "Base",
       "total": "Total",
       "actions": "Acciones"
@@ -1528,8 +1533,16 @@
       "position": "Puesto",
       "taxId": "CIF / NIF",
       "hireDate": "Alta",
+      "documents": "Documentación",
       "actions": "Acciones",
       "inactive": "Baja"
+    },
+    "documentStatus": {
+      "valid": "Vigente",
+      "expiring": "Caduca pronto",
+      "expired": "Caducada",
+      "noDocuments": "Sin documentos",
+      "noExpiry": "Sin caducidades"
     },
     "fields": {
       "firstName": "Nombre",

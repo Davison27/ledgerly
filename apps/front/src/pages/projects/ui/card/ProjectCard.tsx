@@ -5,7 +5,9 @@ import { DeleteOutlined, EditOutlined, LoadingOutlined, MoreOutlined, ProjectOut
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/entities/project';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
+import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
+import { SemanticTag } from '@/shared/ui/SemanticTag';
 import typography from '@/shared/ui/typography.module.css';
 import styles from './ProjectCard.module.css';
 
@@ -35,6 +37,25 @@ export function ProjectCard({
   const { t } = useTranslation();
   const { modal } = App.useApp();
   const colors = useSemanticColors();
+  const currency = project.currency ?? 'EUR';
+  const financials = project.financials?.find((entry) => entry.currency === currency) ?? {
+    currency,
+    income: 0,
+    expenses: 0,
+    profit: 0,
+    margin: null,
+  };
+  const otherCurrencies = (project.financials ?? [])
+    .filter((entry) => entry.currency !== currency)
+    .map((entry) => entry.currency);
+  const marginColor =
+    financials.margin === null
+      ? 'var(--ant-color-text-tertiary)'
+      : financials.margin > 0
+        ? colors.income
+        : financials.margin < 0
+          ? colors.expense
+          : undefined;
 
   const handleOpen = () => onOpen(project);
 
@@ -120,23 +141,40 @@ export function ProjectCard({
       <div className={styles.metrics}>
         <div className={styles.metric}>
           <div className={typography.kpiValueSm}>
-            <Numeric>{project.documentCount}</Numeric>
+            <Amount value={financials.income} currency={financials.currency} tone="income" />
           </div>
           <Text type="secondary" className={typography.kpiLabel}>
-            {t('projects.card.documents')}
+            {t('projects.card.income')}
           </Text>
         </div>
         <div className={styles.metric}>
-          <div
-            className={typography.kpiValueSm}
-            style={{ color: project.pendingCount > 0 ? colors.pending : 'var(--ant-color-text-tertiary)' }}
-          >
-            <Numeric>{project.pendingCount}</Numeric>
+          <div className={typography.kpiValueSm}>
+            <Amount value={financials.expenses} currency={financials.currency} tone="expense" />
           </div>
           <Text type="secondary" className={typography.kpiLabel}>
-            {t('projects.card.pending')}
+            {t('projects.card.expenses')}
           </Text>
         </div>
+        <div className={styles.metric}>
+          <div className={typography.kpiValueSm} style={{ color: marginColor }}>
+            <Numeric>
+              {financials.margin === null
+                ? '—'
+                : new Intl.NumberFormat(undefined, {
+                    style: 'percent',
+                    maximumFractionDigits: 0,
+                  }).format(financials.margin)}
+            </Numeric>
+          </div>
+          <Text type="secondary" className={typography.kpiLabel}>
+            {t('projects.card.margin')}
+          </Text>
+        </div>
+        {otherCurrencies.length > 0 ? (
+          <span title={`${t('projects.card.otherCurrencies')}: ${otherCurrencies.join(', ')}`}>
+            <SemanticTag tone="neutral">+{otherCurrencies.length}</SemanticTag>
+          </span>
+        ) : null}
       </div>
     </Card>
   );
