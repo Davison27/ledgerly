@@ -14,13 +14,13 @@ DEV_DB_NAME := $(if $(DEV_DB_NAME),$(DEV_DB_NAME),ledgerly)
 SERVICE ?=
 FILE ?=
 
-# Contextual: producción si existe deploy/.env, si no el Postgres de desarrollo.
+# Contextual: production when deploy/.env exists; otherwise development Postgres.
 ifneq (,$(wildcard $(DEPLOY_ENV)))
-MODE := producción
+MODE := production
 COMPOSE := $(DEPLOY_COMPOSE)
 DEV_PREREQ :=
 else
-MODE := desarrollo
+MODE := development
 COMPOSE := $(DEV_COMPOSE)
 DEV_PREREQ := _check-tools
 endif
@@ -31,42 +31,42 @@ endif
 	typecheck test migrate backup restore reset-db seed clean _check-tools
 
 help:
-	@echo "Ledgerly — comandos disponibles (modo actual: $(MODE))"
+	@echo "Ledgerly — available commands (current mode: $(MODE))"
 	@echo ""
-	@echo "Instalación (servidor)"
-	@echo "  make setup       Instalación interactiva y guiada. No se puede repetir."
-	@echo "  make doctor      Diagnostica la instalación; falla si algo va mal."
-	@echo "  make configure   Cambia dominio, credenciales de Google, admin o contraseña de la BD."
+	@echo "Installation (server)"
+	@echo "  make setup       Guided interactive installation. Cannot be run twice."
+	@echo "  make doctor      Diagnoses the installation; fails if anything is wrong."
+	@echo "  make configure   Changes the domain, Google credentials, admin, or database password."
 	@echo ""
-	@echo "Actualización y copias"
-	@echo "  make update      Trae la versión nueva, reconstruye imágenes y migra sin perder datos."
-	@echo "  make backup      Copia de seguridad de la base de datos."
-	@echo "  make restore     Restaura una copia (pide confirmación escrita)."
+	@echo "Updates and backups"
+	@echo "  make update      Fetches the latest version, rebuilds images, and migrates without data loss."
+	@echo "  make backup      Database backup."
+	@echo "  make restore     Restores a backup (requires typed confirmation)."
 	@echo ""
-	@echo "Ciclo de vida (contextual: producción si existe deploy/.env, si no el Postgres de desarrollo)"
-	@echo "  make up          Levanta la pila."
-	@echo "  make down        La para."
-	@echo "  make restart     La reinicia."
-	@echo "  make logs        Sigue los logs; SERVICE=<nombre> filtra un servicio."
+	@echo "Lifecycle (contextual: production when deploy/.env exists; otherwise development Postgres)"
+	@echo "  make up          Starts the stack."
+	@echo "  make down        Stops the stack."
+	@echo "  make restart     Restarts the stack."
+	@echo "  make logs        Follows logs; SERVICE=<name> filters a service."
 	@echo ""
-	@echo "Desarrollo"
-	@echo "  make dev         Bucle local: deps, Postgres, migraciones y 'pnpm dev'."
-	@echo "  make build       Compila front y back."
-	@echo "  make lint        ESLint."
-	@echo "  make typecheck   Comprueba tipos."
-	@echo "  make test        Tests."
+	@echo "Development"
+	@echo "  make dev         Local loop: dependencies, Postgres, migrations, and 'pnpm dev'."
+	@echo "  make build       Builds frontend and backend."
+	@echo "  make lint        Runs ESLint."
+	@echo "  make typecheck   Checks types."
+	@echo "  make test        Runs tests."
 	@echo ""
-	@echo "Base de datos (contextual salvo aviso)"
-	@echo "  make migrate     Aplica migraciones pendientes."
-	@echo "  make reset-db    Borra el volumen y recrea la BD. Solo desarrollo."
-	@echo "  make seed        Datos de ejemplo. Solo desarrollo."
+	@echo "Database (contextual unless noted)"
+	@echo "  make migrate     Applies pending migrations."
+	@echo "  make reset-db    Deletes the volume and recreates the database. Development only."
+	@echo "  make seed        Sample data. Development only."
 	@echo ""
-	@echo "Limpieza"
-	@echo "  make clean       Limpia builds, node_modules y volúmenes de desarrollo. Se niega en producción."
+	@echo "Cleanup"
+	@echo "  make clean       Cleans builds, node_modules, and development volumes. Refuses in production."
 
 _check-tools:
-	@command -v docker >/dev/null 2>&1 || { echo "✗ Docker no encontrado. Instala Docker Desktop: https://www.docker.com/products/docker-desktop"; exit 1; }
-	@docker info >/dev/null 2>&1 || { echo "✗ Docker no está en ejecución. Abre Docker Desktop e inténtalo de nuevo."; exit 1; }
+	@command -v docker >/dev/null 2>&1 || { echo "✗ Docker not found. Install Docker Desktop: https://www.docker.com/products/docker-desktop"; exit 1; }
+	@docker info >/dev/null 2>&1 || { echo "✗ Docker is not running. Open Docker Desktop and try again."; exit 1; }
 
 setup:
 	@bash deploy/scripts/setup.sh
@@ -81,34 +81,34 @@ update:
 	@bash deploy/scripts/update.sh
 
 up: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
-ifeq ($(MODE),producción)
+	@echo "→ Mode: $(MODE)"
+ifeq ($(MODE),production)
 	$(COMPOSE) up -d --wait
 else
 	@if [ ! -f $(DEV_ENV_FILE) ]; then \
 		cp $(DEV_ENV_EXAMPLE) $(DEV_ENV_FILE); \
-		echo "✓ Creado $(DEV_ENV_FILE) a partir de .env.example"; \
+		echo "✓ Created $(DEV_ENV_FILE) from .env.example"; \
 	fi
 	$(COMPOSE) up -d --wait
 endif
 
 down: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
+	@echo "→ Mode: $(MODE)"
 	$(COMPOSE) down
 
 restart: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
+	@echo "→ Mode: $(MODE)"
 	$(COMPOSE) restart
 
 logs: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
+	@echo "→ Mode: $(MODE)"
 	$(COMPOSE) logs -f $(SERVICE)
 
 dev: _check-tools
 	pnpm install
 	@if [ ! -f $(DEV_ENV_FILE) ]; then \
 		cp $(DEV_ENV_EXAMPLE) $(DEV_ENV_FILE); \
-		echo "✓ Creado $(DEV_ENV_FILE) a partir de .env.example"; \
+		echo "✓ Created $(DEV_ENV_FILE) from .env.example"; \
 	fi
 	$(DEV_COMPOSE) up -d --build postgres
 	$(DEV_COMPOSE) run --rm back node dist/database/bootstrap.js
@@ -128,16 +128,16 @@ test:
 	pnpm test
 
 migrate: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
-ifeq ($(MODE),producción)
+	@echo "→ Mode: $(MODE)"
+ifeq ($(MODE),production)
 	$(COMPOSE) --profile tools run --rm migrator
 else
 	pnpm --filter @ledgerly/back run db:schema
 endif
 
 backup: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
-ifeq ($(MODE),producción)
+	@echo "→ Mode: $(MODE)"
+ifeq ($(MODE),production)
 	@bash deploy/scripts/backup.sh
 else
 	@mkdir -p deploy/backups
@@ -145,27 +145,27 @@ else
 	file=deploy/backups/ledgerly-dev-$$ts.dump; \
 	$(COMPOSE) exec -T postgres pg_dump -U $(DEV_DB_USER) -Fc $(DEV_DB_NAME) > $$file; \
 	chmod 600 $$file; \
-	echo "✓ Copia guardada en $$file"
+	echo "✓ Backup saved to $$file"
 endif
 
 restore: $(DEV_PREREQ)
-	@echo "→ Modo: $(MODE)"
-ifeq ($(MODE),producción)
+	@echo "→ Mode: $(MODE)"
+ifeq ($(MODE),production)
 	@bash deploy/scripts/restore.sh $(FILE)
 else
 	@file="$(FILE)"; \
 	if [ -z "$$file" ]; then file=$$(ls -t deploy/backups/ledgerly-dev-*.dump 2>/dev/null | head -1); fi; \
-	if [ -z "$$file" ]; then echo "✗ No hay copias en deploy/backups/. Indica una con FILE=ruta"; exit 1; fi; \
-	echo "Esto sobrescribe la base de datos de desarrollo con $$file"; \
-	read -p "Escribe RESTAURAR para continuar: " confirm; \
-	[ "$$confirm" = "RESTAURAR" ] || { echo "Cancelado."; exit 1; }; \
+	if [ -z "$$file" ]; then echo "✗ No backups found in deploy/backups/. Specify one with FILE=path"; exit 1; fi; \
+	echo "This overwrites the development database with $$file"; \
+	read -p "Type RESTORE to continue: " confirm; \
+	[ "$$confirm" = "RESTORE" ] || { echo "Cancelled."; exit 1; }; \
 	$(COMPOSE) exec -T postgres pg_restore --clean --if-exists -U $(DEV_DB_USER) -d $(DEV_DB_NAME) < "$$file"; \
-	echo "✓ Restaurado desde $$file"
+	echo "✓ Restored from $$file"
 endif
 
 reset-db: $(DEV_PREREQ)
-ifeq ($(MODE),producción)
-	@echo "✗ reset-db no está disponible en producción (borraría datos reales)."; exit 1
+ifeq ($(MODE),production)
+	@echo "✗ reset-db is not available in production (it would delete real data)."; exit 1
 else
 	$(COMPOSE) down -v
 	@$(MAKE) up
@@ -173,15 +173,15 @@ else
 endif
 
 seed:
-ifeq ($(MODE),producción)
-	@echo "✗ seed no está disponible en producción."; exit 1
+ifeq ($(MODE),production)
+	@echo "✗ seed is not available in production."; exit 1
 else
 	pnpm --filter @ledgerly/back run seed
 endif
 
 clean:
-ifeq ($(MODE),producción)
-	@echo "✗ clean no está disponible en producción (borraría volúmenes)."; exit 1
+ifeq ($(MODE),production)
+	@echo "✗ clean is not available in production (it would delete volumes)."; exit 1
 else
 	-$(COMPOSE) down -v
 	pnpm clean

@@ -11,7 +11,7 @@ main() {
   require_installed
 
   if ! service_running postgres; then
-    fail "postgres no está en marcha"
+    fail "postgres is not running"
     printf '       → docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d postgres\n'
     exit 1
   fi
@@ -25,19 +25,19 @@ main() {
   timestamp="$(date -u +%Y%m%dT%H%M%SZ)"
   dump_file="${BACKUPS_DIR}/ledgerly-${timestamp}.dump"
 
-  step "Copia de seguridad"
+  step "Backup"
   ( umask 077; compose exec -T postgres pg_dump -U "$db_user" -Fc "$db_name" >"$dump_file" )
   chmod 600 "$dump_file"
 
   local size
   size="$(du -h "$dump_file" | cut -f1)"
-  ok "Guardada en ${dump_file} (${size})"
+  ok "Saved to ${dump_file} (${size})"
 
   local old_backups
   mapfile -t old_backups < <(find "$BACKUPS_DIR" -maxdepth 1 -name 'ledgerly-*.dump' -type f | sort -r | tail -n +$((KEEP_LAST + 1)))
   if [ "${#old_backups[@]}" -gt 0 ]; then
     rm -f "${old_backups[@]}"
-    ok "Eliminadas ${#old_backups[@]} copias antiguas (se conservan las últimas ${KEEP_LAST})"
+    ok "Deleted ${#old_backups[@]} old backups (keeping the latest ${KEEP_LAST})"
   fi
 }
 

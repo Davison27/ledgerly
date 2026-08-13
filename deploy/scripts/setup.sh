@@ -16,8 +16,8 @@ progress_start() {
   printf '  → %s %s ' "$label" "$dots"
 }
 
-progress_done() { printf '%s\n' "${1:-hecho}"; }
-progress_fail() { printf '%s\n' "${1:-falló}"; }
+progress_done() { printf '%s\n' "${1:-done}"; }
+progress_fail() { printf '%s\n' "${1:-failed}"; }
 
 SUMMARY_LABEL_WIDTH=24
 
@@ -42,54 +42,54 @@ run_step_quiet() {
     printf '\n'
     cat "$logfile"
     rm -f "$logfile"
-    fail "${label} ha fallado. El estado queda en in_progress: repite \"make setup\" para reintentar desde aquí."
+    fail "${label} failed. The state remains in_progress: run \"make setup\" again to retry from here."
     exit 1
   fi
 }
 
 print_intro() {
-  section "Ledgerly — instalación"
+  section "Ledgerly — installation"
   cat <<'EOF'
-  Voy a dejar Ledgerly funcionando en este servidor, con HTTPS y
-  renovación automática del certificado.
+  This will set up Ledgerly on this server, with HTTPS and automatic
+  certificate renewal.
 
-  Necesitas dos cosas a mano:
-    · un dominio con un registro DNS apuntando a esta máquina
-    · una cuenta de Google Cloud para crear las credenciales de acceso
+  You need two things ready:
+    · a domain with a DNS record pointing to this machine
+    · a Google Cloud account to create sign-in credentials
 
-  Hasta que confirmes el resumen no se toca nada: puedes cortar con
-  Ctrl-C sin consecuencias.
+  Nothing changes until you confirm the summary: you can press Ctrl-C
+  safely.
 EOF
 }
 
 print_resume_notice() {
   local when
-  when="$(format_es_date "$(state_get TIMESTAMP)" 1)"
-  warn "Hay una instalación a medias del ${when}."
-  printf '       Retomo desde donde se quedó; entre corchetes verás lo ya\n'
-  printf '       contestado y con Enter lo mantienes.\n'
+  when="$(format_date "$(state_get TIMESTAMP)" 1)"
+  warn "An incomplete installation from ${when} was found."
+  printf '       Resuming where it stopped; values already entered appear in brackets\n'
+  printf '       and pressing Enter keeps them.\n'
 }
 
 domain_error_message() {
   local value="$1"
   case "$value" in
     http://*|https://*)
-      printf 'Escríbelo sin protocolo: %s' "${value#*://}"
+      printf 'Enter it without the protocol: %s' "${value#*://}"
       ;;
     */)
-      printf 'Escríbelo sin la barra final: %s' "${value%/}"
+      printf 'Enter it without the trailing slash: %s' "${value%/}"
       ;;
     localhost)
-      printf 'localhost no sirve para un dominio público'
+      printf 'localhost cannot be used as a public domain'
       ;;
     "")
-      printf 'Hace falta un dominio'
+      printf 'A domain is required'
       ;;
     *)
       if [[ "$value" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-        printf 'Hace falta un dominio, no una IP'
+        printf 'A domain is required, not an IP address'
       else
-        printf 'No parece un dominio válido: %s' "$value"
+        printf 'This does not look like a valid domain: %s' "$value"
       fi
       ;;
   esac
@@ -98,7 +98,7 @@ domain_error_message() {
 ask_domain() {
   local default_domain="$1" my_ip="$2" domain resolved
   while true; do
-    domain="$(ask_default 'Dominio' "$default_domain")"
+    domain="$(ask_default 'Domain' "$default_domain")"
     if ! is_domain "$domain"; then
       fail "$(domain_error_message "$domain")" >&2
       continue
@@ -107,19 +107,19 @@ ask_domain() {
     resolved="$(resolve_domain "$domain" || true)"
 
     if [ -z "$resolved" ]; then
-      warn "No he podido resolver ${domain} todavía. Puede tardar en propagarse." >&2
-      confirm "¿Continuar de todas formas?" && break
+      warn "${domain} could not be resolved yet. DNS propagation may take time." >&2
+      confirm "Continue anyway?" && break
       continue
     fi
 
     if [ -n "$my_ip" ] && [ "$resolved" = "$my_ip" ]; then
-      ok "${domain} resuelve a ${resolved} (esta máquina)" >&2
+      ok "${domain} resolves to ${resolved} (this machine)" >&2
       break
     fi
 
-    warn "${domain} resuelve a ${resolved}, no a la IP detectada de esta máquina${my_ip:+ (${my_ip})}" >&2
-    printf '       Puede ser normal si tienes Cloudflare u otro proxy delante.\n' >&2
-    confirm "¿Continuar de todas formas?" && break
+    warn "${domain} resolves to ${resolved}, not this machine's detected IP${my_ip:+ (${my_ip})}" >&2
+    printf '       This may be expected when Cloudflare or another proxy is in front.\n' >&2
+    confirm "Continue anyway?" && break
   done
   printf '%s' "$domain"
 }
@@ -177,10 +177,10 @@ main() {
 
   print_intro
 
-  step "[1/6] Comprobaciones previas"
+  step "[1/6] Preflight checks"
   if ! run_preflight; then
     printf '\n'
-    fail "Hay comprobaciones previas sin resolver. Corrígelas y vuelve a ejecutar \"make setup\"."
+    fail "Some preflight checks are unresolved. Fix them and run \"make setup\" again."
     exit 1
   fi
 
@@ -196,88 +196,87 @@ main() {
     default_tz="$(env_get TZ || printf '')"
   fi
 
-  step "[2/6] Dominio"
+  step "[2/6] Domain"
   local this_ip
   this_ip="$(public_ip || true)"
-  printf '  Es la dirección pública por la que se entrará a Ledgerly. Debe\n'
-  printf '  existir ya un registro A (o AAAA) apuntando a la IP de este\n'
+  printf '  This is the public address used to access Ledgerly. An A (or AAAA)\n'
+  printf '  record pointing to this server IP must already exist.\n'
   if [ -n "$this_ip" ]; then
-    printf '  servidor: %s. Escríbelo sin https:// y sin barra final.\n' "$this_ip"
+    printf '  Detected server IP: %s. Enter it without https:// or a trailing slash.\n' "$this_ip"
   else
-    printf '  servidor. Escríbelo sin https:// y sin barra final.\n'
+    printf '  Enter it without https:// or a trailing slash.\n'
   fi
   printf '\n'
   local domain
   domain="$(ask_domain "$default_domain" "$this_ip")"
 
-  step "[3/6] Credenciales de Google"
+  step "[3/6] Google credentials"
   cat <<'EOF'
-  A Ledgerly solo se entra con cuenta de Google, así que hace falta
-  un cliente OAuth propio. Abre https://console.cloud.google.com y:
+  Ledgerly uses Google sign-in only, so you need your own OAuth client.
+  Open https://console.cloud.google.com and:
 
-    1. Crea o elige un proyecto.
-    2. Google Auth Platform → Branding: nombre "Ledgerly" y tu correo.
-    3. Audience: External. Si el proyecto sigue en modo Testing,
-       añádete como Test user o tu propio acceso fallará.
-    4. Data access: solo openid, userinfo.email y userinfo.profile.
-       No añadas Calendar, Drive ni Gmail.
+    1. Create or select a project.
+    2. Google Auth Platform → Branding: set the name to "Ledgerly" and add your email.
+    3. Audience: External. If the project remains in Testing mode,
+       add yourself as a test user or your own sign-in will fail.
+    4. Data access: only openid, userinfo.email, and userinfo.profile.
+       Do not add Calendar, Drive, or Gmail.
     5. Clients → Create client → Web application.
 
-  Copia EXACTAMENTE estos dos valores en ese cliente:
+  Copy these two values EXACTLY into that client:
 
       Authorized JavaScript origins
 EOF
   printf '        https://%s\n\n' "$domain"
   printf '      Authorized redirect URIs\n'
-  printf '        https://%s/api/auth/google/callback\n\n' "$domain"
+  printf '        https://%s/api/auth/callback/google\n\n' "$domain"
   cat <<'EOF'
-  Con https, sin barra final y con el dominio idéntico. Si no coincide
-  carácter a carácter, Google contestará "redirect_uri_mismatch" al
-  intentar entrar.
+  Use https, no trailing slash, and the exact same domain. If any character
+  differs, Google will return "redirect_uri_mismatch" when you try to sign in.
 EOF
   printf '\n'
   local _unused
-  read -r -p '  Pulsa Enter cuando lo tengas guardado en Google Cloud...' _unused
+  read -r -p '  Press Enter once you have saved it in Google Cloud...' _unused
   printf '\n'
 
   local google_client_id
   while true; do
     google_client_id="$(ask_default 'Client ID' "$default_client_id")"
     is_google_client_id "$google_client_id" && break
-    fail "Tiene que terminar en .apps.googleusercontent.com"
+    fail "It must end with .apps.googleusercontent.com"
   done
 
-  local google_client_secret secret_label="Client secret (no se mostrará mientras escribes)"
+  local google_client_secret secret_label="Client secret (hidden while you type)"
   while true; do
     google_client_secret="$(ask_secret "$secret_label" "$default_client_secret")"
     if is_client_secret "$google_client_secret"; then
       case "$google_client_secret" in
         GOCSPX-*) ;;
-        *) warn "No empieza por GOCSPX-; sigo porque Google puede cambiar el prefijo." ;;
+        *) warn "It does not start with GOCSPX-; continuing because Google may change the prefix." ;;
       esac
       break
     fi
-    fail "Tiene que tener al menos 10 caracteres y sin espacios."
+    fail "It must contain at least 10 characters and no spaces."
   done
-  ok "Credenciales guardadas"
+  ok "Credentials saved"
 
-  step "[4/6] Administrador inicial"
+  step "[4/6] Initial administrator"
   cat <<'EOF'
-  Correo de la cuenta de Google que administrará el espacio. Es el
-  único correo que podrá reclamar esta instalación; el resto del
-  equipo entrará después por invitación. Se usará también para los
-  avisos de Let's Encrypt sobre el certificado.
+  The Google account email that will administer the workspace. It is the
+  only email allowed to claim this installation; the rest of the team will
+  join later by invitation. It will also receive Let's Encrypt certificate
+  notices.
 EOF
   printf '\n'
   local admin_email
   while true; do
-    admin_email="$(ask_default 'Correo' "$default_admin_email")"
+    admin_email="$(ask_default 'Email' "$default_admin_email")"
     is_email "$admin_email" && break
-    fail "No parece un correo válido: ${admin_email}"
+    fail "This does not look like a valid email: ${admin_email}"
   done
   printf '\n'
   local timezone
-  timezone="$(ask_default 'Zona horaria' "${default_tz:-$(detect_timezone)}")"
+  timezone="$(ask_default 'Time zone' "${default_tz:-$(detect_timezone)}")"
 
   local db_password
   if [ "$resuming" -eq 1 ]; then
@@ -293,74 +292,74 @@ EOF
     auth_secret="$(gen_password)"
   fi
 
-  step "[5/6] Resumen"
-  summary_row "Dominio" "$domain"
-  summary_row "URL final" "https://${domain}"
-  summary_row "Administrador inicial" "$admin_email"
-  summary_row "Cliente de Google" "$google_client_id"
-  summary_row "Client secret" "guardado (no se mostrará nunca)"
-  summary_row "Contraseña de Postgres" "generada, 32 caracteres aleatorios"
-  summary_row "Secreto de autenticación" "generado, 32 caracteres aleatorios"
-  summary_row "Datos" "volumen docker ledgerly_pgdata"
-  summary_row "Configuración" "deploy/.env, solo lectura para tu usuario"
+  step "[5/6] Summary"
+  summary_row "Domain" "$domain"
+  summary_row "Final URL" "https://${domain}"
+  summary_row "Initial administrator" "$admin_email"
+  summary_row "Google client" "$google_client_id"
+  summary_row "Client secret" "saved (never shown)"
+  summary_row "Postgres password" "generated, 32 random characters"
+  summary_row "Authentication secret" "generated, 32 random characters"
+  summary_row "Data" "docker volume ledgerly_pgdata"
+  summary_row "Configuration" "deploy/.env, readable only by your user"
   cat <<'EOF'
 
-  Ahora construiré las imágenes (5-10 minutos la primera vez),
-  levantaré los servicios y aplicaré las migraciones.
+  Next, images will be built (5–10 minutes the first time), services
+  will be started, and migrations will be applied.
 EOF
   printf '\n'
-  if ! confirm "¿Continúo?"; then
+  if ! confirm "Continue?"; then
     printf '\n'
-    warn "Cancelado. No se ha escrito nada."
+    warn "Cancelled. Nothing was written."
     exit 0
   fi
 
-  step "[6/6] Instalando"
+  step "[6/6] Installing"
 
-  progress_start "Escribiendo deploy/.env"
+  progress_start "Writing deploy/.env"
   write_env_file "$domain" "$admin_email" "$timezone" "$db_password" \
     "$google_client_id" "$google_client_secret" "$auth_secret"
   state_set "in_progress"
   progress_done
 
-  run_step_quiet "Construyendo la imagen del backend" compose build back
-  run_step_quiet "Construyendo la imagen del frontend" compose build front
+  run_step_quiet "Building the backend image" compose build back
+  run_step_quiet "Building the frontend image" compose build front
 
-  progress_start "Levantando Postgres"
+  progress_start "Starting Postgres"
   if compose up -d --wait postgres >/dev/null 2>&1; then
-    progress_done "sano"
+    progress_done "healthy"
   else
     progress_fail
-    fail "Postgres no ha arrancado sano. El estado queda en in_progress: repite \"make setup\"."
+    fail "Postgres did not start healthy. The state remains in_progress: run \"make setup\" again."
     exit 1
   fi
 
-  progress_start "Aplicando migraciones"
+  progress_start "Applying migrations"
   local migration_log applied
   migration_log="$(mktemp)"
   if compose run --rm migrator >"$migration_log" 2>&1; then
     applied="$(grep -c 'has been executed successfully' "$migration_log" || true)"
     rm -f "$migration_log"
-    progress_done "${applied} hecho"
+    progress_done "${applied} applied"
   else
     progress_fail
     printf '\n'
     cat "$migration_log"
     rm -f "$migration_log"
-    fail "Las migraciones han fallado. El estado queda en in_progress: repite \"make setup\"."
+    fail "Migrations failed. The state remains in_progress: run \"make setup\" again."
     exit 1
   fi
 
-  progress_start "Levantando backend, frontend y proxy"
+  progress_start "Starting backend, frontend, and proxy"
   if compose up -d --wait back front caddy >/dev/null 2>&1; then
-    progress_done "sano"
+    progress_done "healthy"
   else
     progress_fail
-    fail "Algún servicio no ha arrancado sano. \"make doctor\" detalla qué falta; el estado queda en in_progress."
+    fail "A service did not start healthy. \"make doctor\" shows what is missing; the state remains in_progress."
     exit 1
   fi
 
-  progress_start "Pidiendo el certificado a Let's Encrypt"
+  progress_start "Requesting the Let's Encrypt certificate"
   local cert_ready=0 _retry
   for _retry in $(seq 1 45); do
     if compose logs caddy 2>/dev/null | grep -qi "certificate obtained successfully"; then
@@ -370,10 +369,10 @@ EOF
     sleep 2
   done
   if [ "$cert_ready" -eq 1 ]; then
-    progress_done "emitido"
+    progress_done "issued"
   else
-    progress_fail "sin confirmar"
-    warn "No he visto el aviso de certificado emitido en los logs de Caddy todavía."
+    progress_fail "unconfirmed"
+    warn "The certificate-issued message has not appeared in the Caddy logs yet."
     printf '       → docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs caddy\n'
   fi
 
@@ -390,34 +389,34 @@ EOF
   if [ "$health_ok" -eq 1 ]; then
     progress_done "$status"
   else
-    progress_fail "${status:-sin respuesta}"
+    progress_fail "${status:-no response}"
     printf '\n'
-    fail "La instalación no ha terminado de arrancar."
-    printf '       → \"make doctor\" detalla qué falta. El estado queda en in_progress: repite \"make setup\" para continuar.\n'
+    fail "The installation has not finished starting."
+    printf '       → \"make doctor\" shows what is missing. The state remains in_progress: run \"make setup\" again to continue.\n'
     exit 1
   fi
 
   state_set "completed"
 
-  section "Ledgerly está en marcha"
+  section "Ledgerly is running"
   printf '\n'
-  printf '    Abre       https://%s\n' "$domain"
-  printf '    Entra con  %s\n' "$admin_email"
+  printf '    Open       https://%s\n' "$domain"
+  printf '    Sign in as %s\n' "$admin_email"
   cat <<'EOF'
 
-  La primera pantalla te pedirá ese correo para crear la cuenta de
-  administración, y después los datos de la empresa.
+  The first screen will ask for that email to create the administrator
+  account, then it will collect company details.
 
-  Siguientes pasos
-    make doctor      comprueba que todo sigue sano
-    make backup      copia de seguridad de la base de datos
-    make update      traer una versión nueva sin perder datos
-    make configure   cambiar dominio, credenciales o administrador
+  Next steps
+    make doctor      checks that everything remains healthy
+    make backup      creates a database backup
+    make update      fetches a new version without data loss
+    make configure   changes the domain, credentials, or administrator
 
-    Copia diaria (crontab -e):
+    Daily backup (crontab -e):
       0 3 * * * cd /opt/ledgerly && make backup >> /var/log/ledgerly.log 2>&1
 
-  make setup no volverá a ejecutarse en esta máquina.
+  make setup cannot be run again on this machine.
 EOF
 }
 

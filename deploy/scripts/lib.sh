@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
-# Funciones compartidas por deploy/scripts/*.sh. Se importa con "source", no
-# se ejecuta directamente: no lleva "set -euo pipefail" propio, hereda el del
-# script que la importa.
+# Shared functions for deploy/scripts/*.sh. This file is imported with
+# "source", not executed directly: it inherits "set -euo pipefail" from the
+# script that imports it.
 
 LIB_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DEPLOY_DIR="$(cd "$LIB_DIR/.." && pwd)"
-# shellcheck disable=SC2034 # usado por preflight.sh, doctor.sh y update.sh
+# shellcheck disable=SC2034 # used by preflight.sh, doctor.sh, and update.sh
 REPO_ROOT="$(cd "$DEPLOY_DIR/.." && pwd)"
 
-# shellcheck disable=SC2034 # usados por los scripts que hacen "source lib.sh"
+# shellcheck disable=SC2034 # used by scripts that source lib.sh
 ENV_FILE="$DEPLOY_DIR/.env"
 # shellcheck disable=SC2034
 ENV_EXAMPLE="$DEPLOY_DIR/.env.example"
@@ -70,9 +70,9 @@ ask_secret() {
 
 confirm() {
   local label="$1" answer
-  read -r -p "  ${label} [s/N] > " answer
+  read -r -p "  ${label} [y/N] > " answer
   case "$answer" in
-    s|S|si|Si|SI|sí|Sí|SÍ) return 0 ;;
+    y|Y|yes|Yes|YES) return 0 ;;
     *) return 1 ;;
   esac
 }
@@ -184,7 +184,7 @@ state_get() {
   printf '%s' "${line#*=}"
 }
 
-format_es_date() {
+format_date() {
   local iso="$1" with_time="${2:-0}" fmt='+%d/%m/%Y'
   [ "$with_time" = "1" ] && fmt='+%d/%m/%Y %H:%M'
   if date -d "$iso" "$fmt" >/dev/null 2>&1; then
@@ -276,25 +276,25 @@ service_running() {
 
 require_installed() {
   if [ ! -f "$ENV_FILE" ]; then
-    fail "No hay ninguna instalación en este servidor (falta deploy/.env)."
-    printf '       → Ejecuta primero: make setup\n'
+    fail "There is no installation on this server (deploy/.env is missing)."
+    printf '       → Run this first: make setup\n'
     exit 1
   fi
 }
 
 print_already_installed() {
   local when
-  when="$(format_es_date "$(state_get TIMESTAMP 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)" 0)"
-  fail "Esta máquina ya tiene Ledgerly instalado (${when})."
-  printf '       → Para cambiar dominio o claves:   make configure\n'
-  printf '       → Para ver si algo va mal:         make doctor\n'
-  printf '       → Para actualizar la versión:      make update\n'
+  when="$(format_date "$(state_get TIMESTAMP 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)" 0)"
+  fail "Ledgerly is already installed on this machine (${when})."
+  printf '       → To change the domain or secrets: make configure\n'
+  printf '       → To diagnose an issue:            make doctor\n'
+  printf '       → To update the version:           make update\n'
 }
 
 require_not_installed() {
   if [ "${LEDGERLY_ALLOW_RESETUP:-0}" = "1" ]; then
-    warn "LEDGERLY_ALLOW_RESETUP=1: saltando la comprobación de instalación existente."
-    printf '       No se borra ningún dato, pero vas a sobrescribir deploy/.env.\n'
+    warn "LEDGERLY_ALLOW_RESETUP=1: skipping the existing installation check."
+    printf '       No data will be deleted, but deploy/.env will be overwritten.\n'
     return 0
   fi
 
