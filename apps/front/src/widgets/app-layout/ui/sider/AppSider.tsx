@@ -16,7 +16,12 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany, type Company } from '@/entities/company';
-import { useWorkspaceAccess } from '@/entities/workspace-member';
+import {
+  memberInitials,
+  useWorkspaceAccess,
+  workspaceMemberAvatarUrl,
+  type WorkspaceMemberDto,
+} from '@/entities/workspace-member';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
 import { useSettingsMenuItems } from '../../model/useSettingsMenuItems';
 import logoUrl from '@/assets/ledgerly-logo.svg';
@@ -47,18 +52,26 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   return undefined;
 }
 
-function CompanyMark({ company, size }: { company: Company; size: number }) {
-  if (company.logo) {
-    return (
-      <div className={styles.mark} style={{ width: size, height: size }}>
-        <img src={company.logo} alt={company.name} className={styles.markImage} />
-      </div>
-    );
-  }
+function CompanyBrand({ company, collapsed }: { company: Company; collapsed: boolean }) {
+  const source = company.logo || (collapsed ? iconUrl : logoUrl);
+  const alt = company.logo ? company.name : 'Ledgerly';
 
   return (
-    <Avatar shape="square" size={size} className={styles.markAvatar}>
-      {company.name ? company.name.charAt(0).toUpperCase() : undefined}
+    <div className={styles.brand} data-collapsed={collapsed} data-custom={Boolean(company.logo) || undefined}>
+      <img src={source} alt={alt} className={styles.brandImage} />
+    </div>
+  );
+}
+
+function MemberAvatar({ member, size }: { member: WorkspaceMemberDto | undefined; size: number }) {
+  return (
+    <Avatar
+      size={size}
+      src={member ? workspaceMemberAvatarUrl(member.id) : undefined}
+      alt={member?.name}
+      className={styles.memberAvatar}
+    >
+      {member ? memberInitials(member.name) : undefined}
     </Avatar>
   );
 }
@@ -76,7 +89,8 @@ export function AppSider({
   const selectedKey = getSelectedKey(pathname);
   const { company } = useCompany();
   const collapseLabel = collapsed ? t('sider.expand') : t('sider.collapse');
-  const { isAdmin } = useWorkspaceAccess();
+  const { member } = useWorkspaceAccess();
+  const profileLabel = member ? `${t('common.profile')}: ${member.name}` : t('common.profile');
   const settingsItems = useSettingsMenuItems();
   const isSettingsRouteActive =
     pathname.startsWith('/workspace') || pathname.startsWith('/extraction-hints');
@@ -154,7 +168,7 @@ export function AppSider({
           data-collapsed={collapsed}
           className={styles.header}
         >
-          {isAdmin && <img src={collapsed ? iconUrl : logoUrl} alt="" className={styles.logo} />}
+          <CompanyBrand company={company} collapsed={collapsed} />
 
           <Tooltip title={collapseLabel} placement={collapsed ? 'right' : 'bottom'}>
             <Button
@@ -181,10 +195,15 @@ export function AppSider({
                 menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
                 trigger={['click']}
               >
-                <Tooltip title={company.name} placement="right">
-                  <div className={styles.trigger} data-active={isSettingsRouteActive || undefined}>
-                    <CompanyMark company={company} size={36} />
-                  </div>
+                <Tooltip title={member?.name} placement="right">
+                  <button
+                    type="button"
+                    aria-label={profileLabel}
+                    className={styles.trigger}
+                    data-active={isSettingsRouteActive || undefined}
+                  >
+                    <MemberAvatar member={member} size={36} />
+                  </button>
                 </Tooltip>
               </Dropdown>
             </Flex>
@@ -193,20 +212,20 @@ export function AppSider({
               menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
               trigger={['click']}
             >
-              <Flex
-                align="center"
-                gap={SPACE.sm}
+              <button
+                type="button"
+                aria-label={profileLabel}
                 className={styles.identityRow}
                 data-active={isSettingsRouteActive || undefined}
               >
-                <CompanyMark company={company} size={36} />
-                <Flex align="center" justify="space-between" gap={SPACE.sm} className={styles.identityDetails}>
+                <MemberAvatar member={member} size={36} />
+                <span className={styles.identityDetails}>
                   <Text strong ellipsis className={styles.identityName}>
-                    {company.name}
+                    {member?.name}
                   </Text>
                   <DownOutlined className={styles.chevron} />
-                </Flex>
-              </Flex>
+                </span>
+              </button>
             </Dropdown>
           )}
         </div>

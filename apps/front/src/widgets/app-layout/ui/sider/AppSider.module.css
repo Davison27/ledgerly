@@ -18,10 +18,34 @@
   padding: var(--lg-space-sm) 0;
 }
 
-.logo {
-  height: 28px;
+.brand {
+  width: 9.5rem;
+  height: 2rem;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.brand[data-custom='true'] {
+  padding: var(--lg-space-xs);
+  border-radius: var(--ant-border-radius);
+  background: var(--ant-color-primary);
+}
+
+.brand[data-collapsed='true'] {
+  width: 2rem;
+}
+
+.brandImage {
+  width: 100%;
+  height: 100%;
   display: block;
   object-fit: contain;
+  object-position: left center;
+}
+
+.brand[data-collapsed='true'] .brandImage {
+  object-position: center;
 }
 
 .menu {
@@ -42,7 +66,12 @@
   cursor: pointer;
   margin: calc(var(--lg-space-xs) * -1);
   padding: var(--lg-space-xs);
+  border: 0;
   border-radius: var(--ant-border-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   transition: background-color var(--lg-duration-fast) var(--lg-ease-standard);
 }
 
@@ -51,11 +80,19 @@
 }
 
 .identityRow {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-sm);
   cursor: pointer;
   min-width: 0;
   margin: calc(var(--lg-space-xs) * -1) calc(var(--lg-space-sm) * -1);
   padding: var(--lg-space-xs) var(--lg-space-sm);
+  border: 0;
   border-radius: var(--ant-border-radius);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   transition: background-color var(--lg-duration-fast) var(--lg-ease-standard);
 }
 
@@ -64,6 +101,10 @@
 }
 
 .identityDetails {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lg-space-sm);
   flex: 1;
   min-width: 0;
 }
@@ -78,23 +119,7 @@
   flex: none;
 }
 
-.mark {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--ant-border-radius);
-  background: var(--ant-color-fill-tertiary);
-  overflow: hidden;
-}
-
-.markImage {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: contain;
-}
-
-.markAvatar {
+.memberAvatar {
   background: var(--ant-color-primary);
   flex: none;
 }
