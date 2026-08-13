@@ -1,13 +1,14 @@
 import { type CSSProperties } from 'react';
-import { Alert, Button, ConfigProvider, Flex, Form, Input, Typography, theme } from 'antd';
-import { GoogleOutlined, LockOutlined } from '@ant-design/icons';
+import { Alert, Button, ConfigProvider, Flex, Form, Input, Tooltip, Typography } from 'antd';
+import { GoogleOutlined, LockOutlined, MoonOutlined, SunOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useQuery } from '@tanstack/react-query';
-import { BRAND_DEFAULT } from '@/shared/config/theme';
+import { BRAND_DEFAULT, buildThemeConfig } from '@/shared/config/theme';
 import { companyQueries } from '@/entities/company';
+import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { useLoginPage } from '../../model/useLoginPage';
 import { LanguageSwitcher } from '../language/LanguageSwitcher';
-import { DashboardPreview } from './DashboardPreview';
+import { ProductTour } from '../productTour/ProductTour';
 import styles from './LoginPage.module.css';
 
 const { Title, Text } = Typography;
@@ -22,8 +23,8 @@ function resolveBrandColor(value: string | null | undefined): string {
 }
 
 function resolveBrandForeground(color: string): string {
-  const channels = [color.slice(1, 3), color.slice(3, 5), color.slice(5, 7)].map((value) =>
-    Number.parseInt(value, 16) / 255,
+  const channels = [color.slice(1, 3), color.slice(3, 5), color.slice(5, 7)].map(
+    (value) => Number.parseInt(value, 16) / 255,
   );
   const [red, green, blue] = channels.map((value) =>
     value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4,
@@ -37,6 +38,7 @@ function resolveBrandForeground(color: string): string {
 
 export function LoginPage() {
   const { t } = useTranslation();
+  const { mode, toggle } = useThemeMode();
   const { data: branding } = useQuery(companyQueries.branding());
   const [form] = Form.useForm<BootstrapFormValues>();
   const {
@@ -62,21 +64,22 @@ export function LoginPage() {
   };
 
   return (
-    <ConfigProvider
-      theme={{
-        algorithm: theme.darkAlgorithm,
-        token: {
-          colorPrimary: brandColor,
-          colorInfo: brandColor,
-          colorLink: brandColor,
-        },
-      }}
-    >
-      <main className={styles.page} style={pageStyle}>
+    <ConfigProvider theme={buildThemeConfig(mode, brandColor)}>
+      <main className={styles.page} data-theme={mode} style={pageStyle}>
         <div className={styles.ambientLight} aria-hidden="true" />
 
         <section className={styles.formPanel} aria-labelledby="login-heading">
           <header className={styles.topbar}>
+            <Tooltip title={mode === 'dark' ? t('theme.toggleLight') : t('theme.toggleDark')}>
+              <Button
+                type="text"
+                aria-label={t('theme.ariaLabel')}
+                onClick={toggle}
+                className={styles.themeToggle}
+              >
+                {mode === 'dark' ? <MoonOutlined /> : <SunOutlined />}
+              </Button>
+            </Tooltip>
             <LanguageSwitcher />
           </header>
 
@@ -128,7 +131,9 @@ export function LoginPage() {
                   ) : (
                     <Flex vertical gap={12} className={styles.setupPanel}>
                       <Flex vertical gap={4}>
-                        <Text strong className={styles.setupTitle}>{t('login.setup.title')}</Text>
+                        <Text strong className={styles.setupTitle}>
+                          {t('login.setup.title')}
+                        </Text>
                         <Text className={styles.setupSubtitle}>{t('login.setup.subtitle')}</Text>
                       </Flex>
                       <Form<BootstrapFormValues>
@@ -183,8 +188,8 @@ export function LoginPage() {
           <footer className={styles.signature}>{t('login.managedBy')}</footer>
         </section>
 
-        <section className={styles.previewPanel} aria-hidden="true">
-          <DashboardPreview workspaceName={workspaceName} logo={branding?.logo} />
+        <section className={styles.previewPanel}>
+          <ProductTour workspaceName={workspaceName} logo={branding?.logo} />
         </section>
       </main>
     </ConfigProvider>
