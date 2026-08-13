@@ -10,6 +10,7 @@ import { UpdateSupplierUseCase } from '../../application/update-supplier/update-
 import { DeleteSupplierUseCase } from '../../application/delete-supplier/delete-supplier.use-case';
 import { CreateSupplierCommand } from '../../application/create-supplier/create-supplier.command';
 import { Supplier } from '../../domain/supplier';
+import { SupplierSummary } from '../../domain/supplier-summary';
 import { SupplierNotFoundException } from '../../domain/errors/supplier-not-found.exception';
 import { SupplierTaxIdAlreadyExistsException } from '../../domain/errors/supplier-tax-id-already-exists.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
@@ -27,6 +28,15 @@ function buildSupplier(overrides: Partial<CreateSupplierCommand> & { id?: string
   });
 }
 
+function buildSupplierSummary(overrides: Partial<SupplierSummary> = {}): SupplierSummary {
+  return {
+    ...buildSupplier().toPrimitives(),
+    documentCount: 0,
+    spend: [],
+    ...overrides,
+  };
+}
+
 describe('SuppliersController (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
@@ -37,7 +47,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
   let deleteExecute: jest.Mock;
 
   beforeAll(async () => {
-    listExecute = jest.fn(() => Promise.resolve([buildSupplier()]));
+    listExecute = jest.fn(() => Promise.resolve([buildSupplierSummary()]));
     getExecute = jest.fn((id: string) => Promise.resolve(buildSupplier({ id })));
     createExecute = jest.fn((command: CreateSupplierCommand) =>
       Promise.resolve(buildSupplier(command)),
@@ -92,6 +102,8 @@ describe('SuppliersController (HTTP, no DB)', () => {
           address: null,
           iban: null,
           notes: null,
+          documentCount: 0,
+          spend: [],
         },
       ]);
       expect(listExecute).toHaveBeenCalledTimes(1);

@@ -9,6 +9,8 @@ import { GetSupplierUseCase } from './application/get-supplier/get-supplier.use-
 import { CreateSupplierUseCase } from './application/create-supplier/create-supplier.use-case';
 import { UpdateSupplierUseCase } from './application/update-supplier/update-supplier.use-case';
 import { DeleteSupplierUseCase } from './application/delete-supplier/delete-supplier.use-case';
+import { SUPPLIER_SPEND_PROVIDER } from './domain/supplier-spend-provider.port';
+import { DocumentSupplierSpendProvider } from './infrastructure/documents/document-supplier-spend-provider';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SupplierOrmEntity])],
@@ -20,6 +22,7 @@ import { DeleteSupplierUseCase } from './application/delete-supplier/delete-supp
     UpdateSupplierUseCase,
     DeleteSupplierUseCase,
     { provide: SUPPLIER_REPOSITORY, useClass: TypeOrmSupplierRepository },
+    { provide: SUPPLIER_SPEND_PROVIDER, useClass: DocumentSupplierSpendProvider },
   ],
 })
 export class SuppliersModule {}

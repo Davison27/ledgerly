@@ -14,6 +14,7 @@ import { GetSupplierUseCase } from '../../application/get-supplier/get-supplier.
 import { CreateSupplierUseCase } from '../../application/create-supplier/create-supplier.use-case';
 import { UpdateSupplierUseCase } from '../../application/update-supplier/update-supplier.use-case';
 import { DeleteSupplierUseCase } from '../../application/delete-supplier/delete-supplier.use-case';
+import { SupplierSummaryResponse } from './supplier-summary.response';
 import { CreateSupplierDto } from './dtos/create-supplier.dto';
 import { UpdateSupplierDto } from './dtos/update-supplier.dto';
 import { SupplierResponse } from './supplier.response';
@@ -30,10 +31,10 @@ export class SuppliersController {
   ) {}
 
   @Get()
-  async list(): Promise<SupplierResponse[]> {
+  async list(): Promise<SupplierSummaryResponse[]> {
     const suppliers = await this.listSuppliersUseCase.execute();
 
-    return suppliers.map((supplier) => SupplierResponse.fromDomain(supplier));
+    return suppliers.map((supplier) => SupplierSummaryResponse.fromSummary(supplier));
   }
 
   @RequiresAccess('suppliers', 'edit')
