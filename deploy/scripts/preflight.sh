@@ -7,12 +7,12 @@ source "$SCRIPT_DIR/lib.sh"
 
 check_docker() {
   if ! command -v docker >/dev/null 2>&1; then
-    fail "Docker no está instalado"
+    fail "Docker is not installed"
     printf '         → https://docs.docker.com/engine/install/\n'
     return 1
   fi
   if ! docker info >/dev/null 2>&1; then
-    fail "Docker está instalado pero no responde"
+    fail "Docker is installed but not responding"
     printf '         → sudo usermod -aG docker %s && newgrp docker\n' "$(id -un)"
     return 1
   fi
@@ -23,7 +23,7 @@ check_docker() {
 
 check_compose() {
   if ! docker compose version >/dev/null 2>&1; then
-    fail "El plugin docker compose no está disponible"
+    fail "The Docker Compose plugin is not available"
     printf '         → https://docs.docker.com/compose/install/linux/\n'
     return 1
   fi
@@ -34,7 +34,7 @@ check_compose() {
 
 check_git() {
   if ! command -v git >/dev/null 2>&1; then
-    fail "git no está instalado"
+    fail "git is not installed"
     printf '         → sudo apt-get install -y git\n'
     return 1
   fi
@@ -58,15 +58,15 @@ check_ports() {
     fi
   done
   if [ "${#busy[@]}" -gt 0 ]; then
-    fail "Puertos ocupados: ${busy[*]}"
-    printf '         → Libera el puerto o para el servicio que lo usa; este instalador nunca mata procesos.\n'
+    fail "Ports in use: ${busy[*]}"
+    printf '         → Free the port or stop the service using it; this installer never kills processes.\n'
     return 1
   fi
   if [ "$unknown" -eq 1 ]; then
-    warn "No se pudo comprobar el estado de los puertos 80/443 (ni ss ni netstat disponibles)"
+    warn "Could not check ports 80/443 (neither ss nor netstat is available)"
     return 0
   fi
-  ok "Puertos 80 y 443 libres"
+  ok "Ports 80 and 443 are available"
 }
 
 check_resources() {
@@ -81,8 +81,8 @@ check_resources() {
   fi
 
   if [ "$free_gb" -lt 2 ]; then
-    fail "Solo quedan ${free_gb} GB libres en disco (mínimo 2 GB)"
-    printf '         → Libera espacio: docker system df y docker image prune\n'
+    fail "Only ${free_gb} GB of disk space remain (2 GB minimum)"
+    printf '         → Free space: docker system df and docker image prune\n'
     return 1
   fi
 
@@ -92,15 +92,15 @@ check_resources() {
       has_swap=1
     fi
     if [ "$has_swap" -eq 0 ]; then
-      warn "Memoria ${mem_gb} GB sin swap: construir el front puede quedarse sin memoria"
+      warn "${mem_gb} GB memory without swap: building the frontend may run out of memory"
       printf '         → fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile\n'
     fi
   fi
 
   if [ "$free_gb" -lt 5 ]; then
-    warn "Espacio libre ${free_gb} GB (recomendado ≥5 GB) · memoria ${mem_gb} GB"
+    warn "${free_gb} GB free disk space (≥5 GB recommended) · ${mem_gb} GB memory"
   else
-    ok "Espacio libre ${free_gb} GB · memoria ${mem_gb} GB"
+    ok "${free_gb} GB free disk space · ${mem_gb} GB memory"
   fi
 }
 

@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
-    "lint": "turbo run lint",
+    "lint": "turbo run lint && pnpm check:repo",
+    "check:repo": "node scripts/check-repository-hygiene.mjs",
     "test": "turbo run test",
     "typecheck": "turbo run typecheck",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",

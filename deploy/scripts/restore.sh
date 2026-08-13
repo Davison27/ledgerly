@@ -14,20 +14,20 @@ main() {
   fi
 
   if [ -z "$dump_file" ] || [ ! -f "$dump_file" ]; then
-    fail "No se encontró ninguna copia de seguridad."
-    printf '       Indica la ruta: bash deploy/scripts/restore.sh deploy/backups/ledgerly-XXXX.dump\n'
+    fail "No backup was found."
+    printf '       Specify the path: bash deploy/scripts/restore.sh deploy/backups/ledgerly-XXXX.dump\n'
     exit 1
   fi
 
-  step "Restaurar una copia de seguridad"
-  warn "Vas a restaurar ${dump_file}."
-  printf '       Esto SOBRESCRIBE todos los datos actuales de Ledgerly. No hay\n'
-  printf '       vuelta atrás salvo que tengas otra copia.\n\n'
+  step "Restore a backup"
+  warn "You are about to restore ${dump_file}."
+  printf '       This OVERWRITES all current Ledgerly data. There is no\n'
+  printf '       way back unless you have another backup.\n\n'
 
   local confirmation
-  read -r -p '  Escribe RESTAURAR para confirmar > ' confirmation
-  if [ "$confirmation" != "RESTAURAR" ]; then
-    warn "Cancelado, no se ha tocado nada."
+  read -r -p '  Type RESTORE to confirm > ' confirmation
+  if [ "$confirmation" != "RESTORE" ]; then
+    warn "Cancelled; nothing was changed."
     exit 1
   fi
 
@@ -35,18 +35,18 @@ main() {
   db_user="$(env_get DB_USER)"
   db_name="$(env_get DB_NAME)"
 
-  step "Restaurando ${dump_file}"
+  step "Restoring ${dump_file}"
   compose stop back
   if ! compose exec -T postgres pg_restore --clean --if-exists -U "$db_user" -d "$db_name" <"$dump_file"; then
-    fail "pg_restore ha fallado a mitad de la restauración."
-    printf '       → revisa los datos con cuidado antes de seguir: docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs postgres\n'
-    printf '       → back sigue parado; arráncalo con: docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d back\n'
+    fail "pg_restore failed during the restore."
+    printf '       → Carefully review the data before continuing: docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs postgres\n'
+    printf '       → back remains stopped; start it with: docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d back\n'
     exit 1
   fi
-  ok "Datos restaurados"
+  ok "Data restored"
 
   compose up -d --wait back
-  ok "back arrancado de nuevo"
+  ok "back started again"
 
   printf '\n'
   bash "$SCRIPT_DIR/doctor.sh"

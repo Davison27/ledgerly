@@ -17,7 +17,7 @@ out/
 .env.*.local
 .env.local
 
-# Instalador (deploy/.env ya lo cubre el patrón .env de arriba)
+# Installer (the environment pattern above already covers deploy/.env)
 deploy/.state
 deploy/backups/
 
@@ -29,7 +29,7 @@ pnpm-debug.log*
 # Coverage
 coverage/
 
-# Claude y Codex — se versiona la configuración compartida, nunca las skills locales
+# Claude and Codex: track shared configuration, never local downloaded skills
 .claude/*
 !.claude/agents/
 !.claude/skills/
@@ -57,3 +57,8 @@ coverage/
 
 # Skills lockfile (local)
 skills-lock.json
+
+# Temporary agent plans
+docs/plans/
+.claude/plans/
+.codex/plans/
