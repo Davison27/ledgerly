@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Card } from 'antd';
+import { App, Button, Card, Skeleton } from 'antd';
 import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
@@ -24,6 +24,17 @@ import { ProjectFormModal } from '../form/ProjectFormModal';
 import styles from './ProjectsPage.module.css';
 
 const SKELETON_CARD_COUNT = 6;
+
+function ProjectCardSkeleton() {
+  return (
+    <Card className={styles.skeletonCard} classNames={{ body: styles.skeletonBody }}>
+      <Skeleton.Avatar active size={52} shape="square" />
+      <Skeleton active title={{ width: '55%' }} paragraph={{ rows: 1, width: ['38%'] }} />
+      <Skeleton active title={{ width: '40%' }} paragraph={{ rows: 1, width: ['80%'] }} />
+      <Skeleton active title={{ width: '72%' }} paragraph={{ rows: 1, width: ['100%'] }} />
+    </Card>
+  );
+}
 
 export function ProjectsPage() {
   const { t } = useTranslation();
@@ -111,21 +122,31 @@ export function ProjectsPage() {
         title={t('projects.title')}
         subtitle={t('projects.subtitle')}
         actions={
-          canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>{t('common.add')}</Button> : undefined
+          canEdit ? (
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+              {t('common.add')}
+            </Button>
+          ) : undefined
         }
       />
 
       {projectsLoading ? (
         <div className={styles.grid}>
           {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
-            <Card key={index} loading />
+            <ProjectCardSkeleton key={index} />
           ))}
         </div>
       ) : (projects ?? []).length === 0 ? (
         <EmptyHint
           icon={<ProjectOutlined />}
           title={t('projects.empty')}
-          action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>{t('common.add')}</Button> : undefined}
+          action={
+            canEdit ? (
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
+                {t('common.add')}
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <div className={styles.grid}>

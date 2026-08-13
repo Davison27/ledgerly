@@ -1,18 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  App,
-  Alert,
-  Button,
-  Card,
-  Flex,
-  Input,
-  Popconfirm,
-  Select,
-  Skeleton,
-  Typography,
-} from 'antd';
-import { DeleteOutlined, EditOutlined, InboxOutlined, PlusOutlined, SearchOutlined, ShoppingOutlined } from '@ant-design/icons';
+import { App, Alert, Button, Card, Flex, Input, Select, Skeleton } from 'antd';
+import { PlusOutlined, SearchOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   createProduct,
@@ -26,15 +15,22 @@ import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
-import { Amount } from '@/shared/ui/Amount';
-import { Numeric } from '@/shared/ui/Numeric';
 import { ProductFormModal, type ProductFormValues } from '../form/ProductFormModal';
 import { ProductDetailModal } from '../detail/ProductDetailModal';
+import { ProductCard } from '../card/ProductCard';
 import styles from './ProductsPage.module.css';
 
-const { Text } = Typography;
-
 type ProductSortOrder = 'nameAsc' | 'priceAsc' | 'priceDesc';
+
+function ProductCardSkeleton() {
+  return (
+    <Card className={styles.skeletonCard} classNames={{ body: styles.skeletonBody }}>
+      <Skeleton.Image active className={styles.skeletonVisual} />
+      <Skeleton active title={{ width: '58%' }} paragraph={{ rows: 2, width: ['38%', '82%'] }} />
+      <Skeleton active title={{ width: '82%' }} paragraph={{ rows: 1, width: ['100%'] }} />
+    </Card>
+  );
+}
 
 export function ProductsPage() {
   const { t } = useTranslation();
@@ -68,7 +64,14 @@ export function ProductsPage() {
   };
 
   const categories = useMemo(
-    () => Array.from(new Set(products.map((product) => product.category).filter((value): value is string => Boolean(value)))).sort(),
+    () =>
+      Array.from(
+        new Set(
+          products
+            .map((product) => product.category)
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ).sort(),
     [products],
   );
 
@@ -77,7 +80,14 @@ export function ProductsPage() {
     const filtered = products.filter((product) => {
       if (category && product.category !== category) return false;
       if (!query) return true;
-      return [product.name, product.reference, product.category, product.brand, product.description, ...product.tags]
+      return [
+        product.name,
+        product.reference,
+        product.category,
+        product.brand,
+        product.description,
+        ...product.tags,
+      ]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLocaleLowerCase().includes(query));
     });
@@ -149,19 +159,33 @@ export function ProductsPage() {
         title={t('products.title')}
         subtitle={t('products.subtitle')}
         actions={
-          canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button> : undefined
+          canEdit ? (
+            <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+              {t('products.add')}
+            </Button>
+          ) : undefined
         }
       />
 
       {loading ? (
-        <Skeleton active paragraph={{ rows: 8 }} />
+        <div className={styles.grid}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <ProductCardSkeleton key={index} />
+          ))}
+        </div>
       ) : loadError ? (
         <Alert type="error" showIcon message={t('products.loadError')} />
       ) : products.length === 0 ? (
         <EmptyHint
           icon={<ShoppingOutlined />}
           title={t('products.empty')}
-          action={canEdit ? <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>{t('products.add')}</Button> : undefined}
+          action={
+            canEdit ? (
+              <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
+                {t('products.add')}
+              </Button>
+            ) : undefined
+          }
         />
       ) : (
         <>
@@ -202,46 +226,15 @@ export function ProductsPage() {
           ) : (
             <div className={styles.grid}>
               {filteredProducts.map((product) => (
-                <Card
+                <ProductCard
                   key={product.id}
-                  hoverable
-                  className={styles.card}
-                  onClick={() => setViewingProduct(product)}
-                  cover={
-                    product.image ? <img src={product.image} alt="" className={styles.coverImage} /> : <div className={styles.coverFallback}><InboxOutlined /></div>
-                  }
-                  actions={canEdit ? [
-                    <Button key="edit" type="text" icon={<EditOutlined />} aria-label={t('common.edit')} onClick={(event) => { event.stopPropagation(); handleEdit(product); }} />,
-                    <Popconfirm
-                      key="delete"
-                      title={t('products.deleteConfirm.title')}
-                      description={t('products.deleteConfirm.content', { name: product.name })}
-                      okText={t('products.deleteConfirm.ok')}
-                      cancelText={t('common.cancel')}
-                      okButtonProps={{ danger: true }}
-                      onConfirm={() => handleDelete(product)}
-                    >
-                      <Button danger type="text" icon={<DeleteOutlined />} aria-label={t('common.delete')} loading={deletingId === product.id} onClick={(event) => event.stopPropagation()} />
-                    </Popconfirm>,
-                  ] : undefined}
-                >
-                  <Card.Meta
-                    title={product.name}
-                    description={
-                      <div className={styles.cardBody}>
-                        <Flex justify="space-between" gap={8}>
-                          <Text type="secondary" ellipsis>{product.reference ?? product.brand ?? '—'}</Text>
-                          {product.category && <span className={styles.category}>{product.category}</span>}
-                        </Flex>
-                        {product.description && <Text type="secondary" className={styles.description} ellipsis={{ tooltip: product.description }}>{product.description}</Text>}
-                        <Flex justify="space-between" align="center" className={styles.metrics}>
-                          <Text strong>{product.price === null ? '—' : <Amount value={product.price} />}</Text>
-                          <Text type="secondary">{product.stock === 0 ? t('products.stockUnset') : <Numeric>{product.stock}</Numeric>}</Text>
-                        </Flex>
-                      </div>
-                    }
-                  />
-                </Card>
+                  product={product}
+                  canEdit={canEdit}
+                  deleteLoading={deletingId === product.id}
+                  onOpen={setViewingProduct}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}

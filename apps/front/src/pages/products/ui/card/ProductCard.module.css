@@ -1,0 +1,150 @@
+.card {
+  min-height: 326px;
+  overflow: hidden;
+}
+
+.body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 0 !important;
+}
+
+.visual {
+  height: 132px;
+  position: relative;
+  overflow: hidden;
+  background: var(--ant-color-fill-tertiary);
+}
+
+.image,
+.imageFallback {
+  width: 100%;
+  height: 100%;
+}
+
+.image {
+  display: block;
+  object-fit: cover;
+}
+
+.imageFallback {
+  display: grid;
+  place-items: center;
+  color: var(--ant-color-primary);
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--ant-color-primary) 12%, transparent),
+      transparent 60%
+    ),
+    var(--ant-color-fill-tertiary);
+  font-size: 36px;
+}
+
+.moreButton {
+  position: absolute;
+  top: var(--lg-space-sm);
+  right: var(--lg-space-sm);
+  color: var(--ant-color-text);
+  background: color-mix(in srgb, var(--ant-color-bg-container) 84%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.moreButton:hover,
+.moreButton:focus-visible {
+  color: var(--ant-color-primary) !important;
+  background: var(--ant-color-bg-container) !important;
+}
+
+.content {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-md);
+  padding: var(--lg-space-lg);
+}
+
+.identity {
+  min-width: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--lg-space-sm);
+}
+
+.identity > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-xs);
+}
+
+.name {
+  display: block;
+  overflow: hidden;
+  color: var(--ant-color-text);
+  font-size: var(--lg-font-size-md);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reference,
+.brand {
+  display: block;
+  overflow: hidden;
+  font-size: var(--lg-font-size-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand {
+  margin-top: calc(var(--lg-space-xs) * -1);
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--lg-space-lg);
+  margin-top: auto;
+  padding-top: var(--lg-space-md);
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.metrics > div {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-xs);
+}
+
+.metrics strong {
+  overflow: hidden;
+  color: var(--ant-color-text);
+  font-size: var(--lg-font-size-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.metricLabel {
+  font-size: var(--lg-font-size-xs);
+}
+
+.metadata {
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-xs);
+  overflow: hidden;
+}
+
+.leasing {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-xs);
+  color: var(--ant-color-text-secondary);
+  font-size: var(--lg-font-size-xs);
+  white-space: nowrap;
+}

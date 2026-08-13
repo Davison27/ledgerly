@@ -1,21 +1,35 @@
 .card {
+  min-height: 272px;
   height: 100%;
+  overflow: hidden;
 }
 
 .body {
   flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
+  padding: var(--lg-space-xl) !important;
 }
 
-.topRow {
+.identityHeader {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: var(--lg-space-md);
 }
 
+.accent {
+  width: 4px;
+  height: 52px;
+  flex: none;
+  border-radius: 999px;
+  background: var(--project-accent);
+}
+
 .avatar {
   flex: none;
+  overflow: hidden;
 }
 
 .info {
@@ -33,8 +47,12 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   color: var(--ant-color-text);
-  font-weight: 600;
+  font-weight: 650;
   text-decoration: none;
+}
+
+.code {
+  font-size: var(--lg-font-size-xs);
 }
 
 .name:hover,
@@ -53,18 +71,67 @@
   color: var(--ant-color-text);
 }
 
-.metrics {
+.profitSection {
   display: flex;
-  gap: var(--lg-space-md);
-  margin-top: auto;
+  flex-direction: column;
+  gap: var(--lg-space-xs);
+  margin-top: var(--lg-space-xl);
+}
+
+.profitValue {
+  font-size: var(--lg-font-size-3xl);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.financials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--lg-space-lg);
+  margin-top: var(--lg-space-xl);
   padding-top: var(--lg-space-md);
   border-top: 1px solid var(--ant-color-border-secondary);
 }
 
-.metric {
+.financialMetric {
   display: flex;
   flex-direction: column;
   gap: var(--lg-space-xs);
-  flex: 1;
   min-width: 0;
+}
+
+.metricLabel {
+  font-size: var(--lg-font-size-xs);
+}
+
+.statusRow {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-sm);
+  margin-top: auto;
+  padding-top: var(--lg-space-lg);
+  color: var(--ant-color-text-secondary);
+  font-size: var(--lg-font-size-xs);
+}
+
+.documentSummary,
+.margin {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--lg-space-xs);
+}
+
+.documentSummary {
+  min-width: 0;
+}
+
+.documentSummary > span:last-child:not(:only-child) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.margin {
+  margin-left: auto;
+  font-weight: 600;
 }
