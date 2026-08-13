@@ -1,7 +1,10 @@
 import { CreateStaffDocumentUseCase } from './create-staff-document.use-case';
 import { StaffDocumentRepository } from '../../domain/staff-document.repository';
 import { StaffDocument } from '../../domain/staff-document';
-import { StaffMemberRepository } from '../../domain/staff-member.repository';
+import {
+  StaffMemberRepository,
+  StaffMemberSummaryRow,
+} from '../../domain/staff-member.repository';
 import { StaffMember } from '../../domain/staff-member';
 import { StaffDocumentTypeRepository } from '../../domain/staff-document-type.repository';
 import { StaffDocumentType } from '../../domain/staff-document-type';
@@ -46,6 +49,10 @@ class FakeStaffMemberRepository implements StaffMemberRepository {
   constructor(private readonly existingIds: Set<string>) {}
 
   findAll(): Promise<StaffMember[]> {
+    return Promise.resolve([]);
+  }
+
+  findAllSummaryRows(): Promise<StaffMemberSummaryRow[]> {
     return Promise.resolve([]);
   }
 
