@@ -28,26 +28,133 @@
     },
     "secureAccess": "Protected access through your corporate Google account",
     "managedBy": "Managed with Ledgerly",
-    "preview": {
-      "connected": "System operational",
-      "eyebrow": "Overview",
-      "title": "Operations summary",
-      "period": "This year",
-      "income": "Income",
-      "expenses": "Expenses",
-      "margin": "Margin",
-      "cashflow": "Financial performance",
-      "lastMonths": "Last 6 months",
-      "projects": "Projects",
-      "active": "Active",
-      "userName": "Laura Costa",
-      "userRole": "Administration",
-      "nav": {
+    "tour": {
+      "label": "Ledgerly product tour",
+      "connected": "Sample workspace",
+      "slideSelector": "Choose a product area",
+      "selectSlide": "Show slide {{position}}: {{title}}",
+      "pause": "Pause product tour",
+      "resume": "Resume product tour",
+      "reducedMotion": "Product tour is paused because reduced motion is enabled",
+      "slideStatus": "Slide {{position}} of {{total}}",
+      "navigation": {
         "dashboard": "Dashboard",
         "projects": "Projects",
         "documents": "Documents",
         "calendar": "Calendar",
-        "team": "Staff"
+        "staff": "Staff"
+      },
+      "user": {
+        "initials": "LC",
+        "name": "Laura Costa",
+        "role": "Administration"
+      },
+      "slides": {
+        "dashboard": {
+          "eyebrow": "Dashboard",
+          "title": "See how the business is moving",
+          "description": "Keep income, expenses, cash flow and active projects in view from one operational dashboard.",
+          "screenLabel": "Overview",
+          "screenTitle": "Business dashboard",
+          "action": "This year"
+        },
+        "projects": {
+          "eyebrow": "Projects",
+          "title": "Keep every project on track",
+          "description": "Plan work, monitor progress and keep each project's financial context close to the team.",
+          "screenLabel": "Projects",
+          "screenTitle": "Active projects",
+          "action": "New project"
+        },
+        "documents": {
+          "eyebrow": "Documents",
+          "title": "Bring operational documents together",
+          "description": "Search, review and follow every invoice and supporting document across the workspace.",
+          "screenLabel": "Documents",
+          "screenTitle": "All documents",
+          "action": "Add document"
+        },
+        "calendar": {
+          "eyebrow": "Calendar",
+          "title": "Coordinate dates with the whole team",
+          "description": "Give project delivery, internal work and tax obligations one clear shared timeline.",
+          "screenLabel": "Calendar",
+          "screenTitle": "August 2026",
+          "action": "Month"
+        }
+      },
+      "dashboard": {
+        "metrics": {
+          "income": { "label": "Income", "value": "€184,240", "trend": "↗ 12.4%" },
+          "expenses": { "label": "Expenses", "value": "€96,580", "trend": "↘ 3.1%" },
+          "margin": { "label": "Margin", "value": "47.6%", "trend": "↗ 6.8%" }
+        },
+        "chart": { "title": "Financial performance", "period": "Last 6 months" },
+        "projects": {
+          "title": "Projects",
+          "meta": "Active",
+          "atlas": "Atlas",
+          "atlasProgress": "68%",
+          "orion": "Orion",
+          "orionProgress": "44%",
+          "nexo": "Nexo",
+          "nexoProgress": "27%"
+        }
+      },
+      "projects": {
+        "atlas": {
+          "name": "Atlas",
+          "status": "In progress",
+          "meta": "8 documents · 5 people",
+          "amount": "€62,400"
+        },
+        "orion": {
+          "name": "Orion",
+          "status": "On schedule",
+          "meta": "6 documents · 3 people",
+          "amount": "€38,600"
+        },
+        "nexo": {
+          "name": "Nexo",
+          "status": "Planning",
+          "meta": "3 documents · 2 people",
+          "amount": "€24,900"
+        }
+      },
+      "documents": {
+        "search": "Search documents",
+        "filter": "All projects",
+        "columns": {
+          "document": "Document",
+          "project": "Project",
+          "status": "Status",
+          "amount": "Amount"
+        },
+        "rows": {
+          "hosting": {
+            "name": "Cloud hosting invoice",
+            "project": "Atlas",
+            "status": "Paid",
+            "amount": "€680"
+          },
+          "materials": {
+            "name": "Materials receipt",
+            "project": "Orion",
+            "status": "Pending",
+            "amount": "€1,240"
+          },
+          "invoice": {
+            "name": "July sales invoice",
+            "project": "Nexo",
+            "status": "Paid",
+            "amount": "€3,850"
+          }
+        }
+      },
+      "calendar": {
+        "days": { "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri" },
+        "events": { "review": "Atlas review", "delivery": "Orion delivery", "tax": "VAT filing" },
+        "summary": "5 scheduled items this week"
       }
     },
     "errors": {
