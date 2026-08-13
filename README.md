@@ -1,108 +1,148 @@
-# ledgerly-erp
+<div align="center">
+  <img src="apps/front/src/assets/ledgerly-logo.svg" alt="Ledgerly" width="252">
+  <h1>Ledgerly</h1>
+  <p><strong>Your business, clearly connected.</strong></p>
+  <p>A self-hosted workspace for the projects, records, people, and decisions that keep a business moving.</p>
+  <p>
+    <img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square" alt="React 19">
+    <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square" alt="NestJS 11">
+    <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square" alt="PostgreSQL 17">
+    <img src="https://img.shields.io/badge/pnpm-11-F69220?style=flat-square" alt="pnpm 11">
+    <img src="https://img.shields.io/badge/deployment-Docker%20Compose-2496ED?style=flat-square" alt="Docker Compose deployment">
+  </p>
+</div>
 
-Monorepo managed with [Turborepo](https://turborepo.dev/) and pnpm.
+<img src=".github/assets/readme/overview.png" alt="Ledgerly sign-in experience with a preview of business metrics, project performance, document status, and upcoming work" width="100%">
 
-## Structure
+<p align="center">
+  <a href="#inside-ledgerly">Inside Ledgerly</a> ·
+  <a href="#product-tour">Product tour</a> ·
+  <a href="#run-locally">Run locally</a> ·
+  <a href="#install-on-a-vps">Install on a VPS</a> ·
+  <a href="#operations">Operations</a> ·
+  <a href="#architecture">Architecture</a>
+</p>
 
-```
-ledgerly-erp/
-├── apps/
-│   ├── front/   # React 19 + Vite + TypeScript
-│   └── back/    # NestJS 11 + TypeScript
-└── packages/    # Shared code (currently empty)
-```
+## Inside Ledgerly
 
-## Getting started
+Ledgerly brings day-to-day business operations into one coherent workspace. Projects connect financials and documents; the calendar brings together delivery work, staff events, and tax deadlines; shared catalogues keep suppliers and products close to the records that use them.
 
-There are two paths: local development or installation on a server.
+**Plan and deliver.** Track projects, dates, status, budgets, income, expenses, profitability, attached documents, and assigned products without losing the business context around the work.
 
-### Development
+**Keep records connected.** Manage business documents, issued invoices, suppliers, and a reusable product catalogue with filtering and detail views designed for regular operational use.
 
-Requirements: Node.js >= 20, pnpm >= 11, and Docker.
+**Coordinate people and obligations.** Maintain staff profiles, payrolls, documentation expiry, schedule events, tax profiles, and monitored tax sources from the same installation.
 
-One command installs dependencies, creates `apps/back/.env`, builds and starts
-the same backend container used on the VPS, rebuilds the development schema, and
-starts the frontend with hot reload:
+**Understand the business.** Use the dashboard to review core indicators, cash flow, VAT, budget performance, leading projects, and upcoming activity at a glance.
+
+## Product tour
+
+|                                                                                  Project portfolio                                                                                   |                                                                Product catalogue                                                                |
+| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------: |
+| <img src=".github/assets/readme/projects.png" alt="Ledgerly project portfolio showing project identity, profitability, income, expenses, margins, and document status" width="100%"> | <img src=".github/assets/readme/products.png" alt="Ledgerly product catalogue showing references, categories, pricing, and stock" width="100%"> |
+
+The screenshots use a sanitized example workspace. An installation can apply its own company name, logo, and brand colour across the sign-in experience and authenticated application.
+
+## Made for a private workspace
+
+- **Google-based access.** Better Auth handles Google sign-in and sessions, while Ledgerly separately verifies workspace membership before granting application access.
+- **Roles and module permissions.** Administrators can manage members using admin, editor, viewer, or custom permission matrices with `none`, `view`, and `edit` levels.
+- **A UI that adapts.** The interface supports persistent light and dark themes, tenant branding, and Spanish or English language selection.
+- **Guided VPS deployment.** The installer collects the domain, Google OAuth credentials, administrator email, and timezone, then validates the public installation.
+- **Automatic HTTPS.** Caddy terminates TLS and keeps the frontend and API on the same origin.
+- **Controlled updates and recovery.** The update workflow backs up the database before rebuilding and migrating; backup and confirmed restore commands are included.
+- **Data under your control.** Application records and uploaded documents live in the installation's PostgreSQL volume. A database dump contains both structured data and uploads.
+
+## Run locally
+
+### Requirements
+
+- Node.js 20 or newer
+- pnpm 11 or newer
+- Docker with Docker Compose
+- `make`
+
+From the repository root:
 
 ```bash
 make dev
 ```
 
-### VPS installation
+This installs dependencies, creates `apps/back/.env` from the example when needed, starts PostgreSQL and the containerized backend, reconciles the schema, and launches the Vite frontend with hot reload.
 
-Server requirements: `docker`, `docker compose`, `git`, and `make`. On a
-minimal Debian image, install the latter two first:
+Google sign-in requires a local OAuth client and matching environment values. Follow the [authentication setup](docs/architecture/auth.md#google-cloud-and-local-setup) before signing in.
+
+### Local endpoints
+
+- Frontend: `http://localhost:5173`
+- API: `http://localhost:3005/api`
+- PostgreSQL: `localhost:5432`
+
+Vite proxies `/api` to the backend during development. The local ports and origins can be adjusted in `apps/back/.env`.
+
+## Install on a VPS
+
+The guided deployment expects a Linux server with Docker, Docker Compose, Git, and Make. On a minimal Debian installation:
 
 ```bash
 sudo apt-get install -y git make
+git clone <repository-url> /opt/ledgerly
+cd /opt/ledgerly
+make setup
 ```
 
-Then run:
+`make setup` builds the application, initializes PostgreSQL, applies schema changes, starts the Docker Compose stack, provisions HTTPS, and checks the public health endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
 
-```bash
-git clone <repo-url> /opt/ledgerly && cd /opt/ledgerly && make setup
+Read the complete [deployment and recovery runbook](docs/architecture/deployment.md) before operating an installation.
+
+## Operations
+
+Use `make help` to see commands in the current environment. Lifecycle and database commands automatically target production when `deploy/.env` exists; otherwise they target the local development stack.
+
+### Installation and lifecycle
+
+- `make setup` — run the one-time guided VPS installation.
+- `make doctor` — validate configuration, containers, database, DNS, certificates, disk space, and public health.
+- `make configure` — change the domain, Google credentials, administrator email, or database password safely.
+- `make up`, `make down`, `make restart` — control the active stack.
+- `make logs SERVICE=back` — follow all logs or select one service.
+
+### Updates and data
+
+- `make update` — pull with fast-forward only, back up, rebuild, migrate, restart, and run diagnostics.
+- `make backup` — create a compressed PostgreSQL backup in `deploy/backups/`.
+- `make restore FILE=<path>` — restore a selected backup after typed confirmation.
+- `make migrate` — reconcile the database schema with the application definitions.
+- `make seed` — load development sample data.
+- `make reset-db` — recreate the development database; unavailable in production.
+
+### Quality and maintenance
+
+- `make build` — build the frontend and backend.
+- `make lint` — run repository linting and hygiene checks.
+- `make typecheck` — check TypeScript across the monorepo.
+- `make test` — run the test suites.
+- `make clean` — remove development builds, dependencies, and volumes; refused in production.
+
+## Architecture
+
+Ledgerly is a pnpm and Turborepo monorepo with two applications and a deployment layer:
+
+```text
+apps/front/   React 19, Vite, Ant Design, TanStack Query, Feature-Sliced Design
+apps/back/    NestJS 11, TypeORM, PostgreSQL, hexagonal bounded contexts
+deploy/       Docker Compose, Caddy, guided setup, diagnostics, updates, backups
+docs/         Durable architecture and operations documentation
 ```
 
-`make setup` is interactive: it asks for the domain, Google credentials, and
-administrator email, then serves the application at `https://<domain>` with
-automatic HTTPS. For the complete runbook and the remaining operational
-commands (`doctor`, `configure`, `update`, and `backup`), see
-[`docs/architecture/deployment.md`](docs/architecture/deployment.md).
+The frontend consumes the API through `/api`. In production, Caddy serves the frontend and routes API requests on the same origin. The backend keeps business contexts separated behind application ports and adapters, while PostgreSQL is the shared persistence layer.
 
-### Commands (`make help`)
+### Durable documentation
 
-| Area         | Command          | Description                                                                                                            |
-| ------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Installation | `make setup`     | One-time guided server installation.                                                                                   |
-| Installation | `make doctor`    | Diagnoses the installation and exits non-zero when anything fails.                                                     |
-| Installation | `make configure` | Changes the domain, Google credentials, administrator email, or database password.                                     |
-| Updates      | `make update`    | Fetches the new version, rebuilds images, and migrates without losing data.                                            |
-| Updates      | `make backup`    | Creates a compressed database backup.                                                                                  |
-| Updates      | `make restore`   | Restores a backup after typed confirmation.                                                                            |
-| Lifecycle    | `make up`        | Starts the production stack or the local development containers.                                                       |
-| Lifecycle    | `make down`      | Stops the active stack.                                                                                                |
-| Lifecycle    | `make restart`   | Restarts the active stack.                                                                                             |
-| Lifecycle    | `make logs`      | Follows logs; `make logs SERVICE=back` filters by service.                                                             |
-| Development  | `make dev`       | Runs the local loop: dependencies, production-equivalent backend container, schema bootstrap, and frontend hot reload. |
-| Development  | `make build`     | Builds the frontend and backend.                                                                                       |
-| Development  | `make lint`      | Runs ESLint.                                                                                                           |
-| Development  | `make typecheck` | Checks types.                                                                                                          |
-| Development  | `make test`      | Runs tests.                                                                                                            |
-| Database     | `make migrate`   | Reconciles the schema with the current application definitions.                                                        |
-| Database     | `make reset-db`  | Deletes the volume and recreates the database. Development only.                                                       |
-| Database     | `make seed`      | Loads sample data. Development only.                                                                                   |
-| Cleanup      | `make clean`     | Removes builds, `node_modules`, and development volumes. Refuses production mode.                                      |
-
-`up`, `down`, `restart`, `logs`, `migrate`, and `backup` are **contextual**:
-they target the production stack when `deploy/.env` exists, otherwise the
-development Postgres instance. The same command selects the appropriate target
-on the server and on a workstation.
-
-## Scripts (from the repository root)
-
-| Command           | Description                                                    |
-| ----------------- | -------------------------------------------------------------- |
-| `pnpm dev`        | Starts the frontend and backend in development mode.           |
-| `pnpm build`      | Builds every application.                                      |
-| `pnpm lint`       | Runs ESLint across the monorepo.                               |
-| `pnpm check:repo` | Rejects non-English docs and files that must not be versioned. |
-| `pnpm typecheck`  | Checks types.                                                  |
-| `pnpm test`       | Runs tests.                                                    |
-| `pnpm format`     | Formats code with Prettier.                                    |
-
-To run one package, use Turbo filtering, for example:
-
-```bash
-pnpm dev --filter=@ledgerly/front
-pnpm dev --filter=@ledgerly/back
-```
-
-## Ports and development
-
-- **Frontend** (Vite): http://localhost:5173
-- **Backend** (NestJS): http://localhost:3005/api
-
-The frontend proxies `/api` requests to the backend in development (see
-`apps/front/vite.config.ts`), and the backend enables CORS for the frontend
-origin. Copy `apps/back/.env.example` to `apps/back/.env` to customize `PORT`
-and `FRONTEND_URL`.
+- [Authentication and access control](docs/architecture/auth.md)
+- [Deployment, updates, and recovery](docs/architecture/deployment.md)
+- [Company lifecycle and branding](docs/architecture/tenancy.md)
+- [Workspace members and permissions](docs/architecture/workspace.md)
+- [Frontend data layer](docs/architecture/data-layer.md)
+- [Themes, tokens, and responsive styling](docs/architecture/styling.md)
+- [Persisted notifications](docs/architecture/notifications.md)
