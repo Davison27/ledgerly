@@ -7,6 +7,8 @@ import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.rep
 import { ProjectOrmEntity } from './project.orm-entity';
 import { ProjectMapper } from './project.mapper';
 
+type ProjectSummaryRow = Omit<ProjectSummary, 'financials'>;
+
 @Injectable()
 export class TypeOrmProjectRepository implements ProjectRepository {
   private readonly mapper = new ProjectMapper();
@@ -17,35 +19,35 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   ) {}
 
   async findAllSummaries(): Promise<ProjectSummary[]> {
-    const rows: ProjectSummary[] = await this.repository.manager.query(`
-      SELECT p.id, p.name, p.code, p.image, p.color, p.is_demo AS "isDemo",
+    const rows: ProjectSummaryRow[] = await this.repository.manager.query(`
+      SELECT p.id, p.name, p.code, p.currency, p.image, p.color, p.is_demo AS "isDemo",
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id
-      GROUP BY p.id, p.name, p.code, p.image, p.color, p.is_demo
+      GROUP BY p.id, p.name, p.code, p.currency, p.image, p.color, p.is_demo
       ORDER BY p.name ASC
     `);
 
-    return rows;
+    return rows.map((row) => ({ ...row, financials: [] }));
   }
 
   async findSummaryById(id: string): Promise<ProjectSummary | null> {
-    const rows: ProjectSummary[] = await this.repository.manager.query(
+    const rows: ProjectSummaryRow[] = await this.repository.manager.query(
       `
-      SELECT p.id, p.name, p.code, p.image, p.color, p.is_demo AS "isDemo",
+      SELECT p.id, p.name, p.code, p.currency, p.image, p.color, p.is_demo AS "isDemo",
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id
       WHERE p.id = $1
-      GROUP BY p.id, p.name, p.code, p.image, p.color, p.is_demo
+      GROUP BY p.id, p.name, p.code, p.currency, p.image, p.color, p.is_demo
       ORDER BY p.name ASC
     `,
       [id],
     );
 
-    return rows.length > 0 ? rows[0] : null;
+    return rows.length > 0 ? { ...rows[0], financials: [] } : null;
   }
 
   async findById(id: string): Promise<Project | null> {

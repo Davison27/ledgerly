@@ -58,6 +58,8 @@ class InMemoryProjectRepository implements ProjectRepository {
       id: project.id,
       name: project.name,
       code: project.code,
+      currency: project.currency,
+      financials: [],
       documentCount: 0,
       pendingCount: 0,
       image: project.image,

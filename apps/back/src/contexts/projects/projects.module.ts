@@ -17,6 +17,8 @@ import { TypeOrmProjectProductRepository } from './infrastructure/persistence/ty
 import { PROJECT_PRODUCT_REPOSITORY } from './domain/project-product.repository';
 import { ProjectProductsUseCase } from './application/project-products/project-products.use-case';
 import { ProjectProductsController } from './infrastructure/http/project-products.controller';
+import { PROJECT_FINANCIALS_PROVIDER } from './domain/project-financials-provider.port';
+import { TypeOrmProjectFinancialsProvider } from './infrastructure/persistence/typeorm-project-financials-provider';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectProductOrmEntity]), ProductsModule],
@@ -31,6 +33,7 @@ import { ProjectProductsController } from './infrastructure/http/project-product
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
     { provide: DEMO_PROJECT_PURGER, useClass: TypeOrmDemoProjectPurger },
     { provide: PROJECT_PRODUCT_REPOSITORY, useClass: TypeOrmProjectProductRepository },
+    { provide: PROJECT_FINANCIALS_PROVIDER, useClass: TypeOrmProjectFinancialsProvider },
   ],
 })
 export class ProjectsModule {}

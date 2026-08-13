@@ -4,6 +4,8 @@ export class ProjectSummaryResponse {
   id: string;
   name: string;
   code: string;
+  currency: string;
+  financials: ProjectSummary['financials'];
   documentCount: number;
   pendingCount: number;
   image: string | null;
@@ -16,6 +18,8 @@ export class ProjectSummaryResponse {
     response.id = summary.id;
     response.name = summary.name;
     response.code = summary.code;
+    response.currency = summary.currency;
+    response.financials = summary.financials;
     response.documentCount = summary.documentCount;
     response.pendingCount = summary.pendingCount;
     response.image = summary.image;
