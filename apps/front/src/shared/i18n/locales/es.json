@@ -28,26 +28,137 @@
     },
     "secureAccess": "Acceso protegido mediante tu cuenta corporativa de Google",
     "managedBy": "Gestionado con Ledgerly",
-    "preview": {
-      "connected": "Sistema operativo",
-      "eyebrow": "Vista general",
-      "title": "Resumen operativo",
-      "period": "Este año",
-      "income": "Ingresos",
-      "expenses": "Gastos",
-      "margin": "Margen",
-      "cashflow": "Evolución financiera",
-      "lastMonths": "Últimos 6 meses",
-      "projects": "Proyectos",
-      "active": "Activos",
-      "userName": "Laura Costa",
-      "userRole": "Administración",
-      "nav": {
+    "tour": {
+      "label": "Recorrido por el producto Ledgerly",
+      "connected": "Espacio de ejemplo",
+      "slideSelector": "Elige un área del producto",
+      "selectSlide": "Mostrar diapositiva {{position}}: {{title}}",
+      "pause": "Pausar recorrido por el producto",
+      "resume": "Reanudar recorrido por el producto",
+      "reducedMotion": "El recorrido por el producto está pausado porque se ha activado la reducción de movimiento",
+      "slideStatus": "Diapositiva {{position}} de {{total}}",
+      "navigation": {
         "dashboard": "Panel",
         "projects": "Proyectos",
         "documents": "Documentos",
         "calendar": "Calendario",
-        "team": "Personal"
+        "staff": "Personal"
+      },
+      "user": {
+        "initials": "LC",
+        "name": "Laura Costa",
+        "role": "Administración"
+      },
+      "slides": {
+        "dashboard": {
+          "eyebrow": "Panel",
+          "title": "Ve cómo avanza el negocio",
+          "description": "Mantén a la vista ingresos, gastos, tesorería y proyectos activos desde un mismo panel operativo.",
+          "screenLabel": "Vista general",
+          "screenTitle": "Panel de negocio",
+          "action": "Este año"
+        },
+        "projects": {
+          "eyebrow": "Proyectos",
+          "title": "Mantén cada proyecto bajo control",
+          "description": "Planifica el trabajo, sigue el progreso y mantén el contexto financiero de cada proyecto cerca del equipo.",
+          "screenLabel": "Proyectos",
+          "screenTitle": "Proyectos activos",
+          "action": "Nuevo proyecto"
+        },
+        "documents": {
+          "eyebrow": "Documentos",
+          "title": "Reúne toda la documentación operativa",
+          "description": "Busca, revisa y sigue cada factura y documento de apoyo de todo el espacio de trabajo.",
+          "screenLabel": "Documentos",
+          "screenTitle": "Todos los documentos",
+          "action": "Añadir documento"
+        },
+        "calendar": {
+          "eyebrow": "Calendario",
+          "title": "Coordina las fechas con todo el equipo",
+          "description": "Da a las entregas, el trabajo interno y las obligaciones fiscales una única línea temporal compartida.",
+          "screenLabel": "Calendario",
+          "screenTitle": "Agosto de 2026",
+          "action": "Mes"
+        }
+      },
+      "dashboard": {
+        "metrics": {
+          "income": { "label": "Ingresos", "value": "184.240 €", "trend": "↗ 12,4 %" },
+          "expenses": { "label": "Gastos", "value": "96.580 €", "trend": "↘ 3,1 %" },
+          "margin": { "label": "Margen", "value": "47,6 %", "trend": "↗ 6,8 %" }
+        },
+        "chart": { "title": "Evolución financiera", "period": "Últimos 6 meses" },
+        "projects": {
+          "title": "Proyectos",
+          "meta": "Activos",
+          "atlas": "Atlas",
+          "atlasProgress": "68 %",
+          "orion": "Orion",
+          "orionProgress": "44 %",
+          "nexo": "Nexo",
+          "nexoProgress": "27 %"
+        }
+      },
+      "projects": {
+        "atlas": {
+          "name": "Atlas",
+          "status": "En curso",
+          "meta": "8 documentos · 5 personas",
+          "amount": "62.400 €"
+        },
+        "orion": {
+          "name": "Orion",
+          "status": "En plazo",
+          "meta": "6 documentos · 3 personas",
+          "amount": "38.600 €"
+        },
+        "nexo": {
+          "name": "Nexo",
+          "status": "Planificación",
+          "meta": "3 documentos · 2 personas",
+          "amount": "24.900 €"
+        }
+      },
+      "documents": {
+        "search": "Buscar documentos",
+        "filter": "Todos los proyectos",
+        "columns": {
+          "document": "Documento",
+          "project": "Proyecto",
+          "status": "Estado",
+          "amount": "Importe"
+        },
+        "rows": {
+          "hosting": {
+            "name": "Factura de alojamiento",
+            "project": "Atlas",
+            "status": "Pagado",
+            "amount": "680 €"
+          },
+          "materials": {
+            "name": "Ticket de materiales",
+            "project": "Orion",
+            "status": "Pendiente",
+            "amount": "1.240 €"
+          },
+          "invoice": {
+            "name": "Factura de venta de julio",
+            "project": "Nexo",
+            "status": "Pagado",
+            "amount": "3.850 €"
+          }
+        }
+      },
+      "calendar": {
+        "days": { "mon": "Lun", "tue": "Mar", "wed": "Mié", "thu": "Jue", "fri": "Vie" },
+        "events": {
+          "review": "Revisión Atlas",
+          "delivery": "Entrega Orion",
+          "tax": "Presentación IVA"
+        },
+        "summary": "5 elementos programados esta semana"
       }
     },
     "errors": {
