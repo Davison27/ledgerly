@@ -1,6 +1,15 @@
 import { useCallback, useEffect, useState } from 'react';
 
-export const PRODUCT_TOUR_SLIDES = ['dashboard', 'projects', 'documents', 'calendar'] as const;
+export const PRODUCT_TOUR_SLIDES = [
+  'dashboard',
+  'projects',
+  'calendar',
+  'documents',
+  'suppliers',
+  'products',
+  'staff',
+  'workspace',
+] as const;
 
 export type ProductTourSlide = (typeof PRODUCT_TOUR_SLIDES)[number];
 

@@ -31,6 +31,8 @@
     "tour": {
       "label": "Recorrido por el producto Ledgerly",
       "connected": "Espacio de ejemplo",
+      "sampleWorkspace": "Espacio de ejemplo",
+      "search": "Buscar en cualquier lugar",
       "slideSelector": "Elige un área del producto",
       "selectSlide": "Mostrar diapositiva {{position}}: {{title}}",
       "pause": "Pausar recorrido por el producto",
@@ -42,6 +44,9 @@
         "projects": "Proyectos",
         "documents": "Documentos",
         "calendar": "Calendario",
+        "suppliers": "Proveedores",
+        "invoices": "Facturas",
+        "products": "Productos",
         "staff": "Personal"
       },
       "user": {
@@ -81,15 +86,88 @@
           "screenLabel": "Calendario",
           "screenTitle": "Agosto de 2026",
           "action": "Mes"
+        },
+        "suppliers": {
+          "eyebrow": "Proveedores",
+          "title": "Conoce a dónde va el gasto de la empresa",
+          "description": "Mantén juntos los datos, documentos y gasto acumulado de cada proveedor.",
+          "screenLabel": "Proveedores"
+        },
+        "products": {
+          "eyebrow": "Productos",
+          "title": "Mantén un catálogo útil y listo para facturar",
+          "description": "Organiza servicios y productos con el precio, stock y referencia que necesita el equipo.",
+          "screenLabel": "Productos"
+        },
+        "staff": {
+          "eyebrow": "Personal",
+          "title": "Anticípate a la documentación del equipo",
+          "description": "Gestiona personas, fechas y documentación laboral con su estado de caducidad siempre a la vista.",
+          "screenLabel": "Personal"
+        },
+        "workspace": {
+          "eyebrow": "Espacio de trabajo",
+          "title": "Haz que Ledgerly sea parte de tu negocio",
+          "description": "Configura la identidad, color de marca y datos de contacto de tu empresa desde un único espacio.",
+          "screenLabel": "Espacio de trabajo"
+        }
+      },
+      "screens": {
+        "dashboard": {
+          "heading": "Panel",
+          "subheading": "Un resumen de la actividad de tu empresa.",
+          "action": "2026"
+        },
+        "projects": {
+          "heading": "Proyectos",
+          "subheading": "Selecciona un proyecto para continuar",
+          "action": "Nuevo proyecto"
+        },
+        "calendar": {
+          "heading": "Calendario",
+          "subheading": "Coordina el trabajo de toda la empresa",
+          "action": "Mes"
+        },
+        "documents": {
+          "heading": "Documentos",
+          "subheading": "Busca y filtra todos los documentos",
+          "action": "Añadir documento"
+        },
+        "suppliers": {
+          "heading": "Proveedores",
+          "subheading": "Gestiona las empresas a las que compras",
+          "action": "Nuevo proveedor"
+        },
+        "products": {
+          "heading": "Productos",
+          "subheading": "Tu catálogo de productos y servicios",
+          "action": "Nuevo producto"
+        },
+        "staff": {
+          "heading": "Personal",
+          "subheading": "Personas y documentación laboral",
+          "action": "Añadir trabajador"
+        },
+        "workspace": {
+          "heading": "Espacio de trabajo",
+          "subheading": "Ajustes de empresa y espacio",
+          "action": "Guardar"
         }
       },
       "dashboard": {
         "metrics": {
           "income": { "label": "Ingresos", "value": "184.240 €", "trend": "↗ 12,4 %" },
           "expenses": { "label": "Gastos", "value": "96.580 €", "trend": "↘ 3,1 %" },
+          "profit": { "label": "Beneficio neto", "value": "87.660 €", "trend": "↗ 18,6 %" },
           "margin": { "label": "Margen", "value": "47,6 %", "trend": "↗ 6,8 %" }
         },
         "chart": { "title": "Evolución financiera", "period": "Últimos 6 meses" },
+        "status": {
+          "title": "Documentos por estado",
+          "meta": "2026",
+          "value": "84",
+          "caption": "documentos registrados"
+        },
         "projects": {
           "title": "Proyectos",
           "meta": "Activos",
@@ -99,23 +177,52 @@
           "orionProgress": "44 %",
           "nexo": "Nexo",
           "nexoProgress": "27 %"
+        },
+        "schedule": {
+          "title": "Próximos eventos",
+          "meta": "Esta semana",
+          "reviewDate": "12 ago.",
+          "review": "Revisión Atlas",
+          "deliveryDate": "14 ago.",
+          "delivery": "Entrega Orion"
         }
       },
       "projects": {
+        "profit": "Beneficio neto",
+        "income": "Ingresos",
+        "expenses": "Gastos",
         "atlas": {
           "name": "Atlas",
+          "code": "ATL-26",
+          "profit": "27.320 €",
+          "income": "62.400 €",
+          "expenses": "35.080 €",
+          "documents": "8 documentos",
+          "margin": "43,8 %",
           "status": "En curso",
           "meta": "8 documentos · 5 personas",
           "amount": "62.400 €"
         },
         "orion": {
           "name": "Orion",
+          "code": "ORI-18",
+          "profit": "18.700 €",
+          "income": "38.600 €",
+          "expenses": "19.900 €",
+          "documents": "6 documentos",
+          "margin": "48,4 %",
           "status": "En plazo",
           "meta": "6 documentos · 3 personas",
           "amount": "38.600 €"
         },
         "nexo": {
           "name": "Nexo",
+          "code": "NEX-08",
+          "profit": "9.680 €",
+          "income": "24.900 €",
+          "expenses": "15.220 €",
+          "documents": "3 documentos",
+          "margin": "38,9 %",
           "status": "Planificación",
           "meta": "3 documentos · 2 personas",
           "amount": "24.900 €"
@@ -152,13 +259,150 @@
         }
       },
       "calendar": {
-        "days": { "mon": "Lun", "tue": "Mar", "wed": "Mié", "thu": "Jue", "fri": "Vie" },
+        "resources": "Proyectos activos",
+        "search": "Buscar proyecto",
+        "month": "Agosto de 2026",
+        "view": "Mes",
+        "days": {
+          "mon": "Lun",
+          "tue": "Mar",
+          "wed": "Mié",
+          "thu": "Jue",
+          "fri": "Vie",
+          "sat": "Sáb",
+          "sun": "Dom"
+        },
         "events": {
           "review": "Revisión Atlas",
           "delivery": "Entrega Orion",
           "tax": "Presentación IVA"
         },
         "summary": "5 elementos programados esta semana"
+      },
+      "tables": {
+        "documents": {
+          "search": "Buscar documentos",
+          "filter": "Todos los proyectos",
+          "columns": {
+            "first": "Documento",
+            "second": "Proyecto",
+            "third": "Estado",
+            "fourth": "Importe"
+          },
+          "rows": {
+            "first": {
+              "first": "Factura de alojamiento",
+              "second": "Atlas",
+              "third": "Pagado",
+              "fourth": "680 €"
+            },
+            "second": {
+              "first": "Ticket de materiales",
+              "second": "Orion",
+              "third": "Pendiente",
+              "fourth": "1.240 €"
+            },
+            "third": {
+              "first": "Factura de venta de julio",
+              "second": "Nexo",
+              "third": "Pagado",
+              "fourth": "3.850 €"
+            }
+          }
+        },
+        "suppliers": {
+          "search": "Buscar por nombre de proveedor",
+          "filter": "Todos los proveedores",
+          "columns": {
+            "first": "Proveedor",
+            "second": "CIF / NIF",
+            "third": "Documentos",
+            "fourth": "Gasto"
+          },
+          "rows": {
+            "first": {
+              "first": "Arcadia Hosting",
+              "second": "B-90476122",
+              "third": "12",
+              "fourth": "8.420 €"
+            },
+            "second": {
+              "first": "Northline Materials",
+              "second": "B-77290116",
+              "third": "7",
+              "fourth": "5.680 €"
+            },
+            "third": {
+              "first": "Lumen Studio",
+              "second": "B-61843095",
+              "third": "4",
+              "fourth": "2.210 €"
+            }
+          }
+        },
+        "staff": {
+          "search": "Buscar por nombre o puesto",
+          "filter": "Todo el personal",
+          "columns": {
+            "first": "Nombre",
+            "second": "Puesto",
+            "third": "Documentación",
+            "fourth": "Alta"
+          },
+          "rows": {
+            "first": {
+              "first": "Lucía Costa",
+              "second": "Administración",
+              "third": "Vigente",
+              "fourth": "2023-04-12"
+            },
+            "second": {
+              "first": "Hugo Vidal",
+              "second": "Producción",
+              "third": "Caduca pronto",
+              "fourth": "2024-01-08"
+            },
+            "third": {
+              "first": "Nora Sanz",
+              "second": "Diseño",
+              "third": "Vigente",
+              "fourth": "2022-09-01"
+            }
+          }
+        }
+      },
+      "products": {
+        "studio": {
+          "category": "Servicio",
+          "name": "Dirección de estudio",
+          "reference": "SERV-001",
+          "price": "1.250 €",
+          "stock": "Catálogo"
+        },
+        "camera": {
+          "category": "Equipamiento",
+          "name": "Kit de cámara",
+          "reference": "EQP-020",
+          "price": "840 €",
+          "stock": "4 unidades"
+        },
+        "consulting": {
+          "category": "Consultoría",
+          "name": "Sesión de planificación",
+          "reference": "SERV-014",
+          "price": "180 €",
+          "stock": "Catálogo"
+        }
+      },
+      "workspace": {
+        "tabs": {
+          "company": "Empresa",
+          "members": "Miembros",
+          "integrations": "Integraciones",
+          "tax": "Cumplimiento fiscal"
+        },
+        "identity": { "title": "Identidad de la empresa", "sector": "Producción creativa" },
+        "contact": { "title": "Datos de contacto" }
       }
     },
     "errors": {
@@ -805,9 +1049,11 @@
     "back": "Volver a proyectos",
     "empty": "Todavía no hay proyectos.",
     "card": {
+      "profit": "Beneficio neto",
       "income": "Ingresos",
       "expenses": "Gastos",
       "margin": "Margen",
+      "documents": "documentos",
       "otherCurrencies": "Otras divisas"
     },
     "deleteConfirm": {
@@ -1451,6 +1697,10 @@
       "actions": "Acciones"
     },
     "stockUnset": "sin configurar",
+    "card": {
+      "imageAlt": "Imagen del producto {{name}}",
+      "leasing": "Leasing"
+    },
     "form": {
       "createTitle": "Nuevo producto",
       "editTitle": "Editar producto",
