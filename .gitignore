@@ -29,12 +29,21 @@ pnpm-debug.log*
 # Coverage
 coverage/
 
-# Claude — se versionan CLAUDE.md, .claude/agents/ y .claude/skills/, nunca lo local
+# Claude y Codex — se versiona la configuración compartida, nunca las skills locales
 .claude/*
 !.claude/agents/
 !.claude/skills/
+.claude/skills/*
+!.claude/skills/arquitectura-frontend/
+!.claude/skills/arquitectura-frontend/**
+!.claude/skills/arquitectura-hexagonal/
+!.claude/skills/arquitectura-hexagonal/**
 .claude/settings.local.json
-.agents/
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/arquitectura-hexagonal
+!.agents/skills/arquitectura-frontend
 
 # Editor / OS
 .DS_Store

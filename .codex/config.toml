@@ -1,0 +1,19 @@
+[agents]
+enabled = true
+max_concurrent_threads_per_session = 4
+
+[agents.planner]
+description = "Arquitecto que convierte un encargo en un plan ejecutable sin editar producto."
+config_file = "agents/planner.toml"
+
+[agents."plan-validator"]
+description = "Validador que contrasta la viabilidad del plan contra el código real."
+config_file = "agents/plan-validator.toml"
+
+[agents.implementer]
+description = "Desarrollador de una unidad aprobada; único rol que edita producto."
+config_file = "agents/implementer.toml"
+
+[agents.qa]
+description = "QA que verifica el plan, el diff y las comprobaciones sin editar."
+config_file = "agents/qa.toml"
