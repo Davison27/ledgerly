@@ -1,5 +1,5 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, statSync } from 'node:fs';
 import path from 'node:path';
 
 const repositoryFiles = execFileSync(
@@ -11,6 +11,8 @@ const repositoryFiles = execFileSync(
 )
   .split('\0')
   .filter(Boolean);
+
+const existingRepositoryFiles = repositoryFiles.filter((file) => existsSync(file));
 
 const temporaryPlanFiles = execFileSync(
   'git',
@@ -39,7 +41,7 @@ const allowedSharedSkills = new Set([
   '.claude/skills/arquitectura-hexagonal/SKILL.md',
 ]);
 
-const forbiddenRepositoryFiles = repositoryFiles.filter((file) => {
+const forbiddenRepositoryFiles = existingRepositoryFiles.filter((file) => {
   const basename = path.basename(file);
   const segments = file.split('/');
   const isEnvironmentFile = basename.startsWith('.env') && !basename.endsWith('.example');
@@ -70,7 +72,7 @@ const forbiddenRepositoryFiles = repositoryFiles.filter((file) => {
   );
 });
 
-const documentationFiles = [...repositoryFiles, ...temporaryPlanFiles].filter(
+const documentationFiles = [...existingRepositoryFiles, ...temporaryPlanFiles].filter(
   (file) =>
     file.endsWith('.md') ||
     file.endsWith('.mdx') ||
@@ -90,7 +92,9 @@ const languageViolations = documentationFiles.flatMap((file) =>
     .flatMap((line, index) => (spanishText.test(line) ? [`${file}:${index + 1}`] : [])),
 );
 
-const oversizedFiles = repositoryFiles.filter((file) => statSync(file).size > 10 * 1024 * 1024);
+const oversizedFiles = existingRepositoryFiles.filter(
+  (file) => statSync(file).size > 10 * 1024 * 1024,
+);
 
 const violations = [
   ...forbiddenRepositoryFiles.map((file) => `forbidden repository file: ${file}`),
