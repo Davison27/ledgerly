@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { supportedLngs, type Language } from '@/shared/i18n';
 
 export function LanguageSwitcher() {
-  const { i18n } = useTranslation();
+  const { i18n, t } = useTranslation();
   const current = (i18n.resolvedLanguage ?? 'es') as Language;
 
   return (
     <Segmented<Language>
+      aria-label={t('common.language')}
       value={current}
       onChange={(lng) => void i18n.changeLanguage(lng)}
       options={supportedLngs.map((lng) => ({

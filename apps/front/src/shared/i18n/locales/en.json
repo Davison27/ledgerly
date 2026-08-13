@@ -18,18 +18,36 @@
     "noSearchResults": "No results for your search."
   },
   "login": {
-    "welcome": "Welcome to Ledgerly",
-    "subtitle": "Management platform",
     "signIn": "Sign in",
     "signInWithGoogle": "Continue with Google",
-    "tagline": "Manage your projects, documents and finances in one place.",
-    "product": {
-      "title": "Your business, under control",
-      "features": {
-        "projects": { "title": "Projects", "description": "Plan and track every delivery." },
-        "documents": { "title": "Documents", "description": "Keep invoices and files together." },
-        "finance": { "title": "Finance", "description": "Track income, spending and payments." },
-        "calendar": { "title": "Schedule", "description": "Coordinate dates and teams." }
+    "workspace": {
+      "label": "Private workspace",
+      "title": "Access {{name}}",
+      "subtitle": "Your operations, documents and finances in one secure environment.",
+      "fallbackName": "your workspace"
+    },
+    "secureAccess": "Protected access through your corporate Google account",
+    "managedBy": "Managed with Ledgerly",
+    "preview": {
+      "connected": "System operational",
+      "eyebrow": "Overview",
+      "title": "Operations summary",
+      "period": "This year",
+      "income": "Income",
+      "expenses": "Expenses",
+      "margin": "Margin",
+      "cashflow": "Financial performance",
+      "lastMonths": "Last 6 months",
+      "projects": "Projects",
+      "active": "Active",
+      "userName": "Laura Costa",
+      "userRole": "Administration",
+      "nav": {
+        "dashboard": "Dashboard",
+        "projects": "Projects",
+        "documents": "Documents",
+        "calendar": "Calendar",
+        "team": "Staff"
       }
     },
     "errors": {
