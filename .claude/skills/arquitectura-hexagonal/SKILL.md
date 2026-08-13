@@ -1,84 +1,85 @@
 ---
 name: arquitectura-hexagonal
-description: Doctrina de arquitectura limpia/hexagonal y DDD para el backend NestJS de Ledgerly. Úsala al planificar o revisar cualquier trabajo en apps/back — contextos, capas, puertos, casos de uso, entidades, mappers, errores y módulos. Define dónde va cada fichero y qué está prohibido.
+description: Clean/hexagonal architecture and DDD doctrine for the Ledgerly NestJS backend. Use it when planning or reviewing work in apps/back — contexts, layers, ports, use cases, entities, mappers, errors, and modules. It defines where every file belongs and prohibited patterns.
 ---
 
-# Arquitectura hexagonal en NestJS — doctrina de Ledgerly
+# Hexagonal architecture in NestJS — Ledgerly doctrine
 
-Referencia canónica para planificar y revisar `apps/back`. Si un plan contradice
-esto, el plan está mal.
+The canonical reference for planning and reviewing `apps/back`. If a plan
+contradicts this, the plan is wrong.
 
-## La única regla que importa
+## The only rule that matters
 
-**Las dependencias apuntan hacia dentro.** `domain` no importa nada de
-`application` ni de `infrastructure`, ni de NestJS, ni de TypeORM, ni de Express.
-`application` importa `domain`. `infrastructure` importa ambos.
+**Dependencies point inward.** `domain` imports nothing from `application` or
+`infrastructure`, nor from NestJS, TypeORM, or Express. `application` imports
+`domain`. `infrastructure` imports both.
 
-Prueba de humo: si borras `infrastructure/` entero, `domain/` debe seguir
-compilando. Si no compila, hay una violación.
+Smoke test: if you delete the entire `infrastructure/`, `domain/` must still
+compile. If it does not, there is a violation.
 
-De esa regla se derivan mecánicamente casi todas las decisiones de abajo. Cuando
-dudes, vuelve aquí en vez de improvisar.
+Almost every decision below follows mechanically from this rule. When in doubt,
+return here rather than improvising.
 
 ---
 
-## Organización: por contexto primero, por capa después
+## Organization: context first, then layer
 
 ```
 apps/back/src/
 ├── contexts/
-│   └── <contexto>/                 # company, documents, projects, staff, invoices…
+│   └── <context>/                  # company, documents, projects, staff, invoices…
 │       ├── domain/
-│       │   ├── <agregado>.ts                    # entidad rica con invariantes
-│       │   ├── <agregado>.repository.ts         # PUERTO + token Symbol
-│       │   ├── <algo>.port.ts                   # otros puertos (contadores, checkers)
-│       │   └── errors/<caso>.exception.ts       # excepciones de dominio
+│       │   ├── <aggregate>.ts                   # rich entity with invariants
+│       │   ├── <aggregate>.repository.ts        # port plus Symbol token
+│       │   ├── <capability>.port.ts             # other ports
+│       │   └── errors/<case>.exception.ts       # domain exceptions
 │       ├── application/
-│       │   └── <verbo-agregado>/                # UNA carpeta por caso de uso
-│       │       ├── <verbo-agregado>.use-case.ts
-│       │       ├── <verbo-agregado>.command.ts  # entrada del caso de uso
-│       │       └── <verbo-agregado>.use-case.spec.ts
+│       │   └── <verb-aggregate>/                # one folder per use case
+│       │       ├── <verb-aggregate>.use-case.ts
+│       │       ├── <verb-aggregate>.command.ts  # use-case input
+│       │       └── <verb-aggregate>.use-case.spec.ts
 │       ├── infrastructure/
 │       │   ├── http/
-│       │   │   ├── <recurso>.controller.ts
-│       │   │   ├── dtos/<verbo>-<recurso>.dto.ts
-│       │   │   └── <recurso>.response.ts
+│       │   │   ├── <resource>.controller.ts
+│       │   │   ├── dtos/<verb>-<resource>.dto.ts
+│       │   │   └── <resource>.response.ts
 │       │   └── persistence/
-│       │       ├── <agregado>.orm-entity.ts     # TypeORM vive AQUÍ, nunca en domain
-│       │       ├── <agregado>.mapper.ts
-│       │       └── typeorm-<agregado>.repository.ts
-│       └── <contexto>.module.ts
+│       │       ├── <aggregate>.orm-entity.ts    # TypeORM belongs here, never in domain
+│       │       ├── <aggregate>.mapper.ts
+│       │       └── typeorm-<aggregate>.repository.ts
+│       └── <context>.module.ts
 ├── shared/
-│   ├── domain/                     # DomainException, puertos transversales (IdGenerator)
+│   ├── domain/                     # DomainException, cross-cutting ports (IdGenerator)
 │   └── infrastructure/http/        # DomainExceptionFilter
 └── database/
-    ├── migrations/<timestamp>-<Nombre>.ts
+    ├── migrations/<timestamp>-<Name>.ts
     └── seeds/
 ```
 
-**Por qué contexto primero y no `src/domain/`, `src/application/`,
-`src/infrastructure/` en la raíz:** con 8 contextos, la agrupación por capa
-obliga a tocar tres árboles distantes para un cambio de una sola feature, y
-`domain/` acaba siendo un cajón de ocho subcarpetas sin relación entre sí. La
-agrupación por contexto hace que la estructura *grite* de qué va el sistema
-(screaming architecture) y mantiene junto lo que cambia junto. Es lo que manda
-`CLAUDE.md` ("arquitectura hexagonal **por contextos**").
+**Why context first rather than `src/domain/`, `src/application/`, and
+`src/infrastructure/` at the root:** with eight contexts, grouping by layer
+forces a single-feature change to touch three distant trees, and `domain/`
+becomes a drawer of eight unrelated subdirectories. Context grouping makes the
+system's purpose obvious (screaming architecture) and keeps together what
+changes together. This is required by `CLAUDE.md` ("hexagonal architecture
+**by contexts**").
 
-Un contexto **no importa** de otro contexto. Si necesita algo de fuera, se
-declara un **puerto propio** en su `domain/` y se implementa en su
-`infrastructure/` consultando lo que haga falta. Ejemplo real:
-`documents/domain/staff-member-existence-checker.port.ts` — el contexto de
-documentos comprueba que existe un trabajador sin acoplarse al contexto `staff`.
+A context **does not import** another context. If it needs something external,
+it declares an **own port** in its `domain/` and implements it in its
+`infrastructure/`, querying whatever it needs. A real example:
+`documents/domain/staff-member-existence-checker.port.ts` — the documents
+context checks that a staff member exists without coupling to the `staff`
+context.
 
 ---
 
-## Capa domain
+## Domain layer
 
-### Entidades ricas, nunca anémicas
+### Rich entities, never anemic
 
-Una entidad **no** es una bolsa de campos públicos. Encapsula estado y **protege
-sus invariantes**: si un objeto existe, es válido. No se puede construir uno
-inválido.
+An entity **is not** a bag of public fields. It encapsulates state and
+**protects its invariants**: if an object exists, it is valid. It cannot be
+constructed invalid.
 
 ```ts
 export class Document {
@@ -86,35 +87,36 @@ export class Document {
 
   static create(props: DocumentProps): Document {
     if (props.type === 'nomina' && props.staffMemberId === null) {
-      throw new InvalidValueException('Una nómina debe tener un trabajador');
+      throw new InvalidValueException('A payroll document requires a staff member');
     }
     return new Document(props);
   }
 
   withChanges(changes: Partial<DocumentProps>): Document {
-    return Document.create({ ...this.props, ...changes }); // revalida siempre
+    return Document.create({ ...this.props, ...changes });
   }
 }
 ```
 
-Claves: constructor privado + factoría `create()` que valida; `withChanges()`
-reejecuta `create()` para que una modificación no pueda esquivar el invariante;
-getters en vez de campos públicos mutables.
+Key points: private constructor plus a validating `create()` factory;
+`withChanges()` reruns `create()` so a change cannot bypass an invariant; getters
+rather than mutable public fields.
 
-Mejor que un getter por campo, **métodos que expresan la intención**: en vez de
-`doc.getStatus() === 'vencido'` repartido por seis sitios, `doc.isOverdue()`. El
-getter expone el estado; el método expone la regla, y la regla vive en un único
-lugar. No es dogma — un getter para pintar un campo está bien; el criterio es que
-ninguna **decisión** de negocio se tome fuera del agregado leyendo sus tripas.
+Rather than one getter per field, prefer **methods that express intent**: instead
+of `doc.getStatus() === 'vencido'` in six places, use `doc.isOverdue()`. A
+getter exposes state; a method exposes the rule, and the rule lives in one
+place. This is not dogma — a getter for displaying a field is fine; the
+criterion is that no business **decision** is made outside the aggregate by
+reading its internals.
 
-**Dónde vive una regla de negocio:** si depende solo del estado de un agregado,
-va en la entidad. Si necesita coordinar varios agregados o consultar el exterior,
-va en el caso de uso.
+**Where a business rule belongs:** if it depends only on the state of one
+aggregate, it belongs in the entity. If it needs to coordinate multiple
+aggregates or query outside data, it belongs in the use case.
 
-### Value objects: validar una vez, en el borde del dominio
+### Value objects: validate once, at the domain boundary
 
-Un value object envuelve un primitivo con su regla y **no puede existir
-inválido**. Se compara por valor, no por identidad, y es inmutable.
+A value object wraps a primitive with its rule and **cannot exist invalid**. It
+is compared by value rather than identity, and it is immutable.
 
 ```ts
 export class DocumentAmount {
@@ -127,58 +129,59 @@ export class DocumentAmount {
     return new DocumentAmount(value);
   }
 
-  toNumber(): number { return this.value; }
+  toNumber(): number {
+    return this.value;
+  }
 }
 ```
 
-Lo que compra: la validación deja de repetirse en cada DTO, cada caso de uso y
-cada test, y `function pay(amount: number, tax: number)` deja de poder invocarse
-con los argumentos cambiados de orden.
+What this buys: validation no longer repeats in every DTO, use case, and test,
+and `function pay(amount: number, tax: number)` can no longer be invoked with
+arguments in the wrong order.
 
-**Cuándo NO usarlos** — esto importa tanto como lo anterior: un VO por cada
-`string` de la aplicación es ceremonia que multiplica ficheros y mapeos sin
-comprar nada. Se justifica cuando el primitivo tiene **regla propia** (importe,
-NIF, email, moneda, porcentaje) o cuando se confunde con otro del mismo tipo en
-una firma. Para un `notes: string | null` libre, un VO sobra.
+**When NOT to use them** — this matters as much as the above: one VO for every
+application `string` is ceremony that multiplies files and mappings without
+adding value. It is justified when the primitive has its **own rule** (amount,
+tax ID, email, currency, percentage) or when it can be confused with another of
+the same type in a signature. For free-form `notes: string | null`, a VO is
+unnecessary.
 
-Ledgerly hoy valida en la factoría del agregado, que para la mayoría de sus
-campos es suficiente. Introducir VOs es una mejora **incremental y localizada**:
-empieza por los que ya tienen regla repetida, no por un barrido completo.
+Ledgerly currently validates in the aggregate factory, which is enough for most
+fields. Introducing VOs is an **incremental, localized** improvement: start
+with those that already have a repeated rule, not a complete sweep.
 
-### Eventos de dominio: cuando el efecto no es asunto del caso de uso
+### Domain events: when an effect is not the use case's concern
 
-Un agregado registra lo que le ha pasado; el caso de uso lo publica tras
-persistir; un suscriptor reacciona. Sirve para desacoplar efectos secundarios
-(notificar, sincronizar, auditar) del caso de uso que los provoca.
+An aggregate records what happened to it; the use case publishes it after
+persistence; a subscriber reacts. This decouples side effects (notification,
+synchronization, auditing) from the use case that caused them.
 
 ```ts
-// en el agregado
 private events: DomainEvent[] = [];
 pullEvents(): DomainEvent[] { const e = this.events; this.events = []; return e; }
 
-// en el caso de uso, DESPUÉS de persistir
 await this.repository.save(document);
 this.eventBus.publish(document.pullEvents());
 ```
 
-Reglas: se publica **después** de persistir (si no, se notifica algo que aún
-puede fallar); el evento nombra un hecho consumado en pasado
-(`DocumentUploaded`, no `UploadDocument`); y el agregado **no** ejecuta el
-efecto, solo lo registra.
+Rules: publish **after** persistence (otherwise you notify about something that
+can still fail); the event names a completed fact in the past
+(`DocumentUploaded`, not `UploadDocument`); and the aggregate **does not**
+perform the effect, it only records it.
 
-**Criterio para este repo:** Ledgerly no tiene event bus y hoy no lo necesita —
-sus efectos secundarios son pocos y directos. Meter uno "porque DDD" añade una
-capa de indirección asíncrona que dificulta seguir el flujo y depurar. El
-disparador honesto para introducirlo es concreto: cuando aparezca el **aviso de
-renovación de documentos laborales** (ya previsto en `staff`), o cuando un mismo
-hecho tenga que provocar dos efectos en contextos distintos. Antes de eso, una
-llamada directa es más legible y más fácil de desplegar.
+**Repository criterion:** Ledgerly already has a shared in-process domain-event
+publisher for action-based notifications. Use it when a completed fact must
+trigger effects in another context without coupling those contexts. Do not route
+ordinary calls through it merely "because DDD": direct use-case orchestration is
+still clearer when the effect belongs to the same operation. See
+`docs/architecture/notifications.md` for the existing publisher, subscriber,
+and retry boundary.
 
-### Puertos: interfaz + token de inyección
+### Ports: interface + injection token
 
-TypeScript borra las interfaces al compilar, así que Nest **no puede** inyectar
-por interfaz. Sin un token, la inversión de dependencias no existe: acabas
-inyectando la clase concreta y el puerto queda de adorno.
+TypeScript erases interfaces at compile time, so Nest **cannot** inject by
+interface. Without a token, dependency inversion does not exist: the concrete
+class ends up injected and the port is decorative.
 
 ```ts
 // domain/staff-member.repository.ts
@@ -192,12 +195,12 @@ export interface StaffMemberRepository {
 }
 ```
 
-El puerto se nombra en lenguaje de dominio (`save`, `findById`), no de ORM
-(nada de `createQueryBuilder` ni `findOne({where})` asomando en la firma).
+Name the port in domain language (`save`, `findById`), not ORM language (no
+`createQueryBuilder` or `findOne({where})` leaking into the signature).
 
-### Errores de dominio
+### Domain errors
 
-El dominio lanza excepciones **suyas**, sin saber qué es un código HTTP:
+The domain throws **its own** exceptions, without knowing HTTP status codes:
 
 ```ts
 export class StaffMemberHasPayrollsException extends DomainException {
@@ -205,21 +208,21 @@ export class StaffMemberHasPayrollsException extends DomainException {
 }
 ```
 
-La traducción a HTTP es **una sola** y vive en infraestructura compartida
-(`shared/infrastructure/http/domain-exception.filter.ts`), con su mapa
-`STATUS_BY_CODE`. Añadir un caso nuevo = añadir un código al mapa, no repartir
-`NotFoundException` de Nest por el dominio.
+Translation to HTTP is **single-sourced** and belongs in shared infrastructure
+(`shared/infrastructure/http/domain-exception.filter.ts`), with its
+`STATUS_BY_CODE` map. Adding a new case means adding one code to the map, not
+scattering Nest `NotFoundException` throughout the domain.
 
 ---
 
-## Capa application
+## Application layer
 
-### Un caso de uso por operación
+### One use case per operation
 
-Una clase por operación, con un único método `execute()`. **No** una clase
-`XUseCases` con los seis métodos CRUD dentro: eso reintroduce el God Service que
-la arquitectura viene a evitar, hace que cada test arrastre dependencias que no
-usa, y convierte el fichero en zona de conflictos entre agentes.
+One class per operation, with a single `execute()` method. **Do not** create an
+`XUseCases` class containing six CRUD methods: that reintroduces the God Service
+this architecture avoids, makes every test bring dependencies it does not use,
+and turns the file into a conflict zone between agents.
 
 ```ts
 @Injectable()
@@ -239,63 +242,63 @@ export class CreateStaffMemberUseCase {
 }
 ```
 
-Fíjate en que inyecta **el token**, tipado con **la interfaz**. Nunca la clase
-`TypeOrmStaffMemberRepository`.
+Notice that it injects **the token**, typed as **the interface**. Never the
+`TypeOrmStaffMemberRepository` class.
 
 ### Command ≠ DTO
 
-- El **command** (`application/`) es la entrada del caso de uso: tipos planos,
-  sin decoradores, sin `class-validator`, sin saber que existe HTTP.
-- El **DTO** (`infrastructure/http/dtos/`) valida la petición HTTP con
-  `class-validator`. Es un detalle del transporte.
+- The **command** (`application/`) is the use case input: plain types, no
+  decorators, no `class-validator`, and no knowledge of HTTP.
+- The **DTO** (`infrastructure/http/dtos/`) validates the HTTP request with
+  `class-validator`. It is a transport detail.
 
-El controlador traduce DTO → command. Así el caso de uso se puede invocar desde
-un job, un CLI o una cola sin arrastrar decoradores de HTTP.
+The controller translates DTO → command. This lets a use case be invoked from a
+job, CLI, or queue without bringing along HTTP decorators.
 
-### Efectos no deterministas, por puerto
+### Non-deterministic effects, through a port
 
-Ids, reloj, sistema de ficheros: nunca `uuid()` ni `new Date()` dentro del
-dominio o del caso de uso. Van por puerto (`ID_GENERATOR`), que es lo que
-permite testear sin mocks frágiles.
-
----
-
-## Capa infrastructure
-
-### El controlador es un adaptador de entrada
-
-Va en `infrastructure/http/`, **no** en `application/`. Es un detalle del
-transporte: si mañana la entrada es gRPC o una cola, el caso de uso no se entera.
-Su trabajo es delgado: recibir el DTO, mapear a command, invocar `execute()`,
-devolver una response.
-
-**Las excepciones se lanzan, no se devuelven.** `return new NotFoundException()`
-serializa el objeto de excepción con un **200 OK** en el cuerpo — es un fallo en
-producción que ni el compilador ni los tests de tipo detectan. Lo correcto es
-dejar que la excepción de dominio suba y que el filtro la traduzca.
-
-### Entidad ORM ≠ entidad de dominio, y el mapper entre medias
-
-La clase con `@Entity`/`@Column` es un **detalle de persistencia** y vive en
-`infrastructure/persistence/`. Meterla en `domain/` acopla el núcleo al ORM y
-rompe la regla de dependencias — el error más común y más caro de esta
-arquitectura, porque a partir de ahí el esquema de tablas empieza a dictar el
-modelo de negocio.
-
-El `mapper` traduce en ambos sentidos (`toDomain`, `toOrm`) y es el único sitio
-que conoce las dos formas.
-
-### Blobs y datos sensibles
-
-Columnas de contenido binario con `select: false`, para no arrastrar el fichero
-en cada listado. Validación de tipo real por *magic bytes*, no por la extensión
-ni por el `mimetype` que manda el cliente.
+IDs, clock, file system: never call `uuid()` or `new Date()` within a domain or
+use case. Put them behind a port (`ID_GENERATOR`), which makes testing possible
+without fragile mocks.
 
 ---
 
-## Módulos de Nest
+## Infrastructure layer
 
-El módulo del contexto es donde se **cablea** el puerto con su implementación:
+### The controller is an input adapter
+
+It belongs in `infrastructure/http/`, **not** in `application/`. It is a
+transport detail: if the input becomes gRPC or a queue tomorrow, the use case
+does not notice. Its job is thin: receive the DTO, map it to a command, invoke
+`execute()`, return a response.
+
+**Exceptions are thrown, not returned.** `return new NotFoundException()`
+serializes the exception object as a **200 OK** response body — a production bug
+that neither the compiler nor type tests detect. Instead, let the domain
+exception rise and the filter translate it.
+
+### ORM entity ≠ domain entity, with a mapper between them
+
+The class with `@Entity`/`@Column` is a **persistence detail** and belongs in
+`infrastructure/persistence/`. Putting it in `domain/` couples the core to the
+ORM and breaks the dependency rule — the most common and most expensive error
+in this architecture, because the table schema then starts dictating the
+business model.
+
+The `mapper` translates in both directions (`toDomain`, `toOrm`) and is the only
+place that knows both forms.
+
+### Blobs and sensitive data
+
+Binary-content columns use `select: false`, so a file is not loaded with every
+list. Validate the actual type using _magic bytes_, not the filename extension
+or the `mimetype` supplied by the client.
+
+---
+
+## Nest modules
+
+The context module is where the port is **wired** to its implementation:
 
 ```ts
 providers: [
@@ -304,202 +307,204 @@ providers: [
 ],
 ```
 
-Trampa real ya vivida en este repo: un módulo que declara sus providers en local
-(como `demo.module.ts`) y **no** importa el módulo del otro contexto necesita
-registrar ahí también la entidad en `TypeOrmModule.forFeature([...])` y el
-provider del puerto. Si no, Nest revienta **al arrancar**, no al compilar: `nest
-build` pasa en verde y el fallo aparece en el despliegue. Verificar siempre con
-un arranque real, no solo con el build.
+A real trap already seen in this repository: a module that declares its
+providers locally (such as `demo.module.ts`) and **does not** import another
+context's module must also register that entity in
+`TypeOrmModule.forFeature([...])` and the port provider. Otherwise Nest fails
+**at startup**, not compilation: `nest build` passes, and deployment fails.
+Always verify with a real startup, not only a build.
 
 ---
 
-## Providers: formas de registro y scopes
+## Providers: registration forms and scopes
 
-Las cuatro formas, y cuándo usar cada una:
+The four forms and when to use them:
 
-| Forma | Para qué |
-|---|---|
-| `useClass` | El caso normal: cablear un puerto a su implementación |
-| `useValue` | Constantes, objetos de configuración, dobles en tests |
-| `useFactory` | La instancia depende de algo en runtime (env, otro provider); admite `inject: [...]` |
-| `useExisting` | Alias de un provider ya registrado, **compartiendo instancia** |
+| Form          | Use case                                                                                               |
+| ------------- | ------------------------------------------------------------------------------------------------------ |
+| `useClass`    | The normal case: wire a port to its implementation                                                     |
+| `useValue`    | Constants, configuration objects, test doubles                                                         |
+| `useFactory`  | The instance depends on something at runtime (environment, another provider); supports `inject: [...]` |
+| `useExisting` | Alias an already registered provider, **sharing the instance**                                         |
 
-`useExisting` no es `useClass` con otro nombre: `useClass` crea una instancia
-nueva, `useExisting` reutiliza la que ya hay. Registrar el mismo repositorio dos
-veces con `useClass` te deja con dos instancias y con dos estados si alguna vez
-guardan algo.
+`useExisting` is not `useClass` under another name: `useClass` creates a new
+instance, `useExisting` reuses the existing one. Registering the same repository
+twice with `useClass` leaves you with two instances and two states if they ever
+store state.
 
-**Alternativa a los tokens `Symbol`: la clase abstracta.** Una interfaz se borra
-al compilar, pero una clase abstracta **existe en runtime**, así que puede ser
-token por sí misma y ahorra el `@Inject()`:
+**Alternative to `Symbol` tokens: an abstract class.** An interface is erased
+at compile time, but an abstract class **exists at runtime**, so it can be a
+token itself and avoids `@Inject()`:
 
 ```ts
 export abstract class Clock {
   abstract now(): Date;
 }
 // providers: [{ provide: Clock, useClass: SystemClock }]
-// constructor(private readonly clock: Clock) {}   // sin @Inject
+constructor(private readonly clock: Clock) {}
 ```
 
-Ambas son válidas. **En este repo se usa `Symbol` + `@Inject()` de forma
-consistente** — no mezcles estilos dentro del mismo contexto solo por ahorrar un
-decorador; la consistencia vale más aquí que la brevedad.
+Both are valid. **This repository consistently uses `Symbol` + `@Inject()`** —
+do not mix styles within the same context merely to save a decorator;
+consistency matters more here than brevity.
 
-### Scopes: `DEFAULT` salvo prueba en contra
+### Scopes: `DEFAULT` unless proven otherwise
 
-- `DEFAULT` — singleton. Es lo correcto para repositorios, casos de uso y
-  adaptadores. Todo en Ledgerly debe ser esto.
-- `REQUEST` — instancia nueva por petición. **Cuesta rendimiento y se contagia
-  hacia arriba**: si un repositorio es `REQUEST`, el caso de uso que lo inyecta y
-  el controlador que inyecta el caso de uso pasan a serlo también, y acabas
-  reconstruyendo media aplicación en cada request.
-- `TRANSIENT` — instancia dedicada por consumidor. No se contagia.
+- `DEFAULT` — singleton. This is correct for repositories, use cases, and
+  adapters. Everything in Ledgerly must use this.
+- `REQUEST` — a new instance per request. **It costs performance and propagates
+  upward**: if a repository is `REQUEST`, the use case injecting it and the
+  controller injecting that use case become request-scoped too, eventually
+  rebuilding half the application on every request.
+- `TRANSIENT` — a dedicated instance per consumer. It does not propagate.
 
-Regla práctica: si alguien propone `REQUEST` para "tener el usuario actual" o
-"el tenant", casi siempre se resuelve mejor pasando ese dato **como argumento**
-del command. El scope es la última opción, no la primera.
+Practical rule: if someone proposes `REQUEST` to access "the current user" or
+"the tenant", it is almost always better to pass that data **as a command
+argument**. Scope is the last option, not the first.
 
-## Frontera HTTP y despliegue seguro
+## HTTP boundary and safe deployment
 
-La arquitectura protege el dominio; esto protege el proceso. Va en `main.ts`,
-que es el *composition root*.
+The architecture protects the domain; this protects the process. It belongs in
+`main.ts`, the _composition root_.
 
-- **`ValidationPipe` global con `whitelist: true` y `forbidNonWhitelisted: true`.**
-  No es cosmético: sin `whitelist`, cualquier propiedad extra del cuerpo llega
-  al command y de ahí al agregado — es la vía clásica de *mass assignment*, donde
-  un cliente cuela un campo que el formulario no muestra. `whitelist` las quita;
-  `forbidNonWhitelisted` además rechaza la petición. Ledgerly ya lo tiene así.
-- **`transform: true`** para que el DTO llegue como instancia de su clase y los
-  tipos primitivos se conviertan. Sin él, un `@IsInt()` sobre un parámetro de
-  ruta valida un string.
-- **CORS con origen explícito**, nunca `*` en producción.
-- **Cabeceras de seguridad con `helmet`**, aplicado **antes** que cualquier otro
-  `app.use()` o ruta: si se registra después, no cubre lo ya definido.
-- **Rate limiting** (`@nestjs/throttler`) en los endpoints caros o de escritura;
-  con subida de ficheros y extracción de PDF, un endpoint sin límite es una
-  invitación a tumbar el proceso.
-- **Límite de tamaño de cuerpo** coherente con el de subida de ficheros.
-- **`disableErrorMessages: true` en producción** si los mensajes de validación
-  revelan estructura interna. En desarrollo, déjalos.
-- Nada de secretos en el repo; configuración por entorno, validada al arrancar
-  para que un despliegue con una variable ausente falle en el bootstrap y no en
-  la primera petición del usuario.
+- **Global `ValidationPipe` with `whitelist: true` and
+  `forbidNonWhitelisted: true`.** This is not cosmetic: without `whitelist`,
+  any extra property in a request body reaches the command and then the
+  aggregate — the classic _mass assignment_ route, where a client slips in a
+  field the form does not show. `whitelist` removes it;
+  `forbidNonWhitelisted` also rejects the request. Ledgerly already has this.
+- **`transform: true`** so the DTO arrives as an instance of its class and
+  primitive types are converted. Without it, `@IsInt()` on a route parameter
+  validates a string.
+- **CORS with an explicit origin**, never `*` in production.
+- **Security headers with `helmet`**, applied **before** any other `app.use()`
+  or route: if registered later, it does not cover what was already defined.
+- **Rate limiting** (`@nestjs/throttler`) on expensive or write endpoints;
+  with file uploads and PDF extraction, an unlimited endpoint invites process
+  exhaustion.
+- **A request-body size limit** aligned with the file-upload limit.
+- **`disableErrorMessages: true` in production** if validation messages reveal
+  internal structure. Keep them in development.
+- No secrets in the repository; configure through environment variables,
+  validate at startup so a deployment with a missing variable fails at bootstrap
+  rather than on the user's first request.
 
-## Tests: dobles honestos, no mocks de todo
+## Tests: honest doubles, not mocks for everything
 
-El valor de esta arquitectura es que el dominio y los casos de uso se prueban
-**sin base de datos, sin HTTP y sin reloj real**, porque todo lo externo entra
-por un puerto.
+The value of this architecture is that domain and use cases are tested **without
+a database, HTTP, or the real clock**, because every external dependency enters
+through a port.
 
-- Prueba el **comportamiento** (invariante, regla, resultado), no la
-  implementación. Un test que verifica "se llamó a `save()` una vez" se rompe en
-  cada refactor sin detectar un solo fallo real.
-- Prefiere un **fake** (una implementación en memoria del puerto, reutilizable) a
-  un mock con expectativas por método: se escribe una vez por puerto, se lee
-  mejor y no se rompe al reordenar llamadas.
-- Los puertos de reloj e ids son los que hacen los tests deterministas: fíjalos
-  en el doble en vez de tolerar `Date.now()`.
-- La pirámide aquí: mucho dominio y caso de uso (rápidos, sin infraestructura),
-  y unos pocos e2e que cubran el cableado real, que es donde fallan las cosas
-  que el resto no ve.
+- Test **behaviour** (invariant, rule, result), not implementation. A test that
+  asserts "`save()` was called once" breaks on every refactor without detecting
+  a real failure.
+- Prefer a **fake** (a reusable in-memory implementation of a port) to a mock
+  with per-method expectations: write it once per port, read it more easily,
+  and it does not break when calls are reordered.
+- Clock and ID ports make tests deterministic: fix them in the double rather
+  than accommodating `Date.now()`.
+- The pyramid here: much domain and use-case coverage (fast, without
+  infrastructure), plus a few e2e tests covering real wiring, which catches what
+  the rest cannot see.
 
-## Migraciones
+## Migrations
 
-- `apps/back/src/database/migrations/<timestamp>-<Nombre>.ts`, timestamp
-  estrictamente creciente sobre la última existente.
-- Siempre **aditivas** y con `down()` completo y probado (`migration:revert`,
-  no solo `run`).
-- Constraint nueva sobre una tabla con datos históricos que la violan: `NOT
-  VALID`, para que no invalide lo viejo pero sí exija la regla en toda escritura
-  nueva. No añadir `VALIDATE CONSTRAINT` después "para dejarlo limpio": eso
-  reintroduce justo el fallo que el `NOT VALID` evita.
-- Antes de una constraint, **buscar todos los productores** de esas filas
-  (seeds, cargadores de datos demo, jobs). Un productor en runtime que las viole
-  empieza a fallar en caliente, no en la migración.
-
----
-
-## Prohibido (anti-patrones concretos)
-
-| Anti-patrón | Por qué |
-|---|---|
-| Entidad ORM (`@Entity`, `@Column`) en `domain/` | Acopla el núcleo al ORM; rompe la regla de dependencias |
-| Inyectar la clase concreta del repositorio | El puerto queda decorativo; no hay inversión real |
-| Clase `XUseCases` con todo el CRUD | God Service; tests acoplados; fichero en conflicto permanente |
-| Controlador en `application/` | Mezcla transporte con orquestación |
-| `return new NotFoundException(...)` | Devuelve **200** con la excepción en el cuerpo |
-| `catch { return 0 }` / `catch { return null }` | Traga la causa; imposible de diagnosticar en despliegue |
-| Entidad anémica (campos públicos, sin `create()`) | Permite construir objetos inválidos; las reglas se dispersan |
-| `new Date()` / `uuid()` dentro de dominio o caso de uso | No determinista; obliga a mocks frágiles |
-| `companyId` en firmas o rutas | `company` es **singleton** por diseño; el multi-tenant está aplazado a la fase de auth |
-| Un contexto importando otro contexto | Se declara un puerto propio y se implementa en su infraestructura |
-| `ValidationPipe` sin `whitelist` | Campos no declarados llegan al dominio: *mass assignment* |
-| `Scope.REQUEST` en repositorios o casos de uso | Se contagia hacia arriba y reconstruye media app por petición |
-| `useClass` dos veces para el mismo puerto | Dos instancias distintas; si guardan estado, diverge. Es `useExisting` |
-| Publicar un evento de dominio antes de persistir | Se notifica un hecho que todavía puede fallar |
-| Mockear el repositorio con expectativas por método | El test se rompe en cada refactor sin detectar fallos reales; usa un fake |
-| Un value object por cada `string` | Ceremonia: multiplica ficheros y mapeos sin comprar ninguna regla |
-| **Cualquier comentario en el código** | Prohibido en este repo. Si hace falta explicar, el código está mal: renombra o extrae. Ver abajo |
+- `apps/back/src/database/migrations/<timestamp>-<Name>.ts`, with a timestamp
+  strictly increasing over the last existing one.
+- Always **additive**, with a complete, tested `down()` (`migration:revert`, not
+  only `run`).
+- A new constraint on a table with historical data that violates it: `NOT
+VALID`, so it does not invalidate old data but does enforce the rule on every
+  new write. Do not add `VALIDATE CONSTRAINT` afterwards "to leave it clean":
+  that reintroduces the exact failure that `NOT VALID` prevents.
+- Before a constraint, **find every producer** of those rows (seeds, demo-data
+  loaders, jobs). A runtime producer that violates it starts failing live, not
+  in the migration.
 
 ---
 
-## Checklist para revisar un plan o un PR de backend
+## Forbidden (specific anti-patterns)
 
-1. ¿`domain/` compila sin `infrastructure/`? ¿Cero imports de NestJS/TypeORM ahí?
-2. ¿Cada operación tiene su propio caso de uso con `execute()`?
-3. ¿Los repositorios se inyectan por token y se tipan por interfaz?
-4. ¿Las entidades validan sus invariantes en `create()`, y `withChanges()` revalida?
-5. ¿Los errores son excepciones de dominio traducidas en un único filtro?
-6. ¿La entidad ORM está en `persistence/` y hay mapper en los dos sentidos?
-7. ¿Command sin decoradores, DTO con validación, controlador delgado?
-8. ¿La migración es aditiva, reversible y con el `down()` probado?
-9. ¿El módulo cablea todos los puertos que sus casos de uso inyectan? ¿Arranca de verdad?
-10. ¿Ningún `companyId` colado?
-11. ¿Todo provider en `DEFAULT`? ¿Ningún `REQUEST` que se contagie hacia arriba?
-12. ¿`ValidationPipe` global con `whitelist` y `forbidNonWhitelisted`? ¿CORS con origen explícito?
-13. ¿Los tests de dominio y caso de uso corren sin BD, sin HTTP y sin reloj real?
-14. Si se introducen VOs o eventos: ¿resuelven una regla repetida o un efecto
-    cruzado real, o son ceremonia? Ante la duda, no.
-
----
-
-## Código sin comentarios
-
-En este repo **no se escribe ni un comentario**. Ni de línea, ni de bloque, ni
-JSDoc. Solo se conservan las **directivas** (`eslint-disable`,
-`@ts-expect-error`), que no son comentarios: borrarlas rompe lint o build.
-
-La regla no es cosmética, encaja con todo lo anterior: si un trozo de código
-necesita una frase en castellano al lado, es que la intención no está en el
-código. La respuesta es renombrar, extraer una función cuyo nombre sea la
-explicación, o mover la regla al agregado, que es donde nadie puede saltársela.
-
-Un comentario, además, envejece en silencio: nada lo compila ni lo prueba, así
-que al tercer refactor miente. Un nombre mal puesto lo delata el uso; un
-comentario falso no lo delata nadie.
-
-Dónde va cada cosa que antes se comentaba:
-
-| Antes | Ahora |
-|---|---|
-| Qué hace este bloque | Extraer función con nombre; el nombre es la frase |
-| Qué significa este valor | Value object o tipo, no una nota al margen |
-| Por qué se hizo así | Mensaje del commit |
-| Advertencia de consecuencias (`NOT VALID`, orden de `helmet`, DI local de un módulo) | **Esta skill**, que la lee quien va a tomar la decisión |
-| Diseño de un contexto | `docs/architecture/` |
-
-Las tres advertencias que solían vivir como comentarios en el código ya están
-recogidas arriba, en «Migraciones», «Módulos de Nest» y «Frontera HTTP»: ese es
-su sitio, porque aplican al repo entero y no solo a la línea donde estaban.
+| Anti-pattern                                      | Why                                                                                                 |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| ORM entity (`@Entity`, `@Column`) in `domain/`    | Couples the core to the ORM; breaks the dependency rule                                             |
+| Injecting the concrete repository class           | The port becomes decorative; there is no real inversion                                             |
+| `XUseCases` class with all CRUD                   | God Service; coupled tests; permanently conflicting file                                            |
+| Controller in `application/`                      | Mixes transport with orchestration                                                                  |
+| `return new NotFoundException(...)`               | Returns **200** with the exception in the body                                                      |
+| `catch { return 0 }` / `catch { return null }`    | Swallows the cause; impossible to diagnose in deployment                                            |
+| Anemic entity (public fields, no `create()`)      | Allows invalid objects; rules are scattered                                                         |
+| `new Date()` / `uuid()` in a domain or use case   | Non-deterministic; forces fragile mocks                                                             |
+| `companyId` in signatures or routes               | `company` is a design **singleton**; multi-tenancy is deferred to its own dedicated phase           |
+| One context importing another context             | Declare its own port and implement it in its infrastructure                                         |
+| `ValidationPipe` without `whitelist`              | Undeclared fields reach the domain: _mass assignment_                                               |
+| `Scope.REQUEST` in repositories or use cases      | Propagates upward and rebuilds half the app per request                                             |
+| `useClass` twice for the same port                | Two distinct instances; state diverges if they store it. Use `useExisting`                          |
+| Publishing a domain event before persistence      | Notifies a fact that can still fail                                                                 |
+| Mocking repositories with per-method expectations | Tests break on every refactor without finding failures; use a fake                                  |
+| A value object for every `string`                 | Ceremony: multiplies files and mappings without adding a rule                                       |
+| **Any code comment**                              | Forbidden in this repository. If explanation is needed, code is wrong: rename or extract. See below |
 
 ---
 
-## Nota sobre las fuentes
+## Checklist for reviewing a backend plan or PR
 
-Esta doctrina consolida los artículos de arquitectura limpia y DDD en NestJS que
-maneja David y la documentación oficial de NestJS (custom providers, provider
-scopes, validation, security), **contrastados contra el código real del repo**.
-Donde una fuente contradice la regla de dependencias, manda la regla: los
-artículos colocan el modelo del ORM en `domain/` y el controlador en
-`application/`, e inyectan el repositorio concreto en vez del puerto — los tres
-están en la tabla de prohibidos de arriba, no reproducidos.
+1. Does `domain/` compile without `infrastructure/`? Are there zero NestJS/TypeORM imports there?
+2. Does every operation have its own use case with `execute()`?
+3. Are repositories injected by token and typed by interface?
+4. Do entities validate invariants in `create()`, and does `withChanges()` revalidate?
+5. Are errors domain exceptions translated in one filter?
+6. Is the ORM entity in `persistence/`, with a mapper in both directions?
+7. Is the command undecorated, the DTO validated, and the controller thin?
+8. Is the migration additive, reversible, and its `down()` tested?
+9. Does the module wire every port injected by its use cases? Does it actually start?
+10. Is there no stray `companyId`?
+11. Is every provider `DEFAULT`? Is there no `REQUEST` that propagates upward?
+12. Does the global `ValidationPipe` use `whitelist` and `forbidNonWhitelisted`? Does CORS have an explicit origin?
+13. Do domain and use-case tests run without a database, HTTP, or a real clock?
+14. If VOs or events are introduced: do they solve a repeated rule or real
+    cross-context effect, or are they ceremony? When in doubt, do not add them.
+
+---
+
+## Code without comments
+
+This repository **does not write any comments**. No line comments, block
+comments, or JSDoc. Only **directives** (`eslint-disable`, `@ts-expect-error`)
+remain, which are not comments: removing them breaks lint or the build.
+
+The rule is not cosmetic; it fits everything above: if a piece of code needs a
+sentence next to it, its intent is not in the code. The answer is to
+rename, extract a function whose name is the explanation, or move the rule into
+the aggregate, where nobody can bypass it.
+
+A comment also ages silently: nothing compiles or tests it, so by the third
+refactor it lies. A poorly chosen name reveals itself in usage; a false comment
+does not reveal itself to anyone.
+
+Where everything once written as a comment now belongs:
+
+| Before                                                             | Now                                                |
+| ------------------------------------------------------------------ | -------------------------------------------------- |
+| What this block does                                               | Extract a named function; the name is the sentence |
+| What this value means                                              | A value object or type, not a side note            |
+| Why it was done this way                                           | Commit message                                     |
+| Consequence warning (`NOT VALID`, `helmet` order, module-local DI) | **This skill**, read by whoever makes the decision |
+| Context design                                                     | `docs/architecture/`                               |
+
+The three warnings that once lived as code comments are already captured above,
+in “Migrations”, “Nest modules”, and “HTTP boundary and safe deployment”: that
+is their place, because they apply to the entire repository rather than only the
+line where they used to live.
+
+---
+
+## Note on sources
+
+This doctrine consolidates the clean architecture and DDD in NestJS articles
+David uses, and official NestJS documentation (custom providers, provider
+scopes, validation, security), **checked against the repository's real code**.
+Where a source contradicts the dependency rule, the rule wins: articles place
+the ORM model in `domain/` and the controller in `application/`, and inject the
+concrete repository instead of the port — all three are in the forbidden table
+above and are not reproduced here.

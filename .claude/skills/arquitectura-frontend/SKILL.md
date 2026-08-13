@@ -1,68 +1,69 @@
 ---
 name: arquitectura-frontend
-description: Doctrina de Feature-Sliced Design (FSD) para el frontend de Ledgerly. Úsala al planificar o revisar cualquier trabajo en apps/front — capas, slices, segmentos, reglas de import, public API y dónde va cada fichero. Define la estructura obligatoria y lo prohibido.
+description: Feature-Sliced Design (FSD) doctrine for the Ledgerly frontend. Use it when planning or reviewing work in apps/front — layers, slices, segments, import rules, public APIs, and file placement. It defines the mandatory structure and prohibited patterns.
 ---
 
-# Feature-Sliced Design en el frontend de Ledgerly
+# Feature-Sliced Design in the Ledgerly frontend
 
-Referencia canónica para planificar y revisar `apps/front`. Si un plan la
-contradice, el plan está mal.
+The canonical reference for planning and reviewing `apps/front`. If a plan
+contradicts it, the plan is wrong.
 
-## La regla que lo gobierna todo
+## The rule that governs everything
 
-**Un módulo solo puede importar de capas estrictamente inferiores.** Nunca de su
-misma capa, nunca de una superior.
+**A module may only import from strictly lower layers.** Never from its own
+layer and never from a higher one.
 
-De ahí sale todo lo demás. Si dudas dónde va un fichero, pregúntate quién
-necesita importarlo: eso determina su capa.
+Everything else follows from this. If you are unsure where a file belongs, ask
+who needs to import it: that determines its layer.
 
-## Las capas, de arriba abajo
+## Layers, from top to bottom
 
 ```
-app       → arranque, router, providers, estilos globales
-pages     → una pantalla = un slice
-widgets   → bloques de UI grandes y autónomos, reutilizados en varias páginas
-features  → interacciones reutilizables del producto
-entities  → conceptos de negocio (documento, proyecto, factura, trabajador…)
-shared    → cimiento sin lógica de negocio: kit de UI, cliente HTTP, utilidades
+app       → startup, router, providers, global styles
+pages     → one screen = one slice
+widgets   → large, self-contained UI blocks reused across pages
+features  → reusable product interactions
+entities  → business concepts (document, project, invoice, staff member…)
+shared    → foundation without business logic: UI kit, HTTP client, utilities
 ```
 
-`app` y `shared` **no tienen slices**: se dividen directamente en segmentos, y
-dentro de ellas los ficheros pueden importarse entre sí libremente.
+`app` and `shared` **have no slices**: they are divided directly into segments,
+and their files may import one another freely.
 
-`processes` está **deprecada** en la especificación. No la uses.
+`processes` is **deprecated** in the specification. Do not use it.
 
-No hace falta usar las seis capas. No inventes capas nuevas: su semántica está
-estandarizada y añadir una rompe la convención para todo el que venga después.
+There is no need to use all six layers. Do not invent new layers: their
+semantics are standardized, and adding one breaks the convention for everyone
+who works here afterwards.
 
-## Los segmentos, dentro de cada slice
+## Segments within each slice
 
-| Segmento | Qué contiene |
-|---|---|
-| `ui` | Componentes, estilos, formateo de presentación |
-| `api` | Llamadas al backend, tipos de la respuesta, mappers |
-| `model` | Tipos de dominio, estado, lógica de negocio |
-| `lib` | Utilidades que solo usa ese slice |
-| `config` | Constantes y feature flags |
+| Segment  | Contains                                    |
+| -------- | ------------------------------------------- |
+| `ui`     | Components, styles, presentation formatting |
+| `api`    | Backend calls, response types, mappers      |
+| `model`  | Domain types, state, business logic         |
+| `lib`    | Utilities used only by that slice           |
+| `config` | Constants and feature flags                 |
 
-Un slice no necesita todos. Crea solo los que uses.
+A slice does not need all of them. Create only the ones you use.
 
-### Subcarpeta por componente dentro de `ui/` (D-0)
+### One subdirectory per component within `ui/` (D-0)
 
-Cuando el `ui/` de un slice tiene **2 o más ficheros `.tsx` de componente**, cada
-uno pasa a su propia subcarpeta dentro de `ui/`. Con uno solo se queda plano: no
-hay nada que desambiguar. El componente principal del slice no es excepción:
-también se mueve (`AppLayout` → `ui/layout/`). Las páginas usan `page/` para su
-componente raíz, uniforme en todos los slices de `pages`.
+When a slice's `ui/` has **two or more component `.tsx` files**, each one moves
+into its own subdirectory inside `ui/`. With only one component it remains flat:
+there is nothing to disambiguate. The slice's main component is no exception:
+it moves too (`AppLayout` → `ui/layout/`). Pages use `page/` for their root
+component, consistently across all `pages` slices.
 
-Nombre de la subcarpeta: camelCase, versión reducida del componente — se quita
-lo que ya repite el slice o el tipo de artefacto (`Card`, `Chart`, `Section`,
-`Modal`, `View`, `Page`). Si tras quitar no queda nada distintivo, se camelcasea
-el nombre entero (`TopBar` → `topBar`). Nunca idéntico al nombre del fichero.
+The subdirectory name is camelCase and a shortened form of the component name —
+remove what repeats the slice or artefact type (`Card`, `Chart`, `Section`,
+`Modal`, `View`, `Page`). If nothing distinctive remains, camel-case the full
+name (`TopBar` → `topBar`). It must never be identical to the file name.
 
-El `.module.css` homónimo de un componente viaja con él a su subcarpeta. Un
-`.module.css` transversal a todo el slice (usado por varios componentes) se
-queda en la raíz de `ui/` — sigue cumpliendo la proximidad de D3 en
+A component's matching `.module.css` moves with it into its subdirectory. A
+`.module.css` shared by the entire slice (used by multiple components) remains
+at the root of `ui/` — it still follows the D3 proximity rule in
 `docs/architecture/styling.md`.
 
 ```
@@ -75,33 +76,33 @@ widgets/dashboard-charts/ui/
 └── …
 ```
 
-### Queries de TanStack Query
+### TanStack Query queries
 
-Las factorías de `queryOptions` viven en el segmento `api` del slice dueño del
-dato: `entities/<x>/api/<x>.queries.ts`, exportadas por el `index.ts` del
-slice. Prohibido escribir una `queryKey` a mano fuera de una factoría. Los
-agregados de página (el dashboard es el caso hoy) llevan las suyas en
-`pages/<x>/api/<x>.queries.ts` y no se exportan a nadie más. Detalle completo
-en `docs/architecture/data-layer.md`.
+`queryOptions` factories live in the `api` segment of the slice that owns the
+data: `entities/<x>/api/<x>.queries.ts`, exported through the slice's
+`index.ts`. Writing a `queryKey` manually outside a factory is forbidden. Page
+aggregates (the dashboard is the current case) keep their own factories in
+`pages/<x>/api/<x>.queries.ts` and do not export them to anyone else. See the
+full detail in `docs/architecture/data-layer.md`.
 
-### Estilos: CSS Modules
+### Styles: CSS Modules
 
-Cada componente lleva su `Componente.module.css` **junto al fichero que lo
-usa** — normalmente en `ui/`, pero la regla es de proximidad, no de segmento
-fijo: un hook en `model/` que devuelve JSX (`useSettingsMenuItems.tsx`) tiene
-su módulo al lado, en `model/`. Un `.module.css` no se exporta por el
-`index.ts` del slice ni se importa desde otro slice, salvo
+Every component keeps its `Component.module.css` **next to the file that uses
+it** — usually in `ui/`, but the rule is proximity, not a fixed segment: a hook
+in `model/` that returns JSX (`useSettingsMenuItems.tsx`) keeps its module next
+to it in `model/`. A `.module.css` is not exported through the slice's
+`index.ts` or imported from another slice, except for
 `@/shared/ui/typography.module.css`.
 
-`style={{…}}` solo cuando el valor no se puede conocer hasta el render y
-varía por instancia (geometría calculada, porcentaje de una serie, color que
-viene del dato); todo lo demás va a una clase. Detalle completo, con el
-catálogo de casos legítimos, en `docs/architecture/styling.md`.
+Use `style={{…}}` only when a value cannot be known before render and varies by
+instance (calculated geometry, a series percentage, a colour from data);
+everything else belongs in a class. See the complete detail and catalogue of
+valid cases in `docs/architecture/styling.md`.
 
-## Public API: el `index.ts` de cada slice
+## Public API: each slice's `index.ts`
 
-Cada slice expone un `index.ts` que es su **contrato**. Lo de dentro se puede
-reorganizar libremente mientras el contrato aguante.
+Every slice exposes an `index.ts` as its **contract**. Its internals can be
+reorganized freely as long as the contract holds.
 
 ```ts
 // entities/document/index.ts
@@ -110,46 +111,48 @@ export { DirectionTag } from './ui/DirectionTag';
 export type { Document } from './model/types';
 ```
 
-**Nunca con comodín.** `export * from './ui/Comment'` filtra los internos del
-slice y convierte cualquier refactor futuro en un cambio incompatible; además
-oculta cuál es la interfaz real.
+**Never use a wildcard.** `export * from './ui/Comment'` leaks the slice's
+internals and turns every future refactor into a breaking change; it also hides
+what the actual interface is.
 
-Importa siempre por el `index.ts` del slice, nunca metiéndote en sus tripas:
-`from '@/entities/document'`, no `from '@/entities/document/ui/StatusTag'`.
+Always import through the slice's `index.ts`, never from its internals:
+`from '@/entities/document'`, not `from '@/entities/document/ui/StatusTag'`.
 
-Excepción a la regla anterior: en `shared/ui`, un `index.ts` por componente en
-vez de uno gigante, para no arrastrar medio kit de UI en cada import.
+Exception to the preceding rule: in `shared/ui`, use one `index.ts` per
+component rather than one huge file, to avoid pulling half of the UI kit into
+every import.
 
-Dentro de un mismo slice, **no importes desde su propio `index.ts`**: usa rutas
-relativas, o acabas con imports circulares.
+Within the same slice, **do not import from its own `index.ts`**: use relative
+paths or you will create circular imports.
 
-### Cross-imports entre entities: notación `@x`
+### Cross-imports between entities: `@x` notation
 
-Dos slices de la misma capa no pueden importarse. Cuando dos entidades están
-genuinamente relacionadas, la salida es un public API dedicado:
+Two slices in the same layer cannot import one another. When two entities are
+genuinely related, use a dedicated public API:
 
 ```
 entities/document/
-  @x/staff-member.ts   ← lo que entities/staff-member puede importar
+  @x/staff-member.ts   ← what entities/staff-member may import
   index.ts             ← public API normal
 ```
 
-Úsalo **solo en `entities`** y lo mínimo posible. Si aparece en más de dos
-sitios, probablemente la relación pertenece a una capa superior (`features` o
-`pages`), que es donde FSD dice que se resuelven las relaciones entre entidades.
+Use it **only in `entities`** and as little as possible. If it appears in more
+than two places, the relationship probably belongs in a higher layer
+(`features` or `pages`), where FSD says entity relationships must be resolved.
 
 ---
 
-## El mapa de Ledgerly
+## The Ledgerly map
 
-Estructura destino. No improvises otra:
+Target structure. Do not improvise another one:
 
 ```
 apps/front/src/
 ├── app/
-│   ├── providers/        AppProviders, CompanyProvider, ThemeModeProvider, BrandColorProvider
-│   ├── router/           router.tsx y rutas
+│   ├── providers/        AppProviders and the shared QueryClient
+│   ├── router/           router.tsx and routes
 │   └── styles/           index.css, tokens.css (variables --lg-*)
+├── assets/               static Ledgerly brand assets
 ├── pages/
 │   ├── dashboard/        ui/ + api/
 │   ├── documents/
@@ -162,93 +165,106 @@ apps/front/src/
 │   ├── staff-detail/
 │   ├── onboarding/
 │   ├── login/
-│   └── extraction-hints/
+│   ├── extraction-hints/
+│   ├── calendar/
+│   └── workspace/
 ├── widgets/
-│   ├── app-layout/       AppLayout, TopBar, el sider
-│   └── command-palette/
+│   ├── app-layout/       AppLayout, TopBar, and the sider
+│   ├── command-palette/
+│   └── dashboard-charts/
 ├── features/
-│   ├── upload-document/  la modal compartida entre proyecto y trabajador
-│   └── company-settings/
+│   ├── upload-document/  modal shared by projects and staff members
+│   ├── document-detail/
+│   ├── project-form/
+│   └── staff-member-form/
 ├── entities/
-│   ├── document/         api/ model/ ui(StatusTag, DirectionTag)/
-│   ├── project/
-│   ├── invoice/
-│   ├── product/
-│   ├── supplier/
-│   ├── staff-member/
-│   └── company/
+│   ├── document/         api/ model/ ui/
+│   ├── project/          core project data
+│   ├── project-product/  project/product relationship
+│   ├── invoice/          issued invoices
+│   ├── product/          product catalogue
+│   ├── supplier/         supplier data
+│   ├── staff-member/     employee data
+│   ├── schedule-event/   calendar data
+│   ├── notification/     persisted notices
+│   ├── session/          authentication status
+│   ├── workspace-member/ application users and permissions
+│   ├── integration/      integration prototype data
+│   ├── tax-compliance/   tax profiles and monitored sources
+│   ├── extraction-hint/  learned invoice extraction hints
+│   └── company/          singleton company and branding
 └── shared/
     ├── ui/               Amount, Numeric, SemanticTag, PageContainer, EmptyHint,
     │                     typography.module.css
     ├── api/              httpClient, sanitize
-    ├── lib/              utilidades transversales
-    ├── config/           tokens de tema, constantes
-    └── i18n/             configuración y locales
+    ├── lib/              cross-cutting utilities
+    ├── config/           theme tokens and constants
+    └── i18n/             configuration and locales
 ```
 
-### Cómo decidir la capa de algo nuevo
+### How to choose the layer for something new
 
-1. ¿No sabe nada del negocio (un botón, un formateador, el cliente HTTP)? →
-   `shared`.
-2. ¿Es un concepto de negocio y sus datos (documento, factura)? → `entities`.
-3. ¿Es una acción del usuario reutilizada en varias páginas? → `features`.
-   **No todo es una feature**: si solo se usa en una página, va en esa página.
-4. ¿Es un bloque de UI grande reutilizado en varias páginas? → `widgets`. Si solo
-   aparece en una y no se reutiliza, pertenece a esa página.
-5. ¿Es una pantalla? → `pages`.
+1. Does it know nothing about the business (a button, formatter, HTTP client)?
+   → `shared`.
+2. Is it a business concept and its data (document, invoice)? → `entities`.
+3. Is it a user action reused on multiple pages? → `features`.
+   **Not everything is a feature**: if it is used on only one page, it belongs
+   on that page.
+4. Is it a large UI block reused on multiple pages? → `widgets`. If it appears
+   only once and is not reused, it belongs to that page.
+5. Is it a screen? → `pages`.
 
-Regla práctica de promoción: **algo sube de capa cuando lo necesita un segundo
-consumidor**, no antes. Crear una `feature` "por si acaso" es la vía rápida a un
-`features/` lleno de slices con un solo uso.
+Practical promotion rule: **something moves up a layer when a second consumer
+needs it**, not before. Creating a `feature` "just in case" is the quick path
+to a `features/` directory full of one-use slices.
 
 ---
 
-## Lógica fuera de la vista
+## Logic outside the view
 
-Un componente de página de 400 líneas con estado, handlers, efectos y JSX
-mezclados es el problema que esta arquitectura viene a resolver, y mover carpetas
-no lo arregla por sí solo.
+A 400-line page component with state, handlers, effects, and JSX mixed
+together is the problem this architecture solves, and merely moving directories
+does not fix it.
 
-El reparto en FSD es por **segmento**: la lógica vive en `model`, el renderizado
-en `ui`.
+FSD divides by **segment**: logic lives in `model`, rendering in `ui`.
 
 ```
 pages/documents/
-├── model/useDocumentsPage.ts   estado, handlers, efectos, datos derivados
-└── ui/DocumentsPage.tsx        recibe del hook y solo pinta
+├── model/useDocumentsPage.ts   state, handlers, effects, derived data
+└── ui/DocumentsPage.tsx        receives the hook result and only renders
 ```
 
-El componente de `ui` no debe contener reglas: si tiene un `if` que decide algo
-de negocio, esa decisión pertenece a `model` o al `entity`.
+A `ui` component must not contain rules: if it has an `if` that decides a
+business concern, that decision belongs in `model` or the `entity`.
 
 ---
 
-## Prohibido
+## Forbidden
 
-| Anti-patrón | Por qué |
-|---|---|
-| Importar de una capa superior | Rompe la regla fundamental; invierte la dirección de dependencias |
-| Importar de otro slice de la misma capa | Acopla dominios que deben poder moverse por separado; usa `@x` o sube la relación de capa |
-| Entrar en las tripas de un slice (`entities/document/ui/StatusTag`) | Salta el contrato; cualquier refactor interno rompe a los consumidores |
-| `export *` en un `index.ts` | Filtra internos y oculta la interfaz real |
-| Importar desde el `index.ts` del propio slice | Imports circulares |
-| Crear capas nuevas | Su semántica está estandarizada; una capa inventada no la entiende nadie |
-| Una `feature` con un solo consumidor | Ceremonia: si solo la usa una página, va en esa página |
-| Lógica de negocio en un componente de `ui` | Para eso está `model`; si es regla de dominio, está en `entities` |
-| Un cajón técnico global (`data/`, `queries/`, `repositories/`) | Es agrupar por tecnología en vez de por dominio: justo lo que FSD viene a evitar |
-| `style={{…}}` para valores estáticos | El sitio es una clase de `.module.css`; `style` es solo para lo que no se puede saber hasta el render (ver `docs/architecture/styling.md`) |
-| Clases con nombre de propiedad (`.mb12`) | El nombre debe decir el papel del elemento (`.kpiLabel`), no la propiedad CSS que aplica |
-| Comentarios en el código | Prohibidos en todo el repo. Ver `CLAUDE.md` |
+| Anti-pattern                                                         | Why                                                                                                             |
+| -------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Importing from a higher layer                                        | Breaks the fundamental rule; reverses the dependency direction                                                  |
+| Importing from another slice in the same layer                       | Couples domains that should move independently; use `@x` or move the relationship up a layer                    |
+| Reaching into a slice's internals (`entities/document/ui/StatusTag`) | Bypasses the contract; any internal refactor breaks consumers                                                   |
+| `export *` in an `index.ts`                                          | Leaks internals and hides the actual interface                                                                  |
+| Importing from the current slice's own `index.ts`                    | Circular imports                                                                                                |
+| Creating new layers                                                  | Their semantics are standardized; nobody understands an invented layer                                          |
+| A `feature` with one consumer                                        | Ceremony: if only one page uses it, it belongs on that page                                                     |
+| Business logic in a `ui` component                                   | `model` exists for that; domain rules belong in `entities`                                                      |
+| A global technical drawer (`data/`, `queries/`, `repositories/`)     | Groups by technology instead of domain: precisely what FSD avoids                                               |
+| `style={{…}}` for static values                                      | Use a `.module.css` class; `style` is only for values unknown until render (see `docs/architecture/styling.md`) |
+| Property-named classes (`.mb12`)                                     | The name must state the element's role (`.kpiLabel`), not the CSS property it applies                           |
+| Code comments                                                        | Forbidden throughout the repository. See `CLAUDE.md`                                                            |
 
 ---
 
-## Checklist para revisar un plan o un PR de frontend
+## Checklist for reviewing a frontend plan or PR
 
-1. ¿Cada import va hacia una capa estrictamente inferior?
-2. ¿Ningún slice importa de otro slice de su misma capa?
-3. ¿Todo import externo entra por el `index.ts` del slice, sin comodines?
-4. ¿La lógica está en `model` y el componente de `ui` solo pinta?
-5. ¿Cada `feature` y cada `widget` tienen de verdad más de un consumidor?
-6. ¿Lo que no sabe de negocio está en `shared` y no colgando de una página?
-7. ¿Los textos pasan por i18n en `es.json` **y** `en.json`?
-8. ¿Cero comentarios?
+1. Does every import go to a strictly lower layer?
+2. Does no slice import from another slice in its own layer?
+3. Does every external import go through the slice's `index.ts`, without wildcards?
+4. Is logic in `model`, with the `ui` component only rendering?
+5. Does every `feature` and `widget` genuinely have more than one consumer?
+6. Does anything that knows no business live in `shared` rather than under a page?
+7. Do texts pass through i18n in both `es.json` **and** `en.json`?
+8. Are there zero comments?

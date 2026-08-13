@@ -1,76 +1,51 @@
-# Capa de datos (TanStack Query)
+# Data layer
 
-## Qué problema resuelve
+Ledgerly uses TanStack Query for frontend reads and cache invalidation. Query
+logic belongs to the owning Feature-Sliced Design slice, never in page-local
+`useEffect` code. This avoids duplicate development requests under
+`StrictMode`, reuses fresh data across navigation, and replaces manual reload
+functions after mutations.
 
-Antes de esta migración, cada pantalla del front leía datos con
-`useState` + `useEffect` + una función de `entities/<x>/api`, sin ninguna caché
-por medio. Eso tenía tres costes concretos:
+## Shared client
 
-- Con `<StrictMode>` puesto (se queda puesto), cada `GET` salía dos veces en
-  desarrollo.
-- Volver a una pantalla ya visitada repetía siempre la petición, aunque los
-  datos no hubieran cambiado.
-- Tras cada mutación había que acordarse de llamar a mano a un `loadX()` para
-  refrescar la lista, y ese `loadX()` se repetía, con pequeñas variaciones, en
-  cada página.
-
-TanStack Query resuelve los tres con una sola pieza: una caché de queries con
-deduplicación de peticiones en vuelo (mata la doble llamada de `StrictMode`
-como efecto colateral), invalidación explícita por clave (sustituye a los
-`loadX()` manuales) y reutilización entre navegaciones mientras los datos
-sigan "frescos".
-
-## Dónde vive el `QueryClient`
-
-`apps/front/src/app/providers/queryClient.ts` exporta la instancia única de
-`QueryClient`, montada en `AppProviders.tsx`
-(`apps/front/src/app/providers/AppProviders.tsx`) con `<QueryClientProvider>`
-por fuera de `BrandColorProvider` y del resto de providers de la app.
+`apps/front/src/app/providers/queryClient.ts` exports the single
+`QueryClient`, mounted by `AppProviders`.
 
 ```ts
 export const queryClient = new QueryClient({
   defaultOptions: {
-    queries: { staleTime: 60_000, gcTime: 300_000, refetchOnWindowFocus: false, retry: false },
+    queries: {
+      staleTime: 60_000,
+      gcTime: 300_000,
+      refetchOnWindowFocus: false,
+      retry: false,
+    },
     mutations: { retry: false },
   },
 });
 ```
 
-Por qué esos valores, en una app de gestión interna donde los únicos escritores
-de los datos son los propios formularios de esta UI:
+The defaults fit an internal management application: writes originate from
+this UI and invalidate affected data explicitly. One minute of freshness
+avoids unnecessary navigation refetches, five minutes retains normal
+back-navigation data, and disabling focus refetching avoids treating the UI
+as a real-time feed. Disabled retries preserve the previous fail-fast
+behaviour.
 
-- `staleTime: 60_000` — los datos solo cambian desde aquí, y cada escritura
-  invalida explícitamente lo que toca. Un minuto de margen basta para que
-  navegar entre pantallas reutilice la caché sin pedir de más, y para que el
-  doble montaje de `StrictMode` colapse en una sola petición real.
-- `gcTime: 300_000` — una pantalla sobrevive en caché a una ida y vuelta
-  normal (por ejemplo, entrar en un proyecto y volver a la lista) sin retener
-  memoria indefinidamente para pantallas que ya no se visitan.
-- `refetchOnWindowFocus: false` — nada de lo que se muestra aquí es tiempo
-  real; volver de otra pestaña del navegador no debe disparar peticiones
-  nuevas al back.
-- `retry: false` — replica el comportamiento anterior (cero reintentos) y es
-  imprescindible para que `GET /company` falle rápido y de forma predecible
-  cuando el singleton no existe (ver el apartado de `useCompany()` más abajo).
+Two queries intentionally differ:
 
-Dos factorías necesitan un comportamiento distinto al de por defecto y lo
-declaran en su propia `queryOptions`, no tocando la config global:
+- `dashboardQueries.company(year)` uses `staleTime: 0`. It aggregates several
+  domains, so refetching on mount is safer than coordinating invalidation from
+  every contributing mutation.
+- `staffDocumentTypeQueries.list()` uses `staleTime: Infinity` because it is a
+  runtime-constant catalogue.
 
-- `dashboardQueries.company(year)` usa `staleTime: 0`. El dashboard agrega
-  documentos, proyectos, facturas y agenda; refrescarlo entero al montar es
-  más simple y más fiable que invalidarlo desde siete flujos de mutación
-  distintos, y como sigue habiendo caché de por medio no parpadea.
-- `staffDocumentTypeQueries.list()` usa `staleTime: Infinity`. Es un catálogo
-  que no cambia en tiempo de ejecución.
+## Query factories
 
-## Convenio de factorías de queries
-
-Las queries no se escriben sueltas: cada slice que posee datos remotos
-publica una factoría en su segmento `api` (`entities/<x>/api/<x>.queries.ts`,
-o `pages/dashboard/api/dashboard.queries.ts` para el dashboard, que es un
-agregado de página y no un dato de ninguna entidad). Un objeto por slice con
-`all` (la clave raíz, para invalidar por prefijo) y una función por consulta
-que devuelve `queryOptions`:
+Each slice with remote data exposes a factory in its `api` segment, normally
+`entities/<entity>/api/<entity>.queries.ts`. A factory has an `all` root key
+for prefix invalidation and a function per query that returns
+`queryOptions`.
 
 ```ts
 export const projectQueries = {
@@ -88,135 +63,86 @@ export const projectQueries = {
 };
 ```
 
-El consumidor siempre pasa por la factoría, nunca escribe una `queryKey` a
-mano: `useQuery(projectQueries.list())`, o
-`useQuery({ ...projectQueries.list(), enabled: open })` cuando la consulta
-depende de una condición (una modal abierta, un id opcional). El `queryFn` es
-la función de endpoint que ya existía en `api/`, con su mapper de dominio si
-lo tiene, ejecutado siempre dentro del propio `queryFn` y nunca en un `select`
-inline (rompería la identidad estable del array resultante en cada render).
+Consumers use the factory, for example `useQuery(projectQueries.list())` or
+`useQuery({ ...projectQueries.list(), enabled: open })`. Do not handwrite
+query keys in consumers. Endpoint functions, including domain mapping, remain
+inside `queryFn`; mapping in an inline `select` would create unstable result
+identities on every render.
 
-Claves realmente en el código:
+| Factory                                               | Keys                                                                               | Notes                                                                                          |
+| ----------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `companyQueries`                                      | `['company']`, `['company', 'branding']`                                           | Both use a five-minute stale time. Branding is public; the singleton requires a session.       |
+| `sessionQueries`                                      | `['session', 'status']`                                                            | `staleTime: 0`; bootstrap and authenticated state must be current.                             |
+| `projectQueries`                                      | `['projects', 'list']`, `['projects', 'detail', id]`                               |                                                                                                |
+| `supplierQueries`, `productQueries`, `invoiceQueries` | `['suppliers', 'list']`, `['products', 'list']`, `['invoices', 'list']`            |                                                                                                |
+| `extractionHintQueries`                               | `['extraction-hints', 'list']`, `['extraction-hints', 'quality']`                  |                                                                                                |
+| `staffQueries`                                        | Lists, details, and documents under `['staff', ...]`                               |                                                                                                |
+| `staffDocumentTypeQueries`                            | `['staff-document-types']`                                                         | Runtime-constant catalogue.                                                                    |
+| `documentQueries`                                     | Lists, project documents, details, and duplicate checks under `['documents', ...]` |                                                                                                |
+| `scheduleQueries`                                     | Board, events, and schedulable projects under `['schedule', ...]`                  |                                                                                                |
+| `dashboardQueries`                                    | `['dashboard', 'company', year ?? null]`                                           | Page aggregate; not exported outside the dashboard.                                            |
+| `notificationQueries`                                 | `['notifications', 'unread-count']`, `['notifications', 'list', size]`             | The unread count refetches every five minutes; the list is an infinite query opened on demand. |
+| `workspaceMemberQueries`                              | `['workspace-members', ...]`                                                       | Uses the authenticated workspace-member API.                                                   |
+| `integrationQueries`                                  | `['integrations', 'list']`                                                         | Uses in-memory fixtures; see `docs/architecture/workspace.md`.                                 |
 
-| Factoría | Consulta | `queryKey` | Nota |
-|---|---|---|---|
-| `companyQueries` (`entities/company/api/company.queries.ts`) | `singleton()` | `['company']` | `staleTime: 300_000`; expone también el hook `useCompany()` (ver D6 más abajo). `GET /company` exige sesión |
-| | `branding()` | `['company', 'branding']` | `staleTime: 300_000`; pega a `GET /company/branding`, la única ruta de este contexto sin sesión — la usa `LoginPage`, ver `docs/architecture/auth.md` |
-| `sessionQueries` (`entities/session/api/session.queries.ts`) | `status()` | `['session', 'status']` | `staleTime: 0`: una decisión de arranque (¿hace falta el alta del primer admin? ¿ya hay sesión?) no se cachea. La usa `useLoginPage`, ver `docs/architecture/auth.md` |
-| `projectQueries` (`entities/project/api/project.queries.ts`) | `list()` | `['projects', 'list']` | |
-| | `detail(id)` | `['projects', 'detail', id]` | |
-| `supplierQueries` (`entities/supplier/api/supplier.queries.ts`) | `list()` | `['suppliers', 'list']` | |
-| `productQueries` (`entities/product/api/product.queries.ts`) | `list()` | `['products', 'list']` | |
-| `invoiceQueries` (`entities/invoice/api/invoice.queries.ts`) | `list()` | `['invoices', 'list']` | |
-| `extractionHintQueries` (`entities/extraction-hint/api/extraction-hint.queries.ts`) | `list()` | `['extraction-hints', 'list']` | |
-| | `quality()` | `['extraction-hints', 'quality']` | |
-| `staffQueries` (`entities/staff-member/api/staff.queries.ts`) | `list()` | `['staff', 'list']` | |
-| | `detail(id)` | `['staff', 'detail', id]` | |
-| | `documents(staffMemberId, typeId?)` | `['staff', 'documents', staffMemberId, typeId ?? null]` | |
-| `staffDocumentTypeQueries` (mismo fichero) | `list()` | `['staff-document-types']` | `staleTime: Infinity`; coincide con `.all` a propósito, es un catálogo de una sola entrada |
-| `documentQueries` (`entities/document/api/document.queries.ts`) | `list(filters)` | `['documents', 'list', filters]` | |
-| | `byProject(projectId)` | `['documents', 'project', projectId]` | |
-| | `detail(projectId, id)` | `['documents', 'detail', projectId, id]` | |
-| | `duplicateCheck(params)` | `['documents', 'duplicate-check', params]` | |
-| `scheduleQueries` (`entities/schedule-event/api/schedule.queries.ts`) | `board(from, to)` | `['schedule', 'board', from, to]` | |
-| | `events(filter)` | `['schedule', 'events', filter]` | |
-| | `schedulableProjects()` | `['schedule', 'schedulable-projects']` | |
-| `dashboardQueries` (`pages/dashboard/api/dashboard.queries.ts`) | `company(year?)` | `['dashboard', 'company', year ?? null]` | `staleTime: 0`; único agregado de página, no se exporta a nadie |
-| `notificationQueries` (`entities/notification/api/notification.queries.ts`) | `unreadCount()` | `['notifications', 'unread-count']` | `refetchInterval: 5 min`, `refetchOnWindowFocus: true` — ver `docs/architecture/notifications.md` |
-| | `list(size)` | `['notifications', 'list', size]` | `infiniteQueryOptions`, solo se pide con el desplegable de la campana abierto |
-| `workspaceMemberQueries` (`entities/workspace-member/api/workspaceMember.queries.ts`) | `list()` | `['workspace-members', 'list']` | API simulada, ver `docs/architecture/workspace.md` |
-| | `current()` | `['workspace-members', 'current']` | fixture fijo `wm-1`, no hay auth |
-| `integrationQueries` (`entities/integration/api/integration.queries.ts`) | `list()` | `['integrations', 'list']` | API simulada, ver `docs/architecture/workspace.md` |
+The `all` key is always the root for its domain and is the standard target for
+invalidations that must refresh every variation of that domain.
 
-Cada `all` es la clave raíz de su fila (`['projects']`, `['documents']`, …) y
-es lo que reciben las invalidaciones que quieren refrescar todo el dominio.
+## Mutations and invalidation
 
-`workspaceMemberQueries` e `integrationQueries` siguen exactamente el mismo
-convenio, pero su `queryFn` no llama al backend: resuelve contra un store en
-memoria con latencia simulada (`entities/workspace-member/api/*.fixtures.ts`,
-`entities/integration/api/*.fixtures.ts`, `shared/lib/fakeLatency.ts`). El día
-que exista backend para el espacio de trabajo, solo cambia el cuerpo de
-`entities/workspace-member/api/*.api.ts` y `entities/integration/api/*.api.ts`
-por llamadas reales, y se borran los `*.fixtures.ts` y `fakeLatency.ts`; las
-factorías de queries, los tipos y los componentes no se tocan. Detalle
-completo en `docs/architecture/workspace.md`.
+Existing form and delete handlers remain `async` functions with their local
+loading state, validation, confirmation, and error handling. They do not move
+to `useMutation` merely to adopt the cache. After a successful write, replace
+the old reload call with the narrowest appropriate invalidation:
 
-## Regla M — las mutaciones no pasan a `useMutation`
+```ts
+await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+```
 
-Los formularios y acciones de borrado conservan sus handlers `async` con su
-`try/catch` de siempre, su estado local (`submitting`, `deletingId`) y sus
-`message.success` / `message.error`. El único cambio frente al código previo a
-la migración es sustituir la llamada manual a `loadX()` por
-`await queryClient.invalidateQueries({ queryKey: … })`.
+This preserves established error behaviour while making consistency explicit.
+Use root invalidation for the changed domain, and include dependent domains
+when the mutation changes their visible state:
 
-Motivo: convertir estos handlers a `useMutation` habría tocado quince ficheros
-distintos para reescribir un manejo de errores (`error instanceof ApiError &&
-error.status === 409`, confirmaciones de borrado bloqueado, mensajes por
-campo) que ya funcionaba bien. El cambio a invalidación es una línea por
-flujo; el resto del handler no se mueve.
+| Change                                              | Invalidate                                                   |
+| --------------------------------------------------- | ------------------------------------------------------------ |
+| Project create, update, delete, or settings change  | `projectQueries.all`                                         |
+| Project-document change                             | `documentQueries.all` and `projectQueries.all`               |
+| Supplier, product, staff, or extraction-hint change | Its respective `all` key                                     |
+| Invoice create or delete                            | `invoiceQueries.all` and `documentQueries.all`               |
+| Staff document change                               | `staffQueries.all` and `documentQueries.all` when applicable |
+| Calendar event or assignment change                 | `scheduleQueries.all`                                        |
+| Company settings or onboarding completion           | `companyQueries.singleton().queryKey`                        |
+| Notification state change                           | `notificationQueries.all`                                    |
+| Workspace member or integration change              | Its respective `all` key                                     |
 
-## Invalidaciones por flujo
+The onboarding demo-data action is the sole justified unrestricted
+`invalidateQueries()` call because it creates data across all domains.
 
-| Flujo | Fichero | Invalida |
-|---|---|---|
-| Crear / editar / borrar proyecto | `pages/projects/ui/ProjectsPage.tsx` | `projectQueries.all` |
-| Editar ajustes de un proyecto | `pages/project-detail/ui/SettingsSection.tsx` | `projectQueries.all` |
-| Borrar documento de un proyecto | `pages/project-detail/ui/DocumentsSection.tsx` | `documentQueries.all` + `projectQueries.all` |
-| Crear / editar / borrar proveedor | `pages/suppliers/ui/SuppliersPage.tsx` | `supplierQueries.all` |
-| Crear / editar / borrar producto | `pages/products/ui/ProductsPage.tsx` | `productQueries.all` |
-| Borrar pista de extracción | `pages/extraction-hints/ui/ExtractionHintsPage.tsx` | `extractionHintQueries.all` |
-| Crear / borrar factura | `pages/invoices/ui/InvoicesPage.tsx` | `invoiceQueries.all` + `documentQueries.all` (una factura puede generar un apunte) |
-| Borrar documento (buscador) | `pages/documents/ui/DocumentsPage.tsx` | `documentQueries.all` + `projectQueries.all` |
-| Editar documento | `features/document-detail/ui/DocumentEditModal.tsx` | `documentQueries.all` + `projectQueries.all` |
-| Subir documento (proyecto o personal) | `features/upload-document/ui/DocumentUploadModal.tsx` | `documentQueries.all` + `projectQueries.all` |
-| Crear proveedor inline (desde la modal de subida) | `features/upload-document/ui/DocumentUploadModal.tsx` | `supplierQueries.all` |
-| Crear trabajador inline (desde la modal de subida) | `features/upload-document/ui/DocumentUploadModal.tsx` | `staffQueries.all` |
-| Crear / editar / borrar trabajador | `pages/staff/ui/StaffPage.tsx` | `staffQueries.all` |
-| Editar perfil de un trabajador | `pages/staff-detail/ui/ProfileSection.tsx` | `staffQueries.all` |
-| Borrar documento de un trabajador | `pages/staff-detail/ui/StaffDocumentsSection.tsx` | `staffQueries.all` |
-| Subir / editar documento de un trabajador | `pages/staff-detail/ui/StaffDocumentUploadModal.tsx`, `StaffDocumentEditModal.tsx` | `staffQueries.all` + `documentQueries.all` |
-| Crear / mover / redimensionar / editar / borrar evento de agenda, asignar personal | `pages/calendar/model/useCalendarBoard.ts` | `scheduleQueries.all` (cubre tablero, eventos y proyectos planificables de una vez) |
-| Guardar ajustes de empresa | `pages/workspace/model/useCompanyProfileForm.ts` | `companyQueries.singleton().queryKey` |
-| Completar el asistente de onboarding | `pages/onboarding/ui/OnboardingPage.tsx` | `companyQueries.singleton().queryKey` |
-| Cargar datos de demo en onboarding | `pages/onboarding/ui/OnboardingPage.tsx` | `invalidateQueries()` sin filtro — crea datos de todos los dominios a la vez, es el único sitio donde una invalidación total está justificada |
-| Marcar un aviso / todos como leídos | `widgets/app-layout/model/useNotificationCenter.ts` | `notificationQueries.all` |
-| Invitar / editar acceso / reenviar / (des)activar / expulsar persona del espacio | `pages/workspace/model/useMembersPanel.ts` | `workspaceMemberQueries.all` |
-| Conectar / desconectar / activar / ajustar / probar una integración | `pages/workspace/model/useIntegrationsPanel.tsx` | `integrationQueries.all` |
+## Company singleton sentinel
 
-## `useCompany()` y el sentinel `EMPTY_COMPANY`
-
-`companyQueries` es la única factoría que no sigue exactamente D2: además del
-objeto de `queryOptions`, `entities/company/api/company.queries.ts` exporta el
-hook `useCompany()`:
+`GET /api/company` returns `404` until the singleton is created. The company
+query intentionally turns that result into `EMPTY_COMPANY`:
 
 ```ts
 export const EMPTY_COMPANY: Company = { id: '', name: '' };
 
-export const companyQueries = {
-  all: ['company'] as const,
-  singleton: () =>
-    queryOptions({
-      queryKey: ['company'] as const,
-      queryFn: () => fetchCompany().catch(() => EMPTY_COMPANY),
-      staleTime: 300_000,
-    }),
-};
-
-export function useCompany(): { company: Company; isLoading: boolean } {
-  const { data, isLoading } = useQuery(companyQueries.singleton());
-  return { company: data ?? EMPTY_COMPANY, isLoading };
-}
+singleton: () =>
+  queryOptions({
+    queryKey: ['company'] as const,
+    queryFn: () => fetchCompany().catch(() => EMPTY_COMPANY),
+    staleTime: 300_000,
+  }),
 ```
 
-El backend responde **404** en `GET /company` cuando el singleton todavía no
-existe. El `queryFn` captura ese error (y cualquier otro) y devuelve
-`EMPTY_COMPANY` en su lugar, exactamente igual que hacía cada consumidor antes
-de la migración. De este sentinel depende `companyNeedsSetup()`
-(`!company.id`, ver `docs/architecture/tenancy.md`): si el `queryFn` dejara
-escapar el error en vez de convertirlo en `EMPTY_COMPANY`, `CompanyGuard`,
-`LoginPage` y `OnboardingPage` dejarían de poder distinguir "todavía no hay
-company" de un fallo de red, y la redirección a `/onboarding` se rompería.
+`companyNeedsSetup()` depends on `!company.id`. Keep this behaviour: guards,
+the login page, and onboarding need to distinguish the normal first-run state
+from the absence of loaded company data. `useCompany()` centralizes that
+contract so consumers can use a stable company value without duplicating 404
+handling.
 
-Gracias a esta excepción, `AppSider`, `TopBar`, `InvoicesPage` y
-`DashboardPage` —que solo necesitan `const { company } = useCompany()`— no
-tienen que preocuparse por el 404 ni por estados de error explícitos.
+## See also
+
+- `docs/architecture/auth.md` — session and branding queries.
+- `docs/architecture/tenancy.md` — company singleton lifecycle.
+- `docs/architecture/workspace.md` — real member data and fixture-backed
+  integrations.

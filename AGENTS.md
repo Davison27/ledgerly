@@ -1,69 +1,98 @@
 # Ledgerly
 
-Monorepo pnpm + Turborepo: `apps/back` (NestJS + TypeORM + Postgres, arquitectura
-hexagonal por contextos) y `apps/front` (React + Vite).
+pnpm and Turborepo monorepo: `apps/back` is NestJS, TypeORM, and PostgreSQL
+organized by hexagonal bounded contexts; `apps/front` is React and Vite using
+Feature-Sliced Design.
 
-## Pipeline obligatorio
+## Required orchestration pipeline
 
-Todo encargo de David usa este flujo por defecto. Hay autorización permanente
-para lanzar subagentes cuando corresponda; no hay que pedirla antes.
+Use this workflow by default for work requested by David. Subagent delegation is
+permanently authorized when the task size justifies it.
 
-1. `planner` (`gpt-5.6-terra`, `high`) enriquece el enunciado, audita huecos y
-   escribe solo `docs/plans/<slug>.md`.
-2. `plan-validator` (`gpt-5.6-luna`, `max`) contrasta el plan con el código y
-   devuelve `APPROVED` o `CHANGES_REQUESTED`.
-3. David aprueba el plan. Si hay objeciones, el mismo `planner` las incorpora.
-   Se verifica el diff rutinariamente sin relanzar al validador; solo hay una
-   segunda validación si cambió la estructura, las unidades o su orden.
-4. Uno o varios `implementer` (`gpt-5.6-terra`, `high`) reciben únicamente una
-   unidad delimitada del plan aprobado. Son los únicos que editan producto.
-   Paralelizar solo con ámbitos de ficheros disjuntos.
-5. `qa` (`gpt-5.6-luna`, `max`) compara el resultado contra el plan, ejecuta
-   verificaciones y devuelve `PASS` o `FAIL`. Un `FAIL` vuelve al implementer;
-   no se hace commit en rojo.
+1. `planner` (`gpt-5.6-terra`, `high`) enriches the request, audits gaps, and
+   writes only the temporary file `docs/plans/<slug>.md`.
+2. `plan-validator` (`gpt-5.6-luna`, `max`) checks the plan against the real
+   code and returns `APPROVED` or `CHANGES_REQUESTED`.
+3. David approves the plan. The same planner incorporates objections. Routine
+   edits are checked from the diff; run a second validation only when units,
+   structure, or execution order changed.
+4. One or more `implementer` agents (`gpt-5.6-terra`, `high`) receive one
+   bounded unit each. They are the only subagents allowed to edit product code.
+   Parallel work must have disjoint file scopes.
+5. `qa` (`gpt-5.6-luna`, `max`) checks the implementation against the plan,
+   runs verification, and returns `PASS` or `FAIL`. A failure returns to the
+   same implementer; never commit a red change.
 
-Escala el coste al tamaño: una pregunta, entorno o cambio trivial se hace
-directamente; una unidad de un fichero o capa usa planificación local, un
-implementer y verificación local; cambios multicapa o back+front usan el
-pipeline completo. Los planes son concisos, las unidades secuenciales del mismo
-ámbito se agrupan y las comprobaciones baratas las ejecuta el orquestador.
+Scale ceremony to the task. Handle questions, environment work, and trivial
+changes directly. A single-file or single-layer unit uses local planning, one
+implementer, and local verification. Multi-layer or back-and-front changes use
+the complete pipeline. Keep plans concise, group sequential units in the same
+scope, and run cheap checks in the orchestrator.
 
-Los subagentes no se comunican entre sí ni con David: el orquestador retransmite
-preguntas y resultados. Para continuar trabajo, se retoma el mismo subagente por
-su id, nunca se crea otro equivalente en frío. Todo bloqueo real se eleva al
-usuario con opciones concretas; el informe de un subagente se resume antes de
-entregarlo a David.
+Subagents do not communicate with one another or with David. The orchestrator
+relays questions and results. Continue an existing subagent by ID instead of
+starting an equivalent cold agent. Escalate real blockers with concrete
+options, and summarize subagent reports before presenting them to David.
 
-Antes de cualquier trabajo en `apps/back` se usa `$arquitectura-hexagonal`; antes
-de cualquier trabajo en `apps/front` se usa `$arquitectura-frontend`.
+Use `$arquitectura-hexagonal` before work in `apps/back` and
+`$arquitectura-frontend` before work in `apps/front`.
 
-## Convenciones duraderas
+## Language policy
 
-- Cero comentarios de código, incluidos JSDoc. Se conservan únicamente las
-  directivas que romperían lint o build, como `eslint-disable` o
-  `@ts-expect-error`. La intención se expresa con nombres, tipos y extracción;
-  el porqué va al commit, a una skill o a `docs/architecture/`.
-- Commits Conventional Commits: `type(scope): resumen en imperativo y
-  minúscula`, con `feat`, `fix`, `refactor` o `chore`, y scope `front` o `back`.
-  El cuerpo explica el porqué y nombra clases o ficheros. Añadir
-  `Co-Authored-By: OpenAI Codex <noreply@openai.com>`. Un cambio lógico por
-  commit; si toca back y front, son dos commits separados. Antes de commitear,
-  consultar `git log -3 --format='---%n%B'`.
-- `docs/` es documentación personal de David y nunca se empuja al remoto. La
-  última iteración de una feature actualiza la documentación mediante un
-  implementer.
-- `company` es singleton: no añadir `companyId` a firmas ni rutas hasta la fase
-  de autenticación multi-tenant.
+- Repository documentation, agent instructions, plans, new code identifiers,
+  comments, commit messages, and operational output must be written in English.
+- Localized product copy is the only exception. Every visible frontend string
+  must use i18n and keep both `en.json` and `es.json` complete.
+- Existing persisted domain literals and Spanish invoice-parsing fixtures are
+  contracts or test data, not repository prose. Do not translate them without
+  a dedicated migration.
+- Do not preserve Spanish prose for historical consistency. Translate it when a
+  touched document is still useful; delete it when it is obsolete.
 
-## Verificación
+## Documentation lifecycle
+
+- `README.md` and `docs/architecture/` contain durable, versioned documentation.
+  Keep them current, concise, and free of links to temporary plans.
+- `docs/plans/` is temporary working state and is ignored by Git. A plan exists
+  only while its task is active.
+- After QA returns `PASS`, first move any durable decision into
+  `docs/architecture/`, then delete the completed plan before staging commits.
+  Delete abandoned or superseded plans as soon as the task is cancelled or
+  replaced. The orchestrator owns this cleanup; do not wait for David to ask.
+- A completed plan must never appear in `git status`, a commit, or a push.
+- Before pushing, inspect `git status --short`, the staged file list, and the
+  outgoing commits. Exclude temporary plans, secrets, local settings, generated
+  outputs, downloaded skills, backups, logs, and editor or OS files.
+
+## Durable conventions
+
+- Do not add code comments, including JSDoc. Keep only directives required by
+  lint or build, such as `eslint-disable` and `@ts-expect-error`. Express intent
+  through names, types, and extraction; record rationale in commits, skills, or
+  `docs/architecture/`.
+- Use Conventional Commits in English:
+  `type(scope): lowercase imperative summary`, with `feat`, `fix`, `refactor`,
+  `docs`, or `chore`, and `front` or `back` where applicable. The body explains
+  why and names important files or classes. Add
+  `Co-Authored-By: OpenAI Codex <noreply@openai.com>`. Keep one logical change
+  per commit and split backend from frontend. Before committing, inspect
+  `git log -3 --format='---%n%B'`.
+- `company` is a singleton. Do not add `companyId` to signatures or routes
+  until the dedicated multi-tenant phase.
+
+## Verification
 
 ```bash
 pnpm i
 pnpm --filter @ledgerly/back build
 pnpm --filter @ledgerly/back test
 pnpm --filter @ledgerly/back lint
+pnpm --filter @ledgerly/front typecheck
+pnpm --filter @ledgerly/front build
+pnpm --filter @ledgerly/front lint
+pnpm check:repo
 ```
 
-pnpm 11 usa `allowBuilds:` en `pnpm-workspace.yaml` para aprobar scripts de
-instalación. `onlyBuiltDependencies` es legacy y hace que pnpm reescriba el
-fichero con placeholders.
+pnpm 11 uses `allowBuilds:` in `pnpm-workspace.yaml` to approve installation
+scripts. `onlyBuiltDependencies` is legacy and causes pnpm to rewrite the file
+with placeholders.

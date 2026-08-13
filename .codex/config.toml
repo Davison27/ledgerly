@@ -3,17 +3,17 @@ enabled = true
 max_concurrent_threads_per_session = 4
 
 [agents.planner]
-description = "Arquitecto que convierte un encargo en un plan ejecutable sin editar producto."
+description = "Architect who turns a request into an executable plan without editing product code."
 config_file = "agents/planner.toml"
 
 [agents."plan-validator"]
-description = "Validador que contrasta la viabilidad del plan contra el código real."
+description = "Validator who checks plan feasibility against the real code."
 config_file = "agents/plan-validator.toml"
 
 [agents.implementer]
-description = "Desarrollador de una unidad aprobada; único rol que edita producto."
+description = "Developer for one approved unit; the only role allowed to edit product code."
 config_file = "agents/implementer.toml"
 
 [agents.qa]
-description = "QA que verifica el plan, el diff y las comprobaciones sin editar."
+description = "QA role that verifies the plan, diff, and quality gates without editing."
 config_file = "agents/qa.toml"

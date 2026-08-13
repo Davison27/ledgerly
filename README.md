@@ -51,27 +51,27 @@ commands (`doctor`, `configure`, `update`, and `backup`), see
 
 ### Commands (`make help`)
 
-| Area | Command | Description |
-| --- | --- | --- |
-| Installation | `make setup` | One-time guided server installation. |
-| Installation | `make doctor` | Diagnoses the installation and exits non-zero when anything fails. |
-| Installation | `make configure` | Changes the domain, Google credentials, administrator email, or database password. |
-| Updates | `make update` | Fetches the new version, rebuilds images, and migrates without losing data. |
-| Updates | `make backup` | Creates a compressed database backup. |
-| Updates | `make restore` | Restores a backup after typed confirmation. |
-| Lifecycle | `make up` | Starts the production stack or the local development containers. |
-| Lifecycle | `make down` | Stops the active stack. |
-| Lifecycle | `make restart` | Restarts the active stack. |
-| Lifecycle | `make logs` | Follows logs; `make logs SERVICE=back` filters by service. |
-| Development | `make dev` | Runs the local loop: dependencies, production-equivalent backend container, schema bootstrap, and frontend hot reload. |
-| Development | `make build` | Builds the frontend and backend. |
-| Development | `make lint` | Runs ESLint. |
-| Development | `make typecheck` | Checks types. |
-| Development | `make test` | Runs tests. |
-| Database | `make migrate` | Reconciles the schema with the current application definitions. |
-| Database | `make reset-db` | Deletes the volume and recreates the database. Development only. |
-| Database | `make seed` | Loads sample data. Development only. |
-| Cleanup | `make clean` | Removes builds, `node_modules`, and development volumes. Refuses production mode. |
+| Area         | Command          | Description                                                                                                            |
+| ------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Installation | `make setup`     | One-time guided server installation.                                                                                   |
+| Installation | `make doctor`    | Diagnoses the installation and exits non-zero when anything fails.                                                     |
+| Installation | `make configure` | Changes the domain, Google credentials, administrator email, or database password.                                     |
+| Updates      | `make update`    | Fetches the new version, rebuilds images, and migrates without losing data.                                            |
+| Updates      | `make backup`    | Creates a compressed database backup.                                                                                  |
+| Updates      | `make restore`   | Restores a backup after typed confirmation.                                                                            |
+| Lifecycle    | `make up`        | Starts the production stack or the local development containers.                                                       |
+| Lifecycle    | `make down`      | Stops the active stack.                                                                                                |
+| Lifecycle    | `make restart`   | Restarts the active stack.                                                                                             |
+| Lifecycle    | `make logs`      | Follows logs; `make logs SERVICE=back` filters by service.                                                             |
+| Development  | `make dev`       | Runs the local loop: dependencies, production-equivalent backend container, schema bootstrap, and frontend hot reload. |
+| Development  | `make build`     | Builds the frontend and backend.                                                                                       |
+| Development  | `make lint`      | Runs ESLint.                                                                                                           |
+| Development  | `make typecheck` | Checks types.                                                                                                          |
+| Development  | `make test`      | Runs tests.                                                                                                            |
+| Database     | `make migrate`   | Reconciles the schema with the current application definitions.                                                        |
+| Database     | `make reset-db`  | Deletes the volume and recreates the database. Development only.                                                       |
+| Database     | `make seed`      | Loads sample data. Development only.                                                                                   |
+| Cleanup      | `make clean`     | Removes builds, `node_modules`, and development volumes. Refuses production mode.                                      |
 
 `up`, `down`, `restart`, `logs`, `migrate`, and `backup` are **contextual**:
 they target the production stack when `deploy/.env` exists, otherwise the
@@ -80,14 +80,15 @@ on the server and on a workstation.
 
 ## Scripts (from the repository root)
 
-| Command | Description |
-| --- | --- |
-| `pnpm dev` | Starts the frontend and backend in development mode. |
-| `pnpm build` | Builds every application. |
-| `pnpm lint` | Runs ESLint across the monorepo. |
-| `pnpm typecheck` | Checks types. |
-| `pnpm test` | Runs tests. |
-| `pnpm format` | Formats code with Prettier. |
+| Command           | Description                                                    |
+| ----------------- | -------------------------------------------------------------- |
+| `pnpm dev`        | Starts the frontend and backend in development mode.           |
+| `pnpm build`      | Builds every application.                                      |
+| `pnpm lint`       | Runs ESLint across the monorepo.                               |
+| `pnpm check:repo` | Rejects non-English docs and files that must not be versioned. |
+| `pnpm typecheck`  | Checks types.                                                  |
+| `pnpm test`       | Runs tests.                                                    |
+| `pnpm format`     | Formats code with Prettier.                                    |
 
 To run one package, use Turbo filtering, for example:
 
@@ -99,7 +100,7 @@ pnpm dev --filter=@ledgerly/back
 ## Ports and development
 
 - **Frontend** (Vite): http://localhost:5173
-- **Backend** (NestJS): http://localhost:3000/api
+- **Backend** (NestJS): http://localhost:3005/api
 
 The frontend proxies `/api` requests to the backend in development (see
 `apps/front/vite.config.ts`), and the backend enables CORS for the frontend
