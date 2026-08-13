@@ -19,6 +19,7 @@ import { GetInvoicePdfUseCase } from '../../application/get-invoice-pdf/get-invo
 import { DeleteInvoiceUseCase } from '../../application/delete-invoice/delete-invoice.use-case';
 import { CreateInvoiceDto } from './dtos/create-invoice.dto';
 import { InvoiceResponse } from './invoice.response';
+import { InvoiceListItemResponse } from './invoice-list-item.response';
 
 function todayIso(): string {
   const now = new Date();
@@ -41,10 +42,10 @@ export class InvoicesController {
   ) {}
 
   @Get()
-  async list(): Promise<InvoiceResponse[]> {
+  async list(): Promise<InvoiceListItemResponse[]> {
     const invoices = await this.listInvoicesUseCase.execute();
 
-    return invoices.map((invoice) => InvoiceResponse.fromDomain(invoice));
+    return invoices.map((invoice) => InvoiceListItemResponse.fromItem(invoice));
   }
 
   @RequiresAccess('invoices', 'edit')

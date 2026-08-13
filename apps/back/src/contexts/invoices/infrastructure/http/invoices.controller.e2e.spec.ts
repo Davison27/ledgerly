@@ -10,6 +10,7 @@ import { GetInvoicePdfUseCase } from '../../application/get-invoice-pdf/get-invo
 import { DeleteInvoiceUseCase } from '../../application/delete-invoice/delete-invoice.use-case';
 import { CreateInvoiceCommand } from '../../application/create-invoice/create-invoice.command';
 import { Invoice } from '../../domain/invoice';
+import { InvoiceListItem } from '../../application/list-invoices/invoice-list-item';
 import { InvoiceNotFoundException } from '../../domain/errors/invoice-not-found.exception';
 import { InvoiceProjectNotFoundException } from '../../domain/errors/invoice-project-not-found.exception';
 import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
@@ -43,7 +44,9 @@ describe('InvoicesController (HTTP, no DB)', () => {
   let deleteExecute: jest.Mock<Promise<void>, [string]>;
 
   beforeAll(async () => {
-    listExecute = jest.fn(() => Promise.resolve([buildInvoice()]));
+    listExecute = jest.fn((): Promise<InvoiceListItem[]> =>
+      Promise.resolve([{ invoice: buildInvoice(), paymentStatus: 'pendiente' }]),
+    );
     getExecute = jest.fn((id: string) => Promise.resolve(buildInvoice({ id })));
     createExecute = jest.fn((command: CreateInvoiceCommand) => Promise.resolve(buildInvoice(command)));
     getPdfExecute = jest.fn();
@@ -88,6 +91,7 @@ describe('InvoicesController (HTTP, no DB)', () => {
       const body = response.body as { fullNumber: string; hasPdf: boolean }[];
       expect(body[0].fullNumber).toBe('F-2026-0001');
       expect(body[0].hasPdf).toBe(false);
+      expect(body[0]).toHaveProperty('paymentStatus', 'pendiente');
     });
   });
 
