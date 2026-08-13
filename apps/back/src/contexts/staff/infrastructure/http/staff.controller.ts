@@ -17,6 +17,7 @@ import { DeleteStaffMemberUseCase } from '../../application/delete-staff-member/
 import { CreateStaffMemberDto } from './dtos/create-staff-member.dto';
 import { UpdateStaffMemberDto } from './dtos/update-staff-member.dto';
 import { StaffMemberResponse } from './staff-member.response';
+import { StaffMemberSummaryResponse } from './staff-member-summary.response';
 
 @RequiresAccess('staff', 'view')
 @Controller('staff')
@@ -30,10 +31,10 @@ export class StaffController {
   ) {}
 
   @Get()
-  async list(): Promise<StaffMemberResponse[]> {
+  async list(): Promise<StaffMemberSummaryResponse[]> {
     const staffMembers = await this.listStaffMembersUseCase.execute();
 
-    return staffMembers.map((staffMember) => StaffMemberResponse.fromDomain(staffMember));
+    return staffMembers.map((staffMember) => StaffMemberSummaryResponse.fromSummary(staffMember));
   }
 
   @RequiresAccess('staff', 'edit')

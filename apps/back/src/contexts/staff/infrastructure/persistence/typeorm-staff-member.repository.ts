@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { StaffMember } from '../../domain/staff-member';
-import { StaffMemberRepository } from '../../domain/staff-member.repository';
+import {
+  StaffMemberRepository,
+  StaffMemberSummaryRow,
+} from '../../domain/staff-member.repository';
 import { StaffMemberOrmEntity } from './staff-member.orm-entity';
 import { StaffMemberMapper } from './staff-member.mapper';
 
@@ -19,6 +22,22 @@ export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
     const rows = await this.repository.find({ order: { lastName: 'ASC', firstName: 'ASC' } });
 
     return rows.map((row) => this.mapper.toDomain(row));
+  }
+
+  async findAllSummaryRows(): Promise<StaffMemberSummaryRow[]> {
+    const rows: StaffMemberSummaryRow[] = await this.repository.manager.query(`
+      SELECT s.id, s.first_name AS "firstName", s.last_name AS "lastName",
+             s.tax_id AS "taxId", s.email, s.phone, s.position,
+             s.hire_date::text AS "hireDate", s.end_date::text AS "endDate", s.notes,
+             COUNT(sd.id)::int AS "documentCount",
+             MIN(sd.expiry_date)::text AS "earliestExpiryDate"
+      FROM staff_members s
+      LEFT JOIN staff_documents sd ON sd.staff_member_id = s.id
+      GROUP BY s.id
+      ORDER BY s.last_name ASC, s.first_name ASC
+    `);
+
+    return rows.map((row) => ({ ...row, documentCount: Number(row.documentCount) }));
   }
 
   async findById(id: string): Promise<StaffMember | null> {

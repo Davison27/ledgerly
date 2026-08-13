@@ -1,5 +1,5 @@
 import { UpdateStaffMemberUseCase } from './update-staff-member.use-case';
-import { StaffMemberRepository } from '../../domain/staff-member.repository';
+import { StaffMemberRepository, StaffMemberSummaryRow } from '../../domain/staff-member.repository';
 import { StaffMember } from '../../domain/staff-member';
 import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
@@ -13,6 +13,10 @@ class InMemoryStaffMemberRepository implements StaffMemberRepository {
 
   findAll(): Promise<StaffMember[]> {
     return Promise.resolve([...this.staffMembers]);
+  }
+
+  findAllSummaryRows(): Promise<StaffMemberSummaryRow[]> {
+    return Promise.resolve([]);
   }
 
   findById(id: string): Promise<StaffMember | null> {

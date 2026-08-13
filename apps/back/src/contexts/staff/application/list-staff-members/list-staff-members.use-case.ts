@@ -1,5 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { StaffMember } from '../../domain/staff-member';
+import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
+import { classifyExpiry } from '../../domain/staff-document-expiry';
+import { StaffMemberSummary } from '../../domain/staff-member-summary';
 import {
   STAFF_MEMBER_REPOSITORY,
   StaffMemberRepository,
@@ -10,9 +12,17 @@ export class ListStaffMembersUseCase {
   constructor(
     @Inject(STAFF_MEMBER_REPOSITORY)
     private readonly staffMemberRepository: StaffMemberRepository,
+    @Inject(CLOCK)
+    private readonly clock: Clock,
   ) {}
 
-  execute(): Promise<StaffMember[]> {
-    return this.staffMemberRepository.findAll();
+  async execute(): Promise<StaffMemberSummary[]> {
+    const rows = await this.staffMemberRepository.findAllSummaryRows();
+    const today = this.clock.todayIso();
+
+    return rows.map((row) => ({
+      ...row,
+      documentStatus: classifyExpiry(row.earliestExpiryDate, today),
+    }));
   }
 }
