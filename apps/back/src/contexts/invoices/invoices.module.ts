@@ -13,6 +13,7 @@ import { INVOICE_PDF_RENDERER } from './domain/invoice-pdf-renderer.port';
 import { INVOICE_ISSUER_PROVIDER } from './domain/invoice-issuer.port';
 import { PROJECT_EXISTENCE_CHECKER } from './domain/project-existence-checker.port';
 import { LEDGER_ENTRY_PUBLISHER } from './domain/ledger-entry.port';
+import { INVOICE_PAYMENT_STATUS_PROVIDER } from './domain/invoice-payment-status.port';
 import { ListInvoicesUseCase } from './application/list-invoices/list-invoices.use-case';
 import { GetInvoiceUseCase } from './application/get-invoice/get-invoice.use-case';
 import { CreateInvoiceUseCase } from './application/create-invoice/create-invoice.use-case';
@@ -23,6 +24,7 @@ import { COMPANY_REPOSITORY } from '../company/domain/company.repository';
 import { TypeOrmCompanyRepository } from '../company/infrastructure/persistence/typeorm-company.repository';
 import { CompanyOrmEntity } from '../company/infrastructure/persistence/company.orm-entity';
 import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project.orm-entity';
+import { DocumentPaymentStatusProvider } from './infrastructure/documents/document-payment-status-provider';
 
 @Module({
   imports: [
@@ -41,6 +43,7 @@ import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project
     { provide: INVOICE_ISSUER_PROVIDER, useClass: CompanyRepositoryInvoiceIssuer },
     { provide: PROJECT_EXISTENCE_CHECKER, useClass: TypeOrmProjectExistenceChecker },
     { provide: LEDGER_ENTRY_PUBLISHER, useClass: DocumentLedgerEntryPublisher },
+    { provide: INVOICE_PAYMENT_STATUS_PROVIDER, useClass: DocumentPaymentStatusProvider },
     { provide: COMPANY_REPOSITORY, useClass: TypeOrmCompanyRepository },
   ],
 })
