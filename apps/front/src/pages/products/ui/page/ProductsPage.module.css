@@ -16,57 +16,30 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(280px, 320px));
   gap: var(--lg-space-lg);
 }
 
-.card {
-  overflow: hidden;
+.skeletonCard {
+  min-height: 326px;
 }
 
-.coverImage,
-.coverFallback {
-  height: 156px;
-  width: 100%;
-}
-
-.coverImage {
-  display: block;
-  object-fit: cover;
-}
-
-.coverFallback {
+.skeletonBody {
+  flex: 1;
   display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--ant-color-primary-bg), var(--ant-color-fill-tertiary));
-  color: var(--ant-color-primary);
-  font-size: 38px;
+  grid-template-rows: 132px 1fr auto;
+  gap: var(--lg-space-lg);
+  padding: 0 0 var(--lg-space-lg) !important;
 }
 
-.cardBody {
-  display: grid;
-  gap: var(--lg-space-xs);
+.skeletonVisual {
+  width: 100% !important;
+  height: 132px !important;
+  border-radius: 0 !important;
 }
 
-.category {
-  max-width: 46%;
-  overflow: hidden;
-  color: var(--ant-color-primary);
-  font-size: var(--lg-font-size-sm);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.description {
-  display: -webkit-box;
-  min-height: 40px;
-  overflow: hidden;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-.metrics {
-  margin-top: var(--lg-space-sm);
+.skeletonBody :global(.ant-skeleton) {
+  padding-inline: var(--lg-space-lg);
 }
 
 @media (max-width: 640px) {
@@ -74,5 +47,9 @@
   .categoryFilter,
   .sortSelect {
     width: 100%;
+  }
+
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

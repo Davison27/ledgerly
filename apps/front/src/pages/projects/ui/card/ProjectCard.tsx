@@ -1,7 +1,14 @@
-import type { MouseEvent } from 'react';
+import type { CSSProperties, MouseEvent } from 'react';
 import { Link } from '@tanstack/react-router';
-import { App, Avatar, Button, Dropdown, type MenuProps, Card, Typography } from 'antd';
-import { DeleteOutlined, EditOutlined, LoadingOutlined, MoreOutlined, ProjectOutlined } from '@ant-design/icons';
+import { App, Avatar, Button, Card, Dropdown, type MenuProps, Typography } from 'antd';
+import {
+  DeleteOutlined,
+  EditOutlined,
+  FileTextOutlined,
+  LoadingOutlined,
+  MoreOutlined,
+  ProjectOutlined,
+} from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/entities/project';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
@@ -56,6 +63,7 @@ export function ProjectCard({
         : financials.margin < 0
           ? colors.expense
           : undefined;
+  const cardStyle = { '--project-accent': color } as CSSProperties;
 
   const handleOpen = () => onOpen(project);
 
@@ -99,14 +107,21 @@ export function ProjectCard({
   ];
 
   return (
-    <Card hoverable onClick={handleOpen} className={styles.card} classNames={{ body: styles.body }}>
-      <div className={styles.topRow}>
+    <Card
+      hoverable
+      onClick={handleOpen}
+      className={styles.card}
+      classNames={{ body: styles.body }}
+      style={cardStyle}
+    >
+      <div className={styles.identityHeader}>
+        <div className={styles.accent} aria-hidden="true" />
         {project.image ? (
-          <Avatar shape="square" size={48} src={project.image} className={styles.avatar} />
+          <Avatar shape="square" size={52} src={project.image} className={styles.avatar} />
         ) : (
           <Avatar
             shape="square"
-            size={48}
+            size={52}
             style={{ backgroundColor: color }}
             icon={<ProjectOutlined />}
             className={styles.avatar}
@@ -121,7 +136,7 @@ export function ProjectCard({
           >
             {project.name}
           </Link>
-          <Text type="secondary" className={typography.numeric}>
+          <Text type="secondary" className={`${styles.code} ${typography.numeric}`}>
             {project.code}
           </Text>
         </div>
@@ -138,38 +153,55 @@ export function ProjectCard({
         ) : null}
       </div>
 
-      <div className={styles.metrics}>
-        <div className={styles.metric}>
-          <div className={typography.kpiValueSm}>
-            <Amount value={financials.income} currency={financials.currency} tone="income" />
-          </div>
-          <Text type="secondary" className={typography.kpiLabel}>
+      <div className={styles.profitSection}>
+        <Text type="secondary" className={typography.kpiLabel}>
+          {t('projects.card.profit')}
+        </Text>
+        <div className={styles.profitValue}>
+          <Amount value={financials.profit} currency={financials.currency} tone="auto" strong />
+        </div>
+      </div>
+
+      <div className={styles.financials}>
+        <div className={styles.financialMetric}>
+          <Text type="secondary" className={styles.metricLabel}>
             {t('projects.card.income')}
           </Text>
+          <Amount value={financials.income} currency={financials.currency} tone="income" strong />
         </div>
-        <div className={styles.metric}>
-          <div className={typography.kpiValueSm}>
-            <Amount value={financials.expenses} currency={financials.currency} tone="expense" />
-          </div>
-          <Text type="secondary" className={typography.kpiLabel}>
+        <div className={styles.financialMetric}>
+          <Text type="secondary" className={styles.metricLabel}>
             {t('projects.card.expenses')}
           </Text>
+          <Amount
+            value={financials.expenses}
+            currency={financials.currency}
+            tone="expense"
+            strong
+          />
         </div>
-        <div className={styles.metric}>
-          <div className={typography.kpiValueSm} style={{ color: marginColor }}>
-            <Numeric>
-              {financials.margin === null
-                ? '—'
-                : new Intl.NumberFormat(undefined, {
-                    style: 'percent',
-                    maximumFractionDigits: 0,
-                  }).format(financials.margin)}
-            </Numeric>
-          </div>
-          <Text type="secondary" className={typography.kpiLabel}>
-            {t('projects.card.margin')}
-          </Text>
-        </div>
+      </div>
+
+      <div className={styles.statusRow}>
+        <span className={styles.documentSummary}>
+          <FileTextOutlined aria-hidden="true" />
+          <Numeric>{project.documentCount}</Numeric>
+          <span>{t('projects.card.documents')}</span>
+          {project.pendingCount > 0 ? (
+            <SemanticTag tone="pending">{project.pendingCount}</SemanticTag>
+          ) : null}
+        </span>
+        <span className={styles.margin} style={{ color: marginColor }}>
+          <span>{t('projects.card.margin')}</span>
+          <Numeric>
+            {financials.margin === null
+              ? '—'
+              : new Intl.NumberFormat(undefined, {
+                  style: 'percent',
+                  maximumFractionDigits: 0,
+                }).format(financials.margin)}
+          </Numeric>
+        </span>
         {otherCurrencies.length > 0 ? (
           <span title={`${t('projects.card.otherCurrencies')}: ${otherCurrencies.join(', ')}`}>
             <SemanticTag tone="neutral">+{otherCurrencies.length}</SemanticTag>
