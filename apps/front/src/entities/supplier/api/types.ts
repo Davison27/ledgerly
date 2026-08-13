@@ -9,6 +9,16 @@ export interface SupplierDto {
   notes?: string | null;
 }
 
+export interface SupplierSpendDto {
+  currency: string;
+  total: number;
+}
+
+export interface SupplierSummaryDto extends SupplierDto {
+  documentCount: number;
+  spend: SupplierSpendDto[];
+}
+
 export interface CreateSupplierPayload {
   name: string;
   taxId?: string;

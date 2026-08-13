@@ -21,6 +21,8 @@ import {
   staffQueries,
   updateStaffMember,
   type StaffMemberDto,
+  type StaffDocumentExpiryStatusDto,
+  type StaffMemberSummaryDto,
 } from '@/entities/staff-member';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
@@ -34,6 +36,23 @@ import { StaffMemberFormModal, type StaffMemberFormValues } from '@/features/sta
 import styles from './StaffPage.module.css';
 
 const { Text } = Typography;
+
+const DOCUMENT_STATUS_TONE: Record<
+  StaffDocumentExpiryStatusDto,
+  'paid' | 'pending' | 'overdue' | 'neutral'
+> = {
+  valid: 'paid',
+  expiring: 'pending',
+  expired: 'overdue',
+  none: 'neutral',
+};
+
+const DOCUMENT_STATUS_RANK: Record<StaffDocumentExpiryStatusDto, number> = {
+  none: 0,
+  valid: 1,
+  expiring: 2,
+  expired: 3,
+};
 
 export function StaffPage() {
   const { t } = useTranslation();
@@ -133,7 +152,7 @@ export function StaffPage() {
     }
   };
 
-  const columns: TableColumnsType<StaffMemberDto> = [
+  const columns: TableColumnsType<StaffMemberSummaryDto> = [
     {
       title: t('staff.columns.name'),
       key: 'name',
@@ -172,6 +191,33 @@ export function StaffPage() {
       width: 140,
       render: (hireDate: string | null | undefined) =>
         hireDate ? <Numeric>{hireDate}</Numeric> : '—',
+    },
+    {
+      title: t('staff.columns.documents'),
+      dataIndex: 'documentStatus',
+      key: 'documentStatus',
+      width: 170,
+      sorter: (a, b) => DOCUMENT_STATUS_RANK[a.documentStatus] - DOCUMENT_STATUS_RANK[b.documentStatus],
+      render: (_: StaffDocumentExpiryStatusDto, record) => {
+        const label = record.documentStatus === 'none'
+          ? record.documentCount === 0
+            ? 'noDocuments'
+            : 'noExpiry'
+          : record.documentStatus;
+
+        return (
+          <Flex vertical gap={4} align="flex-start">
+            <SemanticTag tone={DOCUMENT_STATUS_TONE[record.documentStatus]}>
+              {t(`staff.documentStatus.${label}`)}
+            </SemanticTag>
+            {record.earliestExpiryDate ? (
+              <Text type="secondary">
+                <Numeric>{record.earliestExpiryDate}</Numeric>
+              </Text>
+            ) : null}
+          </Flex>
+        );
+      },
     },
     ...(canEdit ? [{
       title: t('staff.columns.actions'),
@@ -238,7 +284,7 @@ export function StaffPage() {
             className={styles.search}
           />
           <TableSurface>
-            <Table<StaffMemberDto>
+            <Table<StaffMemberSummaryDto>
               columns={columns}
               dataSource={filteredStaffMembers}
               rowKey="id"

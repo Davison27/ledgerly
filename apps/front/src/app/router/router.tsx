@@ -93,6 +93,9 @@ const calendarRoute = createRoute({
 const documentsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/documents',
+  validateSearch: (search: Record<string, unknown>): { supplierId?: string } => ({
+    supplierId: typeof search.supplierId === 'string' ? search.supplierId : undefined,
+  }),
   component: DocumentsPage,
 });
 

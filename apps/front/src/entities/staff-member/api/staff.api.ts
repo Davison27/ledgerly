@@ -7,12 +7,13 @@ import type {
   StaffDocumentDto,
   StaffDocumentTypeDto,
   StaffMemberDto,
+  StaffMemberSummaryDto,
   UpdateStaffDocumentPayload,
   UpdateStaffMemberPayload,
 } from './types';
 
-export function listStaffMembers(): Promise<StaffMemberDto[]> {
-  return get<StaffMemberDto[]>('/staff');
+export function listStaffMembers(): Promise<StaffMemberSummaryDto[]> {
+  return get<StaffMemberSummaryDto[]>('/staff');
 }
 
 export function getStaffMember(staffMemberId: string): Promise<StaffMemberDto> {

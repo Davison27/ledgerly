@@ -24,8 +24,9 @@ import {
   invoiceQueries,
   type CreateInvoicePayload,
   type InvoiceDto,
+  type InvoiceListItemDto,
 } from '@/entities/invoice';
-import { documentQueries } from '@/entities/document';
+import { documentQueries, StatusTag } from '@/entities/document';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
@@ -114,7 +115,7 @@ export function InvoicesPage() {
     }
   };
 
-  const columns: TableColumnsType<InvoiceDto> = [
+  const columns: TableColumnsType<InvoiceListItemDto> = [
     {
       title: t('invoices.columns.number'),
       dataIndex: 'fullNumber',
@@ -141,6 +142,19 @@ export function InvoicesPage() {
       title: t('invoices.columns.customerName'),
       dataIndex: 'customerName',
       key: 'customerName',
+    },
+    {
+      title: t('invoices.columns.paymentStatus'),
+      dataIndex: 'paymentStatus',
+      key: 'paymentStatus',
+      width: 120,
+      sorter: (a, b) => {
+        const order = { pagado: 0, pendiente: 1, vencido: 2 };
+        return (a.paymentStatus === null ? -1 : order[a.paymentStatus]) -
+          (b.paymentStatus === null ? -1 : order[b.paymentStatus]);
+      },
+      render: (paymentStatus: InvoiceListItemDto['paymentStatus']) =>
+        paymentStatus === null ? '—' : <StatusTag status={paymentStatus} />,
     },
     {
       title: t('invoices.columns.taxBase'),
@@ -257,7 +271,7 @@ export function InvoicesPage() {
             className={styles.search}
           />
           <TableSurface>
-            <Table<InvoiceDto>
+            <Table<InvoiceListItemDto>
               columns={columns}
               dataSource={filteredInvoices}
               rowKey="id"
@@ -268,7 +282,7 @@ export function InvoicesPage() {
                 <>
                   {summaryByCurrency.map(({ currency, taxBase, total }) => (
                     <Table.Summary.Row key={currency}>
-                      <Table.Summary.Cell index={0} colSpan={3}>
+                      <Table.Summary.Cell index={0} colSpan={4}>
                         <Text strong>{t('invoices.summaryLabel')}</Text>
                       </Table.Summary.Cell>
                       <Table.Summary.Cell index={1} align="right">

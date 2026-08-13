@@ -676,8 +676,10 @@
     "back": "Back to projects",
     "empty": "There are no projects yet.",
     "card": {
-      "documents": "Documents",
-      "pending": "Pending"
+      "income": "Income",
+      "expenses": "Expenses",
+      "margin": "Margin",
+      "otherCurrencies": "Other currencies"
     },
     "deleteConfirm": {
       "title": "Delete project",
@@ -1129,6 +1131,8 @@
       "taxId": "Tax ID",
       "email": "Email",
       "phone": "Phone",
+      "documents": "Documents",
+      "spend": "Total spend",
       "actions": "Actions"
     },
     "form": {
@@ -1217,6 +1221,7 @@
       "number": "Number",
       "issueDate": "Date",
       "customerName": "Customer",
+      "paymentStatus": "Payment status",
       "taxBase": "Base",
       "total": "Total",
       "actions": "Actions"
@@ -1528,8 +1533,16 @@
       "position": "Position",
       "taxId": "Tax ID",
       "hireDate": "Hired on",
+      "documents": "Documentation",
       "actions": "Actions",
       "inactive": "Inactive"
+    },
+    "documentStatus": {
+      "valid": "Valid",
+      "expiring": "Expiring soon",
+      "expired": "Expired",
+      "noDocuments": "No documents",
+      "noExpiry": "No expiry dates"
     },
     "fields": {
       "firstName": "First name",

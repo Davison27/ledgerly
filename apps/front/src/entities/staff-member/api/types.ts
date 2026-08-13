@@ -11,6 +11,14 @@ export interface StaffMemberDto {
   notes?: string | null;
 }
 
+export type StaffDocumentExpiryStatusDto = 'valid' | 'expiring' | 'expired' | 'none';
+
+export interface StaffMemberSummaryDto extends StaffMemberDto {
+  documentCount: number;
+  documentStatus: StaffDocumentExpiryStatusDto;
+  earliestExpiryDate: string | null;
+}
+
 export interface CreateStaffMemberPayload {
   firstName: string;
   lastName: string;

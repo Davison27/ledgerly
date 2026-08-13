@@ -4,5 +4,5 @@ export {
   updateSupplier,
   deleteSupplier,
 } from './api/suppliers.api';
-export type { SupplierDto } from './api/types';
+export type { SupplierDto, SupplierSpendDto, SupplierSummaryDto } from './api/types';
 export { supplierQueries } from './api/supplier.queries';

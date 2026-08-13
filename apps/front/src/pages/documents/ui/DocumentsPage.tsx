@@ -45,6 +45,7 @@ import { TableSurface } from '@/shared/ui/TableSurface';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { DocumentDetail, DocumentEditModal } from '@/features/document-detail';
+import { useInitialSupplierFilter } from '../model/useInitialSupplierFilter';
 import styles from './DocumentsPage.module.css';
 
 const { Text } = Typography;
@@ -83,7 +84,7 @@ export function DocumentsPage() {
   const [amountMin, setAmountMin] = useState<number | undefined>();
   const [amountMax, setAmountMax] = useState<number | undefined>();
   const [projectId, setProjectId] = useState<string | undefined>();
-  const [supplierId, setSupplierId] = useState<string | undefined>();
+  const [supplierId, setSupplierId] = useState<string | undefined>(useInitialSupplierFilter());
 
   const [selected, setSelected] = useState<{ projectId: string; id: string } | null>(null);
   const [editing, setEditing] = useState<ProjectDocument | null>(null);

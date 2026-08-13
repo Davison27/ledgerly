@@ -37,6 +37,12 @@ export interface InvoiceDto {
   hasPdf: boolean;
 }
 
+export type InvoicePaymentStatusDto = 'pagado' | 'pendiente' | 'vencido';
+
+export interface InvoiceListItemDto extends InvoiceDto {
+  paymentStatus: InvoicePaymentStatusDto | null;
+}
+
 export interface CreateInvoicePayload {
   projectId: string;
   issueDate?: string;

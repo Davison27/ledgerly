@@ -1,9 +1,14 @@
 import { del, get, patch, post } from '@/shared/api/httpClient';
 import { stripEmpty } from '@/shared/api/sanitize';
-import type { CreateSupplierPayload, SupplierDto, UpdateSupplierPayload } from './types';
+import type {
+  CreateSupplierPayload,
+  SupplierDto,
+  SupplierSummaryDto,
+  UpdateSupplierPayload,
+} from './types';
 
-export function listSuppliers(): Promise<SupplierDto[]> {
-  return get<SupplierDto[]>('/suppliers');
+export function listSuppliers(): Promise<SupplierSummaryDto[]> {
+  return get<SupplierSummaryDto[]>('/suppliers');
 }
 
 export function getSupplier(supplierId: string): Promise<SupplierDto> {
