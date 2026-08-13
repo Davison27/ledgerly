@@ -18,18 +18,36 @@
     "noSearchResults": "No hay resultados para tu búsqueda."
   },
   "login": {
-    "welcome": "Bienvenido a Ledgerly",
-    "subtitle": "Plataforma de gestión",
     "signIn": "Entrar",
     "signInWithGoogle": "Continuar con Google",
-    "tagline": "Gestiona tus proyectos, documentos y finanzas en un solo lugar.",
-    "product": {
-      "title": "Todo tu negocio, bajo control",
-      "features": {
-        "projects": { "title": "Proyectos", "description": "Planifica y sigue cada entrega." },
-        "documents": { "title": "Documentos", "description": "Centraliza facturas y archivos." },
-        "finance": { "title": "Finanzas", "description": "Controla ingresos, gastos y cobros." },
-        "calendar": { "title": "Agenda", "description": "Coordina fechas y equipos." }
+    "workspace": {
+      "label": "Espacio de trabajo privado",
+      "title": "Accede a {{name}}",
+      "subtitle": "Tu operación, documentos y finanzas en un entorno seguro.",
+      "fallbackName": "tu espacio de trabajo"
+    },
+    "secureAccess": "Acceso protegido mediante tu cuenta corporativa de Google",
+    "managedBy": "Gestionado con Ledgerly",
+    "preview": {
+      "connected": "Sistema operativo",
+      "eyebrow": "Vista general",
+      "title": "Resumen operativo",
+      "period": "Este año",
+      "income": "Ingresos",
+      "expenses": "Gastos",
+      "margin": "Margen",
+      "cashflow": "Evolución financiera",
+      "lastMonths": "Últimos 6 meses",
+      "projects": "Proyectos",
+      "active": "Activos",
+      "userName": "Laura Costa",
+      "userRole": "Administración",
+      "nav": {
+        "dashboard": "Panel",
+        "projects": "Proyectos",
+        "documents": "Documentos",
+        "calendar": "Calendario",
+        "team": "Personal"
       }
     },
     "errors": {
