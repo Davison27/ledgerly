@@ -85,6 +85,8 @@ export function DocumentsPage() {
   const [amountMax, setAmountMax] = useState<number | undefined>();
   const [projectId, setProjectId] = useState<string | undefined>();
   const [supplierId, setSupplierId] = useState<string | undefined>(useInitialSupplierFilter());
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [selected, setSelected] = useState<{ projectId: string; id: string } | null>(null);
   const [editing, setEditing] = useState<ProjectDocument | null>(null);
@@ -114,11 +116,24 @@ export function DocumentsPage() {
     [search, type, status, direction, dateRange, amountMin, amountMax, projectId, supplierId],
   );
 
+  useEffect(() => {
+    setPage(1);
+  }, [filters]);
+
   const {
-    data: documents = [],
+    data: documentsPage,
     isPending: loading,
     isError: loadError,
-  } = useQuery({ ...documentQueries.list(filters), placeholderData: keepPreviousData });
+  } = useQuery({
+    ...documentQueries.listPage(filters, page, pageSize),
+    placeholderData: keepPreviousData,
+  });
+  const documents = documentsPage?.items ?? [];
+
+  useEffect(() => {
+    if (!documentsPage || documents.length > 0 || documentsPage.total === 0 || page === 1) return;
+    setPage(Math.max(1, Math.ceil(documentsPage.total / pageSize)));
+  }, [documentsPage, documents.length, page, pageSize]);
 
   const {
     data: selectedDocument,
@@ -469,7 +484,7 @@ export function DocumentsPage() {
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('documents.loadError')} />
-      ) : documents.length === 0 ? (
+      ) : (documentsPage?.total ?? 0) === 0 ? (
         <EmptyHint
           icon={<FileTextOutlined />}
           title={hasActiveFilters ? t('documents.emptyFiltered') : t('documents.empty')}
@@ -482,7 +497,16 @@ export function DocumentsPage() {
             dataSource={documents}
             rowKey="id"
             sticky
-            pagination={{ pageSize: 20, showSizeChanger: true }}
+            pagination={{
+              current: page,
+              pageSize,
+              total: documentsPage?.total ?? 0,
+              showSizeChanger: true,
+              onChange: (nextPage, nextPageSize) => {
+                setPage(nextPageSize !== pageSize ? 1 : nextPage);
+                setPageSize(nextPageSize);
+              },
+            }}
             onRow={(record) => ({
               onClick: () => openDocument(record),
               style: { cursor: 'pointer' },

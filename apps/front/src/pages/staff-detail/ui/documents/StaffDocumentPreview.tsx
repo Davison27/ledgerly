@@ -17,12 +17,13 @@ interface StaffDocumentPreviewProps {
 
 export function StaffDocumentPreview({ staffMemberId, document }: StaffDocumentPreviewProps) {
   const { t } = useTranslation();
+  const documentId = document?.id;
   const [state, setState] = useState<ViewerState>('idle');
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [isImage, setIsImage] = useState(false);
 
   useEffect(() => {
-    if (!document) {
+    if (!documentId) {
       setState('idle');
       setObjectUrl(null);
       return;
@@ -33,7 +34,7 @@ export function StaffDocumentPreview({ staffMemberId, document }: StaffDocumentP
     setState('loading');
     setObjectUrl(null);
 
-    fetch(staffDocumentFileUrl(staffMemberId, document.id), { credentials: 'include' })
+    fetch(staffDocumentFileUrl(staffMemberId, documentId), { credentials: 'include' })
       .then((response) => {
         if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
         return response.blob();
@@ -53,7 +54,7 @@ export function StaffDocumentPreview({ staffMemberId, document }: StaffDocumentP
       cancelled = true;
       if (url) URL.revokeObjectURL(url);
     };
-  }, [staffMemberId, document?.id]);
+  }, [staffMemberId, documentId]);
 
   if (!document) {
     return (

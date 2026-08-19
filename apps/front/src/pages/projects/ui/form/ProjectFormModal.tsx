@@ -16,7 +16,7 @@ interface ProjectFormModalProps {
 export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectFormModalProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<ProjectFormFieldValues>();
-  const [image, setImage] = useState<string | undefined>(undefined);
+  const [image, setImage] = useState<string | null | undefined>(undefined);
   const isEdit = Boolean(project);
 
   useEffect(() => {

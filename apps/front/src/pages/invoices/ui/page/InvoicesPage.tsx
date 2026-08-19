@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -45,29 +45,29 @@ export function InvoicesPage() {
   const navigate = useNavigate();
   const { company } = useCompany();
   const queryClient = useQueryClient();
-  const {
-    data: invoices = [],
-    isPending: loading,
-    isError: loadError,
-  } = useQuery(invoiceQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const {
+    data: invoicesPage,
+    isPending: loading,
+    isError: loadError,
+  } = useQuery(invoiceQueries.listPage(page, pageSize, search));
   const { canAccess, isAdmin } = useWorkspaceAccess();
   const canEdit = canAccess('invoices', 'edit');
 
   const companyIncomplete = companyNeedsSetup(company) || !company.taxId;
 
-  const filteredInvoices = useMemo(() => {
-    const query = search.trim().toLocaleLowerCase();
-    if (!query) return invoices;
-    return invoices.filter((invoice) =>
-      [invoice.fullNumber, invoice.customerName]
-        .filter((value): value is string => Boolean(value))
-        .some((value) => value.toLocaleLowerCase().includes(query)),
-    );
-  }, [invoices, search]);
+  const invoices = invoicesPage?.items ?? [];
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  const filteredInvoices = invoices;
 
   const summaryByCurrency = useMemo(() => {
     const totals = new Map<string, { taxBase: number; total: number }>();
@@ -245,7 +245,7 @@ export function InvoicesPage() {
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
         <Alert type="error" showIcon message={t('invoices.loadError')} />
-      ) : invoices.length === 0 ? (
+      ) : (invoicesPage?.total ?? 0) === 0 ? (
         <EmptyHint
           icon={<FileDoneOutlined />}
           title={t('invoices.empty')}
@@ -276,7 +276,16 @@ export function InvoicesPage() {
               dataSource={filteredInvoices}
               rowKey="id"
               sticky
-              pagination={{ pageSize: 20, showSizeChanger: true }}
+              pagination={{
+                current: page,
+                pageSize,
+                total: invoicesPage?.total ?? 0,
+                showSizeChanger: true,
+                onChange: (nextPage, nextPageSize) => {
+                  setPage(nextPageSize !== pageSize ? 1 : nextPage);
+                  setPageSize(nextPageSize);
+                },
+              }}
               locale={{ emptyText: <EmptyHint icon={<FileDoneOutlined />} title={t('common.noSearchResults')} /> }}
               summary={() => (
                 <>

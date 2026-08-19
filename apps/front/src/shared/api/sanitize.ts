@@ -1,9 +1,12 @@
-export function stripEmpty<T extends object>(obj: T): Partial<T> {
+export function stripEmpty<T extends object>(
+  obj: T,
+  options: { preserveNull?: boolean } = {},
+): Partial<T> {
   const result: Partial<T> = {};
 
   for (const key of Object.keys(obj) as (keyof T)[]) {
     const value = obj[key];
-    if (value === undefined || value === null) continue;
+    if (value === undefined || (value === null && !options.preserveNull)) continue;
     if (typeof value === 'string' && value.trim() === '') continue;
     result[key] = value;
   }

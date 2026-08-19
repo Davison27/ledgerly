@@ -4,6 +4,7 @@ import { stripEmpty } from '@/shared/api/sanitize';
 import type {
   CreateDocumentPayload,
   DocumentDto,
+  DocumentDuplicateDto,
   DocumentFiltersDto,
   DocumentListFiltersDto,
   DocumentListItemDto,
@@ -12,6 +13,7 @@ import type {
   ExtractInvoiceResult,
   UpdateDocumentPayload,
 } from './types';
+import type { PageDto } from '@/shared/api/pagination';
 
 export function listDocuments(
   projectId: string,
@@ -49,6 +51,50 @@ export function listAllDocuments(
   return get<DocumentListItemDto[]>(`/documents${qs}`);
 }
 
+export function listDocumentsPage(
+  projectId: string,
+  filters: DocumentFiltersDto = {},
+  page = 1,
+  size = 20,
+): Promise<PageDto<DocumentDto>> {
+  const qs = buildQueryString({
+    search: filters.search,
+    type: filters.type,
+    status: filters.status,
+    direction: filters.direction,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    amountMin: filters.amountMin,
+    amountMax: filters.amountMax,
+    page,
+    size,
+  });
+  return get<PageDto<DocumentDto>>(`/projects/${projectId}/documents${qs}`);
+}
+
+export function listAllDocumentsPage(
+  filters: DocumentListFiltersDto = {},
+  page = 1,
+  size = 20,
+): Promise<PageDto<DocumentListItemDto>> {
+  const qs = buildQueryString({
+    search: filters.search,
+    type: filters.type,
+    status: filters.status,
+    direction: filters.direction,
+    dateFrom: filters.dateFrom,
+    dateTo: filters.dateTo,
+    amountMin: filters.amountMin,
+    amountMax: filters.amountMax,
+    projectId: filters.projectId,
+    supplierId: filters.supplierId,
+    staffMemberId: filters.staffMemberId,
+    page,
+    size,
+  });
+  return get<PageDto<DocumentListItemDto>>(`/documents${qs}`);
+}
+
 export function checkDuplicate(
   params: DuplicateCheckParams,
 ): Promise<DuplicateCheckResultDto> {
@@ -59,6 +105,22 @@ export function checkDuplicate(
     amount: params.amount,
   });
   return get<DuplicateCheckResultDto>(`/documents/duplicate-check${qs}`);
+}
+
+export function checkDuplicatePage(
+  params: DuplicateCheckParams,
+  page = 1,
+  size = 20,
+): Promise<PageDto<DocumentDuplicateDto>> {
+  const qs = buildQueryString({
+    issuerName: params.issuerName,
+    issuerTaxId: params.issuerTaxId,
+    invoiceNumber: params.invoiceNumber,
+    amount: params.amount,
+    page,
+    size,
+  });
+  return get<PageDto<DocumentDuplicateDto>>(`/documents/duplicate-check${qs}`);
 }
 
 export async function createDocument(

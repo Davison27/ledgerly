@@ -21,7 +21,7 @@ export function SettingsSection({ project }: ProjectSectionProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const [form] = Form.useForm<ProjectFormFieldValues>();
-  const [image, setImage] = useState<string | undefined>(undefined);
+  const [image, setImage] = useState<string | null | undefined>(undefined);
   const [saving, setSaving] = useState(false);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('projects', 'edit');

@@ -166,6 +166,7 @@ export function DocumentUploadModal({
   const [progress, setProgress] = useState(0);
   const [extractResult, setExtractResult] = useState<ExtractInvoiceResult | null>(null);
   const [scannedPdfError, setScannedPdfError] = useState(false);
+  const [pdfPageLimitError, setPdfPageLimitError] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const extractionTokenRef = useRef(0);
 
@@ -209,6 +210,7 @@ export function DocumentUploadModal({
     if (lockedType) form.setFieldsValue({ type: lockedType });
     setExtractResult(null);
     setScannedPdfError(false);
+    setPdfPageLimitError(false);
     setStep('idle');
     setProgress(0);
     setAutoMatchAttempted(false);
@@ -268,7 +270,15 @@ export function DocumentUploadModal({
         setStep('idle');
         setProgress(0);
         if (error instanceof ApiError && error.status === 422) {
-          setScannedPdfError(true);
+          const code =
+            error.body && typeof error.body === 'object' && 'code' in error.body
+              ? String((error.body as { code?: unknown }).code)
+              : undefined;
+          if (code === 'PDF_PAGE_LIMIT_EXCEEDED') {
+            setPdfPageLimitError(true);
+          } else {
+            setScannedPdfError(true);
+          }
           return;
         }
         void message.error(t('projects.documents.upload.extractError'));
@@ -311,6 +321,7 @@ export function DocumentUploadModal({
       setProgress(0);
       setExtractResult(null);
       setScannedPdfError(false);
+      setPdfPageLimitError(false);
       setSubmitting(false);
       extractionTokenRef.current += 1;
 
@@ -401,10 +412,16 @@ export function DocumentUploadModal({
   }, [open, invoiceNumberWatch, amountWatch, issuerNameWatch, issuerTaxIdWatch]);
 
   const { data: duplicateCheckResult } = useQuery({
-    ...documentQueries.duplicateCheck(duplicateCheckParams ?? { invoiceNumber: '', amount: 0 }),
+    ...documentQueries.duplicateCheckPage(
+      duplicateCheckParams ?? { invoiceNumber: '', amount: 0 },
+      1,
+      20,
+    ),
     enabled: duplicateCheckParams !== null,
   });
-  const duplicateMatches = duplicateCheckResult?.matches ?? [];
+  const duplicateMatches = duplicateCheckResult?.items ?? [];
+  const hasAdditionalDuplicateMatches =
+    (duplicateCheckResult?.total ?? 0) > duplicateMatches.length;
 
   const handleCancel = () => {
     form.resetFields();
@@ -800,6 +817,14 @@ export function DocumentUploadModal({
                   className={typography.caption}
                 />
               )}
+              {pdfPageLimitError && (
+                <Alert
+                  type="warning"
+                  showIcon
+                  message={t('projects.documents.upload.pdfPageLimitAlert')}
+                  className={typography.caption}
+                />
+              )}
 
               <div className={styles.pdfPreview}>
                 {pdfObjectUrl && (
@@ -836,6 +861,13 @@ export function DocumentUploadModal({
                           })}
                         </li>
                       ))}
+                      {hasAdditionalDuplicateMatches && (
+                        <li>
+                          {t('projects.documents.upload.duplicate.moreMatches', {
+                            count: (duplicateCheckResult?.total ?? 0) - duplicateMatches.length,
+                          })}
+                        </li>
+                      )}
                     </ul>
                   }
                   className={styles.duplicateAlert}

@@ -1,4 +1,4 @@
-import { del, get, patch, post } from '@/shared/api/httpClient';
+import { API_URL, del, get, patch, post } from '@/shared/api/httpClient';
 import type {
   InviteWorkspaceMemberPayload,
   UpdateWorkspaceMemberPayload,
@@ -14,7 +14,7 @@ export function getCurrentWorkspaceMember(): Promise<WorkspaceMemberDto> {
 }
 
 export function workspaceMemberAvatarUrl(memberId: string): string {
-  return `/api/workspace/members/${encodeURIComponent(memberId)}/avatar`;
+  return `${API_URL}/workspace/members/${encodeURIComponent(memberId)}/avatar`;
 }
 
 export function inviteWorkspaceMember(

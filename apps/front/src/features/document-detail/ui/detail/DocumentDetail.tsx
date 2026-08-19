@@ -44,7 +44,7 @@ function usePdfObjectUrl(document: ProjectDocument | null) {
     setState('loading');
     setObjectUrl(null);
 
-    fetch(documentFileUrl(document.projectId, document.id))
+    fetch(documentFileUrl(document.projectId, document.id), { credentials: 'include' })
       .then((response) => {
         if (!response.ok) throw new Error(`Request failed with status ${response.status}`);
         return response.blob();

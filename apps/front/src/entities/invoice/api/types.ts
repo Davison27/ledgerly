@@ -43,6 +43,12 @@ export interface InvoiceListItemDto extends InvoiceDto {
   paymentStatus: InvoicePaymentStatusDto | null;
 }
 
+export interface InvoiceListParams {
+  page: number;
+  size: number;
+  search?: string;
+}
+
 export interface CreateInvoicePayload {
   projectId: string;
   issueDate?: string;
