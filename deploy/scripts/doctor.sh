@@ -147,16 +147,35 @@ check_database() {
     return
   fi
 
-  local migration_output pending applied
-  migration_output="$(compose run --rm migrator ./node_modules/.bin/typeorm migration:show -d dist/database/data-source.js 2>/dev/null || printf '')"
-  pending="$(printf '%s\n' "$migration_output" | grep -c '^\[ \]' || true)"
-  applied="$(printf '%s\n' "$migration_output" | grep -c '^\[X\]' || true)"
-
-  if [ "$pending" -eq 0 ]; then
-    emit_ok "Connection successful · ${applied} migrations applied, 0 pending"
+  local migration_log
+  migration_log="$(mktemp)"
+  if compose run --rm migrator node dist/database/migrate.js --mode=verify >"$migration_log" 2>&1; then
+    emit_ok "Connection successful · migration verification passed"
   else
-    emit_fail "Connection successful · ${pending} migrations pending"
-    remedy "make migrate"
+    emit_fail "Migration verification failed"
+    remedy "make migrate; inspect the migrator output for schema or pending migration details"
+    [ "$QUIET" -eq 1 ] || sed 's/^/         /' "$migration_log"
+  fi
+  rm -f "$migration_log"
+
+  local max_connections required_connections
+  max_connections="$(compose exec -T postgres psql -U "$db_user" -d "$db_name" -tAc 'SHOW max_connections' 2>/dev/null | tr -d '[:space:]' || printf '0')"
+  local typeorm_pool auth_pool migrator_pool
+  typeorm_pool="$(env_get DB_TYPEORM_POOL_MAX)"
+  auth_pool="$(env_get DB_AUTH_POOL_MAX)"
+  migrator_pool="$(env_get DB_MIGRATOR_POOL_MAX)"
+  if ! [[ "$max_connections" =~ ^[0-9]+$ && "$typeorm_pool" =~ ^[0-9]+$ &&
+    "$auth_pool" =~ ^[0-9]+$ && "$migrator_pool" =~ ^[0-9]+$ ]]; then
+    emit_fail "Database connection budget values are not valid integers"
+    remedy "Check DB_*_POOL_MAX and PostgreSQL max_connections in deploy/.env"
+    return
+  fi
+  required_connections="$(( typeorm_pool + auth_pool + 2 * migrator_pool + 1 ))"
+  if [ "$max_connections" -ge "$required_connections" ] 2>/dev/null; then
+    emit_ok "Connection budget ${required_connections}/${max_connections}"
+  else
+    emit_fail "Connection budget ${required_connections} exceeds PostgreSQL max_connections=${max_connections:-unknown}"
+    remedy "Reduce the configured pools or raise PostgreSQL max_connections after measuring the VPS"
   fi
 
   local founders
@@ -211,12 +230,12 @@ check_network() {
   done
 
   local status_code
-  status_code="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "https://${domain}/api/health" 2>/dev/null)" || true
+  status_code="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "https://${domain}/api/health/ready" 2>/dev/null)" || true
   status_code="${status_code:-000}"
   if [ "$status_code" = "200" ]; then
-    emit_ok "https://${domain}/api/health → 200"
+    emit_ok "https://${domain}/api/health/ready → 200"
   else
-    emit_fail "https://${domain}/api/health → ${status_code}"
+    emit_fail "https://${domain}/api/health/ready → ${status_code}"
     remedy "docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs caddy back"
   fi
 
@@ -246,6 +265,103 @@ check_network() {
   fi
 }
 
+checksum_file() {
+  local file="$1"
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$file" | awk '{print $1}'
+  else
+    shasum -a 256 "$file" | awk '{print $1}'
+  fi
+}
+
+manifest_value() {
+  local key="$1" file="$2"
+  grep -E "^${key}=" "$file" | tail -n1 | cut -d= -f2-
+}
+
+validate_backup_pair() {
+  local manifest="$1" dump="$2" expected_dump expected_bytes actual_bytes expected_hash actual_hash key
+  expected_dump="$(manifest_value dump_file "$manifest")"
+  [ "$expected_dump" = "$(basename "$dump")" ] || return 1
+
+  for key in format created_at database postgres_version bytes sha256 typeorm_migration_count better_auth_migration_status; do
+    grep -Eq "^${key}=" "$manifest" || return 1
+  done
+
+  expected_bytes="$(manifest_value bytes "$manifest")"
+  [[ "$expected_bytes" =~ ^[0-9]+$ ]] || return 1
+  actual_bytes="$(wc -c <"$dump" | tr -d '[:space:]')"
+  [ "$expected_bytes" = "$actual_bytes" ] || return 1
+
+  expected_hash="$(manifest_value sha256 "$manifest")"
+  [[ "$expected_hash" =~ ^[[:xdigit:]]{64}$ ]] || return 1
+  actual_hash="$(checksum_file "$dump")"
+  [ "$expected_hash" = "$actual_hash" ] || return 1
+
+  if [ "${BACKUP_ARCHIVE_CHECK_ENABLED:-0}" = "1" ]; then
+    compose exec -T postgres pg_restore --list - <"$dump" >/dev/null 2>&1 || return 1
+  fi
+}
+
+check_backup_inventory() {
+  category "Backups"
+  if [ ! -d "$BACKUPS_DIR" ]; then
+    emit_warn "No backup directory exists yet"
+    remedy "make backup"
+    return
+  fi
+
+  local manifests valid=0 invalid=0 manifest dump partial_count=0 orphan_dump_count=0
+  local archive_unchecked=0
+  if service_running postgres; then
+    BACKUP_ARCHIVE_CHECK_ENABLED=1
+  else
+    BACKUP_ARCHIVE_CHECK_ENABLED=0
+    archive_unchecked=1
+  fi
+
+  partial_count="$(find "$BACKUPS_DIR" -maxdepth 1 -type f -name '*.partial' | wc -l | tr -d '[:space:]')"
+  mapfile -t manifests < <(find "$BACKUPS_DIR" -maxdepth 1 -name 'ledgerly-*.manifest' -type f | sort -r)
+  for manifest in "${manifests[@]}"; do
+    dump="${manifest%.manifest}.dump"
+    if [ -f "$dump" ] && validate_backup_pair "$manifest" "$dump"; then
+      valid=$((valid + 1))
+    else
+      invalid=$((invalid + 1))
+    fi
+  done
+
+  local candidate candidate_manifest
+  for candidate in "$BACKUPS_DIR"/ledgerly-*.dump; do
+    [ -f "$candidate" ] || continue
+    candidate_manifest="${candidate%.dump}.manifest"
+    [ -f "$candidate_manifest" ] || orphan_dump_count=$((orphan_dump_count + 1))
+  done
+
+  if [ "$valid" -gt 0 ]; then
+    if [ "$archive_unchecked" -eq 1 ]; then
+      emit_warn "${valid} structurally valid backup pair(s) available; archive contents were not checked because Postgres is not running"
+    else
+      emit_ok "${valid} complete and verified backup pair(s) available"
+    fi
+  else
+    emit_warn "No complete verified backup pairs are available"
+    remedy "make backup"
+  fi
+  if [ "$invalid" -gt 0 ]; then
+    emit_warn "${invalid} invalid or incomplete backup manifest pair(s) found"
+    remedy "Run make backup and review deploy/backups before deleting orphaned files"
+  fi
+  if [ "$orphan_dump_count" -gt 0 ]; then
+    emit_warn "${orphan_dump_count} backup dump(s) have no matching manifest"
+    remedy "Keep only dump files created by make backup after verifying their recovery path"
+  fi
+  if [ "$partial_count" -gt 0 ]; then
+    emit_warn "${partial_count} partial backup artifact(s) found"
+    remedy "Inspect interrupted backup jobs and remove partial files only after confirming a valid pair exists"
+  fi
+}
+
 check_resources() {
   category "Resources"
   local free_kb free_gb images_summary
@@ -259,6 +375,54 @@ check_resources() {
   else
     emit_ok "Disk ${free_gb} GB free · Docker images ${images_summary:-?}"
   fi
+
+  if ! env_file_complete "$ENV_FILE" 2>/dev/null; then
+    return
+  fi
+
+  local service configured_memory configured_cpus configured_pids expected_memory expected_cpus
+  local actual_memory actual_cpus actual_pids
+  for service in postgres back front; do
+    case "$service" in
+      postgres)
+        configured_memory="$(env_get DEPLOY_POSTGRES_MEMORY)"
+        configured_cpus="$(env_get DEPLOY_POSTGRES_CPUS)"
+        configured_pids="$(env_get DEPLOY_POSTGRES_PIDS_LIMIT)"
+        ;;
+      back)
+        configured_memory="$(env_get DEPLOY_BACK_MEMORY)"
+        configured_cpus="$(env_get DEPLOY_BACK_CPUS)"
+        configured_pids="$(env_get DEPLOY_PIDS_LIMIT)"
+        ;;
+      front)
+        configured_memory="$(env_get DEPLOY_FRONT_MEMORY)"
+        configured_cpus="$(env_get DEPLOY_FRONT_CPUS)"
+        configured_pids="$(env_get DEPLOY_FRONT_PIDS_LIMIT)"
+        ;;
+    esac
+
+    expected_memory="$(size_to_bytes "$configured_memory" 2>/dev/null || printf '0')"
+    expected_cpus="$(cpu_to_nanocpus "$configured_cpus" 2>/dev/null || printf '0')"
+    actual_memory="$(docker inspect --format '{{.HostConfig.Memory}}' "$(container_name "$service")" 2>/dev/null | tr -d '[:space:]' || printf '0')"
+    actual_cpus="$(docker inspect --format '{{.HostConfig.NanoCpus}}' "$(container_name "$service")" 2>/dev/null | tr -d '[:space:]' || printf '0')"
+    actual_pids="$(docker inspect --format '{{.HostConfig.PidsLimit}}' "$(container_name "$service")" 2>/dev/null | tr -d '[:space:]' || printf '0')"
+
+    if ! [[ "$expected_memory" =~ ^[0-9]+$ && "$expected_cpus" =~ ^[0-9]+$ && "$configured_pids" =~ ^[0-9]+$ &&
+      "$actual_memory" =~ ^[0-9]+$ && "$actual_cpus" =~ ^[0-9]+$ && "$actual_pids" =~ ^[0-9]+$ ]]; then
+      emit_fail "${service} has invalid resource-limit values"
+      remedy "Use integer memory units, decimal CPU values, and a positive PID limit in deploy/.env"
+      continue
+    fi
+
+    if [ "$actual_memory" -gt 0 ] && [ "$actual_memory" -le "$expected_memory" ] &&
+      [ "$actual_cpus" -gt 0 ] && [ "$actual_cpus" -le "$expected_cpus" ] &&
+      [ "$actual_pids" -gt 0 ] && [ "$actual_pids" -le "$configured_pids" ]; then
+      emit_ok "${service} limits effective (memory ${configured_memory}, CPU ${configured_cpus}, PIDs ${configured_pids})"
+    else
+      emit_fail "${service} effective Docker limits do not match the configured safeguards"
+      remedy "Recreate the stack with make restart and inspect docker inspect ${service}"
+    fi
+  done
 }
 
 main() {
@@ -276,6 +440,7 @@ main() {
   check_database
   check_network
   check_resources
+  check_backup_inventory
 
   local err_word="error" warn_word="warning"
   [ "$FAIL_COUNT" -ne 1 ] && err_word="errors"

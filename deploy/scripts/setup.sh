@@ -160,10 +160,52 @@ write_env_file() {
   env_set DB_NAME "ledgerly"
   env_set DB_USER "ledgerly"
   env_set DB_PASSWORD "$db_password"
+  env_set DB_TYPEORM_POOL_MAX "8"
+  env_set DB_AUTH_POOL_MAX "4"
+  env_set DB_MIGRATOR_POOL_MAX "2"
+  env_set DB_IDLE_TIMEOUT_MS "30000"
+  env_set DB_CONNECTION_TIMEOUT_MS "5000"
+  env_set DB_STATEMENT_TIMEOUT_MS "30000"
+  env_set DB_QUERY_TIMEOUT_MS "30000"
+  env_set DB_CONNECTION_BUDGET "17"
+  env_set MAX_LIST_ITEMS "500"
+  env_set MAX_PROJECT_PRODUCTS_PER_PROJECT "100"
+  env_set MAX_CALENDAR_RANGE_DAYS "366"
+  env_set MAX_CALENDAR_RESULTS "1000"
   env_set BETTER_AUTH_SECRET "$auth_secret"
   env_set GOOGLE_CLIENT_ID "$google_client_id"
   env_set GOOGLE_CLIENT_SECRET "$google_client_secret"
   env_set BOOTSTRAP_ADMIN_EMAIL "$admin_email"
+  env_set PDF_OCR_ENABLED "true"
+  env_set PDF_OCR_LANGUAGE "spa"
+  env_set PDF_MAX_PAGES "100"
+  env_set PDF_OCR_MAX_PAGES "12"
+  env_set PDF_OCR_TIMEOUT_SECONDS "90"
+  env_set PDF_UPLOAD_MAX_ACTIVE "4"
+  env_set PDF_UPLOAD_MAX_QUEUED "16"
+  env_set PDF_UPLOAD_QUEUE_TIMEOUT_MS "15000"
+  env_set PDF_READER_MAX_ACTIVE "2"
+  env_set PDF_READER_MAX_QUEUED "8"
+  env_set PDF_READER_QUEUE_TIMEOUT_MS "30000"
+  env_set PDF_RETRY_AFTER_SECONDS "15"
+  env_set PDF_MAX_EXTRACTED_TEXT_BYTES "2097152"
+  env_set PDF_MAX_ATTACHMENTS "20"
+  env_set PDF_MAX_ATTACHMENT_BYTES "5242880"
+  env_set PDF_MAX_TOTAL_ATTACHMENT_BYTES "20971520"
+  env_set PDF_MAX_OCR_OUTPUT_BYTES "20971520"
+  env_set DEPLOY_BACK_CPUS "1.0"
+  env_set DEPLOY_BACK_MEMORY "768m"
+  env_set DEPLOY_FRONT_CPUS "0.5"
+  env_set DEPLOY_FRONT_MEMORY "128m"
+  env_set DEPLOY_POSTGRES_CPUS "1.0"
+  env_set DEPLOY_POSTGRES_MEMORY "512m"
+  env_set DEPLOY_POSTGRES_SHM_SIZE "128m"
+  env_set DEPLOY_TMPFS_SIZE "256m"
+  env_set DEPLOY_FRONT_TMPFS_SIZE "64m"
+  env_set DEPLOY_PIDS_LIMIT "256"
+  env_set DEPLOY_POSTGRES_PIDS_LIMIT "256"
+  env_set DEPLOY_FRONT_PIDS_LIMIT "128"
+  env_set DEPLOY_MIGRATOR_PIDS_LIMIT "128"
   chmod 600 "$ENV_FILE"
 }
 
@@ -322,6 +364,7 @@ EOF
   state_set "in_progress"
   progress_done
 
+  run_step_quiet "Validating the Compose configuration" compose config --quiet
   run_step_quiet "Building the backend image" compose build back
   run_step_quiet "Building the frontend image" compose build front
 
@@ -337,7 +380,7 @@ EOF
   progress_start "Applying migrations"
   local migration_log applied
   migration_log="$(mktemp)"
-  if compose run --rm migrator >"$migration_log" 2>&1; then
+  if compose run --rm migrator node dist/database/migrate.js --mode=auto >"$migration_log" 2>&1; then
     applied="$(grep -c 'has been executed successfully' "$migration_log" || true)"
     rm -f "$migration_log"
     progress_done "${applied} applied"
@@ -376,10 +419,10 @@ EOF
     printf '       → docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs caddy\n'
   fi
 
-  progress_start "https://${domain}/api/health"
+  progress_start "https://${domain}/api/health/ready"
   local health_ok=0 status="" _retry
   for _retry in $(seq 1 30); do
-    status="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "https://${domain}/api/health" 2>/dev/null || true)"
+    status="$(curl -fsS -o /dev/null -w '%{http_code}' --max-time 5 "https://${domain}/api/health/ready" 2>/dev/null || true)"
     if [ "$status" = "200" ]; then
       health_ok=1
       break

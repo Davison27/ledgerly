@@ -2,8 +2,10 @@ name: ledgerly
 
 services:
   postgres:
-    image: postgres:17-alpine
+    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
     restart: unless-stopped
+    stop_grace_period: 60s
+    shm_size: ${DEPLOY_POSTGRES_SHM_SIZE:-128m}
     environment:
       POSTGRES_USER: ${DB_USER}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
@@ -12,6 +14,21 @@ services:
       - pgdata:/var/lib/postgresql/data
     networks:
       - data
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_POSTGRES_CPUS:-1.0}
+          memory: ${DEPLOY_POSTGRES_MEMORY:-512m}
+    pids_limit: ${DEPLOY_POSTGRES_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
@@ -23,14 +40,37 @@ services:
       context: ..
       dockerfile: apps/back/Dockerfile
     image: ledgerly-back:local
+    pull_policy: never
     env_file: .env
     depends_on:
       postgres:
         condition: service_healthy
     restart: unless-stopped
     init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${DEPLOY_TMPFS_SIZE:-256m}
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_BACK_CPUS:-1.0}
+          memory: ${DEPLOY_BACK_MEMORY:-768m}
+    pids_limit: ${DEPLOY_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
     security_opt:
       - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health/ready >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
     networks:
       - proxy
       - data
@@ -40,19 +80,54 @@ services:
       context: ..
       dockerfile: apps/front/Dockerfile
     image: ledgerly-front:local
-    depends_on:
-      postgres:
-        condition: service_healthy
+    pull_policy: never
     restart: unless-stopped
     init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${DEPLOY_FRONT_TMPFS_SIZE:-64m}
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_FRONT_CPUS:-0.5}
+          memory: ${DEPLOY_FRONT_MEMORY:-128m}
+    pids_limit: ${DEPLOY_FRONT_PIDS_LIMIT:-128}
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "3"
     security_opt:
       - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 6
     networks:
       - proxy
 
   caddy:
-    image: caddy:2.11-alpine
+    image: caddy:2.11-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
     restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    pids_limit: 128
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
     ports:
       - "80:80"
       - "443:443"
@@ -65,8 +140,16 @@ services:
       - caddy_data:/data
       - caddy_config:/config
     depends_on:
-      - back
-      - front
+      back:
+        condition: service_healthy
+      front:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-check-certificate -qO- --header='Host: ${LEDGERLY_DOMAIN}' https://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
     networks:
       - proxy
 
@@ -79,6 +162,20 @@ services:
       postgres:
         condition: service_healthy
     command: ["node", "dist/database/bootstrap.js"]
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${DEPLOY_TMPFS_SIZE:-256m}
+    cap_drop:
+      - ALL
+    pids_limit: ${DEPLOY_MIGRATOR_PIDS_LIMIT:-128}
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "2"
+    security_opt:
+      - no-new-privileges:true
     networks:
       - data
 
