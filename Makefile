@@ -28,7 +28,7 @@ endif
 .DEFAULT_GOAL := help
 
 .PHONY: help setup doctor configure update up down restart logs dev build lint \
-	typecheck test migrate backup restore reset-db seed clean _check-tools
+	typecheck test migrate baseline-existing-db rehearse-existing-db-baseline backup restore reset-db seed clean _check-tools
 
 help:
 	@echo "Ledgerly — available commands (current mode: $(MODE))"
@@ -58,6 +58,8 @@ help:
 	@echo ""
 	@echo "Database (contextual unless noted)"
 	@echo "  make migrate     Applies pending migrations."
+	@echo "  make baseline-existing-db  Records the initial migration after a verified rehearsal."
+	@echo "  make rehearse-existing-db-baseline  Tests the existing-database cutover on a disposable clone."
 	@echo "  make reset-db    Deletes the volume and recreates the database. Development only."
 	@echo "  make seed        Sample data. Development only."
 	@echo ""
@@ -111,7 +113,7 @@ dev: _check-tools
 		echo "✓ Created $(DEV_ENV_FILE) from .env.example"; \
 	fi
 	$(DEV_COMPOSE) up -d --build postgres
-	$(DEV_COMPOSE) run --rm back node dist/database/bootstrap.js
+	$(DEV_COMPOSE) run --rm back node dist/database/migrate.js --mode=auto
 	$(DEV_COMPOSE) up -d --build --wait back
 	VITE_BACKEND_URL=http://localhost:3005 pnpm --filter @ledgerly/front dev
 
@@ -132,8 +134,14 @@ migrate: $(DEV_PREREQ)
 ifeq ($(MODE),production)
 	$(COMPOSE) --profile tools run --rm migrator
 else
-	pnpm --filter @ledgerly/back run db:schema
+	pnpm --filter @ledgerly/back run db:migrate
 endif
+
+baseline-existing-db:
+	@LEDGERLY_EXISTING_DB_CUTOVER=1 bash deploy/scripts/baseline-existing-db.sh
+
+rehearse-existing-db-baseline:
+	@bash deploy/scripts/rehearse-existing-db-baseline.sh FILE=$(FILE)
 
 backup: $(DEV_PREREQ)
 	@echo "→ Mode: $(MODE)"

@@ -142,8 +142,13 @@ configure_db_password() {
   ok "deploy/.env updated"
 
   compose up -d --wait back
-  compose run --rm migrator >/dev/null 2>&1 || true
-  ok "back recreated and migrator verified with the new credentials"
+  if compose run --rm migrator >/dev/null 2>&1; then
+    ok "back recreated and migrator verified with the new credentials"
+  else
+    fail "The new database password could not be verified by the migrator"
+    printf '       → Run make logs SERVICE=back and inspect the migrator output.\n'
+    return 1
+  fi
 }
 
 print_menu() {
