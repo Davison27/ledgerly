@@ -68,7 +68,7 @@ From the repository root:
 make dev
 ```
 
-This installs dependencies, creates `apps/back/.env` from the example when needed, starts PostgreSQL and the containerized backend, reconciles the schema, and launches the Vite frontend with hot reload.
+This installs dependencies, creates `apps/back/.env` from the example when needed, starts PostgreSQL and the containerized backend, applies migrations, and launches the Vite frontend with hot reload.
 
 Google sign-in requires a local OAuth client and matching environment values. Follow the [authentication setup](docs/architecture/auth.md#google-cloud-and-local-setup) before signing in.
 
@@ -91,7 +91,7 @@ cd /opt/ledgerly
 make setup
 ```
 
-`make setup` builds the application, initializes PostgreSQL, applies schema changes, starts the Docker Compose stack, provisions HTTPS, and checks the public health endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
+`make setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions HTTPS, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
 
 Read the complete [deployment and recovery runbook](docs/architecture/deployment.md) before operating an installation.
 
@@ -112,7 +112,9 @@ Use `make help` to see commands in the current environment. Lifecycle and databa
 - `make update` — pull with fast-forward only, back up, rebuild, migrate, restart, and run diagnostics.
 - `make backup` — create a compressed PostgreSQL backup in `deploy/backups/`.
 - `make restore FILE=<path>` — restore a selected backup after typed confirmation.
-- `make migrate` — reconcile the database schema with the application definitions.
+- `make migrate` — apply pending database migrations and validate the application schema.
+- `make rehearse-existing-db-baseline` — test a legacy-database cutover on a disposable clone.
+- `make baseline-existing-db` — gate and apply the legacy-database migration marker.
 - `make seed` — load development sample data.
 - `make reset-db` — recreate the development database; unavailable in production.
 
