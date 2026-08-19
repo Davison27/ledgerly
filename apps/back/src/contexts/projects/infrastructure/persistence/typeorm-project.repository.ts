@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 import { ProjectOrmEntity } from './project.orm-entity';
 import { ProjectMapper } from './project.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 type ProjectSummaryRow = Omit<ProjectSummary, 'financials'>;
 
@@ -19,6 +20,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   ) {}
 
   async findAllSummaries(): Promise<ProjectSummary[]> {
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const rows: ProjectSummaryRow[] = await this.repository.manager.query(`
       SELECT p.id, p.name, p.code, p.currency, p.image, p.color, p.is_demo AS "isDemo",
         COUNT(d.id)::int AS "documentCount",
@@ -27,9 +29,23 @@ export class TypeOrmProjectRepository implements ProjectRepository {
       LEFT JOIN documents d ON d.project_id = p.id
       GROUP BY p.id, p.name, p.code, p.currency, p.image, p.color, p.is_demo
       ORDER BY p.name ASC
-    `);
+      LIMIT $1
+    `, [limit + 1]);
+
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Projects');
 
     return rows.map((row) => ({ ...row, financials: [] }));
+  }
+
+  async findNamesByIds(ids: string[]): Promise<Array<{ id: string; name: string }>> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    return this.repository.find({
+      select: { id: true, name: true },
+      where: { id: In(ids) },
+    });
   }
 
   async findSummaryById(id: string): Promise<ProjectSummary | null> {

@@ -7,10 +7,10 @@ import { DocumentNotFoundException } from '../../domain/errors/document-not-foun
 export class GetDocumentUseCase {
   constructor(@Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository) {}
 
-  async execute(id: string): Promise<Document> {
+  async execute(id: string, projectId?: string): Promise<Document> {
     const document = await this.repository.findById(id);
 
-    if (!document) {
+    if (!document || (projectId !== undefined && document.getProjectId() !== projectId)) {
       throw new DocumentNotFoundException(id);
     }
 

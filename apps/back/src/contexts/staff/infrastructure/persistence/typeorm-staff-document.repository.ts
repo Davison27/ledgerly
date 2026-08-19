@@ -5,6 +5,7 @@ import { StaffDocument } from '../../domain/staff-document';
 import { StaffDocumentRepository } from '../../domain/staff-document.repository';
 import { StaffDocumentOrmEntity } from './staff-document.orm-entity';
 import { StaffDocumentMapper } from './staff-document.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 @Injectable()
 export class TypeOrmStaffDocumentRepository implements StaffDocumentRepository {
@@ -22,9 +23,12 @@ export class TypeOrmStaffDocumentRepository implements StaffDocumentRepository {
       queryBuilder.andWhere('staffDocument.type_id = :typeId', { typeId });
     }
 
-    queryBuilder.orderBy('staffDocument.issue_date', 'DESC');
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    queryBuilder.orderBy('staffDocument.issue_date', 'DESC').addOrderBy('staffDocument.id', 'DESC').take(limit + 1);
 
     const orms = await queryBuilder.getMany();
+
+    if (orms.length > limit) throw new ListLimitExceededException(limit, 'Staff documents');
 
     return orms.map((orm) => StaffDocumentMapper.toDomain(orm));
   }

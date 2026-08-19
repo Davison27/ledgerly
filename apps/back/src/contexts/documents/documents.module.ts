@@ -23,6 +23,7 @@ import { ExtractionQualityController } from './infrastructure/http/extraction-qu
 import { PdfjsPdfReader } from './infrastructure/pdf/pdfjs-pdf-reader';
 import { OcrPdfReader } from './infrastructure/pdf/ocr-pdf-reader';
 import { LocalPdfOcr } from './infrastructure/pdf/local-pdf-ocr';
+import { BoundedPdfReader } from './infrastructure/pdf/bounded-pdf-reader';
 import { ListDocumentsUseCase } from './application/list-documents/list-documents.use-case';
 import { ListAllDocumentsUseCase } from './application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from './application/check-document-duplicate/check-document-duplicate.use-case';
@@ -76,7 +77,9 @@ import { ProjectRepositoryNameProvider } from './infrastructure/projects/project
     { provide: STAFF_MEMBER_EXISTENCE_CHECKER, useClass: TypeOrmStaffMemberExistenceChecker },
     PdfjsPdfReader,
     LocalPdfOcr,
-    { provide: PDF_READER, useClass: OcrPdfReader },
+    OcrPdfReader,
+    BoundedPdfReader,
+    { provide: PDF_READER, useExisting: BoundedPdfReader },
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },
     { provide: EXTRACTION_OUTCOME_REPOSITORY, useClass: TypeOrmExtractionOutcomeRepository },
   ],

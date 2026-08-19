@@ -3,8 +3,9 @@ import { IsIn, IsNumber, IsOptional, IsString, Matches, Min } from 'class-valida
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
 import { DOCUMENT_DIRECTIONS, DocumentDirection } from '../../../domain/document-direction';
+import { PageQueryDto } from '../../../../../shared/infrastructure/http/dtos/page.query.dto';
 
-export class ListDocumentsQueryDto {
+export class ListDocumentsQueryDto extends PageQueryDto {
   @IsOptional()
   @IsString()
   search?: string;

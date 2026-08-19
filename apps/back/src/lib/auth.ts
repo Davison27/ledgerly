@@ -3,13 +3,22 @@ import { randomUUID } from 'node:crypto';
 import { betterAuth } from 'better-auth';
 import { Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool } from 'pg';
+import { loadDatabaseRuntimeConfig } from '../config/database-runtime-config';
+
+const databaseRuntimeConfig = loadDatabaseRuntimeConfig(process.env);
 
 const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT ?? '5432'),
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
+  host: databaseRuntimeConfig.host,
+  port: databaseRuntimeConfig.port,
+  user: databaseRuntimeConfig.username,
+  password: databaseRuntimeConfig.password,
+  database: databaseRuntimeConfig.database,
+  max: databaseRuntimeConfig.authPoolMax,
+  idleTimeoutMillis: databaseRuntimeConfig.idleTimeoutMillis,
+  connectionTimeoutMillis: databaseRuntimeConfig.connectionTimeoutMillis,
+  statement_timeout: databaseRuntimeConfig.statementTimeoutMillis,
+  query_timeout: databaseRuntimeConfig.queryTimeoutMillis,
+  application_name: 'ledgerly-auth',
 });
 
 export const authDatabase = new Kysely({ dialect: new PostgresDialect({ pool }) });

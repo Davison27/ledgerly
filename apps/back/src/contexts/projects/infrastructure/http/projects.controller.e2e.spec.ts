@@ -206,6 +206,18 @@ describe('ProjectsController (HTTP, no DB)', () => {
       );
       expect(response.body).toMatchObject({ image: 'data:image/png;base64,def' });
     });
+
+    it('clears the project image when the request explicitly sends null', async () => {
+      const response = await request(httpServer)
+        .patch('/projects/project-1')
+        .send({ image: null });
+
+      expect(response.status).toBe(200);
+      expect(updateExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'project-1', image: null }),
+      );
+      expect(response.body).toMatchObject({ image: null });
+    });
   });
 
   describe('DELETE /projects/:id', () => {

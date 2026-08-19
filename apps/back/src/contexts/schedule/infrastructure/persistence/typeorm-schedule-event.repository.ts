@@ -12,6 +12,7 @@ import { ScheduleEventDayOrmEntity } from './schedule-event-day.orm-entity';
 import { ScheduleEventStaffOrmEntity } from './schedule-event-staff.orm-entity';
 import { ScheduleEventProductOrmEntity } from './schedule-event-product.orm-entity';
 import { ScheduleEventMapper } from './schedule-event.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 @Injectable()
 export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
@@ -50,7 +51,8 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
       .orderBy(
         '(SELECT MIN(day.date) FROM schedule_event_days day WHERE day.event_id = event.id)',
         'ASC',
-      );
+      )
+      .addOrderBy('event.id', 'ASC');
 
     if (filter.projectId !== undefined) {
       query.andWhere('event.project_id = :projectId', { projectId: filter.projectId });
@@ -77,7 +79,10 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
       );
     }
 
-    const eventOrms = await query.getMany();
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const eventOrms = await query.take(limit + 1).getMany();
+
+    if (eventOrms.length > limit) throw new ListLimitExceededException(limit, 'Schedule events');
 
     if (eventOrms.length === 0) {
       return [];

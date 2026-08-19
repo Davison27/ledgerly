@@ -296,7 +296,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       expect(response.headers['cache-control']).toBe('no-store');
       expect(response.headers['content-disposition']).toBe("inline; filename*=UTF-8''invoice.pdf");
       expect(Buffer.compare(response.body as Buffer, pdf)).toBe(0);
-      expect(getFileExecute).toHaveBeenCalledWith('doc-1');
+      expect(getFileExecute).toHaveBeenCalledWith('doc-1', 'p1');
     });
 
     it('returns 404 when the document has no stored file', async () => {

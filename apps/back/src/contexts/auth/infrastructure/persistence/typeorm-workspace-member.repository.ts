@@ -6,6 +6,7 @@ import { WorkspaceMember } from '../../domain/workspace-member';
 import { WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
 import { WorkspaceMemberMapper } from './workspace-member.mapper';
 import { WorkspaceMemberOrmEntity } from './workspace-member.orm-entity';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 const POSTGRES_UNIQUE_VIOLATION = '23505';
 
@@ -25,7 +26,10 @@ export class TypeOrmWorkspaceMemberRepository implements WorkspaceMemberReposito
   ) {}
 
   async findAll(): Promise<WorkspaceMember[]> {
-    const orms = await this.repository.find({ order: { invitedAt: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const orms = await this.repository.find({ order: { invitedAt: 'ASC' }, take: limit + 1 });
+
+    if (orms.length > limit) throw new ListLimitExceededException(limit, 'Workspace members');
 
     return orms.map((orm) => WorkspaceMemberMapper.toDomain(orm));
   }

@@ -2,14 +2,17 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import type { NextFunction, Request, Response } from 'express';
+import express, { type NextFunction, type Request, type Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './shared/infrastructure/http/domain-exception.filter';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
   const isProduction = process.env.NODE_ENV === 'production';
+
+  app.use(express.json({ limit: '256kb' }));
+  app.use(express.urlencoded({ extended: false, limit: '256kb', parameterLimit: 100 }));
 
   app.use(
     helmet({
@@ -52,7 +55,7 @@ async function bootstrap() {
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  console.log(`🚀 Backend escuchando en http://localhost:${port}/api`);
+  console.log(`Backend listening on http://localhost:${port}/api`);
 }
 
 void bootstrap();

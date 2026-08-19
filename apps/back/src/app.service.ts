@@ -6,7 +6,4 @@ export class AppService {
     return 'Ledgerly ERP API';
   }
 
-  getHealth(): { status: string; service: string } {
-    return { status: 'ok', service: 'ledgerly-back' };
-  }
 }

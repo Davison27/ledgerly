@@ -79,4 +79,24 @@ describe('DeleteDocumentUseCase', () => {
 
     await expect(useCase.execute('missing-id')).rejects.toThrow(DocumentNotFoundException);
   });
+
+  it('throws DocumentNotFoundException when the document belongs to another project', async () => {
+    const repository = new InMemoryDocumentRepository();
+    await repository.save(buildDocument());
+    const useCase = new DeleteDocumentUseCase(repository);
+
+    await expect(useCase.execute('doc-1', 'project-2')).rejects.toThrow(DocumentNotFoundException);
+
+    expect(await repository.findById('doc-1')).not.toBeNull();
+  });
+
+  it('deletes the document when it belongs to the requested project', async () => {
+    const repository = new InMemoryDocumentRepository();
+    await repository.save(buildDocument());
+    const useCase = new DeleteDocumentUseCase(repository);
+
+    await useCase.execute('doc-1', 'project-1');
+
+    expect(await repository.findById('doc-1')).toBeNull();
+  });
 });

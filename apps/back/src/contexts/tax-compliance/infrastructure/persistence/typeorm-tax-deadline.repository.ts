@@ -5,6 +5,7 @@ import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/p
 import { GeneratedTaxDeadline, TaxDeadlineView } from '../../domain/tax-deadline';
 import { TaxDeadlineFilter, TaxDeadlineRepository } from '../../domain/tax-deadline.repository';
 import { TaxDeadlineOccurrenceOrmEntity } from './tax-deadline-occurrence.orm-entity';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 function toEntity(deadline: GeneratedTaxDeadline): TaxDeadlineOccurrenceOrmEntity {
   const orm = new TaxDeadlineOccurrenceOrmEntity();
@@ -40,6 +41,7 @@ export class TypeOrmTaxDeadlineRepository implements TaxDeadlineRepository {
   }
 
   async findByFilter(filter: TaxDeadlineFilter): Promise<TaxDeadlineView[]> {
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const query = this.repository
       .createQueryBuilder('deadline')
       .where('deadline.start_date <= :to', { to: filter.to })
@@ -58,7 +60,12 @@ export class TypeOrmTaxDeadlineRepository implements TaxDeadlineRepository {
     const orms = await query
       .orderBy('deadline.start_date', 'ASC')
       .addOrderBy('deadline.title', 'ASC')
+      .addOrderBy('deadline.id', 'ASC')
+      .take(limit + 1)
       .getMany();
+
+    if (orms.length > limit) throw new ListLimitExceededException(limit, 'Tax deadlines');
+
     if (orms.length === 0) return [];
 
     const projectIds = [...new Set(orms.map((orm) => orm.projectId))];

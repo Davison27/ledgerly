@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PdfAttachment, PdfReadResult, PdfReader } from '../../domain/extraction/pdf-reader.port';
+import { PdfPageLimitExceededException } from '../../domain/errors/pdf-page-limit-exceeded.exception';
 
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function('specifier', 'return import(specifier)') as (
@@ -44,6 +46,8 @@ async function loadPdfJs(): Promise<PdfJsModule> {
 
 @Injectable()
 export class PdfjsPdfReader implements PdfReader {
+  constructor(private readonly config?: ConfigService) {}
+
   async read(buffer: Buffer): Promise<PdfReadResult> {
     const pdfjsLib = await loadPdfJs();
 
@@ -52,6 +56,10 @@ export class PdfjsPdfReader implements PdfReader {
       verbosity: 0,
     });
     const document = await loadingTask.promise;
+    const maxPages = this.config?.get<number>('PDF_MAX_PAGES', 100) ?? 100;
+    if (document.numPages > maxPages) {
+      throw new PdfPageLimitExceededException(document.numPages, maxPages);
+    }
 
     const text = await this.readText(document);
     const attachments = await this.readAttachments(document);
@@ -61,6 +69,7 @@ export class PdfjsPdfReader implements PdfReader {
 
   private async readText(document: PdfJsDocument): Promise<string> {
     let text = '';
+    const maxBytes = this.config?.get<number>('PDF_MAX_EXTRACTED_TEXT_BYTES', 2 * 1024 * 1024) ?? 2 * 1024 * 1024;
 
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
@@ -69,6 +78,9 @@ export class PdfjsPdfReader implements PdfReader {
       let line = '';
       for (const item of content.items) {
         line += item.str;
+        if (Buffer.byteLength(`${text}${line}`, 'utf8') >= maxBytes) {
+          return Buffer.from(`${text}${line}`, 'utf8').subarray(0, maxBytes).toString('utf8');
+        }
         if (item.hasEOL) {
           text += `${line}\n`;
           line = '';
@@ -76,6 +88,9 @@ export class PdfjsPdfReader implements PdfReader {
       }
       if (line.length > 0) {
         text += `${line}\n`;
+      }
+      if (Buffer.byteLength(text, 'utf8') >= maxBytes) {
+        return Buffer.from(text, 'utf8').subarray(0, maxBytes).toString('utf8');
       }
     }
 
@@ -89,9 +104,22 @@ export class PdfjsPdfReader implements PdfReader {
       return [];
     }
 
-    return Object.values(rawAttachments).map((attachment) => ({
-      filename: attachment.filename,
-      content: Buffer.from(attachment.content),
-    }));
+    const maxAttachments = this.config?.get<number>('PDF_MAX_ATTACHMENTS', 20) ?? 20;
+    const maxAttachmentBytes = this.config?.get<number>('PDF_MAX_ATTACHMENT_BYTES', 5 * 1024 * 1024) ?? 5 * 1024 * 1024;
+    const maxTotalAttachmentBytes = this.config?.get<number>(
+      'PDF_MAX_TOTAL_ATTACHMENT_BYTES',
+      20 * 1024 * 1024,
+    ) ?? 20 * 1024 * 1024;
+    let totalBytes = 0;
+    return Object.values(rawAttachments)
+      .slice(0, maxAttachments)
+      .flatMap((attachment) => {
+        const content = Buffer.from(attachment.content);
+        if (content.length > maxAttachmentBytes || totalBytes + content.length > maxTotalAttachmentBytes) {
+          return [];
+        }
+        totalBytes += content.length;
+        return [{ filename: attachment.filename, content }];
+      });
   }
 }

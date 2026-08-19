@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { TaxClientProfilePrimitives } from '../../domain/tax-client-profile';
 import { TaxClientProfileRepository } from '../../domain/tax-client-profile.repository';
 import { TaxClientProfileOrmEntity } from './tax-client-profile.orm-entity';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 function toPrimitives(orm: TaxClientProfileOrmEntity): TaxClientProfilePrimitives {
   return {
@@ -27,7 +28,11 @@ export class TypeOrmTaxClientProfileRepository implements TaxClientProfileReposi
   ) {}
 
   async findAll(): Promise<TaxClientProfilePrimitives[]> {
-    const orms = await this.repository.find({ order: { projectId: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const orms = await this.repository.find({ order: { projectId: 'ASC' }, take: limit + 1 });
+
+    if (orms.length > limit) throw new ListLimitExceededException(limit, 'Tax client profiles');
+
     return orms.map(toPrimitives);
   }
 

@@ -1,18 +1,30 @@
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModuleAsyncOptions } from '@nestjs/typeorm';
+import { loadDatabaseRuntimeConfig } from '../config/database-runtime-config';
 
 export const typeOrmConfig: TypeOrmModuleAsyncOptions = {
   imports: [ConfigModule],
-  inject: [ConfigService],
-  useFactory: (config: ConfigService) => ({
-    type: 'postgres',
-    host: config.get<string>('DB_HOST', 'localhost'),
-    port: Number(config.get<string>('DB_PORT', '5432')),
-    username: config.get<string>('DB_USER', 'ledgerly'),
-    password: config.get<string>('DB_PASSWORD', 'ledgerly'),
-    database: config.get<string>('DB_NAME', 'ledgerly'),
-    autoLoadEntities: true,
-    synchronize: false,
-    migrationsRun: false,
-  }),
+  useFactory: () => {
+    const databaseRuntimeConfig = loadDatabaseRuntimeConfig(process.env);
+
+    return {
+      type: 'postgres' as const,
+      host: databaseRuntimeConfig.host,
+      port: databaseRuntimeConfig.port,
+      username: databaseRuntimeConfig.username,
+      password: databaseRuntimeConfig.password,
+      database: databaseRuntimeConfig.database,
+      autoLoadEntities: true,
+      synchronize: false,
+      migrationsRun: false,
+      extra: {
+        max: databaseRuntimeConfig.typeormPoolMax,
+        idleTimeoutMillis: databaseRuntimeConfig.idleTimeoutMillis,
+        connectionTimeoutMillis: databaseRuntimeConfig.connectionTimeoutMillis,
+        statement_timeout: databaseRuntimeConfig.statementTimeoutMillis,
+        query_timeout: databaseRuntimeConfig.queryTimeoutMillis,
+        application_name: 'ledgerly-back',
+      },
+    };
+  },
 };

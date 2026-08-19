@@ -9,6 +9,7 @@ import {
   Post,
   Res,
   StreamableFile,
+  Query,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
@@ -20,6 +21,9 @@ import { DeleteInvoiceUseCase } from '../../application/delete-invoice/delete-in
 import { CreateInvoiceDto } from './dtos/create-invoice.dto';
 import { InvoiceResponse } from './invoice.response';
 import { InvoiceListItemResponse } from './invoice-list-item.response';
+import { InvoicePageResponse } from './invoice-page.response';
+import { ListInvoicesQueryDto } from './dtos/list-invoices.query.dto';
+import { getOptionalPageRequest } from '../../../../shared/infrastructure/http/dtos/page.query.dto';
 
 function todayIso(): string {
   const now = new Date();
@@ -42,7 +46,16 @@ export class InvoicesController {
   ) {}
 
   @Get()
-  async list(): Promise<InvoiceListItemResponse[]> {
+  async list(
+    @Query() query: ListInvoicesQueryDto,
+  ): Promise<InvoiceListItemResponse[] | InvoicePageResponse> {
+    const pageRequest = getOptionalPageRequest(query);
+    if (pageRequest) {
+      return InvoicePageResponse.fromPage(
+        await this.listInvoicesUseCase.executePage(pageRequest, query.search),
+      );
+    }
+
     const invoices = await this.listInvoicesUseCase.execute();
 
     return invoices.map((invoice) => InvoiceListItemResponse.fromItem(invoice));

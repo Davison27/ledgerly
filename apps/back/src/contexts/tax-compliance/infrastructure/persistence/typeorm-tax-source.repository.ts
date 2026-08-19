@@ -5,6 +5,7 @@ import type { TaxSourceEvent } from '../../domain/tax-source-event';
 import type { TaxSourceRepository } from '../../domain/tax-source.repository';
 import type { TaxSourceStatePrimitives } from '../../domain/tax-source-state';
 import { TaxSourceStateOrmEntity } from './tax-source-state.orm-entity';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 function toPrimitives(orm: TaxSourceStateOrmEntity): TaxSourceStatePrimitives {
   return {
@@ -37,7 +38,11 @@ export class TypeOrmTaxSourceRepository implements TaxSourceRepository {
   ) {}
 
   async findAll(): Promise<TaxSourceStatePrimitives[]> {
-    const orms = await this.repository.find({ order: { sourceKey: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const orms = await this.repository.find({ order: { sourceKey: 'ASC' }, take: limit + 1 });
+
+    if (orms.length > limit) throw new ListLimitExceededException(limit, 'Tax source states');
+
     return orms.map(toPrimitives);
   }
 

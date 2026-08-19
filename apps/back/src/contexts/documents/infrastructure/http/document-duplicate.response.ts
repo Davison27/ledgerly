@@ -1,4 +1,5 @@
 import { DocumentDuplicateMatch } from '../../application/check-document-duplicate/document-duplicate-match';
+import { Page } from '../../../../shared/domain/pagination';
 
 export class DocumentDuplicateMatchResponse {
   id: string;
@@ -24,12 +25,25 @@ export class DocumentDuplicateMatchResponse {
 
 export class DocumentDuplicateCheckResponse {
   matches: DocumentDuplicateMatchResponse[];
+  items: DocumentDuplicateMatchResponse[];
+  total: number;
+  page: number;
+  size: number;
 
   static fromResults(matches: DocumentDuplicateMatch[]): DocumentDuplicateCheckResponse {
     const response = new DocumentDuplicateCheckResponse();
 
     response.matches = matches.map((match) => DocumentDuplicateMatchResponse.fromResult(match));
 
+    return response;
+  }
+
+  static fromPage(page: Page<DocumentDuplicateMatch>): DocumentDuplicateCheckResponse {
+    const response = new DocumentDuplicateCheckResponse();
+    response.items = page.items.map((match) => DocumentDuplicateMatchResponse.fromResult(match));
+    response.total = page.total;
+    response.page = page.page;
+    response.size = page.size;
     return response;
   }
 }

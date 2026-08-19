@@ -5,6 +5,7 @@ import { DocumentDirection } from '../../domain/document-direction';
 
 export interface UpdateDocumentCommand {
   id: string;
+  projectId?: string;
   name?: string;
   type?: DocumentType;
   direction?: DocumentDirection;

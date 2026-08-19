@@ -101,6 +101,30 @@ describe('UpdateStaffDocumentUseCase', () => {
     );
   });
 
+  it('throws StaffDocumentNotFoundException when the document belongs to another staff member', async () => {
+    const repository = new InMemoryStaffDocumentRepository([buildDocument()]);
+    const useCase = new UpdateStaffDocumentUseCase(repository);
+
+    await expect(
+      useCase.execute({ id: 'staff-doc-1', staffMemberId: 'staff-2', name: 'DNI renovado' }),
+    ).rejects.toThrow(StaffDocumentNotFoundException);
+
+    expect((await repository.findById('staff-doc-1'))?.getName()).toBe('DNI Ana García');
+  });
+
+  it('updates the document when it belongs to the requested staff member', async () => {
+    const repository = new InMemoryStaffDocumentRepository([buildDocument()]);
+    const useCase = new UpdateStaffDocumentUseCase(repository);
+
+    const updated = await useCase.execute({
+      id: 'staff-doc-1',
+      staffMemberId: 'staff-1',
+      name: 'DNI renovado',
+    });
+
+    expect(updated.getName()).toBe('DNI renovado');
+  });
+
   it('throws InvalidValueException when the update leaves expiryDate before issueDate', async () => {
     const repository = new InMemoryStaffDocumentRepository([buildDocument()]);
     const useCase = new UpdateStaffDocumentUseCase(repository);

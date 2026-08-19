@@ -14,6 +14,8 @@ import { detectScheduleConflicts } from '../../domain/schedule-conflict-detector
 import { ScheduleConflict } from '../../domain/schedule-conflict';
 import { GetScheduleBoardQuery } from './get-schedule-board.query';
 import { ScheduleBoardSummary, summarizeScheduleConflicts } from './schedule-board-summary';
+import { assertDateRangeWithinDays } from '../../../../shared/domain/date-range';
+import { getListLimit } from '../../../../shared/infrastructure/list-limit';
 
 export interface ScheduleBoard {
   events: ScheduleEventView[];
@@ -35,6 +37,11 @@ export class GetScheduleBoardUseCase {
   ) {}
 
   async execute(query: GetScheduleBoardQuery): Promise<ScheduleBoard> {
+    assertDateRangeWithinDays(
+      query.from,
+      query.to,
+      getListLimit('MAX_CALENDAR_RANGE_DAYS', 366),
+    );
     const events = await this.scheduleEventRepository.findByFilter({ from: query.from, to: query.to });
 
     const projectIds = [...new Set(events.map((event) => event.projectId))];

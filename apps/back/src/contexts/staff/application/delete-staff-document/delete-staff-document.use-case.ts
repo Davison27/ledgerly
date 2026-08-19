@@ -12,10 +12,13 @@ export class DeleteStaffDocumentUseCase {
     private readonly staffDocumentRepository: StaffDocumentRepository,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, staffMemberId?: string): Promise<void> {
     const staffDocument = await this.staffDocumentRepository.findById(id);
 
-    if (staffDocument === null) {
+    if (
+      staffDocument === null ||
+      (staffMemberId !== undefined && staffDocument.getStaffMemberId() !== staffMemberId)
+    ) {
       throw new StaffDocumentNotFoundException(id);
     }
 

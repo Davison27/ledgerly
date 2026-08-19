@@ -6,6 +6,8 @@ import { InvoiceHint } from '../../domain/extraction/hints/invoice-hint';
 import { InvoiceHintRepository, NewInvoiceHint } from '../../domain/extraction/hints/invoice-hint.repository';
 import { InvoiceExtractionHintMapper } from './invoice-extraction-hint.mapper';
 import { InvoiceExtractionHintOrmEntity } from './invoice-extraction-hint.orm-entity';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
+import { Page, PageRequest, pageOffset } from '../../../../shared/domain/pagination';
 
 @Injectable()
 export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
@@ -22,9 +24,31 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
   }
 
   async findAll(): Promise<InvoiceHint[]> {
-    const orms = await this.repository.find({ order: { issuerName: 'ASC', field: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const orms = await this.repository.find({
+      order: { issuerName: 'ASC', field: 'ASC' },
+      take: limit + 1,
+    });
+
+    if (orms.length > limit) throw new ListLimitExceededException(limit, 'Extraction hints');
 
     return orms.map((orm) => InvoiceExtractionHintMapper.toDomain(orm));
+  }
+
+  async findPage(request: PageRequest): Promise<Page<InvoiceHint>> {
+    const total = await this.repository.count();
+    const orms = await this.repository.find({
+      order: { issuerName: 'ASC', field: 'ASC', id: 'ASC' },
+      skip: pageOffset(request),
+      take: request.size,
+    });
+
+    return {
+      items: orms.map((orm) => InvoiceExtractionHintMapper.toDomain(orm)),
+      total,
+      page: request.page,
+      size: request.size,
+    };
   }
 
   async upsert(hint: NewInvoiceHint): Promise<void> {

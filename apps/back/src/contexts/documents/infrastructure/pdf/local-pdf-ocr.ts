@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { execFile } from 'node:child_process';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { promisify } from 'node:util';
@@ -45,6 +45,11 @@ export class LocalPdfOcr {
         { timeout: (this.config.get<number>('PDF_OCR_TIMEOUT_SECONDS', 90) + 30) * 1000, maxBuffer: 1024 * 1024 },
       );
 
+      const outputSize = await stat(output);
+      const maxOutputBytes = this.config.get<number>('PDF_MAX_OCR_OUTPUT_BYTES', 20 * 1024 * 1024);
+      if (outputSize.size > maxOutputBytes) {
+        throw new Error('OCR output exceeds the configured byte limit');
+      }
       return await readFile(output);
     } finally {
       await rm(directory, { recursive: true, force: true });

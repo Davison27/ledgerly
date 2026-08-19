@@ -32,6 +32,7 @@ import { UpdateStaffDocumentDto } from './dtos/update-staff-document.dto';
 import { ListStaffDocumentsQueryDto } from './dtos/list-staff-documents.query.dto';
 import { StaffDocumentResponse } from './staff-document.response';
 import { isValidStaffDocumentFile, STAFF_DOCUMENT_MIME_TYPES } from './staff-document-file.validator';
+import { UploadCapacityInterceptor } from '../../../../shared/infrastructure/http/upload-capacity.interceptor';
 
 const MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -60,6 +61,7 @@ export class StaffDocumentsController {
   @Post()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
+    UploadCapacityInterceptor,
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES, files: 1, fields: 1, parts: 3, fieldSize: 64 * 1024 },
@@ -122,10 +124,11 @@ export class StaffDocumentsController {
 
   @Get(':documentId/file')
   async getFile(
+    @Param('staffMemberId') staffMemberId: string,
     @Param('documentId') documentId: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
-    const file = await this.getStaffDocumentFileUseCase.execute(documentId);
+    const file = await this.getStaffDocumentFileUseCase.execute(documentId, staffMemberId);
 
     if (!file) {
       throw new NotFoundException('Staff document file not found');
@@ -143,11 +146,13 @@ export class StaffDocumentsController {
   @RequiresAccess('staff', 'edit')
   @Patch(':documentId')
   async update(
+    @Param('staffMemberId') staffMemberId: string,
     @Param('documentId') documentId: string,
     @Body() dto: UpdateStaffDocumentDto,
   ): Promise<StaffDocumentResponse> {
     const updated = await this.updateStaffDocumentUseCase.execute({
       id: documentId,
+      staffMemberId,
       name: dto.name,
       issueDate: dto.issueDate,
       expiryDate: dto.expiryDate,
@@ -160,7 +165,10 @@ export class StaffDocumentsController {
   @RequiresAccess('staff', 'edit')
   @Delete(':documentId')
   @HttpCode(204)
-  async remove(@Param('documentId') documentId: string): Promise<void> {
-    await this.deleteStaffDocumentUseCase.execute(documentId);
+  async remove(
+    @Param('staffMemberId') staffMemberId: string,
+    @Param('documentId') documentId: string,
+  ): Promise<void> {
+    await this.deleteStaffDocumentUseCase.execute(documentId, staffMemberId);
   }
 }
