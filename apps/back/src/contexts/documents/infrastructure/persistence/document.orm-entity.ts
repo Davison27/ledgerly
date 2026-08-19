@@ -1,6 +1,9 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('documents')
+@Index('IDX_documents_project_date_id', { synchronize: false })
+@Index('IDX_documents_listing_date_id', { synchronize: false })
+@Index('IDX_documents_invoice_amount', { synchronize: false })
 export class DocumentOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

@@ -7,4 +7,5 @@ export interface ProjectNameSummary {
 
 export interface ProjectNameProvider {
   findAllNames(): Promise<ProjectNameSummary[]>;
+  findNamesByIds?(ids: string[]): Promise<ProjectNameSummary[]>;
 }

@@ -47,6 +47,7 @@ describe('NotificationMapper', () => {
       resourceProjectId: 'project-1',
       createdAt: orm.createdAt,
       readAt: null,
+      resolvedAt: null,
     });
   });
 });

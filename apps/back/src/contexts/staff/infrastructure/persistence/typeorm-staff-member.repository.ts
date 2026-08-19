@@ -8,6 +8,7 @@ import {
 } from '../../domain/staff-member.repository';
 import { StaffMemberOrmEntity } from './staff-member.orm-entity';
 import { StaffMemberMapper } from './staff-member.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 @Injectable()
 export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
@@ -19,12 +20,19 @@ export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
   ) {}
 
   async findAll(): Promise<StaffMember[]> {
-    const rows = await this.repository.find({ order: { lastName: 'ASC', firstName: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const rows = await this.repository.find({
+      order: { lastName: 'ASC', firstName: 'ASC' },
+      take: limit + 1,
+    });
+
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Staff members');
 
     return rows.map((row) => this.mapper.toDomain(row));
   }
 
   async findAllSummaryRows(): Promise<StaffMemberSummaryRow[]> {
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const rows: StaffMemberSummaryRow[] = await this.repository.manager.query(`
       SELECT s.id, s.first_name AS "firstName", s.last_name AS "lastName",
              s.tax_id AS "taxId", s.email, s.phone, s.position,
@@ -35,7 +43,10 @@ export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
       LEFT JOIN staff_documents sd ON sd.staff_member_id = s.id
       GROUP BY s.id
       ORDER BY s.last_name ASC, s.first_name ASC
-    `);
+      LIMIT $1
+    `, [limit + 1]);
+
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Staff members');
 
     return rows.map((row) => ({ ...row, documentCount: Number(row.documentCount) }));
   }

@@ -5,6 +5,7 @@ import { Supplier } from '../../domain/supplier';
 import { SupplierRepository } from '../../domain/supplier.repository';
 import { SupplierOrmEntity } from './supplier.orm-entity';
 import { SupplierMapper } from './supplier.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 @Injectable()
 export class TypeOrmSupplierRepository implements SupplierRepository {
@@ -16,7 +17,10 @@ export class TypeOrmSupplierRepository implements SupplierRepository {
   ) {}
 
   async findAll(): Promise<Supplier[]> {
-    const rows = await this.repository.find({ order: { name: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const rows = await this.repository.find({ order: { name: 'ASC' }, take: limit + 1 });
+
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Suppliers');
 
     return rows.map((row) => this.mapper.toDomain(row));
   }

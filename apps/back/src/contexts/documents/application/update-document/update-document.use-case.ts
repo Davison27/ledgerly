@@ -29,7 +29,10 @@ export class UpdateDocumentUseCase {
   async execute(command: UpdateDocumentCommand): Promise<Document> {
     const document = await this.repository.findById(command.id);
 
-    if (!document) {
+    if (
+      !document ||
+      (command.projectId !== undefined && document.getProjectId() !== command.projectId)
+    ) {
       throw new DocumentNotFoundException(command.id);
     }
 

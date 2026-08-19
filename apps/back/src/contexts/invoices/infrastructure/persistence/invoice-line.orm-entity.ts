@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('invoice_lines')
+@Index('IDX_invoice_lines_invoice_position', { synchronize: false })
 export class InvoiceLineOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

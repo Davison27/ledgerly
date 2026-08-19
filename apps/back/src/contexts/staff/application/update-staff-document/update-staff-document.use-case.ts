@@ -21,7 +21,10 @@ export class UpdateStaffDocumentUseCase {
   async execute(command: UpdateStaffDocumentCommand): Promise<StaffDocument> {
     const staffDocument = await this.staffDocumentRepository.findById(command.id);
 
-    if (staffDocument === null) {
+    if (
+      staffDocument === null ||
+      (command.staffMemberId !== undefined && staffDocument.getStaffMemberId() !== command.staffMemberId)
+    ) {
       throw new StaffDocumentNotFoundException(command.id);
     }
 

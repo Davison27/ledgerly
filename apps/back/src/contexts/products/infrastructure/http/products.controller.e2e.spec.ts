@@ -84,6 +84,7 @@ describe('ProductsController (HTTP, no DB)', () => {
           brand: null,
           description: null,
           image: null,
+          leasingMonthlyFee: null,
           tags: [],
         },
       ]);

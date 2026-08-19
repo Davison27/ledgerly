@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('schedule_event_days')
+@Index('IDX_schedule_event_days_date_event', { synchronize: false })
 export class ScheduleEventDayOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

@@ -6,6 +6,7 @@ import {
   ProjectExistenceChecker,
 } from '../../domain/project-existence-checker.port';
 import { DocumentProjectNotFoundException } from '../../domain/errors/document-project-not-found.exception';
+import { Page, PageRequest } from '../../../../shared/domain/pagination';
 import { ListDocumentsQuery } from './list-documents.query';
 
 @Injectable()
@@ -23,5 +24,27 @@ export class ListDocumentsUseCase {
     }
 
     return this.repository.findByProject(query.projectId, query.filters);
+  }
+
+  async executePage(query: ListDocumentsQuery, request: PageRequest): Promise<Page<Document>> {
+    const projectExists = await this.projectExistenceChecker.exists(query.projectId);
+
+    if (!projectExists) {
+      throw new DocumentProjectNotFoundException(query.projectId);
+    }
+
+    if (this.repository.findPageByProject) {
+      return this.repository.findPageByProject(query.projectId, query.filters, request);
+    }
+
+    const documents = await this.repository.findByProject(query.projectId, query.filters);
+    const start = (request.page - 1) * request.size;
+
+    return {
+      items: documents.slice(start, start + request.size),
+      total: documents.length,
+      page: request.page,
+      size: request.size,
+    };
   }
 }

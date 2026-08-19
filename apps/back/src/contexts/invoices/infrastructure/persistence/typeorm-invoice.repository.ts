@@ -7,6 +7,8 @@ import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generato
 import { InvoiceOrmEntity } from './invoice.orm-entity';
 import { InvoiceLineOrmEntity } from './invoice-line.orm-entity';
 import { InvoiceMapper } from './invoice.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
+import { Page, PageRequest, pageOffset } from '../../../../shared/domain/pagination';
 
 @Injectable()
 export class TypeOrmInvoiceRepository implements InvoiceRepository {
@@ -19,9 +21,13 @@ export class TypeOrmInvoiceRepository implements InvoiceRepository {
   ) {}
 
   async findAll(): Promise<Invoice[]> {
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const invoiceOrms = await this.invoiceRepository.find({
       order: { year: 'DESC', number: 'DESC' },
+      take: limit + 1,
     });
+
+    if (invoiceOrms.length > limit) throw new ListLimitExceededException(limit, 'Invoices');
 
     if (invoiceOrms.length === 0) {
       return [];
@@ -37,6 +43,46 @@ export class TypeOrmInvoiceRepository implements InvoiceRepository {
         lineOrms.filter((line) => line.invoiceId === orm.id),
       ),
     );
+  }
+
+  async findPage(request: PageRequest, search?: string): Promise<Page<Invoice>> {
+    const queryBuilder = this.invoiceRepository.createQueryBuilder('invoice');
+    const normalizedSearch = search?.trim().toLowerCase();
+    if (normalizedSearch) {
+      queryBuilder.andWhere(
+        "(LOWER(invoice.customer_name) LIKE :search OR LOWER(invoice.series || '-' || invoice.year::text || '-' || LPAD(invoice.number::text, 4, '0')) LIKE :search)",
+        { search: `%${normalizedSearch}%` },
+      );
+    }
+
+    const total = await queryBuilder.getCount();
+    const invoiceOrms = await queryBuilder
+      .orderBy('invoice.year', 'DESC')
+      .addOrderBy('invoice.number', 'DESC')
+      .addOrderBy('invoice.id', 'DESC')
+      .skip(pageOffset(request))
+      .take(request.size)
+      .getMany();
+
+    if (invoiceOrms.length === 0) {
+      return { items: [], total, page: request.page, size: request.size };
+    }
+
+    const lineOrms = await this.invoiceLineRepository.find({
+      where: invoiceOrms.map((orm) => ({ invoiceId: orm.id })),
+    });
+
+    return {
+      items: invoiceOrms.map((orm) =>
+        InvoiceMapper.toDomain(
+          orm,
+          lineOrms.filter((line) => line.invoiceId === orm.id),
+        ),
+      ),
+      total,
+      page: request.page,
+      size: request.size,
+    };
   }
 
   async findById(id: string): Promise<Invoice | null> {

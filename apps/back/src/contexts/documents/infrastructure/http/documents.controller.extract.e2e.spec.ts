@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { Server } from 'http';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { DocumentsController } from './documents.controller';
@@ -41,6 +42,7 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
         { provide: GetDocumentFileUseCase, useValue: {} },
         { provide: RecordExtractionFeedbackUseCase, useValue: {} },
         { provide: RecordExtractionOutcomeUseCase, useValue: {} },
+        { provide: ConfigService, useValue: new ConfigService() },
         ExtractInvoiceUseCase,
         { provide: PDF_READER, useClass: PdfjsPdfReader },
         { provide: INVOICE_HINT_REPOSITORY, useValue: { findByIssuer: () => Promise.resolve([]) } },

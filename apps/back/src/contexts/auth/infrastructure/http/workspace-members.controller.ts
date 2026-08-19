@@ -32,6 +32,43 @@ import { InviteWorkspaceMemberDto } from './dtos/invite-workspace-member.dto';
 import { UpdateWorkspaceMemberDto } from './dtos/update-workspace-member.dto';
 import { WorkspaceMemberResponse } from './workspace-member.response';
 
+const MAX_AVATAR_BYTES = 1024 * 1024;
+
+async function readBoundedResponseBody(response: globalThis.Response): Promise<Buffer | null> {
+  const contentLength = Number(response.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > MAX_AVATAR_BYTES) {
+    await response.body?.cancel();
+    return null;
+  }
+
+  if (!response.body) {
+    return null;
+  }
+
+  const reader = response.body.getReader();
+  const chunks: Buffer[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const result = await reader.read();
+      if (result.done) break;
+
+      totalBytes += result.value.byteLength;
+      if (totalBytes > MAX_AVATAR_BYTES) {
+        await reader.cancel();
+        return null;
+      }
+
+      chunks.push(Buffer.from(result.value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+
+  return Buffer.concat(chunks, totalBytes);
+}
+
 @RequiresAdmin()
 @Controller('workspace/members')
 export class WorkspaceMembersController {
@@ -89,8 +126,8 @@ export class WorkspaceMembersController {
       throw new BadGatewayException('Workspace member avatar is unavailable');
     }
 
-    const image = Buffer.from(await imageResponse.arrayBuffer());
-    if (image.byteLength > 1024 * 1024) {
+    const image = await readBoundedResponseBody(imageResponse);
+    if (image === null) {
       throw new BadGatewayException('Workspace member avatar is unavailable');
     }
 

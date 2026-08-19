@@ -22,17 +22,24 @@ const SAMPLE_HINT: InvoiceHint = {
 describe('ExtractionHintsController (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
+  let listPageExecute: jest.Mock;
   let listExecute: jest.Mock<Promise<InvoiceHint[]>, []>;
   let deleteExecute: jest.Mock<Promise<void>, [string]>;
 
   beforeAll(async () => {
+    listPageExecute = jest.fn().mockResolvedValue({
+      items: [SAMPLE_HINT],
+      total: 11,
+      page: 2,
+      size: 10,
+    });
     listExecute = jest.fn(() => Promise.resolve([SAMPLE_HINT]));
     deleteExecute = jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ExtractionHintsController],
       providers: [
-        { provide: ListHintsUseCase, useValue: { execute: listExecute } },
+        { provide: ListHintsUseCase, useValue: { execute: listExecute, executePage: listPageExecute } },
         { provide: DeleteHintUseCase, useValue: { execute: deleteExecute } },
       ],
     }).compile();
@@ -45,6 +52,7 @@ describe('ExtractionHintsController (HTTP, no DB)', () => {
   });
 
   afterEach(() => {
+    listPageExecute.mockClear();
     listExecute.mockClear();
     deleteExecute.mockClear();
   });
@@ -71,6 +79,16 @@ describe('ExtractionHintsController (HTTP, no DB)', () => {
         },
       ]);
       expect(listExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns the paginated hints response', async () => {
+      const response = await request(httpServer).get('/extraction-hints?page=2&size=10');
+
+      expect(response.status).toBe(200);
+      const body = response.body as { items: unknown[]; total: number; page: number; size: number };
+      expect(body).toMatchObject({ total: 11, page: 2, size: 10 });
+      expect(body.items).toHaveLength(1);
+      expect(listPageExecute).toHaveBeenCalledWith({ page: 2, size: 10 });
     });
   });
 

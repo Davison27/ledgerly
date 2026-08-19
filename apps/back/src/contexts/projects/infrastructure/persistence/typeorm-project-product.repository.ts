@@ -7,6 +7,9 @@ import {
   ProjectProductRepository,
 } from '../../domain/project-product.repository';
 import { ProjectProductOrmEntity } from './project-product.orm-entity';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
+
+type ProjectProductQueryRow = Record<string, unknown>;
 
 @Injectable()
 export class TypeOrmProjectProductRepository implements ProjectProductRepository {
@@ -16,18 +19,22 @@ export class TypeOrmProjectProductRepository implements ProjectProductRepository
   ) {}
 
   async findByProjectId(projectId: string): Promise<ProjectProductRecord[]> {
-    const rows = await this.repository.manager.query(
+    const limit = getListLimit('MAX_PROJECT_PRODUCTS_PER_PROJECT', 100);
+    const rows: ProjectProductQueryRow[] = await this.repository.manager.query(
       `SELECT pp.project_id AS "projectId", pp.product_id AS "productId", p.name, p.reference,
         p.category, p.image, p.leasing_monthly_fee AS "leasingMonthlyFee",
         pp.lease_expense AS "leaseExpense", pp.lease_expense_date AS "leaseExpenseDate"
        FROM project_products pp
        INNER JOIN products p ON p.id = pp.product_id
        WHERE pp.project_id = $1
-       ORDER BY p.name ASC`,
-      [projectId],
+       ORDER BY p.name ASC
+       LIMIT $2`,
+      [projectId, limit + 1],
     );
 
-    return rows.map((row: Record<string, unknown>) => ({
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Project products');
+
+    return rows.map((row) => ({
       ...row,
       leasingMonthlyFee: row.leasingMonthlyFee === null ? null : Number(row.leasingMonthlyFee),
       leaseExpense: row.leaseExpense === null ? null : Number(row.leaseExpense),
@@ -52,7 +59,7 @@ export class TypeOrmProjectProductRepository implements ProjectProductRepository
   }
 
   async findAllLeaseExpenseRows(): Promise<ProjectLeaseExpenseRow[]> {
-    const rows = await this.repository.createQueryBuilder('projectProduct')
+    const rows: Array<{ projectId: string; amount: string | number; date: string }> = await this.repository.createQueryBuilder('projectProduct')
       .select('projectProduct.project_id', 'projectId')
       .addSelect('projectProduct.lease_expense', 'amount')
       .addSelect('projectProduct.lease_expense_date', 'date')

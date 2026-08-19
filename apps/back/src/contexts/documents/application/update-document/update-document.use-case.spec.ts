@@ -170,6 +170,28 @@ describe('UpdateDocumentUseCase', () => {
     ).rejects.toThrow(DocumentNotFoundException);
   });
 
+  it('throws DocumentNotFoundException when the document belongs to another project', async () => {
+    const repository = new InMemoryDocumentRepository();
+    await repository.save(buildDocument({ projectId: 'project-1' }));
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+
+    await expect(
+      useCase.execute({ id: 'doc-1', projectId: 'project-2', direction: 'ingreso' }),
+    ).rejects.toThrow(DocumentNotFoundException);
+
+    expect((await repository.findById('doc-1'))?.getDirection()).toBe('gasto');
+  });
+
+  it('updates the document when it belongs to the requested project', async () => {
+    const repository = new InMemoryDocumentRepository();
+    await repository.save(buildDocument({ projectId: 'project-1' }));
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+
+    const updated = await useCase.execute({ id: 'doc-1', projectId: 'project-1', direction: 'ingreso' });
+
+    expect(updated.getDirection()).toBe('ingreso');
+  });
+
   it('throws DocumentSupplierNotFoundException when supplierId does not exist', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());

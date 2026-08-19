@@ -3,6 +3,7 @@ import {
   STAFF_DOCUMENT_REPOSITORY,
   StaffDocumentRepository,
 } from '../../domain/staff-document.repository';
+import { StaffDocumentNotFoundException } from '../../domain/errors/staff-document-not-found.exception';
 
 export interface StaffDocumentFileResult {
   content: Buffer;
@@ -17,8 +18,19 @@ export class GetStaffDocumentFileUseCase {
     private readonly staffDocumentRepository: StaffDocumentRepository,
   ) {}
 
-  async execute(staffDocumentId: string): Promise<StaffDocumentFileResult | null> {
+  async execute(
+    staffDocumentId: string,
+    staffMemberId?: string,
+  ): Promise<StaffDocumentFileResult | null> {
     const staffDocument = await this.staffDocumentRepository.findById(staffDocumentId);
+
+    if (
+      staffDocument &&
+      staffMemberId !== undefined &&
+      staffDocument.getStaffMemberId() !== staffMemberId
+    ) {
+      throw new StaffDocumentNotFoundException(staffDocumentId);
+    }
 
     if (!staffDocument) {
       return null;

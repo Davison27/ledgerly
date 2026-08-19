@@ -41,6 +41,9 @@ import { UpdateDocumentDto } from './dtos/update-document.dto';
 import { ListDocumentsQueryDto } from './dtos/list-documents.query.dto';
 import { DocumentResponse } from './document.response';
 import { isValidPdfFile, MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
+import { UploadCapacityInterceptor } from '../../../../shared/infrastructure/http/upload-capacity.interceptor';
+import { getOptionalPageRequest } from '../../../../shared/infrastructure/http/dtos/page.query.dto';
+import { DocumentPageResponse } from './document-page.response';
 
 @RequiresAccess('documents', 'view')
 @Controller('projects/:projectId/documents')
@@ -63,8 +66,8 @@ export class DocumentsController {
   async list(
     @Param('projectId') projectId: string,
     @Query() query: ListDocumentsQueryDto,
-  ): Promise<DocumentResponse[]> {
-    const documents = await this.listDocumentsUseCase.execute({
+  ): Promise<DocumentResponse[] | DocumentPageResponse> {
+    const listQuery = {
       projectId,
       filters: {
         search: query.search,
@@ -76,7 +79,14 @@ export class DocumentsController {
         amountMin: query.amountMin,
         amountMax: query.amountMax,
       },
-    });
+    };
+    const pageRequest = getOptionalPageRequest(query);
+
+    if (pageRequest) {
+      return DocumentPageResponse.fromPage(await this.listDocumentsUseCase.executePage(listQuery, pageRequest));
+    }
+
+    const documents = await this.listDocumentsUseCase.execute(listQuery);
 
     return documents.map((document) => DocumentResponse.fromDomain(document));
   }
@@ -85,6 +95,7 @@ export class DocumentsController {
   @Post()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
+    UploadCapacityInterceptor,
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: MAX_PDF_FILE_SIZE_BYTES, files: 1, fields: 1, parts: 3, fieldSize: 64 * 1024 },
@@ -208,6 +219,7 @@ export class DocumentsController {
   @Post('extract')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
+    UploadCapacityInterceptor,
     FileInterceptor('file', {
       storage: memoryStorage(),
       limits: { fileSize: MAX_PDF_FILE_SIZE_BYTES },
@@ -231,8 +243,12 @@ export class DocumentsController {
 
   @Get(':documentId/file')
   @Header('Content-Type', 'application/pdf')
-  async getFile(@Param('documentId') documentId: string, @Res({ passthrough: true }) res: Response): Promise<StreamableFile> {
-    const file = await this.getDocumentFileUseCase.execute(documentId);
+  async getFile(
+    @Param('projectId') projectId: string,
+    @Param('documentId') documentId: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<StreamableFile> {
+    const file = await this.getDocumentFileUseCase.execute(documentId, projectId);
 
     if (!file) {
       throw new NotFoundException('Document file not found');
@@ -247,17 +263,25 @@ export class DocumentsController {
   }
 
   @Get(':id')
-  async get(@Param('id') id: string): Promise<DocumentResponse> {
-    const document = await this.getDocumentUseCase.execute(id);
+  async get(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+  ): Promise<DocumentResponse> {
+    const document = await this.getDocumentUseCase.execute(id, projectId);
 
     return DocumentResponse.fromDomain(document);
   }
 
   @RequiresAccess('documents', 'edit')
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() dto: UpdateDocumentDto): Promise<DocumentResponse> {
+  async update(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+    @Body() dto: UpdateDocumentDto,
+  ): Promise<DocumentResponse> {
     const updated = await this.updateDocumentUseCase.execute({
       id,
+      projectId,
       name: dto.name,
       type: dto.type,
       direction: dto.direction,
@@ -323,7 +347,7 @@ export class DocumentsController {
   @RequiresAccess('documents', 'edit')
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.deleteDocumentUseCase.execute(id);
+  async remove(@Param('projectId') projectId: string, @Param('id') id: string): Promise<void> {
+    await this.deleteDocumentUseCase.execute(id, projectId);
   }
 }

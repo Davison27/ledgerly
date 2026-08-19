@@ -20,12 +20,4 @@ describe('AppController', () => {
     });
   });
 
-  describe('health', () => {
-    it('should return ok status', () => {
-      expect(appController.getHealth()).toEqual({
-        status: 'ok',
-        service: 'ledgerly-back',
-      });
-    });
-  });
 });

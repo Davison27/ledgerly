@@ -35,14 +35,21 @@ function buildDocument(overrides: Partial<Parameters<typeof Document.create>[0]>
 describe('DocumentsController CRUD (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
-  let getExecute: jest.Mock<Promise<Document>, [string]>;
+  let listPageExecute: jest.Mock;
+  let getExecute: jest.Mock<Promise<Document>, [string, string?]>;
   let updateExecute: jest.Mock<Promise<Document>, [UpdateDocumentCommand]>;
-  let deleteExecute: jest.Mock<Promise<void>, [string]>;
+  let deleteExecute: jest.Mock<Promise<void>, [string, string?]>;
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock;
 
   beforeAll(async () => {
-    getExecute = jest.fn<Promise<Document>, [string]>();
+    listPageExecute = jest.fn().mockResolvedValue({
+      items: [buildDocument()],
+      total: 21,
+      page: 2,
+      size: 10,
+    });
+    getExecute = jest.fn<Promise<Document>, [string, string?]>();
     updateExecute = jest.fn((command: UpdateDocumentCommand) =>
       Promise.resolve(
         buildDocument({
@@ -51,14 +58,14 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
         }),
       ),
     );
-    deleteExecute = jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined);
+    deleteExecute = jest.fn<Promise<void>, [string, string?]>().mockResolvedValue(undefined);
     getFileExecute = jest.fn().mockResolvedValue(null);
     recordFeedbackExecute = jest.fn().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsController],
       providers: [
-        { provide: ListDocumentsUseCase, useValue: {} },
+        { provide: ListDocumentsUseCase, useValue: { executePage: listPageExecute, execute: jest.fn() } },
         { provide: GetDocumentUseCase, useValue: { execute: getExecute } },
         { provide: CreateDocumentUseCase, useValue: {} },
         { provide: UpdateDocumentUseCase, useValue: { execute: updateExecute } },
@@ -78,6 +85,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   });
 
   afterEach(() => {
+    listPageExecute.mockClear();
     getExecute.mockClear();
     updateExecute.mockClear();
     deleteExecute.mockClear();
@@ -87,6 +95,49 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  describe('GET /projects/:projectId/documents', () => {
+    it('returns the paginated response and forwards filters', async () => {
+      const response = await request(httpServer)
+        .get('/projects/p1/documents')
+        .query({ page: 2, size: 10, search: 'invoice', direction: 'ingreso' });
+
+      expect(response.status).toBe(200);
+      const body = response.body as { items: unknown[]; total: number; page: number; size: number };
+      expect(body).toMatchObject({ total: 21, page: 2, size: 10 });
+      expect(body.items).toHaveLength(1);
+      expect(listPageExecute).toHaveBeenCalledWith(
+        {
+          projectId: 'p1',
+          filters: {
+            search: 'invoice',
+            type: undefined,
+            status: undefined,
+            direction: 'ingreso',
+            dateFrom: undefined,
+            dateTo: undefined,
+            amountMin: undefined,
+            amountMax: undefined,
+          },
+        },
+        { page: 2, size: 10 },
+      );
+    });
+
+    it('rejects a one-sided page query before invoking the use case', async () => {
+      const response = await request(httpServer).get('/projects/p1/documents?page=2');
+
+      expect(response.status).toBe(400);
+      expect(listPageExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects a page size above the shared limit', async () => {
+      const response = await request(httpServer).get('/projects/p1/documents?page=1&size=101');
+
+      expect(response.status).toBe(400);
+      expect(listPageExecute).not.toHaveBeenCalled();
+    });
   });
 
   describe('PATCH /projects/:projectId/documents/:id', () => {
@@ -103,6 +154,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
       expect(updateExecute).toHaveBeenCalledTimes(1);
       const command = updateExecute.mock.calls[0][0];
       expect(command.id).toBe('doc-1');
+      expect(command.projectId).toBe('p1');
       expect(command.direction).toBe('ingreso');
     });
 
@@ -158,7 +210,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
       const response = await request(httpServer).delete('/projects/p1/documents/doc-1');
 
       expect(response.status).toBe(204);
-      expect(deleteExecute).toHaveBeenCalledWith('doc-1');
+      expect(deleteExecute).toHaveBeenCalledWith('doc-1', 'p1');
     });
 
     it('returns 404 when the use case reports the document does not exist', async () => {
@@ -181,5 +233,6 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     const body = response.body as { status: string; rawStatus: string };
     expect(body.status).toBe('vencido');
     expect(body.rawStatus).toBe('pendiente');
+    expect(getExecute).toHaveBeenCalledWith('doc-1', 'p1');
   });
 });

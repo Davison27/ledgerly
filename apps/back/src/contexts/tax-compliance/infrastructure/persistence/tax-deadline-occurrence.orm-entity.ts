@@ -2,6 +2,7 @@ import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity('tax_deadline_occurrences')
 @Index(['occurrenceKey'], { unique: true })
+@Index('IDX_tax_deadline_due_project', { synchronize: false })
 export class TaxDeadlineOccurrenceOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;

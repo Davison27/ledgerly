@@ -37,6 +37,7 @@ function buildInvoice(overrides: Partial<CreateInvoiceCommand> & { id?: string }
 describe('InvoicesController (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
+  let listPageExecute: jest.Mock;
   let listExecute: jest.Mock;
   let getExecute: jest.Mock;
   let createExecute: jest.Mock<Promise<Invoice>, [CreateInvoiceCommand]>;
@@ -44,6 +45,12 @@ describe('InvoicesController (HTTP, no DB)', () => {
   let deleteExecute: jest.Mock<Promise<void>, [string]>;
 
   beforeAll(async () => {
+    listPageExecute = jest.fn().mockResolvedValue({
+      items: [{ invoice: buildInvoice(), paymentStatus: 'pagado' }],
+      total: 6,
+      page: 2,
+      size: 5,
+    });
     listExecute = jest.fn((): Promise<InvoiceListItem[]> =>
       Promise.resolve([{ invoice: buildInvoice(), paymentStatus: 'pendiente' }]),
     );
@@ -55,7 +62,7 @@ describe('InvoicesController (HTTP, no DB)', () => {
     const moduleRef = await Test.createTestingModule({
       controllers: [InvoicesController],
       providers: [
-        { provide: ListInvoicesUseCase, useValue: { execute: listExecute } },
+        { provide: ListInvoicesUseCase, useValue: { execute: listExecute, executePage: listPageExecute } },
         { provide: GetInvoiceUseCase, useValue: { execute: getExecute } },
         { provide: CreateInvoiceUseCase, useValue: { execute: createExecute } },
         { provide: GetInvoicePdfUseCase, useValue: { execute: getPdfExecute } },
@@ -71,6 +78,7 @@ describe('InvoicesController (HTTP, no DB)', () => {
   });
 
   afterEach(() => {
+    listPageExecute.mockClear();
     listExecute.mockClear();
     getExecute.mockClear();
     createExecute.mockClear();
@@ -92,6 +100,25 @@ describe('InvoicesController (HTTP, no DB)', () => {
       expect(body[0].fullNumber).toBe('F-2026-0001');
       expect(body[0].hasPdf).toBe(false);
       expect(body[0]).toHaveProperty('paymentStatus', 'pendiente');
+    });
+
+    it('returns the paginated invoice response and forwards search', async () => {
+      const response = await request(httpServer)
+        .get('/invoices')
+        .query({ page: 2, size: 5, search: 'cliente' });
+
+      expect(response.status).toBe(200);
+      const body = response.body as { items: unknown[]; total: number; page: number; size: number };
+      expect(body).toMatchObject({ total: 6, page: 2, size: 5 });
+      expect(body.items).toHaveLength(1);
+      expect(listPageExecute).toHaveBeenCalledWith({ page: 2, size: 5 }, 'cliente');
+    });
+
+    it('rejects a one-sided page query', async () => {
+      const response = await request(httpServer).get('/invoices?size=5');
+
+      expect(response.status).toBe(400);
+      expect(listPageExecute).not.toHaveBeenCalled();
     });
   });
 

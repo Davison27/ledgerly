@@ -12,6 +12,8 @@ interface QueryBuilderStub {
   where: jest.Mock;
   andWhere: jest.Mock;
   orderBy: jest.Mock;
+  addOrderBy: jest.Mock;
+  take: jest.Mock;
   getMany: jest.Mock;
 }
 
@@ -27,6 +29,8 @@ function createQueryBuilderStub(): { queryBuilder: QueryBuilderStub; andWhereCal
       return queryBuilder;
     }),
     orderBy: jest.fn(() => queryBuilder),
+    addOrderBy: jest.fn(() => queryBuilder),
+    take: jest.fn(() => queryBuilder),
     getMany: jest.fn().mockResolvedValue([]),
   };
 

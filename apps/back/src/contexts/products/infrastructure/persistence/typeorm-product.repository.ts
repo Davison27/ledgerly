@@ -5,6 +5,7 @@ import { Product } from '../../domain/product';
 import { ProductRepository } from '../../domain/product.repository';
 import { ProductOrmEntity } from './product.orm-entity';
 import { ProductMapper } from './product.mapper';
+import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
 @Injectable()
 export class TypeOrmProductRepository implements ProductRepository {
@@ -16,7 +17,10 @@ export class TypeOrmProductRepository implements ProductRepository {
   ) {}
 
   async findAll(): Promise<Product[]> {
-    const rows = await this.repository.find({ order: { name: 'ASC' } });
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const rows = await this.repository.find({ order: { name: 'ASC' }, take: limit + 1 });
+
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Products');
 
     return rows.map((row) => this.mapper.toDomain(row));
   }

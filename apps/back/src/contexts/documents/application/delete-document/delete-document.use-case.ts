@@ -6,10 +6,10 @@ import { DocumentNotFoundException } from '../../domain/errors/document-not-foun
 export class DeleteDocumentUseCase {
   constructor(@Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string, projectId?: string): Promise<void> {
     const document = await this.repository.findById(id);
 
-    if (!document) {
+    if (!document || (projectId !== undefined && document.getProjectId() !== projectId)) {
       throw new DocumentNotFoundException(id);
     }
 

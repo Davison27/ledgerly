@@ -11,6 +11,8 @@ import {
   TAX_COMPLIANCE_SETTINGS_REPOSITORY,
   TaxComplianceSettingsRepository,
 } from '../domain/tax-compliance-settings.repository';
+import { assertDateRangeWithinDays } from '../../../shared/domain/date-range';
+import { getListLimit, ListLimitExceededException } from '../../../shared/infrastructure/list-limit';
 
 export interface ListTaxDeadlinesQuery {
   from: string;
@@ -30,6 +32,11 @@ export class ListTaxDeadlinesUseCase {
   ) {}
 
   async execute(query: ListTaxDeadlinesQuery): Promise<TaxDeadlineView[]> {
+    assertDateRangeWithinDays(
+      query.from,
+      query.to,
+      getListLimit('MAX_CALENDAR_RANGE_DAYS', 366),
+    );
     const settings = await this.settingsRepository.find();
     if (!settings?.enabled) return [];
 
@@ -55,6 +62,10 @@ export class ListTaxDeadlinesUseCase {
           projectId: profile.projectId,
           obligationKeys: [definition.key],
         });
+        const resultLimit = getListLimit('MAX_CALENDAR_RESULTS', 1000);
+        if (results.length + views.length > resultLimit) {
+          throw new ListLimitExceededException(resultLimit, 'Tax calendar results');
+        }
         results.push(...views);
       }
     }
