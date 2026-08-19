@@ -75,6 +75,18 @@ export interface DocumentListFiltersDto {
   staffMemberId?: string;
 }
 
+export interface DocumentPageParams {
+  page: number;
+  size: number;
+}
+
+export interface DocumentDuplicatePageDto {
+  items: DocumentDuplicateDto[];
+  total: number;
+  page: number;
+  size: number;
+}
+
 export interface DocumentDuplicateDto {
   id: string;
   projectId: string;

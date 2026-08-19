@@ -1183,6 +1183,7 @@
         "created": "Documento creado correctamente",
         "extractError": "No se ha podido procesar el documento. Inténtalo de nuevo.",
         "scannedPdfAlert": "No pudimos leer el PDF automáticamente (parece una imagen escaneada). Rellena los campos manualmente.",
+        "pdfPageLimitAlert": "Este PDF tiene demasiadas páginas para procesarlo de forma segura. Usa un documento más corto o divídelo en varios archivos.",
         "dropzone": {
           "title": "Sube el PDF de la factura",
           "hint": "Arrastra uno o varios archivos aquí o haz clic para seleccionarlos. Rellenamos el formulario por ti.",
@@ -1218,7 +1219,8 @@
         },
         "duplicate": {
           "title": "Posible documento duplicado",
-          "match": "{{project}} · {{name}} · {{date}} · {{amount}}"
+          "match": "{{project}} · {{name}} · {{date}} · {{amount}}",
+          "moreMatches": "Hay {{count}} coincidencia(s) posible(s) más que no se muestran"
         },
         "sections": {
           "supplier": "Proveedor",

@@ -58,7 +58,7 @@ export interface Project {
   currency?: ProjectCurrency;
   fiscalYear?: string;
   manager?: string;
-  image?: string;
+  image?: string | null;
   color?: ProjectColorToken;
 }
 

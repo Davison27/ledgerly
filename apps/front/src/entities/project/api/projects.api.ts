@@ -20,7 +20,7 @@ export function createProject(payload: CreateProjectPayload): Promise<ProjectDto
 }
 
 export function updateProject(id: string, payload: UpdateProjectPayload): Promise<ProjectDto> {
-  return patch<ProjectDto>(`/projects/${id}`, stripEmpty(payload));
+  return patch<ProjectDto>(`/projects/${id}`, stripEmpty(payload, { preserveNull: true }));
 }
 
 export function deleteProject(projectId: string): Promise<void> {

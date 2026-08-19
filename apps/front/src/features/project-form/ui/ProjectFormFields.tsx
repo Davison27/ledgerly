@@ -97,8 +97,8 @@ const PROJECT_STATUSES: ProjectStatus[] = ['active', 'on_hold', 'completed', 'ar
 const PROJECT_CURRENCIES: ProjectCurrency[] = ['EUR', 'USD', 'GBP'];
 
 interface ProjectFormFieldsProps {
-  image?: string;
-  onImageChange: (image: string | undefined) => void;
+  image?: string | null;
+  onImageChange: (image: string | null | undefined) => void;
   colorSeed?: string;
 }
 
@@ -149,7 +149,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
               type="link"
               size="small"
               className={styles.removeImageButton}
-              onClick={() => onImageChange(undefined)}
+              onClick={() => onImageChange(null)}
             >
               {t('projects.form.image.remove')}
             </Button>

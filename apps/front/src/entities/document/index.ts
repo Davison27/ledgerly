@@ -1,7 +1,10 @@
 export {
   listDocuments,
+  listDocumentsPage,
   listAllDocuments,
+  listAllDocumentsPage,
   checkDuplicate,
+  checkDuplicatePage,
   createDocument,
   documentFileUrl,
   getDocument,
@@ -22,6 +25,8 @@ export type {
   UpdateDocumentPayload,
   ExtractInvoiceResult,
   ExtractInvoiceConfidence,
+  DocumentDuplicatePageDto,
+  DocumentPageParams,
 } from './api/types';
 export { mapDocumentDto } from './model/documents';
 export { documentQueries } from './api/document.queries';
