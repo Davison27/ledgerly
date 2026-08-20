@@ -39,8 +39,8 @@ export class NotificationEventRetryScheduler implements OnModuleInit, OnModuleDe
           await this.repository.markFailed(job, error, now);
         }
       }
-    } catch (error) {
-      this.logger.error('Could not process pending notification events', error instanceof Error ? error.stack : String(error));
+    } catch {
+      this.logger.error('Could not process pending notification events');
     } finally {
       this.running = false;
     }

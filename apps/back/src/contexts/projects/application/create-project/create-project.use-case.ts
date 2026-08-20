@@ -62,10 +62,8 @@ export class CreateProjectUseCase {
 
     try {
       await this.demoProjectPurger.purgeDemoProjects();
-    } catch (error) {
-      this.logger.warn(
-        `Failed to purge demo data after creating project ${project.id}: ${String(error)}`,
-      );
+    } catch {
+      this.logger.warn('Could not purge demo data after project creation');
     }
 
     return project;

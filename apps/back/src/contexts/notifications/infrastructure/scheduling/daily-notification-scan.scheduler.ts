@@ -48,17 +48,12 @@ export class DailyNotificationScanScheduler implements OnModuleInit, OnModuleDes
 
   private async runScan(): Promise<void> {
     try {
-      const scanResult = await this.scanForNotificationsUseCase.execute();
-      const purgeResult = await this.purgeReadNotificationsUseCase.execute();
+      await this.scanForNotificationsUseCase.execute();
+      await this.purgeReadNotificationsUseCase.execute();
 
-      this.logger.log(
-        `Created ${scanResult.created} notifications and purged ${purgeResult.deleted} read notifications`,
-      );
-    } catch (error) {
-      this.logger.error(
-        'Daily notification scan failed',
-        error instanceof Error ? error.stack : String(error),
-      );
+      this.logger.log('Daily notification scan completed');
+    } catch {
+      this.logger.error('Daily notification scan failed');
     } finally {
       this.scheduleNext();
     }

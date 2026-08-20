@@ -20,11 +20,8 @@ export class InProcessDomainEventPublisher implements DomainEventPublisher {
 
         try {
           await subscriber.handle(event);
-        } catch (error) {
-          this.logger.error(
-            `Handler failed while processing event "${event.name}"`,
-            error instanceof Error ? error.stack : String(error),
-          );
+        } catch {
+          this.logger.error('Event handler failed');
         }
       }
     }

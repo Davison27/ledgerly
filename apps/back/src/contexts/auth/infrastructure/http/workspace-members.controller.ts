@@ -33,11 +33,43 @@ import { UpdateWorkspaceMemberDto } from './dtos/update-workspace-member.dto';
 import { WorkspaceMemberResponse } from './workspace-member.response';
 
 const MAX_AVATAR_BYTES = 1024 * 1024;
+const MAX_AVATAR_REDIRECTS = 3;
+const GOOGLE_AVATAR_HOSTS = new Set(['lh3.googleusercontent.com']);
+const AVATAR_CONTENT_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
+const AVATAR_REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308]);
+
+type AvatarContentType = 'image/png' | 'image/jpeg' | 'image/webp';
+
+function parseAvatarContentType(value: string | null): AvatarContentType | null {
+  const mediaType = value?.split(';', 1)[0]?.trim().toLowerCase();
+
+  return AVATAR_CONTENT_TYPES.has(mediaType ?? '') ? (mediaType as AvatarContentType) : null;
+}
+
+function hasAvatarSignature(image: Buffer, contentType: AvatarContentType): boolean {
+  if (contentType === 'image/png') {
+    return image.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  }
+
+  if (contentType === 'image/jpeg') {
+    return image.length >= 3 && image[0] === 0xff && image[1] === 0xd8 && image[2] === 0xff;
+  }
+
+  return image.subarray(0, 4).equals(Buffer.from('RIFF')) && image.subarray(8, 12).equals(Buffer.from('WEBP'));
+}
+
+async function cancelAvatarResponse(response: globalThis.Response): Promise<void> {
+  try {
+    await response.body?.cancel();
+  } catch {
+    return;
+  }
+}
 
 async function readBoundedResponseBody(response: globalThis.Response): Promise<Buffer | null> {
   const contentLength = Number(response.headers.get('content-length'));
   if (Number.isFinite(contentLength) && contentLength > MAX_AVATAR_BYTES) {
-    await response.body?.cancel();
+    await cancelAvatarResponse(response);
     return null;
   }
 
@@ -62,11 +94,57 @@ async function readBoundedResponseBody(response: globalThis.Response): Promise<B
 
       chunks.push(Buffer.from(result.value));
     }
+  } catch {
+    await cancelAvatarResponse(response);
+    return null;
   } finally {
     reader.releaseLock();
   }
 
   return Buffer.concat(chunks, totalBytes);
+}
+
+function parseGoogleAvatarUrl(value: string): URL | null {
+  try {
+    const url = new URL(value);
+    if (
+      url.protocol !== 'https:' ||
+      !GOOGLE_AVATAR_HOSTS.has(url.hostname) ||
+      url.port !== '' ||
+      url.username !== '' ||
+      url.password !== ''
+    ) {
+      return null;
+    }
+    return url;
+  } catch {
+    return null;
+  }
+}
+
+async function fetchGoogleAvatar(url: URL): Promise<globalThis.Response | null> {
+  let currentUrl = url;
+  for (let redirects = 0; redirects <= MAX_AVATAR_REDIRECTS; redirects += 1) {
+    let response: globalThis.Response;
+    try {
+      response = await fetch(currentUrl, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+    } catch {
+      return null;
+    }
+    if (!AVATAR_REDIRECT_STATUSES.has(response.status)) return response;
+    await cancelAvatarResponse(response);
+    const location = response.headers.get('location');
+    if (!location || redirects === MAX_AVATAR_REDIRECTS) return null;
+    let nextUrl: URL | null;
+    try {
+      nextUrl = parseGoogleAvatarUrl(new URL(location, currentUrl).toString());
+    } catch {
+      return null;
+    }
+    if (!nextUrl) return null;
+    currentUrl = nextUrl;
+  }
+  return null;
 }
 
 @RequiresAdmin()
@@ -109,25 +187,28 @@ export class WorkspaceMembersController {
       throw new NotFoundException('Workspace member avatar not found');
     }
 
-    const url = new URL(imageUrl);
-    if (url.protocol !== 'https:' || url.hostname !== 'lh3.googleusercontent.com') {
+    const url = parseGoogleAvatarUrl(imageUrl);
+    if (!url) {
       throw new NotFoundException('Workspace member avatar not found');
     }
 
-    let imageResponse: globalThis.Response;
-    try {
-      imageResponse = await fetch(url, { signal: AbortSignal.timeout(5_000) });
-    } catch {
+    const imageResponse = await fetchGoogleAvatar(url);
+    if (!imageResponse) {
       throw new BadGatewayException('Workspace member avatar is unavailable');
     }
 
-    const contentType = imageResponse.headers.get('content-type');
-    if (!imageResponse.ok || !contentType?.startsWith('image/')) {
+    const contentType = parseAvatarContentType(imageResponse.headers.get('content-type'));
+    if (!imageResponse.ok || !contentType) {
+      await cancelAvatarResponse(imageResponse);
       throw new BadGatewayException('Workspace member avatar is unavailable');
     }
 
     const image = await readBoundedResponseBody(imageResponse);
     if (image === null) {
+      throw new BadGatewayException('Workspace member avatar is unavailable');
+    }
+
+    if (!hasAvatarSignature(image, contentType)) {
       throw new BadGatewayException('Workspace member avatar is unavailable');
     }
 

@@ -1,7 +1,6 @@
 import { All, Body, Controller, Get, Header, HttpCode, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
-import { fromNodeHeaders } from 'better-auth/node';
-import type { Request } from 'express';
+import type { Request, Response as ExpressResponse } from 'express';
 import { auth } from '../../../../lib/auth';
 import { Authenticated } from '../../../../shared/infrastructure/http/access/authenticated.decorator';
 import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
@@ -15,6 +14,111 @@ import { BootstrapFirstAdminDto } from './dtos/bootstrap-first-admin.dto';
 import { WorkspaceMemberResponse } from './workspace-member.response';
 import { Inject } from '@nestjs/common';
 import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
+
+const BACKEND_PUBLIC_URL = process.env.BACKEND_PUBLIC_URL ?? 'http://localhost:3005';
+const GENERIC_AUTH_ERROR = 'Authentication request failed';
+const UNTRUSTED_REQUEST_HEADERS = new Set([
+  'connection',
+  'content-length',
+  'expect',
+  'forwarded',
+  'host',
+  'transfer-encoding',
+  'upgrade',
+  'via',
+  'x-client-ip',
+  'x-forwarded-for',
+  'x-forwarded-host',
+  'x-forwarded-port',
+  'x-forwarded-proto',
+  'x-real-ip',
+  'cf-connecting-ip',
+  'true-client-ip',
+]);
+const RESPONSE_HEADERS_TO_SKIP = new Set(['connection', 'content-length', 'transfer-encoding']);
+
+function authHeadersFromRequest(req: Request): Headers {
+  const headers = new Headers();
+
+  for (const [name, value] of Object.entries(req.headers)) {
+    if (value === undefined || UNTRUSTED_REQUEST_HEADERS.has(name.toLowerCase())) {
+      continue;
+    }
+
+    if (Array.isArray(value)) {
+      for (const item of value) headers.append(name, item);
+    } else {
+      headers.set(name, value);
+    }
+  }
+
+  if (req.ip) headers.set('x-forwarded-for', req.ip);
+
+  return headers;
+}
+
+function authRequestUrl(req: Request): string {
+  const baseUrl = new URL(BACKEND_PUBLIC_URL);
+  const pathAndQuery = req.originalUrl.startsWith('/') && !req.originalUrl.startsWith('//') ? req.originalUrl : '/';
+
+  return new URL(pathAndQuery, baseUrl).toString();
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function serializeAuthRequestBody(body: unknown, contentType: string | null): BodyInit | undefined {
+  if (body === undefined) return undefined;
+  const mediaType = contentType?.split(';', 1)[0]?.trim().toLowerCase();
+  if (mediaType === 'application/json') return JSON.stringify(body);
+  if (body instanceof Uint8Array) return Buffer.from(body).toString('utf8');
+  if (typeof body === 'string') return body;
+
+  if (mediaType === 'application/x-www-form-urlencoded' && isRecord(body)) {
+    const params = new URLSearchParams();
+
+    for (const [key, value] of Object.entries(body)) {
+      if (Array.isArray(value)) {
+        for (const item of value) params.append(key, String(item));
+      } else if (value !== undefined && value !== null) {
+        params.append(key, String(value));
+      }
+    }
+
+    return params.toString();
+  }
+
+  return JSON.stringify(body);
+}
+
+function genericAuthErrorBody(body: string): string {
+  try {
+    const parsed = JSON.parse(body) as unknown;
+    const code = isRecord(parsed) && typeof parsed.code === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(parsed.code)
+      ? parsed.code
+      : undefined;
+
+    return JSON.stringify(code ? { code, message: GENERIC_AUTH_ERROR } : { message: GENERIC_AUTH_ERROR });
+  } catch {
+    return JSON.stringify({ message: GENERIC_AUTH_ERROR });
+  }
+}
+
+function forwardAuthResponseHeaders(response: globalThis.Response, res: ExpressResponse): void {
+  const responseHeaders = response.headers as Headers & { getSetCookie?: () => string[] };
+  const setCookies = responseHeaders.getSetCookie?.() ?? [];
+
+  response.headers.forEach((value, name) => {
+    const normalizedName = name.toLowerCase();
+    if (normalizedName === 'set-cookie' || RESPONSE_HEADERS_TO_SKIP.has(normalizedName)) return;
+    res.setHeader(name, value);
+  });
+
+  if (setCookies.length > 0) {
+    res.setHeader('set-cookie', setCookies);
+  }
+}
 
 @Controller('auth')
 export class AuthController {
@@ -30,7 +134,7 @@ export class AuthController {
   @Get('status')
   @Header('Cache-Control', 'no-store')
   async status(@Req() req: Request): Promise<{ bootstrapNeeded: boolean; authenticated: boolean }> {
-    const session = await auth.api.getSession({ headers: fromNodeHeaders(req.headers) });
+    const session = await auth.api.getSession({ headers: authHeadersFromRequest(req) });
     const member = session ? await this.memberRepository.findByEmail(session.user.email) : null;
 
     if (member?.getStatus() === 'invited') {
@@ -66,28 +170,27 @@ export class AuthController {
 
   @Public()
   @All('*')
-  async handler(@Req() req: Request, @Res() res: { status: (status: number) => void; setHeader: (name: string, value: string) => void; send: (body: string) => void }): Promise<void> {
-    const headers = new Headers();
-
-    for (const [name, value] of Object.entries(req.headers)) {
-      if (value !== undefined) {
-        headers.set(name, Array.isArray(value) ? value.join(', ') : value);
-      }
-    }
-
-    if (!headers.has('x-forwarded-for')) {
-      headers.set('x-forwarded-for', req.ip ?? '127.0.0.1');
-    }
-
-    const request = new Request(`${req.protocol}://${req.get('host')}${req.originalUrl}`, {
+  async handler(@Req() req: Request, @Res() res: ExpressResponse): Promise<void> {
+    const headers = authHeadersFromRequest(req);
+    const request = new Request(authRequestUrl(req), {
       method: req.method,
       headers,
-      body: ['GET', 'HEAD'].includes(req.method) ? undefined : JSON.stringify(req.body),
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : serializeAuthRequestBody(req.body, headers.get('content-type')),
     });
-    const response = await auth.handler(request);
 
-    response.headers.forEach((value, name) => res.setHeader(name, value));
+    let response: globalThis.Response;
+    try {
+      response = await auth.handler(request);
+    } catch {
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR);
+      res.setHeader('Content-Type', 'application/json');
+      res.send(JSON.stringify({ message: GENERIC_AUTH_ERROR }));
+      return;
+    }
+
+    forwardAuthResponseHeaders(response, res);
     res.status(response.status);
-    res.send(await response.text());
+    const body = await response.text();
+    res.send(response.status >= 400 ? genericAuthErrorBody(body) : body);
   }
 }
