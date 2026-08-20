@@ -16,9 +16,10 @@ permanently authorized when the task size justifies it.
 3. David approves the plan. The same planner incorporates objections. Routine
    edits are checked from the diff; run a second validation only when units,
    structure, or execution order changed.
-4. One or more `implementer` agents (`gpt-5.6-terra`, `high`) receive one
+4. One or more implementation agents (`gpt-5.6-luna`, `max`) receive one
    bounded unit each. They are the only subagents allowed to edit product code.
-   Parallel work must have disjoint file scopes.
+   Do not use Terra for implementation. Parallel work must have disjoint file
+   scopes.
 5. `qa` (`gpt-5.6-luna`, `max`) checks the implementation against the plan,
    runs verification, and returns `PASS` or `FAIL`. A failure returns to the
    same implementer; never commit a red change.
