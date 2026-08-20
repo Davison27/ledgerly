@@ -9,7 +9,7 @@ import {
   IdcardOutlined,
   ProjectOutlined,
   SearchOutlined,
-  ShoppingOutlined,
+  ToolOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -135,11 +135,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         onSelect: () => void navigate({ to: '/suppliers' }),
       },
       {
-        key: 'nav-products',
+        key: 'nav-equipment',
         category: 'nav',
-        icon: <ShoppingOutlined />,
-        label: t('nav.products'),
-        onSelect: () => void navigate({ to: '/products' }),
+        icon: <ToolOutlined />,
+        label: t('nav.equipment'),
+        onSelect: () => void navigate({ to: '/equipment' }),
       },
       {
         key: 'nav-staff',

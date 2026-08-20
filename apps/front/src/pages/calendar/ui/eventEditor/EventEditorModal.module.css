@@ -37,7 +37,7 @@
   margin-bottom: var(--lg-space-md);
 }
 
-.productList {
+.equipmentList {
   flex: 1 1 auto;
   min-height: 0;
   overflow-x: hidden;
@@ -46,27 +46,27 @@
   margin-bottom: var(--lg-space-sm);
 }
 
-.productRow {
+.equipmentRow {
   min-width: 0;
 }
 
-.productSelectSlot {
+.equipmentSelectSlot {
   flex: 1 1 auto;
   min-width: 0;
 }
 
-.productQtySlot {
+.equipmentQtySlot {
   flex: 0 0 110px;
 }
 
-.productRemoveSlot {
+.equipmentRemoveSlot {
   flex: 0 0 32px;
 }
 
-.productFooter {
+.equipmentFooter {
   flex: 0 0 auto;
 }
 
-.noProductsHint {
+.noEquipmentHint {
   font-size: var(--lg-font-size-xs);
 }

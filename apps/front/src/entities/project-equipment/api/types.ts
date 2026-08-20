@@ -1,6 +1,6 @@
-export interface ProjectProductDto {
+export interface ProjectEquipmentDto {
   projectId: string;
-  productId: string;
+  equipmentId: string;
   name: string;
   reference: string | null;
   category: string | null;
@@ -10,8 +10,8 @@ export interface ProjectProductDto {
   leaseExpenseDate: string | null;
 }
 
-export interface SaveProjectProductPayload {
-  productId: string;
+export interface SaveProjectEquipmentPayload {
+  equipmentId: string;
   leaseExpense?: number | null;
   leaseExpenseDate?: string | null;
 }

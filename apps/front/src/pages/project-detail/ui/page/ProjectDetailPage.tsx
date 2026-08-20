@@ -13,7 +13,7 @@ import { DocumentsSection } from '../documents/DocumentsSection';
 import { DashboardSection } from '../dashboard/DashboardSection';
 import { ScheduleSection } from '../schedule/ScheduleSection';
 import { SettingsSection } from '../settings/SettingsSection';
-import { ProjectProductsSection } from '../products/ProjectProductsSection';
+import { ProjectEquipmentSection } from '../equipment/ProjectEquipmentSection';
 import styles from './ProjectDetailPage.module.css';
 
 const { Text } = Typography;
@@ -54,7 +54,7 @@ export function ProjectDetailPage() {
 
   const options = [
     { label: t('projects.sections.documents'), value: 'documents' as const },
-    { label: t('projects.sections.products'), value: 'products' as const },
+    { label: t('projects.sections.equipment'), value: 'equipment' as const },
     { label: t('projects.sections.dashboard'), value: 'dashboard' as const },
     { label: t('projects.sections.schedule'), value: 'schedule' as const },
     { label: t('projects.sections.settings'), value: 'settings' as const },
@@ -88,7 +88,7 @@ export function ProjectDetailPage() {
         {section === 'documents' && (
           <DocumentsSection project={project} color={token.colorPrimary} />
         )}
-        {section === 'products' && <ProjectProductsSection project={project} color={token.colorPrimary} />}
+        {section === 'equipment' && <ProjectEquipmentSection project={project} color={token.colorPrimary} />}
         {section === 'dashboard' && (
           <DashboardSection project={project} color={token.colorPrimary} />
         )}

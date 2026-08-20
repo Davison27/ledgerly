@@ -12,8 +12,8 @@ const CONFLICT_KINDS: ScheduleConflictKind[] = [
   'outside_project_dates',
   'staff_overlap',
   'project_not_active',
-  'product_overallocated',
-  'product_stock_unset',
+  'equipment_overallocated',
+  'equipment_stock_unset',
 ];
 
 export interface ConflictSummaryProps {

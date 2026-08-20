@@ -21,7 +21,7 @@ export function ProductTourScreen({ slide, workspaceName, logo }: ProductTourScr
       {TABLE_SLIDES.includes(slide as (typeof TABLE_SLIDES)[number]) && (
         <TableScreen slide={slide as (typeof TABLE_SLIDES)[number]} />
       )}
-      {slide === 'products' && <ProductsScreen />}
+      {slide === 'equipment' && <EquipmentScreen />}
       {slide === 'workspace' && <WorkspaceScreen workspaceName={workspaceName} logo={logo} />}
     </div>
   );
@@ -241,27 +241,27 @@ function TableScreen({ slide }: { slide: (typeof TABLE_SLIDES)[number] }) {
   );
 }
 
-function ProductsScreen() {
+function EquipmentScreen() {
   const { t } = useTranslation();
 
   return (
     <div>
-      <div className={styles.miniProductGrid}>
-        {['studio', 'camera', 'consulting'].map((product) => (
-          <article key={product} className={styles.miniProductCard}>
-            <div className={styles.miniProductVisual}>
+      <div className={styles.miniEquipmentGrid}>
+        {['studio', 'camera', 'consulting'].map((equipment) => (
+          <article key={equipment} className={styles.miniEquipmentCard}>
+            <div className={styles.miniEquipmentVisual}>
               <FileTextOutlined />
               <span>•••</span>
             </div>
             <div>
-              <span className={styles.productCategory}>
-                {t(`login.tour.products.${product}.category`)}
+              <span className={styles.equipmentCategory}>
+                {t(`login.tour.equipment.${equipment}.category`)}
               </span>
-              <strong>{t(`login.tour.products.${product}.name`)}</strong>
-              <small>{t(`login.tour.products.${product}.reference`)}</small>
+              <strong>{t(`login.tour.equipment.${equipment}.name`)}</strong>
+              <small>{t(`login.tour.equipment.${equipment}.reference`)}</small>
               <footer>
-                <span>{t(`login.tour.products.${product}.price`)}</span>
-                <b>{t(`login.tour.products.${product}.stock`)}</b>
+                <span>{t(`login.tour.equipment.${equipment}.price`)}</span>
+                <b>{t(`login.tour.equipment.${equipment}.stock`)}</b>
               </footer>
             </div>
           </article>

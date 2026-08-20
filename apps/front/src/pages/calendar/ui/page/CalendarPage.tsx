@@ -48,7 +48,7 @@ export function CalendarPage() {
     loadError,
     projects,
     staffMembers,
-    products,
+    equipment,
     goToday,
     goPrevious,
     goNext,
@@ -349,7 +349,7 @@ export function CalendarPage() {
         open={selectedEvent !== null}
         event={selectedEvent}
         staffMembers={staffMembers}
-        products={products}
+        equipment={equipment}
         onCancel={() => setSelectedEvent(null)}
         onSave={handleSave}
         onDelete={handleDelete}

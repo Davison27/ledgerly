@@ -6,7 +6,7 @@ export const PRODUCT_TOUR_SLIDES = [
   'calendar',
   'documents',
   'suppliers',
-  'products',
+  'equipment',
   'staff',
   'workspace',
 ] as const;

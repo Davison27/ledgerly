@@ -45,7 +45,7 @@
         "documents": "Documents",
         "calendar": "Calendar",
         "suppliers": "Suppliers",
-        "products": "Products",
+        "equipment": "Equipment",
         "staff": "Staff"
       },
       "user": {
@@ -92,11 +92,11 @@
           "description": "Keep supplier records, documents and accumulated spend together for every relationship.",
           "screenLabel": "Suppliers"
         },
-        "products": {
-          "eyebrow": "Products",
-          "title": "Keep a useful, ready-to-bill catalog",
-          "description": "Organize services and products with the price, stock and reference information your team needs.",
-          "screenLabel": "Products"
+        "equipment": {
+          "eyebrow": "Equipment",
+          "title": "Keep equipment ready for every project",
+          "description": "Organize equipment with the price, stock, reference, and documents your team needs.",
+          "screenLabel": "Equipment"
         },
         "staff": {
           "eyebrow": "Staff",
@@ -137,10 +137,10 @@
           "subheading": "Manage the companies you buy from",
           "action": "New supplier"
         },
-        "products": {
-          "heading": "Products",
-          "subheading": "Your products and services catalog",
-          "action": "New product"
+        "equipment": {
+          "heading": "Equipment",
+          "subheading": "Your project equipment catalog",
+          "action": "New equipment"
         },
         "staff": {
           "heading": "Staff",
@@ -366,7 +366,7 @@
           }
         }
       },
-      "products": {
+      "equipment": {
         "studio": {
           "category": "Service",
           "name": "Studio direction",
@@ -495,7 +495,7 @@
     "calendar": "Calendar",
     "documents": "Documents",
     "suppliers": "Suppliers",
-    "products": "Products",
+    "equipment": "Equipment",
     "staff": "Staff"
   },
   "sider": {
@@ -1137,7 +1137,7 @@
     },
     "sections": {
       "documents": "Documents",
-      "products": "Products",
+      "equipment": "Equipment",
       "dashboard": "Dashboard",
       "schedule": "Calendar",
       "settings": "Settings"
@@ -1147,30 +1147,30 @@
       "loadError": "The schedule blocks could not be loaded.",
       "viewInCalendar": "View in calendar",
       "noStaff": "No staff assigned",
-      "noProducts": "No products assigned",
+      "noEquipment": "No equipment assigned",
       "columns": {
         "days": "Days",
         "staff": "Staff",
-        "products": "Products"
+        "equipment": "Equipment"
       }
     },
-    "products": {
-      "add": "Add product",
-      "addTitle": "Add product to project",
-      "empty": "There are no products assigned to this project.",
-      "saved": "Product saved in project",
-      "deleted": "Product removed from project",
-      "saveError": "The product could not be saved in the project.",
-      "deleteError": "The product could not be removed from the project.",
+    "equipment": {
+      "add": "Add equipment",
+      "addTitle": "Add equipment to project",
+      "empty": "No equipment is assigned to this project.",
+      "saved": "Equipment saved in project",
+      "deleted": "Equipment removed from project",
+      "saveError": "The equipment could not be saved in the project.",
+      "deleteError": "The equipment could not be removed from the project.",
       "expenseHelp": "Optional one-off leasing expense assumed by this project.",
       "columns": {
-        "product": "Product",
+        "equipment": "Equipment",
         "catalogLease": "Catalog monthly lease",
         "projectExpense": "Project leasing expense",
         "date": "Expense date"
       },
       "validation": {
-        "productRequired": "Select a product",
+        "equipmentRequired": "Select equipment",
         "dateRequired": "An expense date is required"
       }
     },
@@ -1656,12 +1656,12 @@
       "loadError": "The document could not be loaded."
     }
   },
-  "products": {
-    "title": "Products",
-    "subtitle": "Manage the catalog of products and services you invoice.",
-    "add": "New product",
-    "empty": "There are no products yet.",
-    "emptySearch": "No products match your search.",
+  "equipment": {
+    "title": "Equipment",
+    "subtitle": "Manage the equipment your team assigns to projects and schedules.",
+    "add": "New equipment",
+    "empty": "There is no equipment yet.",
+    "emptySearch": "No equipment matches your search.",
     "searchPlaceholder": "Search by name, reference, category, or tag",
     "categoryFilter": "All categories",
     "sort": {
@@ -1670,8 +1670,8 @@
       "priceAsc": "Price: low to high",
       "priceDesc": "Price: high to low"
     },
-    "loadError": "Products could not be loaded.",
-    "deleted": "Product deleted",
+    "loadError": "Equipment could not be loaded.",
+    "deleted": "Equipment deleted",
     "fields": {
       "name": "Name",
       "price": "Price",
@@ -1692,19 +1692,19 @@
     },
     "stockUnset": "not set",
     "card": {
-      "imageAlt": "Product image for {{name}}",
+      "imageAlt": "Equipment image for {{name}}",
       "leasing": "Leasing"
     },
     "form": {
-      "createTitle": "New product",
-      "editTitle": "Edit product",
+      "createTitle": "New equipment",
+      "editTitle": "Edit equipment",
       "submit": "Save",
-      "createSubmit": "Create product",
-      "created": "Product created successfully",
-      "updated": "Product updated successfully",
-      "createError": "The product could not be created. Please try again.",
-      "updateError": "The product could not be updated. Please try again.",
-      "duplicateName": "A product with that name already exists.",
+      "createSubmit": "Create equipment",
+      "created": "Equipment created successfully",
+      "updated": "Equipment updated successfully",
+      "createError": "The equipment could not be created. Please try again.",
+      "updateError": "The equipment could not be updated. Please try again.",
+      "duplicateName": "Equipment with that name already exists.",
       "priceHelp": "Leave it empty if you haven't decided yet.",
       "stockHelp": "0 means the stock hasn't been set yet.",
       "leasingMonthlyFeeHelp": "Optional catalog reference. It is not charged to a project automatically.",
@@ -1713,25 +1713,55 @@
       "removeImage": "Remove image",
       "imageInvalid": "Upload a PNG, JPG, or WEBP image up to 2 MB.",
       "placeholders": {
-        "name": "E.g. Logo design",
-        "price": "E.g. 150",
+        "name": "E.g. Camera kit",
+        "price": "E.g. 1500",
         "stock": "E.g. 10",
-        "reference": "E.g. SERV-001",
-        "category": "E.g. Design",
-        "brand": "E.g. Own brand",
-        "description": "Briefly explain what this product offers.",
-        "tags": "E.g. urgent, premium",
+        "reference": "E.g. EQP-001",
+        "category": "E.g. Audiovisual",
+        "brand": "E.g. Sony",
+        "description": "Briefly describe this equipment.",
+        "tags": "E.g. camera, 4K",
         "leasingMonthlyFee": "E.g. 2000"
       },
       "validation": {
         "nameRequired": "Name is required"
       }
     },
+    "documents": {
+      "title": "Documents",
+      "subtitle": "Technical files, certificates, manuals, and other PDFs for this equipment.",
+      "add": "Add PDF",
+      "empty": "No documents have been added to this equipment.",
+      "loadError": "Equipment documents could not be loaded.",
+      "retry": "Try again",
+      "view": "View document",
+      "created": "Document added",
+      "updated": "Document updated",
+      "deleted": "Document deleted",
+      "saveError": "The document could not be saved. Please try again.",
+      "deleteError": "The document could not be deleted. Please try again.",
+      "deleteConfirm": "Delete this document?",
+      "form": {
+        "createTitle": "Add equipment document",
+        "editTitle": "Edit equipment document",
+        "name": "Display name",
+        "namePlaceholder": "Uses the PDF filename when left empty",
+        "issueDate": "Issue date",
+        "expiryDate": "Expiry date",
+        "notes": "Notes",
+        "file": "PDF file",
+        "dropzone": "Select or drop a PDF",
+        "fileHint": "PDF only, up to 10 MB.",
+        "invalidFile": "Select a valid PDF file.",
+        "fileTooLarge": "The PDF must not exceed 10 MB.",
+        "fileRequired": "Select a PDF before saving."
+      }
+    },
     "deleteConfirm": {
-      "title": "Delete product",
+      "title": "Delete equipment",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
       "ok": "Delete",
-      "error": "The product could not be deleted. Please try again."
+      "error": "The equipment could not be deleted. Please try again."
     }
   },
   "calendar": {
@@ -1821,8 +1851,8 @@
         "outside_project_dates": "Outside the project's dates",
         "staff_overlap": "Staff overlap",
         "project_not_active": "Project not active",
-        "product_overallocated": "Product overallocated",
-        "product_stock_unset": "Product stock not set"
+        "equipment_overallocated": "Equipment overallocated",
+        "equipment_stock_unset": "Equipment stock not set"
       }
     },
     "editor": {
@@ -1838,7 +1868,7 @@
         "title": "E.g. Stage setup",
         "notes": "Notes about this block...",
         "staff": "Select the assigned staff",
-        "product": "Select a product",
+        "equipment": "Select equipment",
         "quantity": "Quantity"
       },
       "schedule": {
@@ -1856,11 +1886,11 @@
         "gaps": "This block has scattered days. Saving will turn it into a continuous range.",
         "mixedTimes": "This block had different time slots per day. Saving will apply a single slot to every day."
       },
-      "products": {
-        "title": "Products",
-        "add": "Add product",
-        "remove": "Remove product",
-        "noneAvailable": "There are no products registered yet."
+      "equipment": {
+        "title": "Equipment",
+        "add": "Add equipment",
+        "remove": "Remove equipment",
+        "noneAvailable": "No equipment is registered yet."
       },
       "validation": {
         "dateRequired": "Date is required",
@@ -1869,7 +1899,7 @@
         "rangeRequired": "Date is required",
         "endAfterStart": "End time must be after the start time",
         "rangeTooLong": "The range is too long",
-        "productRequired": "Select a product",
+        "equipmentRequired": "Select equipment",
         "quantityRequired": "Quantity is required",
         "quantityMin": "Quantity must be greater than 0",
         "formInvalid": "Check the fields highlighted in red before saving"

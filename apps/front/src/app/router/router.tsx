@@ -12,7 +12,7 @@ import { CalendarPage } from '@/pages/calendar';
 import { ExtractionHintsPage } from '@/pages/extraction-hints';
 import { SuppliersPage } from '@/pages/suppliers';
 import { DocumentsPage } from '@/pages/documents';
-import { ProductsPage } from '@/pages/products';
+import { EquipmentPage } from '@/pages/equipment';
 import { StaffPage } from '@/pages/staff';
 import { StaffMemberDetailPage, type StaffDetailSection } from '@/pages/staff-detail';
 import { WorkspacePage, type WorkspaceTab } from '@/pages/workspace';
@@ -73,7 +73,7 @@ const projectDetailRoute = createRoute({
   path: '/projects/$projectId',
   validateSearch: (search: Record<string, unknown>): { section?: ProjectDetailSection } => ({
     section:
-      search.section === 'products' ||
+      search.section === 'equipment' ||
       search.section === 'dashboard' ||
       search.section === 'schedule' ||
       search.section === 'settings'
@@ -110,10 +110,10 @@ const suppliersRoute = createRoute({
   component: SuppliersPage,
 });
 
-const productsRoute = createRoute({
+const equipmentRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
-  path: '/products',
-  component: ProductsPage,
+  path: '/equipment',
+  component: EquipmentPage,
 });
 
 const staffRoute = createRoute({
@@ -155,7 +155,7 @@ const routeTree = rootRoute.addChildren([
     documentsRoute,
     extractionHintsRoute,
     suppliersRoute,
-    productsRoute,
+    equipmentRoute,
     staffRoute,
     staffMemberDetailRoute,
     workspaceRoute,

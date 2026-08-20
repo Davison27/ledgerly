@@ -43,16 +43,16 @@ export function ScheduleSection({ project }: ProjectSectionProps) {
         ),
     },
     {
-      title: t('projects.schedule.columns.products'),
-      key: 'products',
+      title: t('projects.schedule.columns.equipment'),
+      key: 'equipment',
       render: (_, record) =>
-        record.products.length === 0 ? (
-          <Text type="secondary">{t('projects.schedule.noProducts')}</Text>
+        record.equipment.length === 0 ? (
+          <Text type="secondary">{t('projects.schedule.noEquipment')}</Text>
         ) : (
           <Flex gap={4} wrap>
-            {record.products.map((product) => (
-              <Tag key={product.productId} color="blue">
-                {product.name} ×{product.quantity}
+            {record.equipment.map((item) => (
+              <Tag key={item.equipmentId} color="blue">
+                {item.name} ×{item.quantity}
               </Tag>
             ))}
           </Flex>

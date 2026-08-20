@@ -9,7 +9,7 @@ import {
   ProjectOutlined,
   SearchOutlined,
   SettingOutlined,
-  ShoppingOutlined,
+  ToolOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +34,7 @@ const navigationIcons = {
   calendar: CalendarOutlined,
   documents: FileTextOutlined,
   suppliers: TeamOutlined,
-  products: ShoppingOutlined,
+  equipment: ToolOutlined,
   staff: IdcardOutlined,
   workspace: SettingOutlined,
 } satisfies Record<TourNavigationItem, typeof DashboardOutlined>;
@@ -45,7 +45,7 @@ const navigationItems: TourNavigationItem[] = [
   'calendar',
   'documents',
   'suppliers',
-  'products',
+  'equipment',
   'staff',
 ];
 

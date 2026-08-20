@@ -4,25 +4,25 @@ import { App, Alert, Button, Card, Flex, Input, Select, Skeleton } from 'antd';
 import { PlusOutlined, SearchOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
-  createProduct,
-  deleteProduct,
-  productQueries,
-  updateProduct,
-  type ProductDto,
-} from '@/entities/product';
+  createEquipment,
+  deleteEquipment,
+  equipmentQueries,
+  updateEquipment,
+  type EquipmentDto,
+} from '@/entities/equipment';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
-import { ProductFormModal, type ProductFormValues } from '../form/ProductFormModal';
-import { ProductDetailModal } from '../detail/ProductDetailModal';
-import { ProductCard } from '../card/ProductCard';
-import styles from './ProductsPage.module.css';
+import { EquipmentFormModal, type EquipmentFormValues } from '../form/EquipmentFormModal';
+import { EquipmentDetailModal } from '../detail/EquipmentDetailModal';
+import { EquipmentCard } from '../card/EquipmentCard';
+import styles from './EquipmentPage.module.css';
 
-type ProductSortOrder = 'nameAsc' | 'priceAsc' | 'priceDesc';
+type EquipmentSortOrder = 'nameAsc' | 'priceAsc' | 'priceDesc';
 
-function ProductCardSkeleton() {
+function EquipmentCardSkeleton() {
   return (
     <Card className={styles.skeletonCard} classNames={{ body: styles.skeletonBody }}>
       <Skeleton.Image active className={styles.skeletonVisual} />
@@ -32,34 +32,34 @@ function ProductCardSkeleton() {
   );
 }
 
-export function ProductsPage() {
+export function EquipmentPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const {
-    data: products = [],
+    data: equipment = [],
     isPending: loading,
     isError: loadError,
-  } = useQuery(productQueries.list());
+  } = useQuery(equipmentQueries.list());
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<ProductDto | null>(null);
-  const [viewingProduct, setViewingProduct] = useState<ProductDto | null>(null);
+  const [editingEquipment, setEditingEquipment] = useState<EquipmentDto | null>(null);
+  const [viewingEquipment, setViewingEquipment] = useState<EquipmentDto | null>(null);
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | undefined>();
-  const [sortOrder, setSortOrder] = useState<ProductSortOrder>('nameAsc');
+  const [sortOrder, setSortOrder] = useState<EquipmentSortOrder>('nameAsc');
   const { canAccess } = useWorkspaceAccess();
-  const canEdit = canAccess('products', 'edit');
+  const canEdit = canAccess('equipment', 'edit');
 
   const handleAdd = () => {
-    setEditingProduct(null);
+    setEditingEquipment(null);
     setIsFormOpen(true);
   };
 
-  const handleEdit = (product: ProductDto) => {
-    setViewingProduct(null);
-    setEditingProduct(product);
+  const handleEdit = (item: EquipmentDto) => {
+    setViewingEquipment(null);
+    setEditingEquipment(item);
     setIsFormOpen(true);
   };
 
@@ -67,26 +67,26 @@ export function ProductsPage() {
     () =>
       Array.from(
         new Set(
-          products
-            .map((product) => product.category)
+          equipment
+            .map((item) => item.category)
             .filter((value): value is string => Boolean(value)),
         ),
       ).sort(),
-    [products],
+    [equipment],
   );
 
-  const filteredProducts = useMemo(() => {
+  const filteredEquipment = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
-    const filtered = products.filter((product) => {
-      if (category && product.category !== category) return false;
+    const filtered = equipment.filter((item) => {
+      if (category && item.category !== category) return false;
       if (!query) return true;
       return [
-        product.name,
-        product.reference,
-        product.category,
-        product.brand,
-        product.description,
-        ...product.tags,
+        item.name,
+        item.reference,
+        item.category,
+        item.brand,
+        item.description,
+        ...item.tags,
       ]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLocaleLowerCase().includes(query));
@@ -102,7 +102,7 @@ export function ProductsPage() {
       });
     }
     return sorted;
-  }, [category, products, search, sortOrder]);
+  }, [category, equipment, search, sortOrder]);
 
   const handleClearFilters = () => {
     setSearch('');
@@ -111,43 +111,43 @@ export function ProductsPage() {
 
   const handleCancelForm = () => {
     setIsFormOpen(false);
-    setEditingProduct(null);
+    setEditingEquipment(null);
   };
 
-  const handleSubmit = async (values: ProductFormValues) => {
+  const handleSubmit = async (values: EquipmentFormValues) => {
     setSubmitting(true);
     try {
-      if (editingProduct) {
-        await updateProduct(editingProduct.id, values);
-        void message.success(t('products.form.updated'));
+      if (editingEquipment) {
+        await updateEquipment(editingEquipment.id, values);
+        void message.success(t('equipment.form.updated'));
       } else {
-        await createProduct(values);
-        void message.success(t('products.form.created'));
+        await createEquipment(values);
+        void message.success(t('equipment.form.created'));
       }
       setIsFormOpen(false);
-      setEditingProduct(null);
-      await queryClient.invalidateQueries({ queryKey: productQueries.all });
+      setEditingEquipment(null);
+      await queryClient.invalidateQueries({ queryKey: equipmentQueries.all });
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
-        void message.error(t('products.form.duplicateName'));
+        void message.error(t('equipment.form.duplicateName'));
         return;
       }
       void message.error(
-        editingProduct ? t('products.form.updateError') : t('products.form.createError'),
+        editingEquipment ? t('equipment.form.updateError') : t('equipment.form.createError'),
       );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDelete = async (product: ProductDto) => {
-    setDeletingId(product.id);
+  const handleDelete = async (item: EquipmentDto) => {
+    setDeletingId(item.id);
     try {
-      await deleteProduct(product.id);
-      void message.success(t('products.deleted'));
-      await queryClient.invalidateQueries({ queryKey: productQueries.all });
+      await deleteEquipment(item.id);
+      void message.success(t('equipment.deleted'));
+      await queryClient.invalidateQueries({ queryKey: equipmentQueries.all });
     } catch {
-      void message.error(t('products.deleteConfirm.error'));
+      void message.error(t('equipment.deleteConfirm.error'));
     } finally {
       setDeletingId(null);
     }
@@ -156,12 +156,12 @@ export function ProductsPage() {
   return (
     <PageContainer>
       <PageHeader
-        title={t('products.title')}
-        subtitle={t('products.subtitle')}
+        title={t('equipment.title')}
+        subtitle={t('equipment.subtitle')}
         actions={
           canEdit ? (
             <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-              {t('products.add')}
+              {t('equipment.add')}
             </Button>
           ) : undefined
         }
@@ -170,19 +170,19 @@ export function ProductsPage() {
       {loading ? (
         <div className={styles.grid}>
           {Array.from({ length: 6 }).map((_, index) => (
-            <ProductCardSkeleton key={index} />
+            <EquipmentCardSkeleton key={index} />
           ))}
         </div>
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('products.loadError')} />
-      ) : products.length === 0 ? (
+        <Alert type="error" showIcon message={t('equipment.loadError')} />
+      ) : equipment.length === 0 ? (
         <EmptyHint
           icon={<ShoppingOutlined />}
-          title={t('products.empty')}
+          title={t('equipment.empty')}
           action={
             canEdit ? (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleAdd}>
-                {t('products.add')}
+                {t('equipment.add')}
               </Button>
             ) : undefined
           }
@@ -193,45 +193,45 @@ export function ProductsPage() {
             <Input
               allowClear
               prefix={<SearchOutlined />}
-              placeholder={t('products.searchPlaceholder')}
+              placeholder={t('equipment.searchPlaceholder')}
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               className={styles.search}
             />
             <Select
               allowClear
-              placeholder={t('products.categoryFilter')}
+              placeholder={t('equipment.categoryFilter')}
               value={category}
               onChange={setCategory}
               options={categories.map((value) => ({ value, label: value }))}
               className={styles.categoryFilter}
             />
-            <Select<ProductSortOrder>
+            <Select<EquipmentSortOrder>
               value={sortOrder}
               onChange={setSortOrder}
               className={styles.sortSelect}
               options={[
-                { value: 'nameAsc', label: t('products.sort.nameAsc') },
-                { value: 'priceAsc', label: t('products.sort.priceAsc') },
-                { value: 'priceDesc', label: t('products.sort.priceDesc') },
+                { value: 'nameAsc', label: t('equipment.sort.nameAsc') },
+                { value: 'priceAsc', label: t('equipment.sort.priceAsc') },
+                { value: 'priceDesc', label: t('equipment.sort.priceDesc') },
               ]}
             />
           </Flex>
-          {filteredProducts.length === 0 ? (
+          {filteredEquipment.length === 0 ? (
             <EmptyHint
               icon={<ShoppingOutlined />}
-              title={t('products.emptySearch')}
+              title={t('equipment.emptySearch')}
               action={<Button onClick={handleClearFilters}>{t('common.clearFilters')}</Button>}
             />
           ) : (
             <div className={styles.grid}>
-              {filteredProducts.map((product) => (
-                <ProductCard
-                  key={product.id}
-                  product={product}
+              {filteredEquipment.map((item) => (
+                <EquipmentCard
+                  key={item.id}
+                  equipment={item}
                   canEdit={canEdit}
-                  deleteLoading={deletingId === product.id}
-                  onOpen={setViewingProduct}
+                  deleteLoading={deletingId === item.id}
+                  onOpen={setViewingEquipment}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
                 />
@@ -241,18 +241,18 @@ export function ProductsPage() {
         </>
       )}
 
-      <ProductFormModal
+      <EquipmentFormModal
         open={isFormOpen}
-        product={editingProduct}
+        equipment={editingEquipment}
         onCancel={handleCancelForm}
         onSubmit={handleSubmit}
         submitting={submitting}
       />
-      <ProductDetailModal
-        open={viewingProduct !== null}
-        product={viewingProduct}
+      <EquipmentDetailModal
+        open={viewingEquipment !== null}
+        equipment={viewingEquipment}
         canEdit={canEdit}
-        onClose={() => setViewingProduct(null)}
+        onClose={() => setViewingEquipment(null)}
         onEdit={handleEdit}
       />
     </PageContainer>

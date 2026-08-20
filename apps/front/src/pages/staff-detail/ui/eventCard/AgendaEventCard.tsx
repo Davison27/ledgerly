@@ -13,7 +13,7 @@ import styles from './AgendaEventCard.module.css';
 const { Text } = Typography;
 
 const MAX_COWORKERS = 4;
-const MAX_PRODUCTS = 3;
+const MAX_EQUIPMENT = 3;
 
 const STATUS_TONE: Record<AgendaStatus, SemanticTone> = {
   current: 'info',
@@ -38,8 +38,8 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
   const visibleCoworkers = coworkers.slice(0, MAX_COWORKERS);
   const hiddenCoworkers = coworkers.slice(MAX_COWORKERS);
 
-  const visibleProducts = event.products.slice(0, MAX_PRODUCTS);
-  const hiddenProducts = event.products.slice(MAX_PRODUCTS);
+  const visibleEquipment = event.equipment.slice(0, MAX_EQUIPMENT);
+  const hiddenEquipment = event.equipment.slice(MAX_EQUIPMENT);
 
   return (
     <Card
@@ -103,18 +103,18 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
           </Flex>
         )}
 
-        {event.products.length > 0 && (
+        {event.equipment.length > 0 && (
           <Flex gap={4} wrap>
-            {visibleProducts.map((product) => (
-              <Tag key={product.productId} color="blue">
-                {product.name} ×{product.quantity}
+            {visibleEquipment.map((equipment) => (
+              <Tag key={equipment.equipmentId} color="blue">
+                {equipment.name} ×{equipment.quantity}
               </Tag>
             ))}
-            {hiddenProducts.length > 0 && (
+            {hiddenEquipment.length > 0 && (
               <Tooltip
-                title={hiddenProducts.map((product) => `${product.name} ×${product.quantity}`).join(', ')}
+                title={hiddenEquipment.map((equipment) => `${equipment.name} ×${equipment.quantity}`).join(', ')}
               >
-                <Tag>+{hiddenProducts.length}</Tag>
+                <Tag>+{hiddenEquipment.length}</Tag>
               </Tooltip>
             )}
           </Flex>

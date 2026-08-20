@@ -4,7 +4,7 @@ export const WORKSPACE_MODULES = [
   'calendar',
   'documents',
   'suppliers',
-  'products',
+  'equipment',
   'staff',
 ] as const;
 export type WorkspaceModuleDto = (typeof WORKSPACE_MODULES)[number];

@@ -8,31 +8,31 @@ import {
   MoreOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { ProductDto } from '@/entities/product';
+import type { EquipmentDto } from '@/entities/equipment';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
-import styles from './ProductCard.module.css';
+import styles from './EquipmentCard.module.css';
 
 const { Text } = Typography;
 
-export interface ProductCardProps {
-  product: ProductDto;
+export interface EquipmentCardProps {
+  equipment: EquipmentDto;
   canEdit: boolean;
   deleteLoading?: boolean;
-  onOpen: (product: ProductDto) => void;
-  onEdit: (product: ProductDto) => void;
-  onDelete: (product: ProductDto) => void;
+  onOpen: (equipment: EquipmentDto) => void;
+  onEdit: (equipment: EquipmentDto) => void;
+  onDelete: (equipment: EquipmentDto) => void;
 }
 
-export function ProductCard({
-  product,
+export function EquipmentCard({
+  equipment,
   canEdit,
   deleteLoading,
   onOpen,
   onEdit,
   onDelete,
-}: ProductCardProps) {
+}: EquipmentCardProps) {
   const { t } = useTranslation();
   const { modal } = App.useApp();
 
@@ -42,12 +42,12 @@ export function ProductCard({
 
   const confirmDelete = () => {
     modal.confirm({
-      title: t('products.deleteConfirm.title'),
-      content: t('products.deleteConfirm.content', { name: product.name }),
-      okText: t('products.deleteConfirm.ok'),
+      title: t('equipment.deleteConfirm.title'),
+      content: t('equipment.deleteConfirm.content', { name: equipment.name }),
+      okText: t('equipment.deleteConfirm.ok'),
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
-      onOk: () => onDelete(product),
+      onOk: () => onDelete(equipment),
     });
   };
 
@@ -58,7 +58,7 @@ export function ProductCard({
       label: t('common.edit'),
       onClick: (info) => {
         info.domEvent.stopPropagation();
-        onEdit(product);
+        onEdit(equipment);
       },
     },
     {
@@ -79,13 +79,13 @@ export function ProductCard({
       hoverable
       className={styles.card}
       classNames={{ body: styles.body }}
-      onClick={() => onOpen(product)}
+      onClick={() => onOpen(equipment)}
     >
       <div className={styles.visual}>
-        {product.image ? (
+        {equipment.image ? (
           <img
-            src={product.image}
-            alt={t('products.card.imageAlt', { name: product.name })}
+            src={equipment.image}
+            alt={t('equipment.card.imageAlt', { name: equipment.name })}
             className={styles.image}
           />
         ) : (
@@ -109,48 +109,48 @@ export function ProductCard({
       <div className={styles.content}>
         <div className={styles.identity}>
           <div>
-            <Text className={styles.name}>{product.name}</Text>
+            <Text className={styles.name}>{equipment.name}</Text>
             <Text type="secondary" className={styles.reference}>
-              {product.reference ?? '—'}
+              {equipment.reference ?? '—'}
             </Text>
           </div>
-          {product.category ? <SemanticTag tone="info">{product.category}</SemanticTag> : null}
+          {equipment.category ? <SemanticTag tone="info">{equipment.category}</SemanticTag> : null}
         </div>
 
-        {product.brand ? (
+        {equipment.brand ? (
           <Text type="secondary" className={styles.brand}>
-            {product.brand}
+            {equipment.brand}
           </Text>
         ) : null}
 
         <div className={styles.metrics}>
           <div>
             <Text type="secondary" className={styles.metricLabel}>
-              {t('products.fields.price')}
+              {t('equipment.fields.price')}
             </Text>
             <strong>
-              {product.price === null ? '—' : <Amount value={product.price} strong />}
+              {equipment.price === null ? '—' : <Amount value={equipment.price} strong />}
             </strong>
           </div>
           <div>
             <Text type="secondary" className={styles.metricLabel}>
-              {t('products.fields.stock')}
+              {t('equipment.fields.stock')}
             </Text>
             <strong>
-              {product.stock === 0 ? t('products.stockUnset') : <Numeric>{product.stock}</Numeric>}
+              {equipment.stock === 0 ? t('equipment.stockUnset') : <Numeric>{equipment.stock}</Numeric>}
             </strong>
           </div>
         </div>
 
-        {(product.leasingMonthlyFee !== null || product.tags.length > 0) && (
+        {(equipment.leasingMonthlyFee !== null || equipment.tags.length > 0) && (
           <div className={styles.metadata}>
-            {product.leasingMonthlyFee !== null ? (
+            {equipment.leasingMonthlyFee !== null ? (
               <span className={styles.leasing}>
-                {t('products.card.leasing')}
-                <Amount value={product.leasingMonthlyFee} />
+                {t('equipment.card.leasing')}
+                <Amount value={equipment.leasingMonthlyFee} />
               </span>
             ) : null}
-            {product.tags.slice(0, 2).map((tag) => (
+            {equipment.tags.slice(0, 2).map((tag) => (
               <SemanticTag key={tag} tone="neutral">
                 {tag}
               </SemanticTag>
