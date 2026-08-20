@@ -34,7 +34,6 @@
     "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.4.2",
-    "exceljs": "^4.4.0",
     "fast-xml-parser": ">=5.10.1 <6",
     "google-auth-library": "^10.9.1",
     "helmet": "^8.3.0",
