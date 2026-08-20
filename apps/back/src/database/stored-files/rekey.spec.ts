@@ -51,10 +51,10 @@ describe('stored file rekey orchestration', () => {
     const queries: Array<{ sql: string; values: unknown[] }> = [];
     let claims = 0;
     const manager = {
-      query: async (sql: string, values: unknown[]) => {
+      query: (sql: string, values: unknown[]) => {
         queries.push({ sql, values });
-        if (sql.startsWith('SELECT')) return claims++ === 0 ? [row] : [];
-        return [{ id: descriptor.rowId }];
+        if (sql.startsWith('SELECT')) return Promise.resolve(claims++ === 0 ? [row] : []);
+        return Promise.resolve([{ id: descriptor.rowId }]);
       },
     } as unknown as EntityManager;
     const dataSource = {
@@ -93,10 +93,10 @@ describe('stored file rekey orchestration', () => {
     const envelope = oldCipher.encrypt(Buffer.from('hello'), descriptor);
     let queried = false;
     const dataSource = {
-      query: async () => {
-        if (queried) return [];
+      query: () => {
+        if (queried) return Promise.resolve([]);
         queried = true;
-        return [
+        return Promise.resolve([
           {
             id: descriptor.rowId,
             ciphertext: envelope.ciphertext,
@@ -106,7 +106,7 @@ describe('stored file rekey orchestration', () => {
             mimeType: descriptor.mimeType,
             size: descriptor.plaintextSize,
           },
-        ];
+        ]);
       },
     } as unknown as DataSource;
 

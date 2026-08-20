@@ -51,8 +51,9 @@ async function rekeyStoreBatch(
   activeVersion: string,
   batchSize: number,
 ): Promise<number> {
-  const rows = await manager.query(buildClaimQuery(store), [activeVersion, batchSize]);
-  if (!Array.isArray(rows)) throw new StoredFileOperationError();
+  const queryResult: unknown = await manager.query(buildClaimQuery(store), [activeVersion, batchSize]);
+  if (!Array.isArray(queryResult)) throw new StoredFileOperationError();
+  const rows: unknown[] = queryResult;
 
   for (const row of rows) {
     const parsed = readStoredFileRecord(row, store);
@@ -68,7 +69,7 @@ async function rekeyStoreBatch(
     const replacementPlaintext = cipher.decrypt(replacement, parsed.record.descriptor);
     if (Buffer.compare(plaintext, replacementPlaintext) !== 0) throw new StoredFileOperationError();
 
-    const updateResult = await manager.query(buildUpdateQuery(store), [
+    const updateResult: unknown = await manager.query(buildUpdateQuery(store), [
       replacement.ciphertext,
       replacement.nonce,
       replacement.tag,

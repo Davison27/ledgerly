@@ -49,12 +49,13 @@ describe('CompanyDocumentsController', () => {
   });
 
   it('forwards the singleton document id when retrieving a file', async () => {
-    const response = { set: jest.fn() } as unknown as Response;
+    const setResponseHeaders = jest.fn();
+    const response = { set: setResponseHeaders } as unknown as Response;
 
     await controller.getFile('company-document-1', response);
 
     expect(getFileExecute).toHaveBeenCalledWith('company-document-1');
-    expect(response.set).toHaveBeenCalledWith({
+    expect(setResponseHeaders).toHaveBeenCalledWith({
       'Content-Type': 'application/pdf',
       'Cache-Control': 'no-store',
       'Content-Disposition': 'inline',

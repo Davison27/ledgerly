@@ -40,7 +40,8 @@ export async function verifyStoredFiles(
     const counts = new Map<string, StoredFilesVerificationCount>();
     for (const store of options.stores ?? STORED_FILE_STORES) {
       let cursor: string | null = null;
-      do {
+      let hasMore = true;
+      while (hasMore) {
         const queryResult: unknown = await dataSource.query(buildVerifyQuery(store), [cursor, options.batchSize]);
         if (!Array.isArray(queryResult)) throw new StoredFileOperationError();
         const rows: unknown[] = queryResult;
@@ -51,8 +52,8 @@ export async function verifyStoredFiles(
           cursor = parsed.record?.id ?? readRowId(row);
           if (cursor === null) throw new StoredFileOperationError();
         }
-        if (rows.length < options.batchSize) break;
-      } while (true);
+        hasMore = rows.length >= options.batchSize;
+      }
     }
     const sortedCounts = [...counts.values()].sort(
       (left, right) =>

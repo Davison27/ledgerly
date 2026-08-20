@@ -68,6 +68,13 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function serializeFormValue(value: unknown): string | null {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'boolean') return String(value);
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return null;
+}
+
 function serializeAuthRequestBody(body: unknown, contentType: string | null): BodyInit | undefined {
   if (body === undefined) return undefined;
   const mediaType = contentType?.split(';', 1)[0]?.trim().toLowerCase();
@@ -80,9 +87,13 @@ function serializeAuthRequestBody(body: unknown, contentType: string | null): Bo
 
     for (const [key, value] of Object.entries(body)) {
       if (Array.isArray(value)) {
-        for (const item of value) params.append(key, String(item));
+        for (const item of value) {
+          const serialized = serializeFormValue(item);
+          if (serialized !== null) params.append(key, serialized);
+        }
       } else if (value !== undefined && value !== null) {
-        params.append(key, String(value));
+        const serialized = serializeFormValue(value);
+        if (serialized !== null) params.append(key, serialized);
       }
     }
 

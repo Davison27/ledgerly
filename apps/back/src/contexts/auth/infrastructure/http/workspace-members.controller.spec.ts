@@ -33,7 +33,8 @@ describe('WorkspaceMembersController avatar', () => {
       userDirectory,
       memberRepository,
     );
-    const response = { setHeader: jest.fn() } as unknown as Response;
+    const setHeader = jest.fn();
+    const response = { setHeader } as unknown as Response;
     globalThis.fetch = jest.fn().mockResolvedValue(
       new Response(Buffer.alloc(1024 * 1024 + 1), { headers: { 'content-type': 'image/png' } }),
     );
@@ -196,7 +197,8 @@ describe('WorkspaceMembersController avatar', () => {
       userDirectory,
       memberRepository,
     );
-    const response = { setHeader: jest.fn() } as unknown as Response;
+    const setHeader = jest.fn();
+    const response = { setHeader } as unknown as Response;
     globalThis.fetch = jest.fn().mockResolvedValue(
       new Response(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), {
         headers: { 'content-type': 'image/png; charset=binary' },
@@ -204,6 +206,6 @@ describe('WorkspaceMembersController avatar', () => {
     );
 
     await expect(controller.avatar('member-1', response)).resolves.toBeDefined();
-    expect(response.setHeader).toHaveBeenCalledWith('Content-Type', 'image/png');
+    expect(setHeader).toHaveBeenCalledWith('Content-Type', 'image/png');
   });
 });
