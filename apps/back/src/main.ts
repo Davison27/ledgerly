@@ -2,17 +2,53 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
-import express, { type NextFunction, type Request, type Response } from 'express';
+import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './shared/infrastructure/http/domain-exception.filter';
 
-async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
-  const isProduction = process.env.NODE_ENV === 'production';
+const DEFAULT_FRONTEND_ORIGIN = 'http://localhost:5173';
+const JSON_BODY_LIMIT = '256kb';
+const URLENCODED_BODY_LIMIT = '256kb';
+const URLENCODED_PARAMETER_LIMIT = 100;
 
-  app.use(express.json({ limit: '256kb' }));
-  app.use(express.urlencoded({ extended: false, limit: '256kb', parameterLimit: 100 }));
+function getFrontendOrigin(frontendUrl: string | undefined, isProduction: boolean): string {
+  if (isProduction && !frontendUrl) {
+    throw new Error('FRONTEND_URL is required in production');
+  }
+
+  const parsed = new URL(frontendUrl ?? DEFAULT_FRONTEND_ORIGIN);
+  if (
+    !(isProduction ? ['https:'] : ['http:', 'https:']).includes(parsed.protocol) ||
+    parsed.username ||
+    parsed.password ||
+    parsed.pathname !== '/' ||
+    parsed.search ||
+    parsed.hash
+  ) {
+    throw new Error(isProduction ? 'FRONTEND_URL must be an HTTPS origin in production' : 'FRONTEND_URL must be an HTTP(S) origin');
+  }
+
+  return parsed.origin;
+}
+
+function setNoStore(_request: Request, response: Response, next: NextFunction): void {
+  response.setHeader('Cache-Control', 'no-store');
+  next();
+}
+
+export function configureHttpBoundary(
+  app: NestExpressApplication,
+  environment: NodeJS.ProcessEnv = process.env,
+): void {
+  const isProduction = environment.NODE_ENV === 'production';
+  const frontendOrigin = getFrontendOrigin(environment.FRONTEND_URL, isProduction);
+
+  if (isProduction && environment.TRUST_PROXY !== 'true') {
+    throw new Error('TRUST_PROXY must be enabled in production');
+  }
+
+  app.set('trust proxy', environment.TRUST_PROXY === 'true' ? 1 : false);
 
   app.use(
     helmet({
@@ -22,18 +58,19 @@ async function bootstrap() {
     }),
   );
 
-  app.use(cookieParser());
-  app.use((_req: Request, res: Response, next: NextFunction) => {
-    res.setHeader('Cache-Control', 'no-store');
-    next();
+  app.use(setNoStore);
+
+  app.useBodyParser('json', { limit: JSON_BODY_LIMIT });
+  app.useBodyParser('urlencoded', {
+    extended: false,
+    limit: URLENCODED_BODY_LIMIT,
+    parameterLimit: URLENCODED_PARAMETER_LIMIT,
   });
 
-  if (process.env.TRUST_PROXY === 'true') {
-    app.set('trust proxy', 1);
-  }
+  app.use(cookieParser());
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL ?? 'http://localhost:5173',
+    origin: frontendOrigin,
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Accept', 'X-CSRF-Token'],
@@ -51,6 +88,11 @@ async function bootstrap() {
   );
 
   app.useGlobalFilters(new DomainExceptionFilter());
+}
+
+export async function bootstrap(): Promise<void> {
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
+  configureHttpBoundary(app);
   app.enableShutdownHooks();
 
   const port = process.env.PORT ?? 3000;
@@ -58,4 +100,6 @@ async function bootstrap() {
   console.log(`Backend listening on http://localhost:${port}/api`);
 }
 
-void bootstrap();
+if (require.main === module) {
+  void bootstrap();
+}

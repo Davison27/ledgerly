@@ -30,4 +30,34 @@ describe('OriginGuard', () => {
   it('allows unsafe methods from the configured frontend origin', () => {
     expect(guard.canActivate(contextFor('DELETE', { origin: 'https://app.ledgerly.dev' }))).toBe(true);
   });
+
+  it('allows a same-origin referer with a path when Origin is absent', () => {
+    expect(
+      guard.canActivate(contextFor('post', { referer: 'https://app.ledgerly.dev/forms/new?step=2' })),
+    ).toBe(true);
+  });
+
+  it('rejects a path-bearing Origin header', () => {
+    expect(
+      () => guard.canActivate(contextFor('POST', { origin: 'https://app.ledgerly.dev/forms' })),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('does not fall back to Referer when Origin is present but invalid', () => {
+    expect(
+      () =>
+        guard.canActivate(
+          contextFor('POST', {
+            origin: 'https://attacker.example',
+            referer: 'https://app.ledgerly.dev/forms/new',
+          }),
+        ),
+    ).toThrow(ForbiddenException);
+  });
+
+  it('matches the canonical origin when the configured URL has a trailing slash', () => {
+    const configured = new OriginGuard({ get: jest.fn(() => 'https://app.ledgerly.dev/') } as never);
+
+    expect(configured.canActivate(contextFor('POST', { origin: 'https://app.ledgerly.dev' }))).toBe(true);
+  });
 });

@@ -1,16 +1,42 @@
 import * as Joi from 'joi';
 
+function exactOrigin(schemes: string[]) {
+  return Joi.string()
+    .uri({ scheme: schemes })
+    .custom((value, helpers) => {
+      if (typeof value !== 'string') {
+        return helpers.error('any.invalid');
+      }
+
+      const parsed = new URL(value);
+      if (
+        parsed.username ||
+        parsed.password ||
+        parsed.pathname !== '/' ||
+        parsed.search ||
+        parsed.hash
+      ) {
+        return helpers.error('any.invalid');
+      }
+
+      return value;
+    });
+}
+
+const httpOrigin = exactOrigin(['http', 'https']);
+const httpsOrigin = exactOrigin(['https']);
+
 export const envValidationSchema = Joi.object({
   NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
-  PORT: Joi.number().default(3000),
+  PORT: Joi.number().integer().min(1).max(65535).default(3000),
   FRONTEND_URL: Joi.when('NODE_ENV', {
     is: 'production',
-    then: Joi.string().uri({ scheme: ['https'] }).required(),
-    otherwise: Joi.string().uri().default('http://localhost:5173'),
+    then: httpsOrigin.required(),
+    otherwise: httpOrigin.default('http://localhost:5173'),
   }),
 
   DB_HOST: Joi.string().required(),
-  DB_PORT: Joi.number().required(),
+  DB_PORT: Joi.number().integer().min(1).max(65535).required(),
   DB_NAME: Joi.string().required(),
   DB_USER: Joi.string().required(),
   DB_PASSWORD: Joi.string().required(),
@@ -33,8 +59,8 @@ export const envValidationSchema = Joi.object({
   BOOTSTRAP_ADMIN_EMAIL: Joi.string().email().required(),
   BACKEND_PUBLIC_URL: Joi.when('NODE_ENV', {
     is: 'production',
-    then: Joi.string().uri({ scheme: ['https'] }).required(),
-    otherwise: Joi.string().uri().default('http://localhost:3005'),
+    then: httpsOrigin.required(),
+    otherwise: httpOrigin.default('http://localhost:3005'),
   }),
   COOKIE_SECURE: Joi.when('NODE_ENV', {
     is: 'production',

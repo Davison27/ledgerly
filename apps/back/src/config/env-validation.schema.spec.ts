@@ -38,6 +38,56 @@ describe('envValidationSchema', () => {
     expect(error).toBeDefined();
   });
 
+  it.each([
+    'https://ledgerly.example.com/app',
+    'https://ledgerly.example.com?mode=preview',
+    'https://user:password@ledgerly.example.com',
+    'ftp://ledgerly.example.com',
+  ])('rejects a production frontend URL that is not an exact HTTP(S) origin: %s', (value) => {
+    const { error } = envValidationSchema.validate({ ...productionEnvironment, FRONTEND_URL: value });
+
+    expect(error).toBeDefined();
+  });
+
+  it.each([
+    'https://ledgerly.example.com/app',
+    'https://ledgerly.example.com?mode=preview',
+    'https://user:password@ledgerly.example.com',
+    'ftp://ledgerly.example.com',
+  ])('rejects a production backend URL that is not an exact HTTPS origin: %s', (value) => {
+    const { error } = envValidationSchema.validate({ ...productionEnvironment, BACKEND_PUBLIC_URL: value });
+
+    expect(error).toBeDefined();
+  });
+
+  it('accepts a trailing slash on a production frontend origin', () => {
+    const { error } = envValidationSchema.validate({
+      ...productionEnvironment,
+      FRONTEND_URL: 'https://ledgerly.example.com/',
+    });
+
+    expect(error).toBeUndefined();
+  });
+
+  it('accepts an exact HTTP backend origin outside production', () => {
+    const { error } = envValidationSchema.validate({
+      ...productionEnvironment,
+      NODE_ENV: 'test',
+      FRONTEND_URL: 'http://localhost:5173',
+      BACKEND_PUBLIC_URL: 'http://localhost:3005/',
+      COOKIE_SECURE: false,
+      TRUST_PROXY: false,
+    });
+
+    expect(error).toBeUndefined();
+  });
+
+  it.each(['0', '65536', '5432.5'])('rejects an invalid port: %s', (port) => {
+    const { error } = envValidationSchema.validate({ ...productionEnvironment, PORT: port });
+
+    expect(error).toBeDefined();
+  });
+
   it('rejects production deployments that do not trust the reverse proxy', () => {
     const { error } = envValidationSchema.validate({ ...productionEnvironment, TRUST_PROXY: false });
 
