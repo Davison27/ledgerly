@@ -5,7 +5,6 @@ import {
   CalendarOutlined,
   DashboardOutlined,
   DownOutlined,
-  FileDoneOutlined,
   FileTextOutlined,
   IdcardOutlined,
   ProjectOutlined,
@@ -33,7 +32,6 @@ const MODULE_ICONS: Record<WorkspaceModuleDto, ReactNode> = {
   calendar: <CalendarOutlined />,
   documents: <FileTextOutlined />,
   suppliers: <TeamOutlined />,
-  invoices: <FileDoneOutlined />,
   products: <ShoppingOutlined />,
   staff: <IdcardOutlined />,
 };

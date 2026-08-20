@@ -5,7 +5,6 @@ import { Empty, Input, List, Modal, Typography } from 'antd';
 import {
   CalendarOutlined,
   DashboardOutlined,
-  FileDoneOutlined,
   FileTextOutlined,
   IdcardOutlined,
   ProjectOutlined,
@@ -134,13 +133,6 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         icon: <TeamOutlined />,
         label: t('nav.suppliers'),
         onSelect: () => void navigate({ to: '/suppliers' }),
-      },
-      {
-        key: 'nav-invoices',
-        category: 'nav',
-        icon: <FileDoneOutlined />,
-        label: t('nav.invoices'),
-        onSelect: () => void navigate({ to: '/invoices' }),
       },
       {
         key: 'nav-products',

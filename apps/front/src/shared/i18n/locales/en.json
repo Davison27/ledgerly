@@ -45,7 +45,6 @@
         "documents": "Documents",
         "calendar": "Calendar",
         "suppliers": "Suppliers",
-        "invoices": "Invoices",
         "products": "Products",
         "staff": "Staff"
       },
@@ -496,7 +495,6 @@
     "calendar": "Calendar",
     "documents": "Documents",
     "suppliers": "Suppliers",
-    "invoices": "Invoices",
     "products": "Products",
     "staff": "Staff"
   },
@@ -1571,87 +1569,6 @@
     "detail": {
       "title": "Document details",
       "loadError": "The document could not be loaded."
-    }
-  },
-  "invoices": {
-    "title": "Invoices",
-    "subtitle": "Issue invoices for your projects and download them as PDF.",
-    "add": "New invoice",
-    "empty": "There are no invoices yet.",
-    "searchPlaceholder": "Search by number or customer",
-    "loadError": "Invoices could not be loaded.",
-    "deleted": "Invoice deleted",
-    "noLedgerEntry": "No ledger entry",
-    "companyIncomplete": "Complete your company's name and tax ID in settings before issuing invoices.",
-    "summaryLabel": "Filtered total",
-    "columns": {
-      "number": "Number",
-      "issueDate": "Date",
-      "customerName": "Customer",
-      "paymentStatus": "Payment status",
-      "taxBase": "Base",
-      "total": "Total",
-      "actions": "Actions"
-    },
-    "actions": {
-      "downloadPdf": "Download PDF"
-    },
-    "fields": {
-      "project": "Project",
-      "customerName": "Customer name",
-      "customerTaxId": "Customer tax ID",
-      "customerAddress": "Customer address",
-      "taxRate": "VAT (%)",
-      "irpfRate": "Withholding (%)",
-      "notes": "Notes"
-    },
-    "form": {
-      "title": "New invoice",
-      "submit": "Issue invoice",
-      "created": "Invoice issued successfully",
-      "createError": "The invoice could not be issued. Please try again.",
-      "placeholders": {
-        "project": "Select a project",
-        "customerName": "E.g. Acme Corp SL",
-        "customerTaxId": "E.g. B12345678",
-        "customerAddress": "Street, number, city",
-        "notes": "E.g. payment details, IBAN..."
-      },
-      "validation": {
-        "projectRequired": "Select a project",
-        "customerNameRequired": "Customer name is required",
-        "lineDescriptionRequired": "Description is required",
-        "lineUnitPriceRequired": "Price is required",
-        "lineUnitPriceMin": "Price must be 0 or greater",
-        "lineQuantityRequired": "Quantity is required",
-        "lineQuantityMin": "Quantity must be greater than 0"
-      }
-    },
-    "lines": {
-      "title": "Lines",
-      "columns": {
-        "description": "Description",
-        "quantity": "Quantity",
-        "unitPrice": "Price"
-      },
-      "descriptionPlaceholder": "Description",
-      "quantityPlaceholder": "Quantity",
-      "unitPricePlaceholder": "Price",
-      "productGroup": "From the catalog",
-      "add": "Add line",
-      "remove": "Remove line"
-    },
-    "totals": {
-      "base": "Base",
-      "tax": "VAT ({{rate}}%)",
-      "irpf": "Withholding ({{rate}}%)",
-      "total": "Total"
-    },
-    "deleteConfirm": {
-      "title": "Delete invoice",
-      "content": "Are you sure you want to delete invoice \"{{number}}\"? This will also delete its linked project document. This action cannot be undone.",
-      "ok": "Delete",
-      "error": "The invoice could not be deleted. Please try again."
     }
   },
   "products": {
