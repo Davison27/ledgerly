@@ -15,9 +15,10 @@ is in `apps/front/src/entities/session/`, `apps/front/src/pages/login/`, and
 ## Default deny
 
 `AccessGuard` is the global NestJS guard. A route must explicitly declare one
-of `@Public()`, `@Authenticated()`, `@RequiresAdmin()`, or
-`@RequiresAccess(module, level)`. A route without one of those declarations is
-rejected with `403` before session resolution.
+of `@Public()`, `@Authenticated()`, `@RequiresAdmin()`,
+`@RequiresAccess(module, level)`, or `@RequiresNotificationAccess()`. A route
+without one of those declarations is rejected with `403` before session
+resolution.
 
 ```ts
 const requirement = this.reflector.getAllAndOverride<AccessRequirement | undefined>(
@@ -34,6 +35,20 @@ This makes a missing decorator visible as an immediate failure instead of a
 silent data exposure. Method metadata overrides class metadata, so write
 routes can require a higher permission than their controller default.
 
+## HTTP boundary
+
+Production requires exact HTTPS origins for `FRONTEND_URL` and
+`BACKEND_PUBLIC_URL`, secure cookies, and `TRUST_PROXY=true`; Express trusts one
+proxy hop behind Caddy. Helmet and a default `Cache-Control: no-store` header
+run before body parsing. JSON and URL-encoded bodies are limited to 256 KiB,
+URL-encoded requests accept at most 100 parameters, and DTO validation
+transforms input while rejecting non-whitelisted fields.
+
+CORS permits credentials only from the configured frontend origin. For
+`POST`, `PUT`, `PATCH`, and `DELETE`, the global `OriginGuard` also requires an
+`Origin` or `Referer` whose origin exactly matches that frontend. Production
+validation errors omit detailed messages.
+
 ## Sessions and browser protection
 
 Better Auth is configured in `apps/back/src/lib/auth.ts` with Google as the
@@ -44,12 +59,15 @@ database adapter uses the application Postgres database through Kysely.
 - Sessions expire after 24 hours and are refreshed after one hour.
 - Secure cookies are enabled when `COOKIE_SECURE=true`; production validation
   requires that setting.
-- CSRF and origin checks remain enabled. `trustedOrigins` contains
-  `FRONTEND_URL`, and the client includes credentials on auth requests.
+- CSRF and origin checks remain enabled. `trustedOrigins` contains the exact
+  origin derived from `FRONTEND_URL`, and the client includes credentials on
+  auth requests.
 - OAuth account tokens are encrypted at rest. Automatic account linking is
   disabled, so identities are never linked merely because their emails match.
-- Better Auth records client IP information from `x-forwarded-for` or
-  `x-real-ip`; `TRUST_PROXY=true` is required in production behind Caddy.
+- For requests passed through `AuthController`, Better Auth reads client IP
+  information from the sanitized `x-forwarded-for` header derived from
+  Express. Incoming forwarding headers are removed and Better Auth does not
+  trust proxy headers directly.
 
 The remaining application API client still attaches `X-CSRF-Token` to unsafe
 requests when the legacy `lg_csrf` cookie is available. Better Auth manages its
@@ -57,15 +75,29 @@ own authentication cookies and enforces its own CSRF and origin policy for its
 endpoints; do not couple application authorization to a particular cookie
 name.
 
-Session creation, revocation, and OAuth account linking are recorded in
-`security_audit_logs`. Audit-write failures are logged but do not make sign-in
-unavailable.
+The Nest `AuthController` hand-off is a narrow public adapter for Better Auth.
+It builds the upstream URL from the configured `BACKEND_PUBLIC_URL`, accepts
+only the original path and query, removes host and untrusted proxy or
+hop-by-hop headers, and supplies the trusted client address from Express. It
+preserves repeated request headers and multiple `Set-Cookie` response values.
+Authentication failures are returned with a generic message and only a
+bounded safe error code when one is present; raw provider errors, stacks, and
+request details are not forwarded or logged.
 
-## Membership is an additional authorization boundary
+Session creation, revocation, and OAuth account linking are recorded in
+`security_audit_logs` with the event, subject identifier,
+`{"outcome":"success"}`, and timestamp. The audit metadata does not contain IP
+addresses, user agents, tokens, provider/account details, filenames, file
+content, or extracted PII. Audit-write failure produces a fixed warning and
+does not make sign-in unavailable.
+
+## Membership is the authoritative application boundary
 
 An authenticated Google user is not automatically authorized for Ledgerly.
-For protected routes, `AccessGuard` resolves the Better Auth session and then
-looks up a `WorkspaceMember` by the authenticated email address.
+For every protected request, `AccessGuard` resolves the Better Auth session and
+then looks up a `WorkspaceMember` by the authenticated email address. The
+membership record, not the existence of a Better Auth session, decides
+application access.
 
 - No session returns `401`.
 - No member, a disabled member, or insufficient permissions returns `403`.
@@ -73,12 +105,20 @@ looks up a `WorkspaceMember` by the authenticated email address.
 - Every protected request re-evaluates membership and permissions, so disabling
   a member takes effect on their next request.
 
-Changing a member's permissions or status revokes that member's Better Auth
-sessions through `BetterAuthSessionRevoker`. Removing a member deletes the
-membership record; any remaining authentication session then fails the member
+Changing a member's permissions or status persists the membership change and
+revokes that member's Better Auth sessions through `BetterAuthSessionRevoker`.
+Removing a member deletes the membership record before attempting best-effort
+session revocation; any remaining authentication session then fails the member
 lookup on its next protected request. Neither path relies on cookie expiry to
 remove application access. See `docs/architecture/workspace.md` for the
 permission matrix and member management rules.
+
+The `equipment` permission covers both the Equipment catalogue and nested
+Equipment PDFs. `view` permits `GET /api/equipment`, document listing, and file
+download. `edit` is required for Equipment creation, updates, deletion, and
+document upload, metadata update, or deletion. Nested document operations
+resolve both `equipmentId` and `documentId` so a document cannot be read or
+mutated through a different parent Equipment record.
 
 ## First administrator
 
@@ -102,7 +142,13 @@ email is wrong after bootstrapping, correcting it requires an intentional
 database operation; changing the environment variable does not transfer the
 founder account.
 
-## Public branding is deliberately narrow
+## Anonymous surface and public branding
+
+The anonymous allowlist is deliberately narrow: the root response, health
+checks, `GET /api/auth/status`, `POST /api/auth/bootstrap`, the Better Auth
+`/api/auth/*` hand-off, and `GET /api/company/branding`. Every other route must
+declare an authenticated or permissioned requirement. The global access guard
+rejects routes without an explicit access declaration.
 
 `GET /api/company/branding` is public because the sign-in screen needs a
 company name, logo, and brand color before a session exists. `GET /api/company`
@@ -128,14 +174,26 @@ null branding values so the first-run sign-in screen remains usable.
 | ----------------------------- | ------------------------- | ------------------------------------- | ----------------------- |
 | `GET`                         | `/api/auth/status`        | Public                                | 60/min                  |
 | `POST`                        | `/api/auth/bootstrap`     | Public                                | 5/min                   |
-| `GET`                         | `/api/auth/me`            | Authenticated                         | Global                  |
+| `GET`                         | `/api/auth/me`            | Authenticated                         | 300/min default         |
 | `GET`                         | `/api/company/branding`   | Public                                | 60/min                  |
-| `GET`/`POST`/`PATCH`/`DELETE` | `/api/workspace/members*` | Administrator                         | Global                  |
+| `GET`/`POST`/`PATCH`/`DELETE` | `/api/workspace/members*` | Administrator                         | 300/min default         |
 | `*`                           | `/api/auth/*`             | Public NestJS hand-off to Better Auth | Better Auth rate limits |
 
 Better Auth is mounted through the catch-all handler in `AuthController`.
 Client code must use `authClient` for provider sign-in and sign-out rather than
-reimplementing its endpoint or cookie protocol.
+reimplementing its endpoint or cookie protocol. Better Auth uses
+database-backed rate limits with a 60/min default. Nest throttling is currently
+process-local; distributed throttling remains a deployment follow-up.
+
+## Google avatar proxy
+
+`GET /api/workspace/members/:id/avatar` is administrator-only and proxies the
+Google identity image rather than storing it as a Ledgerly file. The proxy
+accepts only HTTPS URLs on `lh3.googleusercontent.com` without credentials or a
+non-default port, follows at most three redirects manually while reapplying the
+allowlist, times out each fetch after five seconds, and reads at most 1 MiB.
+The final response must be PNG, JPEG, or WebP and match its format signature;
+invalid or unavailable images fail with a generic not-found or gateway error.
 
 ## Google Cloud and local setup
 
@@ -174,8 +232,8 @@ Then start the backend, open `http://localhost:5173/`, bootstrap the configured
 founder email, and complete Google sign-in. The subsequent company setup is a
 separate concern; see `docs/architecture/tenancy.md`.
 
-For production origins, redirect URIs, and environment management, see
-`docs/architecture/deployment.md`.
+For production origins, redirect URIs, key management, and environment
+management, see `docs/architecture/deployment.md`.
 
 ## See also
 

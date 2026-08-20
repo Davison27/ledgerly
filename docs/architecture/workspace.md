@@ -28,7 +28,7 @@ the router validation, `WorkspaceTab`, and the settings menu together.
 
 ## Members and access
 
-`WorkspaceMemberDto` contains a permission matrix for the product modules and
+`WorkspaceMemberDto` contains a permission matrix for the application modules and
 three levels: `none`, `view`, and `edit`. Roles are presets over that matrix:
 `admin`, `editor`, and `viewer`. `resolveRole()` derives the displayed role
 from the matrix; a non-matching matrix is `custom`. Do not store a separately
@@ -37,6 +37,9 @@ editable role that can drift from the permissions.
 The dashboard is view-only, so `moduleSupportsEdit()` rejects `edit` for that
 module and `fillMatrix()` preserves that invariant. The UI uses the same
 client helpers for interaction, while the backend remains authoritative.
+Equipment permissions cover the catalogue and its nested PDF documents:
+`view` permits listing and downloading, while `edit` permits catalogue and
+document mutations.
 
 The member panel prevents a user from changing their own access and prevents
 removing the last administrator. The backend enforces the corresponding rules

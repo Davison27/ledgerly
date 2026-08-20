@@ -74,7 +74,8 @@ identities on every render.
 | `companyQueries`                                      | `['company']`, `['company', 'branding']`                                           | Both use a five-minute stale time. Branding is public; the singleton requires a session.       |
 | `sessionQueries`                                      | `['session', 'status']`                                                            | `staleTime: 0`; bootstrap and authenticated state must be current.                             |
 | `projectQueries`                                      | `['projects', 'list']`, `['projects', 'detail', id]`                               |                                                                                                |
-| `supplierQueries`, `productQueries`                 | `['suppliers', 'list']`, `['products', 'list']`                                  |                                                                                                |
+| `supplierQueries`, `equipmentQueries`               | `['suppliers', 'list']`, `['equipment', 'list']`                                 |                                                                                                |
+| `equipmentDocumentQueries`                          | `['equipment-documents', equipmentId]`                                           | Nested encrypted PDF metadata and file actions.                                                 |
 | `extractionHintQueries`                               | `['extraction-hints', 'list']`, `['extraction-hints', 'quality']`                  |                                                                                                |
 | `staffQueries`                                        | Lists, details, and documents under `['staff', ...]`                               |                                                                                                |
 | `staffDocumentTypeQueries`                            | `['staff-document-types']`                                                         | Runtime-constant catalogue.                                                                    |
@@ -107,7 +108,7 @@ when the mutation changes their visible state:
 | --------------------------------------------------- | ------------------------------------------------------------ |
 | Project create, update, delete, or settings change  | `projectQueries.all`                                         |
 | Project-document change                             | `documentQueries.all` and `projectQueries.all`               |
-| Supplier, product, staff, or extraction-hint change | Its respective `all` key                                     |
+| Supplier, equipment, staff, or extraction-hint change | Its respective `all` key                                   |
 | Staff document change                               | `staffQueries.all` and `documentQueries.all` when applicable |
 | Calendar event or assignment change                 | `scheduleQueries.all`                                        |
 | Company settings or onboarding completion           | `companyQueries.singleton().queryKey`                        |
