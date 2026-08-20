@@ -36,3 +36,39 @@ export interface UpdateCompanyPayload {
   logo?: string;
   brandColor?: string;
 }
+
+export interface CompanyDocumentTypeDto {
+  id: string;
+  code: string;
+  name: string;
+  expires?: boolean;
+  defaultValidityMonths?: number | null;
+  isSystem?: boolean;
+}
+
+export interface CompanyDocumentDto {
+  id: string;
+  typeId: string;
+  name: string;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  notes?: string | null;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+}
+
+export interface CreateCompanyDocumentPayload {
+  typeId: string;
+  name?: string;
+  issueDate?: string;
+  expiryDate?: string;
+  notes?: string;
+}
+
+export interface UpdateCompanyDocumentPayload {
+  name?: string;
+  issueDate?: string;
+  expiryDate?: string | null;
+  notes?: string | null;
+}

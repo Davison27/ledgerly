@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { BRAND_DEFAULT } from '@/shared/config/theme';
 import typography from '@/shared/ui/typography.module.css';
 import { useCompanyProfileForm, type CompanyProfileFormValues } from '../../model/useCompanyProfileForm';
+import { CompanyDocumentsManager } from './documents/manager/CompanyDocumentsManager';
 import workspace from '../workspace.module.css';
 import styles from './CompanyTab.module.css';
 
@@ -206,6 +207,8 @@ export function CompanyTab() {
           {t('common.save')}
         </Button>
       </div>
+
+      <CompanyDocumentsManager />
     </div>
   );
 }

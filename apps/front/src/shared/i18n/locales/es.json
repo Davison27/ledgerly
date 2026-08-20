@@ -652,6 +652,91 @@
         "urlInvalid": "Introduce una URL válida"
       },
       "error": "No se ha podido actualizar la empresa. Inténtalo de nuevo."
+    },
+    "documents": {
+      "title": "Documentos de la empresa",
+      "subtitle": "Mantén reunida y lista para revisar la documentación de cumplimiento de la empresa.",
+      "add": "Añadir documento",
+      "loading": "Cargando documentos de la empresa",
+      "typesLoadError": "No se han podido cargar las categorías de documentos de la empresa.",
+      "loadError": "No se han podido cargar los documentos de esta categoría.",
+      "retry": "Reintentar",
+      "noTypes": "No hay categorías de documentos de empresa disponibles.",
+      "categoryListLabel": "Categorías de documentos de la empresa",
+      "listLabel": "Documentos de empresa de esta categoría",
+      "empty": "Todavía no hay documentos en esta categoría.",
+      "emptyHint": "Añade un PDF para mantener esta categoría al día.",
+      "types": {
+        "civil_liability_policy": "Póliza de responsabilidad civil",
+        "civil_liability_payment": "Pago de responsabilidad civil",
+        "occupational_risk_prevention": "Prevención de riesgos laborales",
+        "risk_assessment": "Evaluación de riesgos",
+        "risk_planning": "Planificación de riesgos",
+        "preventive_resource": "Recurso preventivo",
+        "tax_debt_certificate": "Certificado de deuda tributaria",
+        "social_security_debt_certificate": "Certificado de deuda con la Seguridad Social",
+        "bank_account_ownership_certificate": "Certificado de titularidad de cuenta bancaria"
+      },
+      "metadata": {
+        "fileMeta": "{{fileName}} · {{size}} MiB",
+        "fileSize": "{{size}} MiB",
+        "issueDate": "Fecha de emisión",
+        "expiryDate": "Fecha de caducidad",
+        "notes": "Notas",
+        "notAvailable": "No indicado"
+      },
+      "actions": {
+        "view": "Ver documento",
+        "edit": "Editar documento",
+        "delete": "Eliminar documento",
+        "download": "Descargar",
+        "print": "Imprimir"
+      },
+      "preview": {
+        "label": "Vista previa del documento",
+        "empty": "Selecciona un documento para verlo aquí.",
+        "loading": "Cargando vista previa del documento",
+        "error": "No se ha podido cargar la vista previa del documento."
+      },
+      "deleted": "Documento eliminado",
+      "deleteConfirm": {
+        "title": "¿Eliminar este documento?",
+        "content": "Se eliminará «{{name}}». Esta acción no se puede deshacer.",
+        "ok": "Eliminar",
+        "error": "No se ha podido eliminar el documento."
+      },
+      "upload": {
+        "title": "Añadir documento de empresa",
+        "submit": "Subir documento",
+        "created": "Documento subido correctamente",
+        "createError": "No se ha podido subir el documento. Inténtalo de nuevo.",
+        "invalidFile": "Solo se admiten archivos PDF.",
+        "fileTooLarge": "Los archivos PDF deben pesar como máximo 10 MiB.",
+        "typeRequired": "Selecciona una categoría de documento para continuar.",
+        "fileRequired": "Selecciona un archivo PDF para continuar.",
+        "fields": {
+          "category": "Categoría",
+          "name": "Nombre",
+          "issueDate": "Fecha de emisión",
+          "expiryDate": "Fecha de caducidad",
+          "notes": "Notas",
+          "file": "Archivo PDF"
+        },
+        "placeholders": {
+          "name": "Ej. Póliza de responsabilidad civil 2026",
+          "notes": "Notas sobre el documento..."
+        },
+        "dropzone": {
+          "title": "Sube el PDF",
+          "hint": "Solo PDF · máximo 10 MiB"
+        }
+      },
+      "edit": {
+        "title": "Editar datos del documento",
+        "submit": "Guardar cambios",
+        "saved": "Datos del documento actualizados",
+        "error": "No se han podido actualizar los datos del documento."
+      }
     }
   },
   "workspace": {

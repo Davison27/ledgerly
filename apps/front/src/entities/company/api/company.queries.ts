@@ -1,5 +1,5 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
-import { fetchCompanyBranding } from './company.api';
+import { fetchCompanyBranding, listCompanyDocumentTypes, listCompanyDocuments } from './company.api';
 import { fetchCompany, type Company } from '../model/company';
 
 export const EMPTY_COMPANY: Company = { id: '', name: '' };
@@ -17,6 +17,25 @@ export const companyQueries = {
       queryKey: ['company', 'branding'] as const,
       queryFn: () => fetchCompanyBranding(),
       staleTime: 300_000,
+    }),
+};
+
+export const companyDocumentTypeQueries = {
+  all: ['company-document-types'] as const,
+  list: () =>
+    queryOptions({
+      queryKey: ['company-document-types'] as const,
+      queryFn: listCompanyDocumentTypes,
+      staleTime: Infinity,
+    }),
+};
+
+export const companyDocumentQueries = {
+  all: ['company-documents'] as const,
+  list: (typeId?: string) =>
+    queryOptions({
+      queryKey: ['company-documents', typeId ?? null] as const,
+      queryFn: () => listCompanyDocuments(typeId),
     }),
 };
 
