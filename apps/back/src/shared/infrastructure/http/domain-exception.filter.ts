@@ -28,12 +28,12 @@ export class DomainExceptionFilter implements ExceptionFilter {
     const response = host.switchToHttp().getResponse<Response>();
     const status =
       STATUS_BY_CODE[exception.code] ?? HttpStatus.UNPROCESSABLE_ENTITY;
+    response.setHeader('Cache-Control', 'no-store');
     if (exception.code === 'PDF_CAPACITY_EXCEEDED') {
       response.setHeader(
         'Retry-After',
         String((exception as unknown as { retryAfterSeconds: number }).retryAfterSeconds),
       );
-      response.setHeader('Cache-Control', 'no-store');
     }
     response.status(status).json({
       code: exception.code,
