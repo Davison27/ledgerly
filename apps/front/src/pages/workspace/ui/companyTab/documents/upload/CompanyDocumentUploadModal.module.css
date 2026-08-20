@@ -1,0 +1,28 @@
+.dateGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--lg-space-md);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.dragger {
+  padding: var(--lg-space-sm) 0;
+}
+
+.dragIcon {
+  margin-bottom: var(--lg-space-xs);
+}
+
+.dragText {
+  margin-bottom: var(--lg-space-3xs);
+}
+
+@media (max-width: 560px) {
+  .dateGrid {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}

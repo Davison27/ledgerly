@@ -648,6 +648,91 @@
         "urlInvalid": "Enter a valid URL"
       },
       "error": "The company could not be updated. Please try again."
+    },
+    "documents": {
+      "title": "Company documents",
+      "subtitle": "Keep the company's compliance documents together and ready to review.",
+      "add": "Add document",
+      "loading": "Loading company documents",
+      "typesLoadError": "The company document categories could not be loaded.",
+      "loadError": "The documents in this category could not be loaded.",
+      "retry": "Try again",
+      "noTypes": "No company document categories are available.",
+      "categoryListLabel": "Company document categories",
+      "listLabel": "Company documents in this category",
+      "empty": "There are no documents in this category yet.",
+      "emptyHint": "Add a PDF to keep this category up to date.",
+      "types": {
+        "civil_liability_policy": "Civil liability policy",
+        "civil_liability_payment": "Civil liability payment",
+        "occupational_risk_prevention": "Occupational risk prevention",
+        "risk_assessment": "Risk assessment",
+        "risk_planning": "Risk planning",
+        "preventive_resource": "Preventive resource",
+        "tax_debt_certificate": "Tax debt certificate",
+        "social_security_debt_certificate": "Social Security debt certificate",
+        "bank_account_ownership_certificate": "Bank account ownership certificate"
+      },
+      "metadata": {
+        "fileMeta": "{{fileName}} · {{size}} MiB",
+        "fileSize": "{{size}} MiB",
+        "issueDate": "Issue date",
+        "expiryDate": "Expiry date",
+        "notes": "Notes",
+        "notAvailable": "Not provided"
+      },
+      "actions": {
+        "view": "View document",
+        "edit": "Edit document",
+        "delete": "Delete document",
+        "download": "Download",
+        "print": "Print"
+      },
+      "preview": {
+        "label": "Document preview",
+        "empty": "Select a document to view it here.",
+        "loading": "Loading document preview",
+        "error": "The document preview could not be loaded."
+      },
+      "deleted": "Document deleted",
+      "deleteConfirm": {
+        "title": "Delete this document?",
+        "content": "\"{{name}}\" will be deleted. This action cannot be undone.",
+        "ok": "Delete",
+        "error": "The document could not be deleted."
+      },
+      "upload": {
+        "title": "Add company document",
+        "submit": "Upload document",
+        "created": "Document uploaded successfully",
+        "createError": "The document could not be uploaded. Please try again.",
+        "invalidFile": "Only PDF files are allowed.",
+        "fileTooLarge": "PDF files must be 10 MiB or smaller.",
+        "typeRequired": "Select a document category to continue.",
+        "fileRequired": "Select a PDF file to continue.",
+        "fields": {
+          "category": "Category",
+          "name": "Name",
+          "issueDate": "Issue date",
+          "expiryDate": "Expiry date",
+          "notes": "Notes",
+          "file": "PDF file"
+        },
+        "placeholders": {
+          "name": "E.g. 2026 civil liability policy",
+          "notes": "Notes about the document..."
+        },
+        "dropzone": {
+          "title": "Upload the PDF",
+          "hint": "PDF only · maximum 10 MiB"
+        }
+      },
+      "edit": {
+        "title": "Edit document details",
+        "submit": "Save changes",
+        "saved": "Document details updated",
+        "error": "The document details could not be updated."
+      }
     }
   },
   "workspace": {
