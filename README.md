@@ -25,11 +25,11 @@
 
 ## Inside Ledgerly
 
-Ledgerly brings day-to-day business operations into one coherent workspace. Projects connect financials and documents; the calendar brings together delivery work, staff events, and tax deadlines; shared catalogues keep suppliers and products close to the records that use them.
+Ledgerly brings day-to-day business operations into one coherent workspace. Projects connect financials and documents; the calendar brings together delivery work, staff events, and tax deadlines; shared catalogues keep suppliers and equipment close to the records that use them.
 
-**Plan and deliver.** Track projects, dates, status, budgets, income, expenses, profitability, attached documents, and assigned products without losing the business context around the work.
+**Plan and deliver.** Track projects, dates, status, budgets, income, expenses, profitability, attached documents, and assigned equipment without losing the business context around the work.
 
-**Keep records connected.** Manage business documents, issued invoices, suppliers, and a reusable product catalogue with filtering and detail views designed for regular operational use.
+**Keep records connected.** Manage uploaded business documents, suppliers, and reusable equipment records with filtering, encrypted PDFs, and detail views designed for regular operational use.
 
 **Coordinate people and obligations.** Maintain staff profiles, payrolls, documentation expiry, schedule events, tax profiles, and monitored tax sources from the same installation.
 
@@ -37,9 +37,9 @@ Ledgerly brings day-to-day business operations into one coherent workspace. Proj
 
 ## Product tour
 
-|                                                                                  Project portfolio                                                                                   |                                                                Product catalogue                                                                |
+|                                                                                  Project portfolio                                                                                   |                                                               Equipment catalogue                                                               |
 | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src=".github/assets/readme/projects.png" alt="Ledgerly project portfolio showing project identity, profitability, income, expenses, margins, and document status" width="100%"> | <img src=".github/assets/readme/products.png" alt="Ledgerly product catalogue showing references, categories, pricing, and stock" width="100%"> |
+| <img src=".github/assets/readme/projects.png" alt="Ledgerly project portfolio showing project identity, profitability, income, expenses, margins, and document status" width="100%"> | <img src=".github/assets/readme/products.png" alt="Ledgerly equipment catalogue showing references, categories, pricing, and stock" width="100%"> |
 
 The screenshots use a sanitized example workspace. An installation can apply its own company name, logo, and brand colour across the sign-in experience and authenticated application.
 
