@@ -1,6 +1,8 @@
 import { parseFacturx } from './facturx-parser';
 import { FACTURX_SAMPLE_XML } from './__fixtures__/facturx-sample.xml';
 
+const REPEATED_DOCTYPE_FACTURX_XML = `<!DOCTYPE CrossIndustryInvoice [<!ENTITY first "x">]><CrossIndustryInvoice><ExchangedDocument><ID>${'&first;'.repeat(9000)}</ID></ExchangedDocument><!DOCTYPE CrossIndustryInvoice [<!ENTITY second "x">]><ExchangedDocument><IssueDateTime><DateTimeString>${'&second;'.repeat(9000)}</DateTimeString></IssueDateTime></ExchangedDocument></CrossIndustryInvoice>`;
+
 describe('parseFacturx', () => {
   it('extracts invoice fields from a real Factur-X CII XML document', () => {
     const fields = parseFacturx(FACTURX_SAMPLE_XML);
@@ -28,6 +30,12 @@ describe('parseFacturx', () => {
 
   it('returns null for malformed XML', () => {
     const fields = parseFacturx('not xml at all <<<');
+
+    expect(fields).toBeNull();
+  });
+
+  it('returns null for repeated DOCTYPE entity expansions', () => {
+    const fields = parseFacturx(REPEATED_DOCTYPE_FACTURX_XML);
 
     expect(fields).toBeNull();
   });

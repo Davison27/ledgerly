@@ -1,6 +1,8 @@
 import { parseFacturae } from './facturae-parser';
 import { FACTURAE_SAMPLE_WITH_IRPF_XML, FACTURAE_SAMPLE_XML } from './__fixtures__/facturae-sample.xml';
 
+const REPEATED_DOCTYPE_FACTURAE_XML = `<!DOCTYPE Facturae [<!ENTITY first "x">]><Facturae><Invoices><Invoice><InvoiceHeader><InvoiceNumber>${'&first;'.repeat(9000)}</InvoiceNumber></InvoiceHeader><!DOCTYPE Facturae [<!ENTITY second "x">]><InvoiceIssueData><IssueDate>${'&second;'.repeat(9000)}</IssueDate></InvoiceIssueData></Invoice></Invoices></Facturae>`;
+
 describe('parseFacturae', () => {
   it('extracts invoice fields from a real Facturae XML document', () => {
     const fields = parseFacturae(FACTURAE_SAMPLE_XML);
@@ -53,6 +55,12 @@ describe('parseFacturae', () => {
 
   it('returns null for malformed XML', () => {
     const fields = parseFacturae('not xml at all <<<');
+
+    expect(fields).toBeNull();
+  });
+
+  it('returns null for repeated DOCTYPE entity expansions', () => {
+    const fields = parseFacturae(REPEATED_DOCTYPE_FACTURAE_XML);
 
     expect(fields).toBeNull();
   });

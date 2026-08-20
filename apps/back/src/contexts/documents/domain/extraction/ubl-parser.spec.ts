@@ -1,6 +1,8 @@
 import { parseUbl } from './ubl-parser';
 import { UBL_SAMPLE_WITH_IRPF_XML, UBL_SAMPLE_XML } from './__fixtures__/ubl-sample.xml';
 
+const REPEATED_DOCTYPE_UBL_XML = `<!DOCTYPE Invoice [<!ENTITY first "x">]><Invoice><ID>${'&first;'.repeat(9000)}</ID><!DOCTYPE Invoice [<!ENTITY second "x">]><IssueDate>${'&second;'.repeat(9000)}</IssueDate></Invoice>`;
+
 describe('parseUbl', () => {
   it('extracts invoice fields from a real UBL 2.1 (Peppol BIS Billing 3.0) XML document', () => {
     const fields = parseUbl(UBL_SAMPLE_XML);
@@ -55,6 +57,12 @@ describe('parseUbl', () => {
 
   it('returns null for malformed XML', () => {
     const fields = parseUbl('not xml at all <<<');
+
+    expect(fields).toBeNull();
+  });
+
+  it('returns null for repeated DOCTYPE entity expansions', () => {
+    const fields = parseUbl(REPEATED_DOCTYPE_UBL_XML);
 
     expect(fields).toBeNull();
   });
