@@ -66,7 +66,6 @@ export interface ProjectPrimitives {
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
-  isDemo?: boolean;
 }
 
 interface ProjectProps {
@@ -90,7 +89,6 @@ interface ProjectProps {
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
-  isDemo: boolean;
 }
 
 export class Project {
@@ -114,7 +112,6 @@ export class Project {
   private manager_: string | null;
   private image_: string | null;
   private color_: ProjectColor | null;
-  private isDemo_: boolean;
 
   private constructor(props: ProjectProps) {
     this.id_ = props.id;
@@ -137,7 +134,6 @@ export class Project {
     this.manager_ = props.manager;
     this.image_ = props.image;
     this.color_ = props.color;
-    this.isDemo_ = props.isDemo;
   }
 
   static create(params: ProjectPrimitives): Project {
@@ -173,7 +169,6 @@ export class Project {
       manager: params.manager,
       image: params.image,
       color: params.color,
-      isDemo: params.isDemo ?? false,
     });
   }
 
@@ -340,10 +335,6 @@ export class Project {
     return this.color_;
   }
 
-  get isDemo(): boolean {
-    return this.isDemo_;
-  }
-
   toPrimitives(): ProjectPrimitives {
     return {
       id: this.id_,
@@ -366,7 +357,6 @@ export class Project {
       manager: this.manager_,
       image: this.image_,
       color: this.color_,
-      isDemo: this.isDemo_,
     };
   }
 }

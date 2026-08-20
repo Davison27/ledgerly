@@ -2,7 +2,6 @@ import { CreateProjectUseCase } from './create-project.use-case';
 import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
-import { DemoProjectPurger } from '../../domain/demo-project-purger.port';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
 
 const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
@@ -78,22 +77,12 @@ class SequentialIdGenerator implements IdGenerator {
   }
 }
 
-class NoopDemoProjectPurger implements DemoProjectPurger {
-  public callCount = 0;
-
-  purgeDemoProjects(): Promise<void> {
-    this.callCount++;
-    return Promise.resolve();
-  }
-}
-
 describe('CreateProjectUseCase', () => {
   it('creates a project with an image and persists it', async () => {
     const repository = new InMemoryProjectRepository();
     const useCase = new CreateProjectUseCase(
       repository,
       new SequentialIdGenerator(),
-      new NoopDemoProjectPurger(),
     );
 
     const project = await useCase.execute({
@@ -114,7 +103,6 @@ describe('CreateProjectUseCase', () => {
     const useCase = new CreateProjectUseCase(
       repository,
       new SequentialIdGenerator(),
-      new NoopDemoProjectPurger(),
     );
 
     const project = await useCase.execute({
@@ -126,34 +114,4 @@ describe('CreateProjectUseCase', () => {
     expect(project.image).toBeNull();
   });
 
-  it('defaults isDemo to false and purges demo data after creation', async () => {
-    const repository = new InMemoryProjectRepository();
-    const purger = new NoopDemoProjectPurger();
-    const useCase = new CreateProjectUseCase(repository, new SequentialIdGenerator(), purger);
-
-    const project = await useCase.execute({
-      name: 'Acme Project',
-      code: 'ACME-003',
-      type: 'construction',
-    });
-
-    expect(project.isDemo).toBe(false);
-    expect(purger.callCount).toBe(1);
-  });
-
-  it('does not fail project creation when purging demo data throws', async () => {
-    const repository = new InMemoryProjectRepository();
-    const failingPurger: DemoProjectPurger = {
-      purgeDemoProjects: () => Promise.reject(new Error('boom')),
-    };
-    const useCase = new CreateProjectUseCase(repository, new SequentialIdGenerator(), failingPurger);
-
-    const project = await useCase.execute({
-      name: 'Acme Project',
-      code: 'ACME-004',
-      type: 'construction',
-    });
-
-    expect(project.id).toBeDefined();
-  });
 });

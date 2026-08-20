@@ -75,7 +75,6 @@ export const authorizationRoutePolicies: readonly AuthorizationRoutePolicy[] = [
   { method: 'PATCH', path: '/tax-compliance/sources/:sourceKey/review', public: false, access: { kind: 'admin' } },
   { method: 'PATCH', path: '/workspace/members/:id', public: false, access: { kind: 'admin' } },
   { method: 'POST', path: '/auth/bootstrap', public: true, access: null },
-  { method: 'POST', path: '/demo', public: false, access: { kind: 'admin' } },
   { method: 'POST', path: '/documents/extract', public: false, access: { kind: 'access', module: 'documents', level: 'edit' } },
   { method: 'POST', path: '/invoices', public: false, access: { kind: 'access', module: 'invoices', level: 'edit' } },
   { method: 'POST', path: '/notifications/:id/read', public: false, access: { kind: 'notifications' } },

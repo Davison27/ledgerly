@@ -28,7 +28,6 @@ export class ProjectMapper {
       manager: orm.manager,
       image,
       color: orm.color as ProjectColor | null,
-      isDemo: orm.isDemo,
     });
   }
 
@@ -55,7 +54,6 @@ export class ProjectMapper {
     orm.fiscalYear = primitives.fiscalYear;
     orm.manager = primitives.manager;
     orm.color = primitives.color;
-    orm.isDemo = primitives.isDemo ?? false;
 
     return orm;
   }

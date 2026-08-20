@@ -34,13 +34,13 @@ export class TypeOrmProjectRepository implements ProjectRepository {
     const rows: ProjectSummaryRow[] = await this.repository.manager.query(`
       SELECT p.id, p.name, p.code, p.currency, p.image_ciphertext AS "imageCiphertext",
         p.image_nonce AS "imageNonce", p.image_tag AS "imageTag", p.image_key_version AS "imageKeyVersion",
-        p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.color, p.is_demo AS "isDemo",
+        p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.color,
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id
       GROUP BY p.id, p.name, p.code, p.currency, p.image_ciphertext, p.image_nonce, p.image_tag,
-        p.image_key_version, p.image_mime_type, p.image_size, p.color, p.is_demo
+        p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
       LIMIT $1
     `, [limit + 1]);
@@ -66,14 +66,14 @@ export class TypeOrmProjectRepository implements ProjectRepository {
       `
       SELECT p.id, p.name, p.code, p.currency, p.image_ciphertext AS "imageCiphertext",
         p.image_nonce AS "imageNonce", p.image_tag AS "imageTag", p.image_key_version AS "imageKeyVersion",
-        p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.color, p.is_demo AS "isDemo",
+        p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.color,
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id
       WHERE p.id = $1
       GROUP BY p.id, p.name, p.code, p.currency, p.image_ciphertext, p.image_nonce, p.image_tag,
-        p.image_key_version, p.image_mime_type, p.image_size, p.color, p.is_demo
+        p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
     `,
       [id],

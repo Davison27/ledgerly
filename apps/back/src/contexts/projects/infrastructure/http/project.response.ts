@@ -25,7 +25,6 @@ export class ProjectResponse {
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
-  isDemo: boolean;
 
   static fromDomain(project: Project): ProjectResponse {
     const response = new ProjectResponse();
@@ -51,7 +50,6 @@ export class ProjectResponse {
     response.manager = primitives.manager;
     response.image = primitives.image;
     response.color = primitives.color;
-    response.isDemo = primitives.isDemo ?? false;
 
     return response;
   }
