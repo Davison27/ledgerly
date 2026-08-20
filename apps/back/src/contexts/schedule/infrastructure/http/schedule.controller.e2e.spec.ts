@@ -18,12 +18,13 @@ import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-eve
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 
 const PROJECT_ID = '11111111-1111-4111-8111-111111111111';
+const PROJECT_IMAGE = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
 const PROJECT_VIEW: ScheduleProjectView = {
   id: PROJECT_ID,
   name: 'Feria de muestras',
   code: 'FM-01',
-  image: null,
+  image: PROJECT_IMAGE,
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
@@ -108,6 +109,8 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(boardExecute).toHaveBeenCalledWith({ from: '2026-07-01', to: '2026-07-31' });
+      const body = response.body as { events: Array<{ project: { image: string | null } }> };
+      expect(body.events[0].project.image).toBe(PROJECT_IMAGE);
     });
 
     it('returns 400 when from is missing', async () => {
@@ -124,8 +127,9 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(listExecute).toHaveBeenCalledTimes(1);
-      const body = response.body as { id: string; startDate: string }[];
+      const body = response.body as Array<{ id: string; startDate: string; project: { image: string | null } }>;
       expect(body[0].startDate).toBe('2026-07-03');
+      expect(body[0].project.image).toBe(PROJECT_IMAGE);
     });
   });
 
@@ -141,6 +145,8 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(201);
       expect(createExecute).toHaveBeenCalledWith(expect.objectContaining({ projectId: PROJECT_ID }));
+      const body = response.body as { project: { image: string | null } };
+      expect(body.project.image).toBe(PROJECT_IMAGE);
     });
 
     it('returns 400 when a day has a malformed date', async () => {
@@ -174,6 +180,8 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(updateExecute).toHaveBeenCalledWith(expect.objectContaining({ id: 'event-1', title: 'Evento' }));
+      const body = response.body as { project: { image: string | null } };
+      expect(body.project.image).toBe(PROJECT_IMAGE);
     });
 
     it('returns 404 when the event is not found', async () => {
@@ -200,8 +208,9 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(schedulableProjectsExecute).toHaveBeenCalledTimes(1);
-      const body = response.body as { id: string }[];
+      const body = response.body as Array<{ id: string; image: string | null }>;
       expect(body[0].id).toBe(PROJECT_ID);
+      expect(body[0].image).toBe(PROJECT_IMAGE);
     });
   });
 });

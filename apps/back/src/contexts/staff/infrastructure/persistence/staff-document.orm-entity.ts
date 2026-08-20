@@ -33,8 +33,17 @@ export class StaffDocumentOrmEntity {
   @Column({ name: 'file_size', type: 'integer' })
   fileSize: number;
 
-  @Column({ type: 'bytea', nullable: true, select: false })
-  content: Buffer | null;
+  @Column({ name: 'content_ciphertext', type: 'bytea', nullable: true, select: false })
+  contentCiphertext: Buffer | null;
+
+  @Column({ name: 'content_nonce', type: 'bytea', nullable: true, select: false })
+  contentNonce: Buffer | null;
+
+  @Column({ name: 'content_tag', type: 'bytea', nullable: true, select: false })
+  contentTag: Buffer | null;
+
+  @Column({ name: 'content_key_version', type: 'varchar', length: 10, nullable: true, select: false })
+  contentKeyVersion: string | null;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })
   createdAt: Date;

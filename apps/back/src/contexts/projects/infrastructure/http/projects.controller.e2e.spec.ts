@@ -14,6 +14,8 @@ import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 
+const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 function buildProject(
   overrides: Partial<CreateProjectCommand> & { id?: string } = {},
 ): Project {
@@ -109,7 +111,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
 
   describe('GET /projects', () => {
     it('returns the project summaries including image', async () => {
-      listExecute.mockResolvedValueOnce([buildSummary({ image: 'data:image/png;base64,abc' })]);
+      listExecute.mockResolvedValueOnce([buildSummary({ image })]);
 
       const response = await request(httpServer).get('/projects');
 
@@ -123,7 +125,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
           financials: [],
           documentCount: 0,
           pendingCount: 0,
-          image: 'data:image/png;base64,abc',
+          image,
           color: null,
           isDemo: false,
         },
@@ -148,17 +150,17 @@ describe('ProjectsController (HTTP, no DB)', () => {
           name: 'Acme Project',
           code: 'ACME-001',
           type: 'construction',
-          image: 'data:image/png;base64,abc',
+          image,
         });
 
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({
         name: 'Acme Project',
         code: 'ACME-001',
-        image: 'data:image/png;base64,abc',
+        image,
       });
       expect(createExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ image: 'data:image/png;base64,abc' }),
+        expect.objectContaining({ image }),
       );
     });
   });
@@ -166,7 +168,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
   describe('GET /projects/:id', () => {
     it('returns the full project (not the summary shape)', async () => {
       getExecute.mockResolvedValueOnce(
-        buildProject({ id: 'project-1', image: 'data:image/png;base64,abc' }),
+        buildProject({ id: 'project-1', image }),
       );
 
       const response = await request(httpServer).get('/projects/project-1');
@@ -178,7 +180,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         code: 'ACME-001',
         type: 'construction',
         status: 'active',
-        image: 'data:image/png;base64,abc',
+        image,
       });
       expect(response.body).not.toHaveProperty('documentCount');
       expect(response.body).not.toHaveProperty('pendingCount');
@@ -198,13 +200,13 @@ describe('ProjectsController (HTTP, no DB)', () => {
     it('updates the project image', async () => {
       const response = await request(httpServer)
         .patch('/projects/project-1')
-        .send({ image: 'data:image/png;base64,def' });
+        .send({ image });
 
       expect(response.status).toBe(200);
       expect(updateExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ id: 'project-1', image: 'data:image/png;base64,def' }),
+        expect.objectContaining({ id: 'project-1', image }),
       );
-      expect(response.body).toMatchObject({ image: 'data:image/png;base64,def' });
+      expect(response.body).toMatchObject({ image });
     });
 
     it('clears the project image when the request explicitly sends null', async () => {

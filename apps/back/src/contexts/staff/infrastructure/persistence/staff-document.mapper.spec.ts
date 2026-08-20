@@ -15,9 +15,12 @@ function buildDocument(): StaffDocument {
 }
 
 describe('StaffDocumentMapper', () => {
-  it('never assigns content, so an update can never overwrite the stored file', () => {
+  it('never assigns an encrypted envelope, so an update can never overwrite the stored file', () => {
     const orm = StaffDocumentMapper.toOrm(buildDocument());
 
-    expect(orm.content).toBeUndefined();
+    expect(orm.contentCiphertext).toBeUndefined();
+    expect(orm.contentNonce).toBeUndefined();
+    expect(orm.contentTag).toBeUndefined();
+    expect(orm.contentKeyVersion).toBeUndefined();
   });
 });

@@ -17,8 +17,14 @@ class InMemoryStaffDocumentRepository implements StaffDocumentRepository {
     );
   }
 
-  findById(id: string): Promise<StaffDocument | null> {
-    return Promise.resolve(this.documents.find((document) => document.getId() === id) ?? null);
+  findById(id: string, staffMemberId?: string): Promise<StaffDocument | null> {
+    return Promise.resolve(
+      this.documents.find(
+        (document) =>
+          document.getId() === id &&
+          (staffMemberId === undefined || document.getStaffMemberId() === staffMemberId),
+      ) ?? null,
+    );
   }
 
   save(staffDocument: StaffDocument): Promise<void> {
@@ -33,8 +39,8 @@ class InMemoryStaffDocumentRepository implements StaffDocumentRepository {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
+  delete(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   saveContent(): Promise<void> {

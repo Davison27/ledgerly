@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -8,6 +8,8 @@ import {
 } from '../../domain/project-product.repository';
 import { ProjectProductOrmEntity } from './project-product.orm-entity';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
+import { STORED_FILE_CIPHER, StoredFileCipher } from '../../../../shared/domain/stored-file-cipher.port';
+import { decryptStoredImage } from '../../../../shared/infrastructure/crypto/stored-image-envelope';
 
 type ProjectProductQueryRow = Record<string, unknown>;
 
@@ -16,13 +18,16 @@ export class TypeOrmProjectProductRepository implements ProjectProductRepository
   constructor(
     @InjectRepository(ProjectProductOrmEntity)
     private readonly repository: Repository<ProjectProductOrmEntity>,
+    @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
   ) {}
 
   async findByProjectId(projectId: string): Promise<ProjectProductRecord[]> {
     const limit = getListLimit('MAX_PROJECT_PRODUCTS_PER_PROJECT', 100);
     const rows: ProjectProductQueryRow[] = await this.repository.manager.query(
       `SELECT pp.project_id AS "projectId", pp.product_id AS "productId", p.name, p.reference,
-        p.category, p.image, p.leasing_monthly_fee AS "leasingMonthlyFee",
+        p.category, p.image_ciphertext AS "imageCiphertext", p.image_nonce AS "imageNonce",
+        p.image_tag AS "imageTag", p.image_key_version AS "imageKeyVersion",
+        p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.leasing_monthly_fee AS "leasingMonthlyFee",
         pp.lease_expense AS "leaseExpense", pp.lease_expense_date AS "leaseExpenseDate"
        FROM project_products pp
        INNER JOIN products p ON p.id = pp.product_id
@@ -34,11 +39,29 @@ export class TypeOrmProjectProductRepository implements ProjectProductRepository
 
     if (rows.length > limit) throw new ListLimitExceededException(limit, 'Project products');
 
-    return rows.map((row) => ({
-      ...row,
-      leasingMonthlyFee: row.leasingMonthlyFee === null ? null : Number(row.leasingMonthlyFee),
-      leaseExpense: row.leaseExpense === null ? null : Number(row.leaseExpense),
-    })) as ProjectProductRecord[];
+    return rows.map((row) => {
+      const { imageCiphertext, imageKeyVersion, imageMimeType, imageNonce, imageSize, imageTag, ...product } = row;
+      const image = decryptStoredImage(
+        {
+          ciphertext: imageCiphertext as Buffer | null,
+          keyVersion: imageKeyVersion as string | null,
+          mimeType: imageMimeType as string | null,
+          nonce: imageNonce as Buffer | null,
+          size: imageSize as number | null,
+          tag: imageTag as Buffer | null,
+        },
+        'productImage',
+        String(row.productId),
+        this.storedFileCipher,
+      );
+
+      return {
+        ...product,
+        image,
+        leasingMonthlyFee: row.leasingMonthlyFee === null ? null : Number(row.leasingMonthlyFee),
+        leaseExpense: row.leaseExpense === null ? null : Number(row.leaseExpense),
+      };
+    }) as ProjectProductRecord[];
   }
 
   async save(input: Pick<ProjectProductRecord, 'projectId' | 'productId' | 'leaseExpense' | 'leaseExpenseDate'>): Promise<void> {

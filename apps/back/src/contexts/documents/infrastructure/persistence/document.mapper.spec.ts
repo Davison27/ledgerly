@@ -16,9 +16,12 @@ function buildDocument(): Document {
 }
 
 describe('DocumentMapper', () => {
-  it('never assigns content, so an update can never overwrite the stored PDF', () => {
+  it('never assigns an encrypted envelope, so an update can never overwrite the stored PDF', () => {
     const orm = DocumentMapper.toOrm(buildDocument());
 
-    expect(orm.content).toBeUndefined();
+    expect(orm.contentCiphertext).toBeUndefined();
+    expect(orm.contentNonce).toBeUndefined();
+    expect(orm.contentTag).toBeUndefined();
+    expect(orm.contentKeyVersion).toBeUndefined();
   });
 });

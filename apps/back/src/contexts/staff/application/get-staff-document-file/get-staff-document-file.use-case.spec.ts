@@ -15,23 +15,39 @@ class InMemoryStaffDocumentRepository implements StaffDocumentRepository {
     );
   }
 
-  findById(id: string): Promise<StaffDocument | null> {
-    return Promise.resolve(this.documents.find((document) => document.getId() === id) ?? null);
+  findById(id: string, staffMemberId?: string): Promise<StaffDocument | null> {
+    return Promise.resolve(
+      this.documents.find(
+        (document) =>
+          document.getId() === id &&
+          (staffMemberId === undefined || document.getStaffMemberId() === staffMemberId),
+      ) ?? null,
+    );
   }
 
   save(): Promise<void> {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
+  delete(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   saveContent(): Promise<void> {
     return Promise.resolve();
   }
 
-  findContent(id: string): Promise<Buffer | null> {
+  findContent(id: string, staffMemberId?: string): Promise<Buffer | null> {
+    const document = this.documents.find(
+      (candidate) =>
+        candidate.getId() === id &&
+        (staffMemberId === undefined || candidate.getStaffMemberId() === staffMemberId),
+    );
+
+    if (!document) {
+      return Promise.resolve(null);
+    }
+
     return Promise.resolve(this.contents.get(id) ?? null);
   }
 }
@@ -53,6 +69,17 @@ describe('GetStaffDocumentFileUseCase', () => {
   it('throws StaffDocumentNotFoundException when the document belongs to another staff member', async () => {
     const useCase = new GetStaffDocumentFileUseCase(
       new InMemoryStaffDocumentRepository([buildDocument()], new Map([['staff-doc-1', Buffer.from('file')]])),
+    );
+
+    await expect(useCase.execute('staff-doc-1', 'staff-2')).rejects.toThrow(
+      StaffDocumentNotFoundException,
+    );
+  });
+
+  it('does not return file bytes when the route parent does not own the document', async () => {
+    const content = Buffer.from('file');
+    const useCase = new GetStaffDocumentFileUseCase(
+      new InMemoryStaffDocumentRepository([buildDocument()], new Map([['staff-doc-1', content]])),
     );
 
     await expect(useCase.execute('staff-doc-1', 'staff-2')).rejects.toThrow(

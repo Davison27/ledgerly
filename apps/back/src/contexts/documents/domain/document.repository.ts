@@ -18,7 +18,7 @@ export interface DocumentRepository {
   ): Promise<Page<Document>>;
   findById(id: string): Promise<Document | null>;
   save(document: Document): Promise<void>;
-  delete(id: string): Promise<void>;
+  delete(id: string, projectId?: string): Promise<boolean>;
   saveContent(documentId: string, content: Buffer): Promise<void>;
   findContent(documentId: string): Promise<Buffer | null>;
   findAllForDashboard(): Promise<DocumentDashboardRow[]>;

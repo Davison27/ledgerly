@@ -8,6 +8,7 @@ import { DocumentNotFoundException } from '../../domain/errors/document-not-foun
 
 class InMemoryDocumentRepository implements DocumentRepository {
   private documents: Document[] = [];
+  readonly deleteCalls: Array<{ id: string; projectId?: string }> = [];
 
   findByProject(): Promise<Document[]> {
     return Promise.resolve([...this.documents]);
@@ -22,9 +23,14 @@ class InMemoryDocumentRepository implements DocumentRepository {
     return Promise.resolve();
   }
 
-  delete(id: string): Promise<void> {
-    this.documents = this.documents.filter((document) => document.getId() !== id);
-    return Promise.resolve();
+  delete(id: string, projectId?: string): Promise<boolean> {
+    this.deleteCalls.push({ id, projectId });
+    const document = this.documents.find((candidate) => candidate.getId() === id);
+    if (!document || (projectId !== undefined && document.getProjectId() !== projectId)) {
+      return Promise.resolve(false);
+    }
+    this.documents = this.documents.filter((candidate) => candidate.getId() !== id);
+    return Promise.resolve(true);
   }
 
   saveContent(): Promise<void> {
@@ -88,6 +94,7 @@ describe('DeleteDocumentUseCase', () => {
     await expect(useCase.execute('doc-1', 'project-2')).rejects.toThrow(DocumentNotFoundException);
 
     expect(await repository.findById('doc-1')).not.toBeNull();
+    expect(repository.deleteCalls).toEqual([{ id: 'doc-1', projectId: 'project-2' }]);
   });
 
   it('deletes the document when it belongs to the requested project', async () => {
@@ -98,5 +105,6 @@ describe('DeleteDocumentUseCase', () => {
     await useCase.execute('doc-1', 'project-1');
 
     expect(await repository.findById('doc-1')).toBeNull();
+    expect(repository.deleteCalls).toEqual([{ id: 'doc-1', projectId: 'project-1' }]);
   });
 });

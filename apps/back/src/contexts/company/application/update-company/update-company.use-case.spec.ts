@@ -3,6 +3,8 @@ import { Company } from '../../domain/company';
 import { CompanyRepository } from '../../domain/company.repository';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
 
+const logo = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryCompanyRepository implements CompanyRepository {
   private company: Company | null = null;
 
@@ -32,12 +34,12 @@ describe('UpdateCompanyUseCase', () => {
 
     const company = await useCase.execute({
       name: 'Acme Corp',
-      logo: 'data:image/png;base64,abc123',
+      logo,
     });
 
     expect(company.getId()).toBe('company-1');
     expect(company.getName()).toBe('Acme Corp');
-    expect(company.getLogo()).toBe('data:image/png;base64,abc123');
+    expect(company.getLogo()).toBe(logo);
 
     const persisted = await repository.find();
     expect(persisted).not.toBeNull();
@@ -49,10 +51,10 @@ describe('UpdateCompanyUseCase', () => {
     const idGenerator = new SequentialIdGenerator();
     const useCase = new UpdateCompanyUseCase(repository, idGenerator);
 
-    const company = await useCase.execute({ logo: 'data:image/png;base64,abc123' });
+    const company = await useCase.execute({ logo });
 
     expect(company.getName()).toBe('');
-    expect(company.getLogo()).toBe('data:image/png;base64,abc123');
+    expect(company.getLogo()).toBe(logo);
   });
 
   it('updates the existing company instead of creating a new one', async () => {

@@ -6,7 +6,7 @@ import { ProjectColor } from '../../domain/project-color';
 import { ProjectOrmEntity } from './project.orm-entity';
 
 export class ProjectMapper {
-  toDomain(orm: ProjectOrmEntity): Project {
+  toDomain(orm: ProjectOrmEntity, image: string | null): Project {
     return Project.create({
       id: orm.id,
       name: orm.name,
@@ -26,7 +26,7 @@ export class ProjectMapper {
       currency: orm.currency as ProjectCurrency,
       fiscalYear: orm.fiscalYear,
       manager: orm.manager,
-      image: orm.image,
+      image,
       color: orm.color as ProjectColor | null,
       isDemo: orm.isDemo,
     });
@@ -54,7 +54,6 @@ export class ProjectMapper {
     orm.currency = primitives.currency;
     orm.fiscalYear = primitives.fiscalYear;
     orm.manager = primitives.manager;
-    orm.image = primitives.image;
     orm.color = primitives.color;
     orm.isDemo = primitives.isDemo ?? false;
 

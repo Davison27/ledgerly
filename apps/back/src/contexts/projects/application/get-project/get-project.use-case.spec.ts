@@ -4,6 +4,8 @@ import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 
+const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = [];
 
@@ -89,7 +91,7 @@ describe('GetProjectUseCase', () => {
       currency: 'EUR',
       fiscalYear: null,
       manager: null,
-      image: 'data:image/png;base64,abc',
+      image,
       color: null,
     });
     await repository.save(project);
@@ -98,7 +100,7 @@ describe('GetProjectUseCase', () => {
     const result = await useCase.execute('project-1');
 
     expect(result).toBeInstanceOf(Project);
-    expect(result.image).toBe('data:image/png;base64,abc');
+    expect(result.image).toBe(image);
     expect(result.toPrimitives()).not.toHaveProperty('documentCount');
   });
 

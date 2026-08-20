@@ -31,10 +31,12 @@ import { CreateStaffDocumentDto } from './dtos/create-staff-document.dto';
 import { UpdateStaffDocumentDto } from './dtos/update-staff-document.dto';
 import { ListStaffDocumentsQueryDto } from './dtos/list-staff-documents.query.dto';
 import { StaffDocumentResponse } from './staff-document.response';
-import { isValidStaffDocumentFile, STAFF_DOCUMENT_MIME_TYPES } from './staff-document-file.validator';
+import {
+  isValidStaffDocumentFile,
+  MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES,
+  STAFF_DOCUMENT_MIME_TYPES,
+} from './staff-document-file.validator';
 import { UploadCapacityInterceptor } from '../../../../shared/infrastructure/http/upload-capacity.interceptor';
-
-const MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES = 10 * 1024 * 1024;
 
 @RequiresAccess('staff', 'view')
 @Controller('staff/:staffMemberId/documents')

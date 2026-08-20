@@ -5,6 +5,8 @@ import { ProjectSummary } from '../../domain/project-summary';
 import { DemoProjectPurger } from '../../domain/demo-project-purger.port';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
 
+const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = [];
 
@@ -98,13 +100,13 @@ describe('CreateProjectUseCase', () => {
       name: 'Acme Project',
       code: 'ACME-001',
       type: 'construction',
-      image: 'data:image/png;base64,abc',
+      image,
     });
 
-    expect(project.image).toBe('data:image/png;base64,abc');
+    expect(project.image).toBe(image);
 
     const stored = await repository.findById(project.id);
-    expect(stored?.image).toBe('data:image/png;base64,abc');
+    expect(stored?.image).toBe(image);
   });
 
   it('defaults image to null when not provided', async () => {

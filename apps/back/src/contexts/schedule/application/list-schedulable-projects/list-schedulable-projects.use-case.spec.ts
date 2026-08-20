@@ -5,6 +5,8 @@ import {
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 
+const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class FakeScheduleProjectReader implements ScheduleProjectReader {
   constructor(private readonly projects: SchedulableProjectView[]) {}
 
@@ -21,7 +23,7 @@ const ACTIVE_PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
-  image: null,
+  image: projectImage,
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
@@ -40,5 +42,6 @@ describe('ListSchedulableProjectsUseCase', () => {
     const projects = await useCase.execute();
 
     expect(projects).toEqual([ACTIVE_PROJECT]);
+    expect(projects[0].image).toBe(projectImage);
   });
 });

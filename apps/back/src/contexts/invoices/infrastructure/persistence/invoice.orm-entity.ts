@@ -54,8 +54,17 @@ export class InvoiceOrmEntity {
   @Column({ type: 'text', nullable: true })
   notes: string | null;
 
-  @Column({ type: 'bytea', nullable: true, select: false })
-  pdf: Buffer | null;
+  @Column({ name: 'pdf_ciphertext', type: 'bytea', nullable: true, select: false })
+  pdfCiphertext: Buffer | null;
+
+  @Column({ name: 'pdf_nonce', type: 'bytea', nullable: true, select: false })
+  pdfNonce: Buffer | null;
+
+  @Column({ name: 'pdf_tag', type: 'bytea', nullable: true, select: false })
+  pdfTag: Buffer | null;
+
+  @Column({ name: 'pdf_key_version', type: 'varchar', length: 10, nullable: true, select: false })
+  pdfKeyVersion: string | null;
 
   @Column({ name: 'pdf_size', type: 'integer', nullable: true })
   pdfSize: number | null;
