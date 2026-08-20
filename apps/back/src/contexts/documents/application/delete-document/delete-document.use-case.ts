@@ -7,9 +7,19 @@ export class DeleteDocumentUseCase {
   constructor(@Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository) {}
 
   async execute(id: string, projectId?: string): Promise<void> {
+    if (projectId !== undefined) {
+      const deleted = await this.repository.delete(id, projectId);
+
+      if (!deleted) {
+        throw new DocumentNotFoundException(id);
+      }
+
+      return;
+    }
+
     const document = await this.repository.findById(id);
 
-    if (!document || (projectId !== undefined && document.getProjectId() !== projectId)) {
+    if (!document) {
       throw new DocumentNotFoundException(id);
     }
 

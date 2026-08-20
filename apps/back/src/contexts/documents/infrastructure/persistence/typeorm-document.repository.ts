@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Document } from '../../domain/document';
@@ -18,6 +18,12 @@ import { Page, PageRequest, pageOffset } from '../../../../shared/domain/paginat
 import { DocumentOrmEntity } from './document.orm-entity';
 import { DocumentMapper } from './document.mapper';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
+import {
+  STORED_FILE_CIPHER,
+  StoredFileCipher,
+  StoredFileEnvelope,
+} from '../../../../shared/domain/stored-file-cipher.port';
+import { StoredFileCryptographyException } from '../../../../shared/domain/errors/stored-file-cryptography.exception';
 
 const EFFECTIVE_STATUS_FILTER_SQL = `
   CASE WHEN document.status = 'pendiente' AND document.due_date IS NOT NULL AND document.due_date < :today
@@ -28,6 +34,7 @@ const EFFECTIVE_STATUS_FILTER_SQL = `
 export class TypeOrmDocumentRepository implements DocumentRepository {
   constructor(
     @InjectRepository(DocumentOrmEntity) private readonly repository: Repository<DocumentOrmEntity>,
+    @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
   ) {}
 
   async findByProject(projectId: string, filters: DocumentFilters): Promise<Document[]> {
@@ -115,23 +122,72 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
     await this.repository.save(DocumentMapper.toOrm(document));
   }
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete({ id });
+  async delete(id: string, projectId?: string): Promise<boolean> {
+    const result = await this.repository.delete(projectId === undefined ? { id } : { id, projectId });
+
+    return result.affected === 1;
   }
 
   async saveContent(documentId: string, content: Buffer): Promise<void> {
-    await this.repository.update({ id: documentId }, { content });
+    const orm = await this.repository
+      .createQueryBuilder('document')
+      .select(['document.id', 'document.mimeType', 'document.fileSize'])
+      .where('document.id = :documentId', { documentId })
+      .getOne();
+
+    if (!orm) {
+      throw new StoredFileCryptographyException();
+    }
+
+    const envelope = this.storedFileCipher.encrypt(content, {
+      store: 'document',
+      rowId: orm.id,
+      mimeType: orm.mimeType,
+      plaintextSize: orm.fileSize as number,
+    });
+
+    const result = await this.repository.update(
+      { id: documentId },
+      {
+        contentCiphertext: envelope.ciphertext,
+        contentNonce: envelope.nonce,
+        contentTag: envelope.tag,
+        contentKeyVersion: envelope.version,
+      },
+    );
+
+    if (result.affected !== 1) {
+      throw new StoredFileCryptographyException();
+    }
   }
 
   async findContent(documentId: string): Promise<Buffer | null> {
     const orm = await this.repository
       .createQueryBuilder('document')
-      .select(['document.id'])
-      .addSelect('document.content')
+      .select(['document.id', 'document.mimeType', 'document.fileSize'])
+      .addSelect('document.contentCiphertext')
+      .addSelect('document.contentNonce')
+      .addSelect('document.contentTag')
+      .addSelect('document.contentKeyVersion')
       .where('document.id = :documentId', { documentId })
       .getOne();
 
-    return orm?.content ?? null;
+    if (!orm) {
+      return null;
+    }
+
+    const envelope = this.getContentEnvelope(orm);
+
+    if (!envelope) {
+      return null;
+    }
+
+    return this.storedFileCipher.decrypt(envelope, {
+      store: 'document',
+      rowId: orm.id,
+      mimeType: orm.mimeType,
+      plaintextSize: orm.fileSize as number,
+    });
   }
 
   async findAllForDashboard(): Promise<DocumentDashboardRow[]> {
@@ -365,6 +421,25 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       invoiceNumber: orm.invoiceNumber,
       supplierId: orm.supplierId,
       staffMemberId: orm.staffMemberId,
+    };
+  }
+
+  private getContentEnvelope(orm: DocumentOrmEntity): StoredFileEnvelope | null {
+    const values = [orm.contentCiphertext, orm.contentNonce, orm.contentTag, orm.contentKeyVersion];
+
+    if (values.every((value) => value === null)) {
+      return null;
+    }
+
+    if (values.some((value) => value === null)) {
+      throw new StoredFileCryptographyException();
+    }
+
+    return {
+      ciphertext: orm.contentCiphertext as Buffer,
+      nonce: orm.contentNonce as Buffer,
+      tag: orm.contentTag as Buffer,
+      version: orm.contentKeyVersion as string,
     };
   }
 }

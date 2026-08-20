@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, IsUrl, Matches } from 'class-validator';
+import { IsCanonicalImageDataUrl } from '../../../../../shared/infrastructure/http/canonical-image-data-url.validator';
 
 export class UpdateCompanyDto {
   @IsOptional()
@@ -48,6 +49,7 @@ export class UpdateCompanyDto {
 
   @IsOptional()
   @IsString()
+  @IsCanonicalImageDataUrl('companyLogo')
   logo?: string | null;
 
   @IsOptional()

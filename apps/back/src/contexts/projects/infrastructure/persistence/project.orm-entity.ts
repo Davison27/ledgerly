@@ -56,8 +56,23 @@ export class ProjectOrmEntity {
   @Column({ type: 'varchar', length: 160, nullable: true })
   manager: string | null;
 
-  @Column({ type: 'text', nullable: true })
-  image: string | null;
+  @Column({ name: 'image_ciphertext', type: 'bytea', nullable: true, select: false })
+  imageCiphertext: Buffer | null;
+
+  @Column({ name: 'image_nonce', type: 'bytea', nullable: true, select: false })
+  imageNonce: Buffer | null;
+
+  @Column({ name: 'image_tag', type: 'bytea', nullable: true, select: false })
+  imageTag: Buffer | null;
+
+  @Column({ name: 'image_key_version', type: 'varchar', length: 10, nullable: true, select: false })
+  imageKeyVersion: string | null;
+
+  @Column({ name: 'image_mime_type', type: 'varchar', length: 127, nullable: true, select: false })
+  imageMimeType: string | null;
+
+  @Column({ name: 'image_size', type: 'integer', nullable: true, select: false })
+  imageSize: number | null;
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   color: string | null;

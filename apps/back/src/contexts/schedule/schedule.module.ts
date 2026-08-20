@@ -19,9 +19,11 @@ import { DeleteScheduleEventUseCase } from './application/delete-schedule-event/
 import { ListScheduleEventsUseCase } from './application/list-schedule-events/list-schedule-events.use-case';
 import { GetScheduleBoardUseCase } from './application/get-schedule-board/get-schedule-board.use-case';
 import { ListSchedulableProjectsUseCase } from './application/list-schedulable-projects/list-schedulable-projects.use-case';
+import { SharedModule } from '../../shared/shared.module';
 
 @Module({
   imports: [
+    SharedModule,
     TypeOrmModule.forFeature([
       ScheduleEventOrmEntity,
       ScheduleEventDayOrmEntity,

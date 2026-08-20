@@ -32,8 +32,8 @@ class InMemoryDocumentRepository implements DocumentRepository {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
+  delete(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   saveContent(): Promise<void> {

@@ -22,21 +22,17 @@ export class GetStaffDocumentFileUseCase {
     staffDocumentId: string,
     staffMemberId?: string,
   ): Promise<StaffDocumentFileResult | null> {
-    const staffDocument = await this.staffDocumentRepository.findById(staffDocumentId);
-
-    if (
-      staffDocument &&
-      staffMemberId !== undefined &&
-      staffDocument.getStaffMemberId() !== staffMemberId
-    ) {
-      throw new StaffDocumentNotFoundException(staffDocumentId);
-    }
+    const staffDocument = await this.staffDocumentRepository.findById(staffDocumentId, staffMemberId);
 
     if (!staffDocument) {
+      if (staffMemberId !== undefined) {
+        throw new StaffDocumentNotFoundException();
+      }
+
       return null;
     }
 
-    const content = await this.staffDocumentRepository.findContent(staffDocumentId);
+    const content = await this.staffDocumentRepository.findContent(staffDocumentId, staffMemberId);
 
     if (!content) {
       return null;

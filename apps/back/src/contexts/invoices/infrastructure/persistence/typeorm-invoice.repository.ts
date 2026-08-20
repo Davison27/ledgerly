@@ -9,6 +9,12 @@ import { InvoiceLineOrmEntity } from './invoice-line.orm-entity';
 import { InvoiceMapper } from './invoice.mapper';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 import { Page, PageRequest, pageOffset } from '../../../../shared/domain/pagination';
+import {
+  STORED_FILE_CIPHER,
+  StoredFileCipher,
+  StoredFileEnvelope,
+} from '../../../../shared/domain/stored-file-cipher.port';
+import { StoredFileCryptographyException } from '../../../../shared/domain/errors/stored-file-cryptography.exception';
 
 @Injectable()
 export class TypeOrmInvoiceRepository implements InvoiceRepository {
@@ -18,6 +24,7 @@ export class TypeOrmInvoiceRepository implements InvoiceRepository {
     @InjectRepository(InvoiceLineOrmEntity)
     private readonly invoiceLineRepository: Repository<InvoiceLineOrmEntity>,
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
+    @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
   ) {}
 
   async findAll(): Promise<Invoice[]> {
@@ -127,21 +134,83 @@ export class TypeOrmInvoiceRepository implements InvoiceRepository {
   }
 
   async savePdf(id: string, pdf: Buffer): Promise<void> {
-    await this.invoiceRepository.update({ id }, { pdf, pdfSize: pdf.length });
+    const envelope = this.storedFileCipher.encrypt(pdf, {
+      store: 'invoicePdf',
+      rowId: id,
+      mimeType: 'application/pdf',
+      plaintextSize: pdf.length,
+    });
+    const result = await this.invoiceRepository.update(
+      { id },
+      {
+        pdfCiphertext: envelope.ciphertext,
+        pdfNonce: envelope.nonce,
+        pdfTag: envelope.tag,
+        pdfKeyVersion: envelope.version,
+        pdfSize: pdf.length,
+      },
+    );
+
+    if (result.affected !== 1) {
+      throw new StoredFileCryptographyException();
+    }
   }
 
   async findPdf(id: string): Promise<Buffer | null> {
     const orm = await this.invoiceRepository
       .createQueryBuilder('invoice')
-      .select(['invoice.id'])
-      .addSelect('invoice.pdf')
+      .select(['invoice.id', 'invoice.pdfSize'])
+      .addSelect('invoice.pdfCiphertext')
+      .addSelect('invoice.pdfNonce')
+      .addSelect('invoice.pdfTag')
+      .addSelect('invoice.pdfKeyVersion')
       .where('invoice.id = :id', { id })
       .getOne();
 
-    return orm?.pdf ?? null;
+    if (!orm) {
+      return null;
+    }
+
+    const envelope = this.getPdfEnvelope(orm);
+
+    if (!envelope) {
+      return null;
+    }
+
+    return this.storedFileCipher.decrypt(envelope, {
+      store: 'invoicePdf',
+      rowId: orm.id,
+      mimeType: 'application/pdf',
+      plaintextSize: orm.pdfSize as number,
+    });
   }
 
   async linkDocument(id: string, documentId: string): Promise<void> {
     await this.invoiceRepository.update({ id }, { documentId });
+  }
+
+  private getPdfEnvelope(orm: InvoiceOrmEntity): StoredFileEnvelope | null {
+    const values = [
+      orm.pdfCiphertext,
+      orm.pdfNonce,
+      orm.pdfTag,
+      orm.pdfKeyVersion,
+      orm.pdfSize,
+    ];
+
+    if (values.every((value) => value === null)) {
+      return null;
+    }
+
+    if (values.some((value) => value === null)) {
+      throw new StoredFileCryptographyException();
+    }
+
+    return {
+      ciphertext: orm.pdfCiphertext as Buffer,
+      nonce: orm.pdfNonce as Buffer,
+      tag: orm.pdfTag as Buffer,
+      version: orm.pdfKeyVersion as string,
+    };
   }
 }

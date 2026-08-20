@@ -4,6 +4,8 @@ import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 
+const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[] = [];
 
@@ -100,17 +102,17 @@ describe('UpdateProjectUseCase', () => {
 
     const updated = await useCase.execute({
       id: 'project-1',
-      image: 'data:image/png;base64,def',
+      image,
     });
 
-    expect(updated.image).toBe('data:image/png;base64,def');
+    expect(updated.image).toBe(image);
     const stored = await repository.findById('project-1');
-    expect(stored?.image).toBe('data:image/png;base64,def');
+    expect(stored?.image).toBe(image);
   });
 
   it('clears the image when explicitly set to null', async () => {
     const repository = new InMemoryProjectRepository();
-    await repository.save(buildProject({ image: 'data:image/png;base64,abc' }));
+    await repository.save(buildProject({ image }));
     const useCase = new UpdateProjectUseCase(repository);
 
     const updated = await useCase.execute({ id: 'project-1', image: null });
@@ -120,12 +122,12 @@ describe('UpdateProjectUseCase', () => {
 
   it('leaves the image untouched when not provided', async () => {
     const repository = new InMemoryProjectRepository();
-    await repository.save(buildProject({ image: 'data:image/png;base64,abc' }));
+    await repository.save(buildProject({ image }));
     const useCase = new UpdateProjectUseCase(repository);
 
     const updated = await useCase.execute({ id: 'project-1', name: 'Renamed' });
 
-    expect(updated.image).toBe('data:image/png;base64,abc');
+    expect(updated.image).toBe(image);
   });
 
   it('throws ProjectNotFoundException when the project does not exist', async () => {

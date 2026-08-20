@@ -38,8 +38,23 @@ export class CompanyOrmEntity {
   @Column({ type: 'varchar', length: 120, nullable: true })
   country: string | null;
 
-  @Column({ type: 'text', nullable: true })
-  logo: string | null;
+  @Column({ name: 'logo_ciphertext', type: 'bytea', nullable: true, select: false })
+  logoCiphertext: Buffer | null;
+
+  @Column({ name: 'logo_nonce', type: 'bytea', nullable: true, select: false })
+  logoNonce: Buffer | null;
+
+  @Column({ name: 'logo_tag', type: 'bytea', nullable: true, select: false })
+  logoTag: Buffer | null;
+
+  @Column({ name: 'logo_key_version', type: 'varchar', length: 10, nullable: true, select: false })
+  logoKeyVersion: string | null;
+
+  @Column({ name: 'logo_mime_type', type: 'varchar', length: 127, nullable: true, select: false })
+  logoMimeType: string | null;
+
+  @Column({ name: 'logo_size', type: 'integer', nullable: true, select: false })
+  logoSize: number | null;
 
   @Column({ name: 'brand_color', type: 'varchar', length: 7, nullable: true })
   brandColor: string | null;

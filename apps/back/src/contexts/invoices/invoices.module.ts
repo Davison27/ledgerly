@@ -25,11 +25,13 @@ import { TypeOrmCompanyRepository } from '../company/infrastructure/persistence/
 import { CompanyOrmEntity } from '../company/infrastructure/persistence/company.orm-entity';
 import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project.orm-entity';
 import { DocumentPaymentStatusProvider } from './infrastructure/documents/document-payment-status-provider';
+import { SharedModule } from '../../shared/shared.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([InvoiceOrmEntity, InvoiceLineOrmEntity, CompanyOrmEntity, ProjectOrmEntity]),
     DocumentsModule,
+    SharedModule,
   ],
   controllers: [InvoicesController],
   providers: [

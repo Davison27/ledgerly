@@ -16,17 +16,31 @@ class InMemoryStaffDocumentRepository implements StaffDocumentRepository {
     );
   }
 
-  findById(id: string): Promise<StaffDocument | null> {
-    return Promise.resolve(this.documents.find((document) => document.getId() === id) ?? null);
+  findById(id: string, staffMemberId?: string): Promise<StaffDocument | null> {
+    return Promise.resolve(
+      this.documents.find(
+        (document) =>
+          document.getId() === id &&
+          (staffMemberId === undefined || document.getStaffMemberId() === staffMemberId),
+      ) ?? null,
+    );
   }
 
   save(): Promise<void> {
     return Promise.resolve();
   }
 
-  delete(id: string): Promise<void> {
-    this.documents = this.documents.filter((document) => document.getId() !== id);
-    return Promise.resolve();
+  delete(id: string, staffMemberId?: string): Promise<boolean> {
+    const document = this.documents.find(
+      (candidate) =>
+        candidate.getId() === id &&
+        (staffMemberId === undefined || candidate.getStaffMemberId() === staffMemberId),
+    );
+    if (!document) {
+      return Promise.resolve(false);
+    }
+    this.documents = this.documents.filter((candidate) => candidate.getId() !== id);
+    return Promise.resolve(true);
   }
 
   saveContent(): Promise<void> {

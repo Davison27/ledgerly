@@ -31,8 +31,8 @@ class InMemoryStaffDocumentRepository implements StaffDocumentRepository {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
+  delete(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   saveContent(staffDocumentId: string, content: Buffer): Promise<void> {

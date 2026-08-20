@@ -2,7 +2,7 @@ import { Company } from '../../domain/company';
 import { CompanyOrmEntity } from './company.orm-entity';
 
 export class CompanyMapper {
-  static toDomain(orm: CompanyOrmEntity): Company {
+  static toDomain(orm: CompanyOrmEntity, logo: string | null): Company {
     return Company.fromPrimitives({
       id: orm.id,
       name: orm.name,
@@ -16,7 +16,7 @@ export class CompanyMapper {
       city: orm.city,
       postalCode: orm.postalCode,
       country: orm.country,
-      logo: orm.logo,
+      logo,
       brandColor: orm.brandColor,
     });
   }
@@ -37,7 +37,6 @@ export class CompanyMapper {
     orm.city = primitives.city;
     orm.postalCode = primitives.postalCode;
     orm.country = primitives.country;
-    orm.logo = primitives.logo;
     orm.brandColor = primitives.brandColor;
 
     return orm;

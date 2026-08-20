@@ -1,3 +1,5 @@
+import { STORED_FILE_PLAINTEXT_LIMITS } from '../../../../shared/infrastructure/crypto/stored-file-policy';
+
 const PDF_MAGIC_BYTES = Buffer.from('%PDF-');
 const JPEG_MAGIC_BYTES = Buffer.from([0xff, 0xd8, 0xff]);
 const PNG_MAGIC_BYTES = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
@@ -12,6 +14,8 @@ export const STAFF_DOCUMENT_MIME_TYPES = [
 ] as const;
 
 export type StaffDocumentMimeType = (typeof STAFF_DOCUMENT_MIME_TYPES)[number];
+
+export const MAX_STAFF_DOCUMENT_FILE_SIZE_BYTES = STORED_FILE_PLAINTEXT_LIMITS.staffDocument;
 
 export function isValidStaffDocumentFile(mimeType: string, buffer: Buffer): boolean {
   switch (mimeType) {

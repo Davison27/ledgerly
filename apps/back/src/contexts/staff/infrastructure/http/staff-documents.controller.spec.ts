@@ -10,6 +10,7 @@ import {
   StaffDocumentFileResult,
 } from '../../application/get-staff-document-file/get-staff-document-file.use-case';
 import { StaffDocument } from '../../domain/staff-document';
+import { StaffDocumentNotFoundException } from '../../domain/errors/staff-document-not-found.exception';
 
 function buildDocument(): StaffDocument {
   return StaffDocument.create({
@@ -79,5 +80,15 @@ describe('StaffDocumentsController', () => {
     await controller.remove('staff-1', 'staff-doc-1');
 
     expect(deleteExecute).toHaveBeenCalledWith('staff-doc-1', 'staff-1');
+  });
+
+  it('does not alter the generic not-found error returned for a nested file', async () => {
+    getFileExecute.mockRejectedValueOnce(new StaffDocumentNotFoundException());
+    const response = { set: jest.fn() } as unknown as Response;
+
+    await expect(controller.getFile('staff-2', 'staff-doc-1', response)).rejects.toMatchObject({
+      code: 'ENTITY_NOT_FOUND',
+      message: 'Staff document was not found',
+    });
   });
 });

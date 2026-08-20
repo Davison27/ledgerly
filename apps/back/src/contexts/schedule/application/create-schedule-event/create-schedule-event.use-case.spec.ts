@@ -16,6 +16,8 @@ import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 
+const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   events: ScheduleEvent[] = [];
 
@@ -96,7 +98,7 @@ const PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
-  image: null,
+  image: projectImage,
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
@@ -141,6 +143,7 @@ describe('CreateScheduleEventUseCase', () => {
     expect(view.event.id).toBe('event-1');
     expect(view.event.startDate).toBe('2026-07-03');
     expect(view.project.id).toBe('project-1');
+    expect(view.project.image).toBe(projectImage);
     expect(view.staff).toEqual([STAFF_MEMBER]);
     expect(view.products).toEqual([{ ...PRODUCT, quantity: 2 }]);
     expect(await repository.findById('event-1')).not.toBeNull();

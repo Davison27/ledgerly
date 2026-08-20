@@ -68,8 +68,17 @@ export class DocumentOrmEntity {
   @Column({ name: 'file_size', type: 'integer', nullable: true })
   fileSize: number | null;
 
-  @Column({ type: 'bytea', nullable: true, select: false })
-  content: Buffer | null;
+  @Column({ name: 'content_ciphertext', type: 'bytea', nullable: true, select: false })
+  contentCiphertext: Buffer | null;
+
+  @Column({ name: 'content_nonce', type: 'bytea', nullable: true, select: false })
+  contentNonce: Buffer | null;
+
+  @Column({ name: 'content_tag', type: 'bytea', nullable: true, select: false })
+  contentTag: Buffer | null;
+
+  @Column({ name: 'content_key_version', type: 'varchar', length: 10, nullable: true, select: false })
+  contentKeyVersion: string | null;
 
   @Column({ name: 'supplier_id', type: 'uuid', nullable: true })
   supplierId: string | null;

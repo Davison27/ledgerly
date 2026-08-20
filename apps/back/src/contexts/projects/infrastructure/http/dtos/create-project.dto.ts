@@ -12,6 +12,7 @@ import { PROJECT_TYPES, ProjectType } from '../../../domain/project-type';
 import { PROJECT_STATUSES, ProjectStatus } from '../../../domain/project-status';
 import { PROJECT_CURRENCIES, ProjectCurrency } from '../../../domain/project-currency';
 import { PROJECT_COLORS, ProjectColor } from '../../../domain/project-color';
+import { IsCanonicalImageDataUrl } from '../../../../../shared/infrastructure/http/canonical-image-data-url.validator';
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -86,6 +87,7 @@ export class CreateProjectDto {
 
   @IsOptional()
   @IsString()
+  @IsCanonicalImageDataUrl('projectImage')
   image?: string | null;
 
   @IsOptional()

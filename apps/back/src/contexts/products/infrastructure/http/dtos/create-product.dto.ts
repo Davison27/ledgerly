@@ -1,4 +1,5 @@
 import { ArrayMaxSize, IsArray, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength, Min } from 'class-validator';
+import { IsCanonicalImageDataUrl } from '../../../../../shared/infrastructure/http/canonical-image-data-url.validator';
 
 export class CreateProductDto {
   @IsString()
@@ -37,7 +38,7 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(2800000)
+  @IsCanonicalImageDataUrl('productImage')
   image?: string | null;
 
   @IsOptional()

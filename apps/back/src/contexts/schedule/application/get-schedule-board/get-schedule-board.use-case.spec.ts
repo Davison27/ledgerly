@@ -9,6 +9,8 @@ import {
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
 import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
 
+const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   constructor(private events: ScheduleEvent[]) {}
 
@@ -63,7 +65,7 @@ const PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
-  image: null,
+  image: projectImage,
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
@@ -105,6 +107,7 @@ describe('GetScheduleBoardUseCase', () => {
 
     expect(board.conflicts).toEqual([]);
     expect(board.summary.errorCount).toBe(0);
+    expect(board.events[0].project.image).toBe(projectImage);
   });
 
   it('counts a staff_overlap pair once even though it is emitted for both events', async () => {

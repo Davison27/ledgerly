@@ -9,6 +9,8 @@ import {
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
 import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
 
+const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   constructor(
     private events: ScheduleEvent[],
@@ -71,7 +73,7 @@ const PROJECT: SchedulableProjectView = {
   id: 'project-1',
   name: 'Feria de muestras',
   code: 'FM-01',
-  image: null,
+  image: projectImage,
   status: 'active',
   startDate: '2026-07-01',
   endDate: '2026-07-31',
@@ -112,6 +114,7 @@ describe('ListScheduleEventsUseCase', () => {
 
     expect(views).toHaveLength(1);
     expect(views[0].project.id).toBe('project-1');
+    expect(views[0].project.image).toBe(projectImage);
     expect(views[0].staff).toEqual([STAFF_MEMBER]);
     expect(views[0].products).toEqual([{ ...PRODUCT, quantity: 2 }]);
   });

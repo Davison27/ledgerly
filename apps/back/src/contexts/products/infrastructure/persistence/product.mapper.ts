@@ -2,7 +2,7 @@ import { Product } from '../../domain/product';
 import { ProductOrmEntity } from './product.orm-entity';
 
 export class ProductMapper {
-  toDomain(orm: ProductOrmEntity): Product {
+  toDomain(orm: ProductOrmEntity, image: string | null): Product {
     return Product.create({
       id: orm.id,
       name: orm.name,
@@ -12,7 +12,7 @@ export class ProductMapper {
       category: orm.category,
       brand: orm.brand,
       description: orm.description,
-      image: orm.image,
+      image,
       tags: orm.tags,
       leasingMonthlyFee: orm.leasingMonthlyFee === null ? null : Number(orm.leasingMonthlyFee),
     });
@@ -30,7 +30,6 @@ export class ProductMapper {
     orm.category = primitives.category ?? null;
     orm.brand = primitives.brand ?? null;
     orm.description = primitives.description ?? null;
-    orm.image = primitives.image ?? null;
     orm.tags = primitives.tags ?? [];
     orm.leasingMonthlyFee = primitives.leasingMonthlyFee?.toString() ?? null;
 

@@ -2,6 +2,8 @@ import { GetCompanyBrandingUseCase } from './get-company-branding.use-case';
 import { Company } from '../../domain/company';
 import { CompanyRepository } from '../../domain/company.repository';
 
+const logo = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+
 class InMemoryCompanyRepository implements CompanyRepository {
   constructor(private company: Company | null) {}
 
@@ -29,7 +31,7 @@ describe('GetCompanyBrandingUseCase', () => {
       id: 'company-1',
       name: 'Acme Corp',
       taxId: 'B12345678',
-      logo: 'data:image/png;base64,abc123',
+      logo,
       brandColor: '#7A3FA0',
     });
     const useCase = new GetCompanyBrandingUseCase(new InMemoryCompanyRepository(company));
@@ -38,7 +40,7 @@ describe('GetCompanyBrandingUseCase', () => {
 
     expect(branding).toEqual({
       name: 'Acme Corp',
-      logo: 'data:image/png;base64,abc123',
+      logo,
       brandColor: '#7A3FA0',
     });
   });
