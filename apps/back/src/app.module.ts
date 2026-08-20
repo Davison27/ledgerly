@@ -14,7 +14,6 @@ import { AuthModule } from './contexts/auth/auth.module';
 import { CompanyModule } from './contexts/company/company.module';
 import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
-import { InvoicesModule } from './contexts/invoices/invoices.module';
 import { SuppliersModule } from './contexts/suppliers/suppliers.module';
 import { ProductsModule } from './contexts/products/products.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
@@ -34,7 +33,6 @@ import { TaxComplianceModule } from './contexts/tax-compliance/tax-compliance.mo
     CompanyModule,
     ProjectsModule,
     DocumentsModule,
-    InvoicesModule,
     SuppliersModule,
     ProductsModule,
     DashboardModule,

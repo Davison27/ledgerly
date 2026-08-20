@@ -36,16 +36,6 @@ const storedFileFixtures: readonly StoredFileFixture[] = [
     sizeColumn: 'file_size',
   },
   {
-    table: 'invoices',
-    legacyColumn: 'pdf',
-    ciphertextColumn: 'pdf_ciphertext',
-    nonceColumn: 'pdf_nonce',
-    tagColumn: 'pdf_tag',
-    keyVersionColumn: 'pdf_key_version',
-    mimeTypeColumn: null,
-    sizeColumn: 'pdf_size',
-  },
-  {
     table: 'staff_documents',
     legacyColumn: 'content',
     ciphertextColumn: 'content_ciphertext',
@@ -309,12 +299,6 @@ describe('AddEncryptedStoredFileEnvelopes1730000002000', () => {
     if (table === 'documents') {
       await dataSource.query(
         `INSERT INTO "documents" ("id", "project_id", "name", "type", "month", "date", "amount", "status", "currency", "mime_type", "file_size", "direction") VALUES ('00000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000101', 'Document', 'invoice', 1, '2026-01-01', 0, 'pending', 'EUR', 'application/pdf', 0, 'incoming')`,
-      );
-      return;
-    }
-    if (table === 'invoices') {
-      await dataSource.query(
-        `INSERT INTO "invoices" ("id", "series", "year", "number", "issue_date", "project_id", "customer_name", "tax_base", "tax_rate", "tax_amount", "irpf_rate", "irpf_amount", "total", "currency", "pdf_size") VALUES ('00000000-0000-0000-0000-000000000002', 'A', 2026, 1, '2026-01-01', '00000000-0000-0000-0000-000000000102', 'Customer', 0, 0, 0, 0, 0, 0, 'EUR', 0)`,
       );
       return;
     }

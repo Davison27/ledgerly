@@ -38,7 +38,6 @@ function cloneEnvelope(envelope: StoredFileEnvelope): StoredFileEnvelope {
 }
 
 const descriptorTransforms: Array<(descriptor: StoredFileAadDescriptor) => StoredFileAadDescriptor> = [
-  (descriptor) => ({ ...descriptor, store: 'invoicePdf' }),
   (descriptor) => ({ ...descriptor, rowId: 'another-row' }),
   (descriptor) => ({ ...descriptor, mimeType: 'application/octet-stream' }),
   (descriptor) => ({ ...descriptor, rowId: descriptor.mimeType ?? 'mime', mimeType: descriptor.rowId }),
@@ -48,7 +47,6 @@ const descriptorTransforms: Array<(descriptor: StoredFileAadDescriptor) => Store
 describe('stored file cipher', () => {
   it.each([
     'document',
-    'invoicePdf',
     'staffDocument',
     'companyLogo',
     'projectImage',
@@ -81,7 +79,6 @@ describe('stored file cipher', () => {
 
   it.each([
     'document',
-    'invoicePdf',
     'staffDocument',
     'companyLogo',
     'projectImage',

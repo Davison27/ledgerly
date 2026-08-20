@@ -142,7 +142,7 @@ describe('AccessGuard', () => {
   it('grants editor access to editable document routes', async () => {
     getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
     memberRepository.findByEmail.mockResolvedValue(
-      member(permissionMatrix({ dashboard: 'view', staff: 'view', documents: 'edit', projects: 'edit', calendar: 'edit', suppliers: 'edit', invoices: 'edit', products: 'edit' })),
+      member(permissionMatrix({ dashboard: 'view', staff: 'view', documents: 'edit', projects: 'edit', calendar: 'edit', suppliers: 'edit', products: 'edit' })),
     );
 
     await expect(
@@ -151,7 +151,7 @@ describe('AccessGuard', () => {
   });
 
   it('grants viewer access to view routes and denies notifications', async () => {
-    const viewer = member(permissionMatrix({ dashboard: 'view', projects: 'view', calendar: 'view', documents: 'view', suppliers: 'view', invoices: 'view', products: 'view', staff: 'view' }));
+    const viewer = member(permissionMatrix({ dashboard: 'view', projects: 'view', calendar: 'view', documents: 'view', suppliers: 'view', products: 'view', staff: 'view' }));
     getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
     memberRepository.findByEmail.mockResolvedValue(viewer);
 

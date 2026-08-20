@@ -5,7 +5,6 @@ import { assertStoredFilePlaintextSize, getStoredFilePlaintextLimit } from './st
 describe('stored file plaintext policy', () => {
   it.each([
     ['document', 10 * 1024 * 1024],
-    ['invoicePdf', 10 * 1024 * 1024],
     ['staffDocument', 10 * 1024 * 1024],
     ['companyLogo', 2 * 1024 * 1024],
     ['projectImage', 2 * 1024 * 1024],
@@ -17,7 +16,6 @@ describe('stored file plaintext policy', () => {
 
   it.each([
     'document',
-    'invoicePdf',
     'staffDocument',
     'companyLogo',
     'projectImage',

@@ -11,7 +11,6 @@ export interface AuthorizationResourceParameterHandoff {
 
 export const authorizationResourceParameterHandoffs: readonly AuthorizationResourceParameterHandoff[] = [
   { method: 'DELETE', path: '/extraction-hints/:id', parameters: ['id'], context: 'documents', enforcement: 'Load the extraction hint by id before deletion.' },
-  { method: 'DELETE', path: '/invoices/:id', parameters: ['id'], context: 'invoices', enforcement: 'Load the invoice by id before deletion.' },
   { method: 'DELETE', path: '/products/:id', parameters: ['id'], context: 'products', enforcement: 'Load the product by id before deletion.' },
   { method: 'DELETE', path: '/projects/:id', parameters: ['id'], context: 'projects', enforcement: 'Load the project by id before deletion.' },
   { method: 'DELETE', path: '/projects/:projectId/documents/:id', parameters: ['projectId', 'id'], context: 'documents', enforcement: 'Verify the document belongs to projectId before deletion.' },
@@ -21,8 +20,6 @@ export const authorizationResourceParameterHandoffs: readonly AuthorizationResou
   { method: 'DELETE', path: '/staff/:staffMemberId/documents/:documentId', parameters: ['staffMemberId', 'documentId'], context: 'staff', enforcement: 'Verify the staff document belongs to staffMemberId before deletion.' },
   { method: 'DELETE', path: '/suppliers/:id', parameters: ['id'], context: 'suppliers', enforcement: 'Load the supplier by id before deletion.' },
   { method: 'DELETE', path: '/workspace/members/:id', parameters: ['id'], context: 'auth', enforcement: 'Apply the existing global-admin member-removal rules to id.' },
-  { method: 'GET', path: '/invoices/:id', parameters: ['id'], context: 'invoices', enforcement: 'Load the invoice by id before returning it.' },
-  { method: 'GET', path: '/invoices/:id/pdf', parameters: ['id'], context: 'invoices', enforcement: 'Load the invoice PDF by invoice id before streaming it.' },
   { method: 'GET', path: '/projects/:id', parameters: ['id'], context: 'projects', enforcement: 'Load the project by id before returning it.' },
   { method: 'GET', path: '/projects/:projectId/documents', parameters: ['projectId'], context: 'documents', enforcement: 'Scope the document list to projectId.' },
   { method: 'GET', path: '/projects/:projectId/documents/:documentId/file', parameters: ['projectId', 'documentId'], context: 'documents', enforcement: 'Verify documentId belongs to projectId before streaming its file.' },
@@ -53,6 +50,5 @@ export const authorizationResourceParameterHandoffs: readonly AuthorizationResou
   { method: 'GET', path: '/documents', parameters: [], context: 'documents', enforcement: 'Scope document filters by the reviewed query resource identifiers.', additionalInputs: [{ location: 'query', key: 'projectId' }, { location: 'query', key: 'supplierId' }, { location: 'query', key: 'staffMemberId' }] },
   { method: 'GET', path: '/schedule/events', parameters: [], context: 'schedule', enforcement: 'Scope schedule events by the reviewed query resource identifiers.', additionalInputs: [{ location: 'query', key: 'projectId' }, { location: 'query', key: 'staffMemberId' }] },
   { method: 'GET', path: '/tax-compliance/calendar', parameters: [], context: 'tax-compliance', enforcement: 'Scope tax deadlines by the reviewed project query identifier.', additionalInputs: [{ location: 'query', key: 'projectId' }] },
-  { method: 'POST', path: '/invoices', parameters: [], context: 'invoices', enforcement: 'Create invoice lines only for the reviewed project and product identifiers.', additionalInputs: [{ location: 'body', key: 'projectId' }, { location: 'body', key: 'lines[].productId' }] },
   { method: 'POST', path: '/schedule/events', parameters: [], context: 'schedule', enforcement: 'Create schedule events only for the reviewed project, staff, and product identifiers.', additionalInputs: [{ location: 'body', key: 'projectId' }, { location: 'body', key: 'staffMemberIds[]' }, { location: 'body', key: 'products[].productId' }] },
 ];
