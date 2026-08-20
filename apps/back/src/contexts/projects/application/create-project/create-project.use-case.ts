@@ -1,14 +1,10 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Project } from '../../domain/project';
 import {
   PROJECT_REPOSITORY,
   ProjectRepository,
 } from '../../domain/project.repository';
 import { ProjectCodeAlreadyExistsException } from '../../domain/errors/project-code-already-exists.exception';
-import {
-  DEMO_PROJECT_PURGER,
-  DemoProjectPurger,
-} from '../../domain/demo-project-purger.port';
 import {
   ID_GENERATOR,
   IdGenerator,
@@ -17,15 +13,11 @@ import { CreateProjectCommand } from './create-project.command';
 
 @Injectable()
 export class CreateProjectUseCase {
-  private readonly logger = new Logger(CreateProjectUseCase.name);
-
   constructor(
     @Inject(PROJECT_REPOSITORY)
     private readonly projectRepository: ProjectRepository,
     @Inject(ID_GENERATOR)
     private readonly idGenerator: IdGenerator,
-    @Inject(DEMO_PROJECT_PURGER)
-    private readonly demoProjectPurger: DemoProjectPurger,
   ) {}
 
   async execute(command: CreateProjectCommand): Promise<Project> {
@@ -59,12 +51,6 @@ export class CreateProjectUseCase {
     });
 
     await this.projectRepository.save(project);
-
-    try {
-      await this.demoProjectPurger.purgeDemoProjects();
-    } catch {
-      this.logger.warn('Could not purge demo data after project creation');
-    }
 
     return project;
   }

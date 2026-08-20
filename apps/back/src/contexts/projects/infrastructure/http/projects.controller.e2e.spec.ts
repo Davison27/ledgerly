@@ -127,7 +127,6 @@ describe('ProjectsController (HTTP, no DB)', () => {
           pendingCount: 0,
           image,
           color: null,
-          isDemo: false,
         },
       ]);
     });

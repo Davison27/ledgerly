@@ -10,5 +10,4 @@ export interface ProjectSummary {
   pendingCount: number;
   image: string | null;
   color: string | null;
-  isDemo?: boolean;
 }

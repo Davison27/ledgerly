@@ -18,7 +18,6 @@ import { InvoicesModule } from './contexts/invoices/invoices.module';
 import { SuppliersModule } from './contexts/suppliers/suppliers.module';
 import { ProductsModule } from './contexts/products/products.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
-import { DemoModule } from './contexts/demo/demo.module';
 import { StaffModule } from './contexts/staff/staff.module';
 import { ScheduleModule } from './contexts/schedule/schedule.module';
 import { NotificationsModule } from './contexts/notifications/notifications.module';
@@ -39,7 +38,6 @@ import { TaxComplianceModule } from './contexts/tax-compliance/tax-compliance.mo
     SuppliersModule,
     ProductsModule,
     DashboardModule,
-    DemoModule,
     StaffModule,
     ScheduleModule,
     NotificationsModule,

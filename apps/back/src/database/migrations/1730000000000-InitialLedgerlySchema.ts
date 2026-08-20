@@ -129,7 +129,6 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
         "manager" varchar(160),
         "image" text,
         "color" varchar(20),
-        "is_demo" boolean NOT NULL DEFAULT false,
         CONSTRAINT "PK_6271df0a7aed1d6c0691ce6ac50" PRIMARY KEY ("id")
       )
     `);
