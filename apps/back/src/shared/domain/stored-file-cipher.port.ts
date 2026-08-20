@@ -3,6 +3,7 @@ export const STORED_FILE_CIPHER = Symbol('StoredFileCipher');
 export type StoredFileStore =
   | 'document'
   | 'staffDocument'
+  | 'companyDocument'
   | 'companyLogo'
   | 'projectImage'
   | 'productImage';

@@ -46,6 +46,16 @@ const storedFileFixtures: readonly StoredFileFixture[] = [
     sizeColumn: 'file_size',
   },
   {
+    table: 'company_documents',
+    legacyColumn: 'content',
+    ciphertextColumn: 'content_ciphertext',
+    nonceColumn: 'content_nonce',
+    tagColumn: 'content_tag',
+    keyVersionColumn: 'content_key_version',
+    mimeTypeColumn: null,
+    sizeColumn: 'file_size',
+  },
+  {
     table: 'companies',
     legacyColumn: 'logo',
     ciphertextColumn: 'logo_ciphertext',
@@ -305,6 +315,12 @@ describe('AddEncryptedStoredFileEnvelopes1730000002000', () => {
     if (table === 'staff_documents') {
       await dataSource.query(
         `INSERT INTO "staff_documents" ("id", "staff_member_id", "type_id", "name", "issue_date", "file_name", "mime_type", "file_size") VALUES ('00000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000103', '00000000-0000-0000-0000-000000000203', 'Staff document', '2026-01-01', 'document.pdf', 'application/pdf', 0)`,
+      );
+      return;
+    }
+    if (table === 'company_documents') {
+      await dataSource.query(
+        `INSERT INTO "company_documents" ("id", "type_id", "name", "file_name", "mime_type", "file_size") VALUES ('00000000-0000-0000-0000-000000000007', '00000000-0000-0000-0000-000000000207', 'Company document', 'document.pdf', 'application/pdf', 0)`,
       );
       return;
     }

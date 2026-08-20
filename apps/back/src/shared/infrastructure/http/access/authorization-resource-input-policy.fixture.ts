@@ -18,6 +18,7 @@ function pathResourceInputs(path: string): AuthorizationResourceInput[] {
 }
 
 const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonly AuthorizationResourceInput[]>> = {
+  'GET /company/documents': [{ location: 'query', key: 'typeId' }],
   'GET /documents': [
     { location: 'query', key: 'projectId' },
     { location: 'query', key: 'supplierId' },
@@ -42,6 +43,7 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
     { location: 'body', key: 'payload.supplierId' },
     { location: 'body', key: 'payload.staffMemberId' },
   ],
+  'POST /company/documents': [{ location: 'body', key: 'payload.typeId' }],
   'POST /projects/:projectId/products': [{ location: 'body', key: 'productId' }],
   'POST /staff/:staffMemberId/documents': [{ location: 'body', key: 'typeId' }],
   'POST /schedule/events': [
