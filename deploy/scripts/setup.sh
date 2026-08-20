@@ -146,6 +146,7 @@ detect_timezone() {
 write_env_file() {
   local domain="$1" admin_email="$2" timezone="$3" db_password="$4"
   local google_client_id="$5" google_client_secret="$6" auth_secret="$7"
+  local stored_file_active_version="$8" stored_file_keyring="$9"
   env_set LEDGERLY_DOMAIN "$domain"
   env_set ACME_EMAIL "$admin_email"
   env_set TZ "$timezone"
@@ -155,6 +156,8 @@ write_env_file() {
   env_set BACKEND_PUBLIC_URL "https://${domain}"
   env_set COOKIE_SECURE "true"
   env_set TRUST_PROXY "true"
+  env_set STORED_FILE_ACTIVE_KEY_VERSION "$stored_file_active_version"
+  env_set STORED_FILE_KEYS "$stored_file_keyring"
   env_set DB_HOST "postgres"
   env_set DB_PORT "5432"
   env_set DB_NAME "ledgerly"
@@ -334,6 +337,27 @@ EOF
     auth_secret="$(gen_password)"
   fi
 
+  local stored_file_active_version stored_file_keyring stored_file_summary
+  if [ "$resuming" -eq 1 ]; then
+    stored_file_active_version="$(env_get STORED_FILE_ACTIVE_KEY_VERSION || true)"
+    stored_file_keyring="$(env_get STORED_FILE_KEYS || true)"
+    if ! is_stored_file_keyring "$stored_file_active_version" "$stored_file_keyring"; then
+      fail "Stored file encryption configuration is missing or invalid. Restore the existing values before resuming setup."
+      exit 1
+    fi
+    stored_file_summary="existing configuration preserved"
+  else
+    stored_file_active_version="v1"
+    local stored_file_key
+    stored_file_key="$(gen_stored_file_key)"
+    stored_file_keyring="{\"v1\":\"${stored_file_key}\"}"
+    if ! is_stored_file_keyring "$stored_file_active_version" "$stored_file_keyring"; then
+      fail "Could not generate a valid stored file encryption key."
+      exit 1
+    fi
+    stored_file_summary="generated, 32 random bytes"
+  fi
+
   step "[5/6] Summary"
   summary_row "Domain" "$domain"
   summary_row "Final URL" "https://${domain}"
@@ -342,6 +366,7 @@ EOF
   summary_row "Client secret" "saved (never shown)"
   summary_row "Postgres password" "generated, 32 random characters"
   summary_row "Authentication secret" "generated, 32 random characters"
+  summary_row "Stored file key" "$stored_file_summary"
   summary_row "Data" "docker volume ledgerly_pgdata"
   summary_row "Configuration" "deploy/.env, readable only by your user"
   cat <<'EOF'
@@ -360,7 +385,7 @@ EOF
 
   progress_start "Writing deploy/.env"
   write_env_file "$domain" "$admin_email" "$timezone" "$db_password" \
-    "$google_client_id" "$google_client_secret" "$auth_secret"
+    "$google_client_id" "$google_client_secret" "$auth_secret" "$stored_file_active_version" "$stored_file_keyring"
   state_set "in_progress"
   progress_done
 

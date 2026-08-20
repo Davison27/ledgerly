@@ -75,6 +75,43 @@ else
   FAILURES=$((FAILURES + 1))
 fi
 
+step "gen_stored_file_key"
+stored_file_key="$(gen_stored_file_key)"
+if is_stored_file_key "$stored_file_key"; then
+  printf '  [ OK ] generated a canonical 32-byte base64 key\n'
+else
+  printf '  [FAIL] generated an invalid stored file key\n'
+  FAILURES=$((FAILURES + 1))
+fi
+
+step "stored file keyring resume validation"
+resume_active_version="v2"
+resume_keyring='{"v1":"ERERERERERERERERERERERERERERERERERERERERERE=","v2":"IiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiIiI="}'
+if is_stored_file_keyring "$resume_active_version" "$resume_keyring"; then
+  printf '  [ OK ] accepts a canonical multi-version keyring without rewriting it\n'
+else
+  printf '  [FAIL] rejected a canonical multi-version keyring\n'
+  FAILURES=$((FAILURES + 1))
+fi
+if is_stored_file_keyring "v2" '{"v1":"ERERERERERERERERERERERERERERERERERERERERERE="}'; then
+  printf '  [FAIL] accepted a keyring without the active version\n'
+  FAILURES=$((FAILURES + 1))
+else
+  printf '  [ OK ] rejects a keyring without the active version\n'
+fi
+if is_stored_file_keyring "" "$resume_keyring"; then
+  printf '  [FAIL] accepted a keyring without an active version\n'
+  FAILURES=$((FAILURES + 1))
+else
+  printf '  [ OK ] rejects a keyring without an active version\n'
+fi
+if is_stored_file_keyring "v1" '{"v1":"invalid"}'; then
+  printf '  [FAIL] accepted a malformed keyring\n'
+  FAILURES=$((FAILURES + 1))
+else
+  printf '  [ OK ] rejects a malformed keyring\n'
+fi
+
 step "deploy/.env.example covers the environment contract"
 if [ -f "$ENV_EXAMPLE" ]; then
   example_missing="$(env_missing_keys "$ENV_EXAMPLE")"
