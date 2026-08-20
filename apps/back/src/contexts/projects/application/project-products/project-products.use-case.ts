@@ -4,6 +4,7 @@ import { ProductNotFoundException } from '../../../products/domain/errors/produc
 import { PROJECT_PRODUCT_REPOSITORY, ProjectProductRecord, ProjectProductRepository } from '../../domain/project-product.repository';
 import { PROJECT_REPOSITORY, ProjectRepository } from '../../domain/project.repository';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
+import { EntityNotFoundException } from '../../../../shared/domain/entity-not-found.exception';
 
 export interface SaveProjectProductCommand {
   projectId: string;
@@ -40,7 +41,11 @@ export class ProjectProductsUseCase {
 
   async remove(projectId: string, productId: string): Promise<void> {
     await this.ensureProject(projectId);
-    await this.projectProducts.delete(projectId, productId);
+    const deleted = await this.projectProducts.delete(projectId, productId);
+
+    if (!deleted) {
+      throw new EntityNotFoundException('Project product', productId);
+    }
   }
 
   private async ensureProject(projectId: string): Promise<void> {

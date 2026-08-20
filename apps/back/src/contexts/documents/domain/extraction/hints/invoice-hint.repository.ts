@@ -17,5 +17,5 @@ export interface InvoiceHintRepository {
   findAll(): Promise<InvoiceHint[]>;
   findPage?(request: PageRequest): Promise<Page<InvoiceHint>>;
   upsert(hint: NewInvoiceHint): Promise<void>;
-  delete(id: string): Promise<void>;
+  delete(id: string): Promise<boolean>;
 }

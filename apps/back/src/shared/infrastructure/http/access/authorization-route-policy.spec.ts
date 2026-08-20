@@ -158,6 +158,26 @@ describe('AppModule authorization route policy', () => {
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
     expect(authorizationResourceParameterHandoffs).toHaveLength(45);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(68);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(69);
+  });
+
+  it('classifies the staff document type reference as a resource handoff', () => {
+    expect(authorizationRouteResourceInputPolicies).toContainEqual({
+      method: 'POST',
+      path: '/staff/:staffMemberId/documents',
+      resourceInputs: [
+        { location: 'path', key: 'staffMemberId' },
+        { location: 'body', key: 'typeId' },
+      ],
+    });
+
+    expect(authorizationResourceParameterHandoffs).toContainEqual({
+      method: 'POST',
+      path: '/staff/:staffMemberId/documents',
+      parameters: ['staffMemberId'],
+      context: 'staff',
+      enforcement: 'Create the staff document only under staffMemberId and a known typeId.',
+      additionalInputs: [{ location: 'body', key: 'typeId' }],
+    });
   });
 });

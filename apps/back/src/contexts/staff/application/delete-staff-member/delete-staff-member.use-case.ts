@@ -8,6 +8,7 @@ import {
   StaffPayrollCounter,
 } from '../../domain/staff-payroll-counter.port';
 import { StaffMemberHasPayrollsException } from '../../domain/errors/staff-member-has-payrolls.exception';
+import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 
 @Injectable()
 export class DeleteStaffMemberUseCase {
@@ -19,6 +20,12 @@ export class DeleteStaffMemberUseCase {
   ) {}
 
   async execute(id: string): Promise<void> {
+    const staffMember = await this.staffMemberRepository.findById(id);
+
+    if (staffMember === null) {
+      throw new StaffMemberNotFoundException(id);
+    }
+
     const payrollCount = await this.staffPayrollCounter.count(id);
 
     if (payrollCount > 0) {

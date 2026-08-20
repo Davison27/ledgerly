@@ -52,9 +52,10 @@ class InMemoryHintRepository implements InvoiceHintRepository {
     return Promise.resolve();
   }
 
-  delete(id: string): Promise<void> {
+  delete(id: string): Promise<boolean> {
+    const previousSize = this.hints.length;
     this.hints = this.hints.filter((hint) => hint.id !== id);
-    return Promise.resolve();
+    return Promise.resolve(this.hints.length < previousSize);
   }
 }
 

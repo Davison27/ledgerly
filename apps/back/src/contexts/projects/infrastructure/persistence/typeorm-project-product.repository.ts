@@ -73,8 +73,10 @@ export class TypeOrmProjectProductRepository implements ProjectProductRepository
     });
   }
 
-  async delete(projectId: string, productId: string): Promise<void> {
-    await this.repository.delete({ projectId, productId });
+  async delete(projectId: string, productId: string): Promise<boolean> {
+    const result = await this.repository.delete({ projectId, productId });
+
+    return result.affected === 1;
   }
 
   async deleteByProjectId(projectId: string): Promise<void> {
