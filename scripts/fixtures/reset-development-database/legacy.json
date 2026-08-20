@@ -1,0 +1,56 @@
+{
+  "containers": [
+    {
+      "id": "legacy-postgres-id",
+      "name": "ledgerly-postgres",
+      "labels": {
+        "com.docker.compose.project": "back",
+        "com.docker.compose.service": "postgres"
+      },
+      "mounts": [
+        {
+          "type": "volume",
+          "source": "back_ledgerly-pgdata",
+          "destination": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    {
+      "id": "legacy-migrator-id",
+      "name": "back-migrator-1",
+      "labels": {
+        "com.docker.compose.project": "back",
+        "com.docker.compose.service": "migrator"
+      },
+      "mounts": []
+    },
+    {
+      "id": "legacy-back-id",
+      "name": "back-back-1",
+      "labels": {
+        "com.docker.compose.project": "back",
+        "com.docker.compose.service": "back"
+      },
+      "mounts": []
+    }
+  ],
+  "networks": [
+    {
+      "id": "legacy-network-id",
+      "name": "back_default",
+      "labels": {
+        "com.docker.compose.project": "back"
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "back_ledgerly-pgdata",
+      "labels": {
+        "com.docker.compose.project": "back",
+        "com.docker.compose.volume": "ledgerly-pgdata"
+      }
+    }
+  ],
+  "volumeConsumers": ["legacy-postgres-id"]
+}

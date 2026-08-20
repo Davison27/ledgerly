@@ -50,7 +50,7 @@ The screenshots use a sanitized example workspace. An installation can apply its
 - **A UI that adapts.** The interface supports persistent light and dark themes, tenant branding, and Spanish or English language selection.
 - **Guided VPS deployment.** The installer collects the domain, Google OAuth credentials, administrator email, and timezone, then validates the public installation.
 - **Automatic HTTPS.** Caddy terminates TLS and keeps the frontend and API on the same origin.
-- **Controlled updates and recovery.** The update workflow backs up the database before rebuilding and migrating; backup and confirmed restore commands are included.
+- **Controlled updates.** The update workflow rebuilds images and applies migrations without deleting the PostgreSQL volume.
 - **Data under your control.** Application records and uploaded documents live in the installation's PostgreSQL volume. A database dump contains both structured data and uploads.
 
 ## Run locally
@@ -93,7 +93,7 @@ make setup
 
 `make setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions HTTPS, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
 
-Read the complete [deployment and recovery runbook](docs/architecture/deployment.md) before operating an installation.
+Read the complete [deployment runbook](docs/architecture/deployment.md) before operating an installation.
 
 ## Operations
 
@@ -109,14 +109,13 @@ Use `make help` to see commands in the current environment. Lifecycle and databa
 
 ### Updates and data
 
-- `make update` — pull with fast-forward only, back up, rebuild, migrate, restart, and run diagnostics.
-- `make backup` — create a compressed PostgreSQL backup in `deploy/backups/`.
-- `make restore FILE=<path>` — restore a selected backup after typed confirmation.
+- `make update` — pull with fast-forward only, rebuild, migrate, restart, and run diagnostics.
+- External recovery is outside Ledgerly. This repository does not create, retain, or restore database dumps.
 - `make migrate` — apply pending database migrations and validate the application schema.
-- `make rehearse-existing-db-baseline` — test a legacy-database cutover on a disposable clone.
+- `make rehearse-existing-db-baseline FILE=/path/to/external.dump` — test a legacy-database cutover on a disposable clone.
 - `make baseline-existing-db` — gate and apply the legacy-database migration marker.
 - `make seed` — load development sample data.
-- `make reset-db` — recreate the development database; unavailable in production.
+- `make reset-db CONFIRM=RESET_LEDGERLY_DEV` — inspect and recreate only the guarded local development database. `DRY_RUN=1` shows the resolved plan without mutation.
 
 ### Quality and maintenance
 
@@ -124,7 +123,7 @@ Use `make help` to see commands in the current environment. Lifecycle and databa
 - `make lint` — run repository linting and hygiene checks.
 - `make typecheck` — check TypeScript across the monorepo.
 - `make test` — run the test suites.
-- `make clean` — remove development builds, dependencies, and volumes; refused in production.
+- `make clean` — remove development builds and dependencies while preserving PostgreSQL volumes.
 
 ## Architecture
 
@@ -133,7 +132,7 @@ Ledgerly is a pnpm and Turborepo monorepo with two applications and a deployment
 ```text
 apps/front/   React 19, Vite, Ant Design, TanStack Query, Feature-Sliced Design
 apps/back/    NestJS 11, TypeORM, PostgreSQL, hexagonal bounded contexts
-deploy/       Docker Compose, Caddy, guided setup, diagnostics, updates, backups
+deploy/       Docker Compose, Caddy, guided setup, diagnostics, and updates
 docs/         Durable architecture and operations documentation
 ```
 
@@ -142,7 +141,7 @@ The frontend consumes the API through `/api`. In production, Caddy serves the fr
 ### Durable documentation
 
 - [Authentication and access control](docs/architecture/auth.md)
-- [Deployment, updates, and recovery](docs/architecture/deployment.md)
+- [Deployment and updates](docs/architecture/deployment.md)
 - [Company lifecycle and branding](docs/architecture/tenancy.md)
 - [Workspace members and permissions](docs/architecture/workspace.md)
 - [Frontend data layer](docs/architecture/data-layer.md)

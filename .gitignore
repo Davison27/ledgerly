@@ -19,7 +19,6 @@ out/
 
 # Installer (the environment pattern above already covers deploy/.env)
 deploy/.state
-deploy/backups/
 
 # Logs
 *.log

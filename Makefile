@@ -5,11 +5,7 @@ DEPLOY_COMPOSE := docker compose -f deploy/docker-compose.yml --env-file $(DEPLO
 
 DEV_ENV_FILE := apps/back/.env
 DEV_ENV_EXAMPLE := apps/back/.env.example
-DEV_COMPOSE := docker compose -f apps/back/docker-compose.yml --env-file $(DEV_ENV_FILE)
-DEV_DB_USER := $(shell grep -m1 '^DB_USER=' $(DEV_ENV_FILE) 2>/dev/null | cut -d= -f2)
-DEV_DB_USER := $(if $(DEV_DB_USER),$(DEV_DB_USER),ledgerly)
-DEV_DB_NAME := $(shell grep -m1 '^DB_NAME=' $(DEV_ENV_FILE) 2>/dev/null | cut -d= -f2)
-DEV_DB_NAME := $(if $(DEV_DB_NAME),$(DEV_DB_NAME),ledgerly)
+DEV_COMPOSE := docker compose --project-name ledgerly-dev -f apps/back/docker-compose.yml --env-file $(DEV_ENV_FILE)
 
 SERVICE ?=
 FILE ?=
@@ -28,7 +24,7 @@ endif
 .DEFAULT_GOAL := help
 
 .PHONY: help setup doctor configure update up down restart logs dev build lint \
-	typecheck test migrate baseline-existing-db rehearse-existing-db-baseline backup restore reset-db seed clean _check-tools
+	typecheck test migrate baseline-existing-db rehearse-existing-db-baseline reset-db seed clean _check-tools
 
 help:
 	@echo "Ledgerly — available commands (current mode: $(MODE))"
@@ -38,10 +34,8 @@ help:
 	@echo "  make doctor      Diagnoses the installation; fails if anything is wrong."
 	@echo "  make configure   Changes the domain, Google credentials, admin, or database password."
 	@echo ""
-	@echo "Updates and backups"
+	@echo "Updates"
 	@echo "  make update      Fetches the latest version, rebuilds images, and migrates without data loss."
-	@echo "  make backup      Database backup."
-	@echo "  make restore     Restores a backup (requires typed confirmation)."
 	@echo ""
 	@echo "Lifecycle (contextual: production when deploy/.env exists; otherwise development Postgres)"
 	@echo "  make up          Starts the stack."
@@ -60,11 +54,11 @@ help:
 	@echo "  make migrate     Applies pending migrations."
 	@echo "  make baseline-existing-db  Records the initial migration after a verified rehearsal."
 	@echo "  make rehearse-existing-db-baseline  Tests the existing-database cutover on a disposable clone."
-	@echo "  make reset-db    Deletes the volume and recreates the database. Development only."
+	@echo "  make reset-db CONFIRM=RESET_LEDGERLY_DEV  Inspects and recreates only the guarded local development database."
 	@echo "  make seed        Sample data. Development only."
 	@echo ""
 	@echo "Cleanup"
-	@echo "  make clean       Cleans builds, node_modules, and development volumes. Refuses in production."
+	@echo "  make clean       Cleans builds and node_modules while preserving PostgreSQL volumes."
 
 _check-tools:
 	@command -v docker >/dev/null 2>&1 || { echo "✗ Docker not found. Install Docker Desktop: https://www.docker.com/products/docker-desktop"; exit 1; }
@@ -143,42 +137,8 @@ baseline-existing-db:
 rehearse-existing-db-baseline:
 	@bash deploy/scripts/rehearse-existing-db-baseline.sh FILE=$(FILE)
 
-backup: $(DEV_PREREQ)
-	@echo "→ Mode: $(MODE)"
-ifeq ($(MODE),production)
-	@bash deploy/scripts/backup.sh
-else
-	@mkdir -p deploy/backups
-	@ts=$$(date -u +%Y%m%dT%H%M%SZ); \
-	file=deploy/backups/ledgerly-dev-$$ts.dump; \
-	$(COMPOSE) exec -T postgres pg_dump -U $(DEV_DB_USER) -Fc $(DEV_DB_NAME) > $$file; \
-	chmod 600 $$file; \
-	echo "✓ Backup saved to $$file"
-endif
-
-restore: $(DEV_PREREQ)
-	@echo "→ Mode: $(MODE)"
-ifeq ($(MODE),production)
-	@bash deploy/scripts/restore.sh $(FILE)
-else
-	@file="$(FILE)"; \
-	if [ -z "$$file" ]; then file=$$(ls -t deploy/backups/ledgerly-dev-*.dump 2>/dev/null | head -1); fi; \
-	if [ -z "$$file" ]; then echo "✗ No backups found in deploy/backups/. Specify one with FILE=path"; exit 1; fi; \
-	echo "This overwrites the development database with $$file"; \
-	read -p "Type RESTORE to continue: " confirm; \
-	[ "$$confirm" = "RESTORE" ] || { echo "Cancelled."; exit 1; }; \
-	$(COMPOSE) exec -T postgres pg_restore --clean --if-exists -U $(DEV_DB_USER) -d $(DEV_DB_NAME) < "$$file"; \
-	echo "✓ Restored from $$file"
-endif
-
-reset-db: $(DEV_PREREQ)
-ifeq ($(MODE),production)
-	@echo "✗ reset-db is not available in production (it would delete real data)."; exit 1
-else
-	$(COMPOSE) down -v
-	@$(MAKE) up
-	@$(MAKE) migrate
-endif
+reset-db:
+	@CONFIRM="$(CONFIRM)" DRY_RUN="$(DRY_RUN)" node scripts/reset-development-database.mjs
 
 seed:
 ifeq ($(MODE),production)
@@ -188,9 +148,4 @@ else
 endif
 
 clean:
-ifeq ($(MODE),production)
-	@echo "✗ clean is not available in production (it would delete volumes)."; exit 1
-else
-	-$(COMPOSE) down -v
 	pnpm clean
-endif

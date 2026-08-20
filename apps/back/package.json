@@ -18,7 +18,6 @@
     "db:migrate": "ts-node src/database/migrate.ts --mode=auto",
     "db:verify": "ts-node src/database/migrate.ts --mode=verify",
     "db:baseline-existing": "ts-node src/database/migrate.ts --mode=baseline-existing",
-    "db:reset": "docker compose down -v && docker compose up -d && pnpm db:schema",
     "seed": "ts-node src/database/seeds/seed.ts",
     "clean": "rm -rf dist .turbo"
   },

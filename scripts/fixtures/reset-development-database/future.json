@@ -1,0 +1,47 @@
+{
+  "containers": [
+    {
+      "id": "future-postgres-id",
+      "name": "ledgerly-postgres",
+      "labels": {
+        "com.docker.compose.project": "ledgerly-dev",
+        "com.docker.compose.service": "postgres"
+      },
+      "mounts": [
+        {
+          "type": "volume",
+          "source": "ledgerly-dev_ledgerly-pgdata",
+          "destination": "/var/lib/postgresql/data"
+        }
+      ]
+    },
+    {
+      "id": "future-back-id",
+      "name": "ledgerly-dev-back-1",
+      "labels": {
+        "com.docker.compose.project": "ledgerly-dev",
+        "com.docker.compose.service": "back"
+      },
+      "mounts": []
+    }
+  ],
+  "networks": [
+    {
+      "id": "future-network-id",
+      "name": "ledgerly-dev_default",
+      "labels": {
+        "com.docker.compose.project": "ledgerly-dev"
+      }
+    }
+  ],
+  "volumes": [
+    {
+      "name": "ledgerly-dev_ledgerly-pgdata",
+      "labels": {
+        "com.docker.compose.project": "ledgerly-dev",
+        "com.docker.compose.volume": "ledgerly-pgdata"
+      }
+    }
+  ],
+  "volumeConsumers": ["future-postgres-id"]
+}

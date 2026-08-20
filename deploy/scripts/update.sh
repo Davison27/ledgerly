@@ -24,18 +24,6 @@ main() {
     exit 1
   fi
 
-  command -v flock >/dev/null 2>&1 || { fail "flock is required for safe updates"; exit 1; }
-  mkdir -p "$BACKUPS_DIR"
-  local lock_file="$BACKUPS_DIR/.ledgerly.lock"
-  ( umask 077; : >"$lock_file"; chmod 600 "$lock_file" )
-  exec 9>"$lock_file"
-  if ! flock -n 9; then
-    fail "Another backup, restore, or update is already running"
-    exit 1
-  fi
-
-  bash "$SCRIPT_DIR/backup.sh" --lock-held
-
   if ! git -C "$REPO_ROOT" pull --ff-only; then
     fail "git pull --ff-only failed (the local and remote histories have likely diverged)."
     printf '       → Run git -C %s log --oneline -5 and resolve it manually before running make update again.\n' "$REPO_ROOT"
