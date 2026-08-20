@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { randomUUID } from 'node:crypto';
+import { Logger } from '@nestjs/common';
 import { betterAuth } from 'better-auth';
 import { Kysely, PostgresDialect, sql } from 'kysely';
 import { Pool } from 'pg';
@@ -25,30 +26,19 @@ export const authDatabase = new Kysely({ dialect: new PostgresDialect({ pool }) 
 
 const frontendUrl = process.env.FRONTEND_URL ?? 'http://localhost:5173';
 const backendUrl = process.env.BACKEND_PUBLIC_URL ?? 'http://localhost:3005';
+const isProduction = process.env.NODE_ENV === 'production';
+const frontendOrigin = new URL(frontendUrl).origin;
+const logger = new Logger('AuthSecurityAudit');
 
-async function recordSecurityAudit(
-  event: string,
-  subjectId: string | null,
-  metadata: Record<string, string | null>,
-): Promise<void> {
+async function recordSecurityAudit(event: string, subjectId: string | null): Promise<void> {
   try {
     await sql`
       INSERT INTO security_audit_logs (id, event, subject_id, metadata, created_at)
-      VALUES (${randomUUID()}, ${event}, ${subjectId}, ${JSON.stringify(metadata)}::jsonb, NOW())
+      VALUES (${randomUUID()}, ${event}, ${subjectId}, ${JSON.stringify({ outcome: 'success' })}::jsonb, NOW())
     `.execute(authDatabase);
-  } catch (error) {
-    // Authentication must remain available if audit storage is temporarily unavailable.
-    console.error('Failed to record security audit event', error);
+  } catch {
+    logger.warn('Security audit write failed');
   }
-}
-
-function requestMetadata(request: Request | undefined): Record<string, string | null> {
-  const forwardedFor = request?.headers.get('x-forwarded-for');
-
-  return {
-    ipAddress: forwardedFor?.split(',')[0]?.trim() ?? request?.headers.get('x-real-ip') ?? null,
-    userAgent: request?.headers.get('user-agent') ?? null,
-  };
 }
 
 export const auth = betterAuth({
@@ -67,7 +57,7 @@ export const auth = betterAuth({
           },
         }
       : undefined,
-  trustedOrigins: [frontendUrl],
+  trustedOrigins: [frontendOrigin],
   session: {
     expiresIn: 60 * 60 * 24,
     updateAge: 60 * 60,
@@ -86,13 +76,14 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    useSecureCookies: process.env.COOKIE_SECURE === 'true',
+    useSecureCookies: isProduction || process.env.COOKIE_SECURE === 'true',
     disableCSRFCheck: false,
     disableOriginCheck: false,
+    trustedProxyHeaders: false,
     cookiePrefix: 'ledgerly',
     ipAddress: {
       disableIpTracking: false,
-      ipAddressHeaders: ['x-forwarded-for', 'x-real-ip'],
+      ipAddressHeaders: ['x-forwarded-for'],
     },
   },
   account: {
@@ -101,32 +92,29 @@ export const auth = betterAuth({
       enabled: false,
     },
   },
+  logger: {
+    level: 'error',
+    log: () => logger.warn('Authentication request failed'),
+  },
+  onAPIError: {
+    onError: () => logger.warn('Authentication request failed'),
+  },
   databaseHooks: {
     session: {
       create: {
-        after: async (session, context) =>
-          recordSecurityAudit('session.created', session.userId, {
-            sessionId: session.id,
-            ...requestMetadata(context?.request),
-          }),
+        after: async (session) =>
+          recordSecurityAudit('session.created', session.userId),
       },
       delete: {
-        before: async (session, context) => {
-          await recordSecurityAudit('session.revoked', session.userId, {
-            sessionId: session.id,
-            ...requestMetadata(context?.request),
-          });
+        before: async (session) => {
+          await recordSecurityAudit('session.revoked', session.userId);
         },
       },
     },
     account: {
       create: {
-        after: async (account, context) =>
-          recordSecurityAudit('account.linked', account.userId, {
-            accountId: account.id,
-            provider: account.providerId,
-            ...requestMetadata(context?.request),
-          }),
+        after: async (account) =>
+          recordSecurityAudit('account.linked', account.userId),
       },
     },
   },

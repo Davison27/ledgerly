@@ -167,8 +167,8 @@ export class DocumentsController {
           taxAmount: dto.taxAmount,
         },
       });
-    } catch (error) {
-      this.logger.warn(`Failed to record extraction feedback: ${(error as Error).message}`);
+    } catch {
+      this.logger.warn('Could not record extraction feedback');
     }
   }
 
@@ -188,8 +188,8 @@ export class DocumentsController {
           taxAmount: dto.taxAmount,
         },
       });
-    } catch (error) {
-      this.logger.warn(`Failed to record extraction outcome: ${(error as Error).message}`);
+    } catch {
+      this.logger.warn('Could not record extraction outcome');
     }
   }
 
@@ -339,8 +339,8 @@ export class DocumentsController {
           taxAmount: updated.getTaxAmount() ?? undefined,
         },
       });
-    } catch (error) {
-      this.logger.warn(`Failed to record extraction feedback on edit: ${(error as Error).message}`);
+    } catch {
+      this.logger.warn('Could not record extraction feedback after document update');
     }
   }
 

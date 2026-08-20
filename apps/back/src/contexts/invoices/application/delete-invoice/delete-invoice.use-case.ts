@@ -26,10 +26,8 @@ export class DeleteInvoiceUseCase {
     if (documentId !== null) {
       try {
         await this.deleteDocumentUseCase.execute(documentId);
-      } catch (error) {
-        this.logger.warn(
-          `Failed to delete mirror document ${documentId} for invoice ${id}: ${String(error)}`,
-        );
+      } catch {
+        this.logger.warn('Could not delete the mirror document for the invoice');
       }
     }
   }

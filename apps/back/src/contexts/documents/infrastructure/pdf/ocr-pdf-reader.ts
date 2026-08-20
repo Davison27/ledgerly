@@ -20,7 +20,7 @@ export class OcrPdfReader implements PdfReader {
     }
 
     if (initial.pageCount != null && initial.pageCount > this.localPdfOcr.getMaxPages()) {
-      this.logger.warn(`Skipped OCR for ${initial.pageCount}-page PDF because it exceeds the configured page limit`);
+      this.logger.warn('Skipped OCR because the PDF exceeds the configured page limit');
       return initial;
     }
 
@@ -34,8 +34,8 @@ export class OcrPdfReader implements PdfReader {
       }
 
       return { ...ocrResult, attachments: initial.attachments, ocrApplied: true };
-    } catch (error) {
-      this.logger.warn(`Local OCR failed: ${error instanceof Error ? error.message : String(error)}`);
+    } catch {
+      this.logger.warn('Local OCR failed');
       return initial;
     }
   }

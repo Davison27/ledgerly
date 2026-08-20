@@ -75,10 +75,8 @@ export class CreateInvoiceUseCase {
 
     try {
       await this.invoiceRepository.linkDocument(numberedInvoice.getId(), documentId);
-    } catch (error) {
-      this.logger.warn(
-        `Failed to link mirror document ${documentId} to invoice ${numberedInvoice.getId()}: ${String(error)}`,
-      );
+    } catch {
+      this.logger.warn('Could not link the mirror document to the invoice');
     }
 
     return numberedInvoice.withDocumentId(documentId).withPdfSize(pdf.length);
