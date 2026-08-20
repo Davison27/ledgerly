@@ -42,6 +42,11 @@ export class AddListQueryIndexes1730000001000 implements MigrationInterface {
       table: 'company_documents',
     },
     {
+      name: 'IDX_equipment_documents_equipment_issue_id',
+      sql: 'CREATE INDEX CONCURRENTLY "IDX_equipment_documents_equipment_issue_id" ON "equipment_documents" ("equipment_id", "issue_date" DESC, "id" DESC)',
+      table: 'equipment_documents',
+    },
+    {
       name: 'IDX_documents_project_date_id',
       sql: 'CREATE INDEX CONCURRENTLY "IDX_documents_project_date_id" ON "documents" ("project_id", "date" DESC, "id" DESC)',
       table: 'documents',

@@ -2,7 +2,7 @@ import { ScheduleEvent } from '../../domain/schedule-event';
 import { ScheduleEventOrmEntity } from './schedule-event.orm-entity';
 import { ScheduleEventDayOrmEntity } from './schedule-event-day.orm-entity';
 import { ScheduleEventStaffOrmEntity } from './schedule-event-staff.orm-entity';
-import { ScheduleEventProductOrmEntity } from './schedule-event-product.orm-entity';
+import { ScheduleEventEquipmentOrmEntity } from './schedule-event-equipment.orm-entity';
 
 function normalizeTime(value: string | null): string | null {
   return value === null ? null : value.slice(0, 5);
@@ -13,7 +13,7 @@ export class ScheduleEventMapper {
     orm: ScheduleEventOrmEntity,
     dayOrms: ScheduleEventDayOrmEntity[],
     staffOrms: ScheduleEventStaffOrmEntity[],
-    productOrms: ScheduleEventProductOrmEntity[],
+    equipmentOrms: ScheduleEventEquipmentOrmEntity[],
   ): ScheduleEvent {
     return ScheduleEvent.create({
       id: orm.id,
@@ -26,9 +26,9 @@ export class ScheduleEventMapper {
         endTime: normalizeTime(day.endTime),
       })),
       staffMemberIds: staffOrms.map((staff) => staff.staffMemberId),
-      products: productOrms.map((product) => ({
-        productId: product.productId,
-        quantity: product.quantity,
+      equipment: equipmentOrms.map((equipment) => ({
+        equipmentId: equipment.equipmentId,
+        quantity: equipment.quantity,
       })),
     });
   }
@@ -69,13 +69,13 @@ export class ScheduleEventMapper {
     });
   }
 
-  static productsToOrm(event: ScheduleEvent): ScheduleEventProductOrmEntity[] {
-    return event.products.map((product) => {
-      const orm = new ScheduleEventProductOrmEntity();
+  static equipmentToOrm(event: ScheduleEvent): ScheduleEventEquipmentOrmEntity[] {
+    return event.equipment.map((equipment) => {
+      const orm = new ScheduleEventEquipmentOrmEntity();
 
       orm.eventId = event.id;
-      orm.productId = product.productId;
-      orm.quantity = product.quantity;
+      orm.equipmentId = equipment.equipmentId;
+      orm.quantity = equipment.quantity;
 
       return orm;
     });

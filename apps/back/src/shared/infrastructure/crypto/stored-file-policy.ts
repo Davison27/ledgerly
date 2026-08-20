@@ -9,7 +9,8 @@ export const STORED_FILE_PLAINTEXT_LIMITS: Readonly<Record<StoredFileStore, numb
   companyDocument: 10 * MEBIBYTE,
   companyLogo: 2 * MEBIBYTE,
   projectImage: 2 * MEBIBYTE,
-  productImage: 2 * MEBIBYTE,
+  equipmentImage: 2 * MEBIBYTE,
+  equipmentDocument: 10 * MEBIBYTE,
 };
 
 export function getStoredFilePlaintextLimit(store: StoredFileStore): number {

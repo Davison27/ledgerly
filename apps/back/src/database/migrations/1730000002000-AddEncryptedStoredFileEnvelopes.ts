@@ -90,7 +90,7 @@ const encryptedStoredFileTables: readonly EncryptedStoredFileTable[] = [
     maximumSize: MAXIMUM_IMAGE_SIZE,
   },
   {
-    table: 'products',
+    table: 'equipment',
     prefix: 'image',
     legacyColumn: 'image',
     legacyType: 'text',
@@ -102,6 +102,20 @@ const encryptedStoredFileTables: readonly EncryptedStoredFileTable[] = [
     metadataMimeTypeColumn: null,
     metadataSizeColumn: null,
     maximumSize: MAXIMUM_IMAGE_SIZE,
+  },
+  {
+    table: 'equipment_documents',
+    prefix: 'content',
+    legacyColumn: 'content',
+    legacyType: 'bytea',
+    nonceColumn: 'content_nonce',
+    tagColumn: 'content_tag',
+    keyVersionColumn: 'content_key_version',
+    assetMimeTypeColumn: null,
+    assetSizeColumn: null,
+    metadataMimeTypeColumn: 'mime_type',
+    metadataSizeColumn: 'file_size',
+    maximumSize: MAXIMUM_DOCUMENT_SIZE,
   },
 ];
 

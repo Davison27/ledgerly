@@ -23,8 +23,8 @@ export class ScheduleEventStaffResponse {
   lastName: string;
 }
 
-export class ScheduleEventProductResponse {
-  productId: string;
+export class ScheduleEventEquipmentResponse {
+  equipmentId: string;
   name: string;
   quantity: number;
   stock: number;
@@ -40,7 +40,7 @@ export class ScheduleEventResponse {
   project: ScheduleEventProjectResponse;
   days: ScheduleEventDayResponse[];
   staff: ScheduleEventStaffResponse[];
-  products: ScheduleEventProductResponse[];
+  equipment: ScheduleEventEquipmentResponse[];
 
   static fromView(view: ScheduleEventView): ScheduleEventResponse {
     const response = new ScheduleEventResponse();
@@ -71,11 +71,11 @@ export class ScheduleEventResponse {
       firstName: member.firstName,
       lastName: member.lastName,
     }));
-    response.products = view.products.map((product) => ({
-      productId: product.id,
-      name: product.name,
-      quantity: product.quantity,
-      stock: product.stock,
+    response.equipment = view.equipment.map((equipment) => ({
+      equipmentId: equipment.id,
+      name: equipment.name,
+      quantity: equipment.quantity,
+      stock: equipment.stock,
     }));
 
     return response;

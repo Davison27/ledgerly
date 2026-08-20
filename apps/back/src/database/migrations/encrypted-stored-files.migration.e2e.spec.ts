@@ -76,7 +76,7 @@ const storedFileFixtures: readonly StoredFileFixture[] = [
     sizeColumn: 'image_size',
   },
   {
-    table: 'products',
+    table: 'equipment',
     legacyColumn: 'image',
     ciphertextColumn: 'image_ciphertext',
     nonceColumn: 'image_nonce',
@@ -84,6 +84,16 @@ const storedFileFixtures: readonly StoredFileFixture[] = [
     keyVersionColumn: 'image_key_version',
     mimeTypeColumn: 'image_mime_type',
     sizeColumn: 'image_size',
+  },
+  {
+    table: 'equipment_documents',
+    legacyColumn: 'content',
+    ciphertextColumn: 'content_ciphertext',
+    nonceColumn: 'content_nonce',
+    tagColumn: 'content_tag',
+    keyVersionColumn: 'content_key_version',
+    mimeTypeColumn: null,
+    sizeColumn: 'file_size',
   },
 ];
 
@@ -324,6 +334,15 @@ describe('AddEncryptedStoredFileEnvelopes1730000002000', () => {
       );
       return;
     }
+    if (table === 'equipment_documents') {
+      await dataSource.query(
+        `INSERT INTO "equipment" ("id", "name", "stock") VALUES ('00000000-0000-0000-0000-000000000006', 'Equipment', 0) ON CONFLICT ("id") DO NOTHING`,
+      );
+      await dataSource.query(
+        `INSERT INTO "equipment_documents" ("id", "equipment_id", "name", "file_name", "mime_type", "file_size") VALUES ('00000000-0000-0000-0000-000000000008', '00000000-0000-0000-0000-000000000006', 'Equipment document', 'document.pdf', 'application/pdf', 0)`,
+      );
+      return;
+    }
     if (table === 'companies') {
       await dataSource.query(`INSERT INTO "companies" ("id", "name") VALUES ('00000000-0000-0000-0000-000000000004', 'Company')`);
       return;
@@ -335,7 +354,7 @@ describe('AddEncryptedStoredFileEnvelopes1730000002000', () => {
       return;
     }
     await dataSource.query(
-      `INSERT INTO "products" ("id", "name", "stock") VALUES ('00000000-0000-0000-0000-000000000006', 'Product', 0)`,
+      `INSERT INTO "equipment" ("id", "name", "stock") VALUES ('00000000-0000-0000-0000-000000000006', 'Equipment', 0) ON CONFLICT ("id") DO NOTHING`,
     );
   }
 

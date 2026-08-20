@@ -3,7 +3,7 @@ import { assertStoredFilePlaintextSize, getStoredFilePlaintextLimit } from './st
 
 export type ImageMimeType = 'image/png' | 'image/jpeg' | 'image/webp';
 
-export type ImageStoredFileStore = 'companyLogo' | 'projectImage' | 'productImage';
+export type ImageStoredFileStore = 'companyLogo' | 'projectImage' | 'equipmentImage';
 
 export interface CanonicalImageDataUrl {
   mimeType: ImageMimeType;

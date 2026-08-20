@@ -13,8 +13,8 @@ const CONFLICT_KIND_MAP: Record<ScheduleConflictKind, NotificationConflictKind> 
   outside_project_dates: 'outside_project_dates',
   staff_overlap: 'staff_overlap',
   project_not_active: 'project_not_active',
-  product_overallocated: 'product_overallocated',
-  product_stock_unset: 'product_stock_unset',
+  equipment_overallocated: 'equipment_overallocated',
+  equipment_stock_unset: 'equipment_stock_unset',
 };
 
 @Injectable()

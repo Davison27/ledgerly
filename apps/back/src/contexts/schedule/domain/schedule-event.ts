@@ -3,8 +3,8 @@ import { ScheduleEventDay, ScheduleEventDayPrimitives } from './schedule-event-d
 
 const MAX_TITLE_LENGTH = 120;
 
-export interface ScheduleEventProductPrimitives {
-  productId: string;
+export interface ScheduleEventEquipmentPrimitives {
+  equipmentId: string;
   quantity: number;
 }
 
@@ -15,7 +15,7 @@ export interface ScheduleEventPrimitives {
   notes: string | null;
   days: ScheduleEventDayPrimitives[];
   staffMemberIds: string[];
-  products: ScheduleEventProductPrimitives[];
+  equipment: ScheduleEventEquipmentPrimitives[];
 }
 
 export interface CreateScheduleEventProps {
@@ -25,7 +25,7 @@ export interface CreateScheduleEventProps {
   notes?: string | null;
   days: ScheduleEventDayPrimitives[];
   staffMemberIds?: string[];
-  products?: ScheduleEventProductPrimitives[];
+  equipment?: ScheduleEventEquipmentPrimitives[];
 }
 
 export interface ScheduleEventChanges {
@@ -34,7 +34,7 @@ export interface ScheduleEventChanges {
   notes?: string | null;
   days?: ScheduleEventDayPrimitives[];
   staffMemberIds?: string[];
-  products?: ScheduleEventProductPrimitives[];
+  equipment?: ScheduleEventEquipmentPrimitives[];
 }
 
 interface ScheduleEventProps {
@@ -44,7 +44,7 @@ interface ScheduleEventProps {
   notes: string | null;
   days: ScheduleEventDay[];
   staffMemberIds: string[];
-  products: ScheduleEventProductPrimitives[];
+  equipment: ScheduleEventEquipmentPrimitives[];
 }
 
 function assertNoDuplicates(values: string[], subject: string): void {
@@ -60,7 +60,7 @@ export class ScheduleEvent {
   private readonly notes_: string | null;
   private readonly days_: ScheduleEventDay[];
   private readonly staffMemberIds_: string[];
-  private readonly products_: ScheduleEventProductPrimitives[];
+  private readonly equipment_: ScheduleEventEquipmentPrimitives[];
 
   private constructor(props: ScheduleEventProps) {
     this.id_ = props.id;
@@ -69,7 +69,7 @@ export class ScheduleEvent {
     this.notes_ = props.notes;
     this.days_ = props.days;
     this.staffMemberIds_ = props.staffMemberIds;
-    this.products_ = props.products;
+    this.equipment_ = props.equipment;
   }
 
   static create(params: CreateScheduleEventProps): ScheduleEvent {
@@ -89,15 +89,15 @@ export class ScheduleEvent {
     const staffMemberIds = params.staffMemberIds ?? [];
     assertNoDuplicates(staffMemberIds, 'staff member');
 
-    const products = params.products ?? [];
+    const equipment = params.equipment ?? [];
     assertNoDuplicates(
-      products.map((product) => product.productId),
-      'product',
+      equipment.map((equipment) => equipment.equipmentId),
+      'equipment',
     );
 
-    products.forEach((product) => {
-      if (!Number.isInteger(product.quantity) || product.quantity <= 0) {
-        throw new InvalidValueException('product quantity must be a positive integer');
+    equipment.forEach((equipment) => {
+      if (!Number.isInteger(equipment.quantity) || equipment.quantity <= 0) {
+        throw new InvalidValueException('equipment quantity must be a positive integer');
       }
     });
 
@@ -114,7 +114,7 @@ export class ScheduleEvent {
       notes: params.notes ?? null,
       days,
       staffMemberIds: [...staffMemberIds],
-      products: products.map((product) => ({ ...product })),
+      equipment: equipment.map((equipment) => ({ ...equipment })),
     });
   }
 
@@ -126,7 +126,7 @@ export class ScheduleEvent {
       notes: changes.notes !== undefined ? changes.notes : this.notes_,
       days: changes.days ?? this.days_.map((day) => day.toPrimitives()),
       staffMemberIds: changes.staffMemberIds ?? [...this.staffMemberIds_],
-      products: changes.products ?? this.products_.map((product) => ({ ...product })),
+      equipment: changes.equipment ?? this.equipment_.map((equipment) => ({ ...equipment })),
     });
   }
 
@@ -154,8 +154,8 @@ export class ScheduleEvent {
     return [...this.staffMemberIds_];
   }
 
-  get products(): ScheduleEventProductPrimitives[] {
-    return this.products_.map((product) => ({ ...product }));
+  get equipment(): ScheduleEventEquipmentPrimitives[] {
+    return this.equipment_.map((equipment) => ({ ...equipment }));
   }
 
   get startDate(): string {
@@ -174,7 +174,7 @@ export class ScheduleEvent {
       notes: this.notes_,
       days: this.days_.map((day) => day.toPrimitives()),
       staffMemberIds: [...this.staffMemberIds_],
-      products: this.products_.map((product) => ({ ...product })),
+      equipment: this.equipment_.map((equipment) => ({ ...equipment })),
     };
   }
 }

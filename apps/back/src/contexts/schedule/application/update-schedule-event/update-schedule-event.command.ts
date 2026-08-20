@@ -1,6 +1,6 @@
 import {
   CreateScheduleEventDayCommand,
-  CreateScheduleEventProductCommand,
+  CreateScheduleEventEquipmentCommand,
 } from '../create-schedule-event/create-schedule-event.command';
 
 export interface UpdateScheduleEventCommand {
@@ -10,5 +10,5 @@ export interface UpdateScheduleEventCommand {
   notes?: string | null;
   days?: CreateScheduleEventDayCommand[];
   staffMemberIds?: string[];
-  products?: CreateScheduleEventProductCommand[];
+  equipment?: CreateScheduleEventEquipmentCommand[];
 }

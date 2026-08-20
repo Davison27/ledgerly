@@ -9,7 +9,8 @@ describe('stored file plaintext policy', () => {
     ['companyDocument', 10 * 1024 * 1024],
     ['companyLogo', 2 * 1024 * 1024],
     ['projectImage', 2 * 1024 * 1024],
-    ['productImage', 2 * 1024 * 1024],
+    ['equipmentImage', 2 * 1024 * 1024],
+    ['equipmentDocument', 10 * 1024 * 1024],
   ] satisfies [StoredFileStore, number][])('sets the %s plaintext limit to %d bytes', (store, limit) => {
     expect(getStoredFilePlaintextLimit(store)).toBe(limit);
     expect(() => assertStoredFilePlaintextSize(store, limit)).not.toThrow();
@@ -21,7 +22,8 @@ describe('stored file plaintext policy', () => {
     'companyDocument',
     'companyLogo',
     'projectImage',
-    'productImage',
+    'equipmentImage',
+    'equipmentDocument',
   ] satisfies StoredFileStore[])('rejects one byte over the %s limit', (store) => {
     expect(() => assertStoredFilePlaintextSize(store, getStoredFilePlaintextLimit(store) + 1)).toThrow(
       StoredFileCryptographyException,

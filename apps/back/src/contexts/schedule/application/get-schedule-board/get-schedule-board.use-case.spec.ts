@@ -7,7 +7,7 @@ import {
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
-import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
+import { ScheduleEquipmentReader, ScheduleEquipmentView } from '../../domain/schedule-equipment-reader.port';
 
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
@@ -53,11 +53,11 @@ class FakeScheduleStaffReader implements ScheduleStaffReader {
   }
 }
 
-class FakeScheduleProductReader implements ScheduleProductReader {
-  constructor(private readonly products: ScheduleProductView[]) {}
+class FakeScheduleEquipmentReader implements ScheduleEquipmentReader {
+  constructor(private readonly equipment: ScheduleEquipmentView[]) {}
 
-  findByIds(ids: string[]): Promise<ScheduleProductView[]> {
-    return Promise.resolve(this.products.filter((product) => ids.includes(product.id)));
+  findByIds(ids: string[]): Promise<ScheduleEquipmentView[]> {
+    return Promise.resolve(this.equipment.filter((equipment) => ids.includes(equipment.id)));
   }
 }
 
@@ -100,7 +100,7 @@ describe('GetScheduleBoardUseCase', () => {
       new InMemoryScheduleEventRepository([eventA, eventB]),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
     );
 
     const board = await useCase.execute({ from: '2026-07-01', to: '2026-07-31' });
@@ -128,7 +128,7 @@ describe('GetScheduleBoardUseCase', () => {
       new InMemoryScheduleEventRepository([eventA, eventB]),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
     );
 
     const board = await useCase.execute({ from: '2026-07-01', to: '2026-07-31' });
@@ -138,25 +138,25 @@ describe('GetScheduleBoardUseCase', () => {
     expect(board.summary.byKind.staff_overlap).toBe(1);
   });
 
-  it('reports product_stock_unset as info without affecting errorCount', async () => {
+  it('reports equipment_stock_unset as info without affecting errorCount', async () => {
     const event = ScheduleEvent.create({
       id: 'event-1',
       projectId: 'project-1',
       days: [{ date: '2026-07-10', startTime: null, endTime: null }],
-      products: [{ productId: 'product-1', quantity: 3 }],
+      equipment: [{ equipmentId: 'equipment-1', quantity: 3 }],
     });
 
     const useCase = new GetScheduleBoardUseCase(
       new InMemoryScheduleEventRepository([event]),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([{ id: 'product-1', name: 'Carpa', stock: 0 }]),
+      new FakeScheduleEquipmentReader([{ id: 'equipment-1', name: 'Carpa', stock: 0 }]),
     );
 
     const board = await useCase.execute({ from: '2026-07-01', to: '2026-07-31' });
 
     expect(board.summary.errorCount).toBe(0);
     expect(board.summary.infoCount).toBe(1);
-    expect(board.summary.byKind.product_stock_unset).toBe(1);
+    expect(board.summary.byKind.equipment_stock_unset).toBe(1);
   });
 });

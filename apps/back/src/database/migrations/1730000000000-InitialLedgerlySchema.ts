@@ -100,7 +100,7 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
       )
     `);
     await queryRunner.query(`
-      CREATE TABLE "products" (
+      CREATE TABLE "equipment" (
         "id" uuid NOT NULL,
         "name" varchar(200) NOT NULL,
         "price" numeric(12,2),
@@ -114,6 +114,23 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
         "leasing_monthly_fee" numeric(12,2),
         "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "PK_0806c755e0aca124e67c0cf6d7d" PRIMARY KEY ("id")
+      )
+    `);
+    await queryRunner.query(`
+      CREATE TABLE "equipment_documents" (
+        "id" uuid NOT NULL,
+        "equipment_id" uuid NOT NULL,
+        "name" varchar(200) NOT NULL,
+        "issue_date" date,
+        "expiry_date" date,
+        "notes" text,
+        "file_name" varchar(255) NOT NULL,
+        "mime_type" varchar(100) NOT NULL,
+        "file_size" integer NOT NULL,
+        "content" bytea,
+        "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PK_equipment_documents" PRIMARY KEY ("id"),
+        CONSTRAINT "FK_equipment_documents_equipment" FOREIGN KEY ("equipment_id") REFERENCES "equipment"("id") ON DELETE CASCADE
       )
     `);
     await queryRunner.query(`
@@ -173,12 +190,12 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
       )
     `);
     await queryRunner.query(`
-      CREATE TABLE "project_products" (
+      CREATE TABLE "project_equipment" (
         "project_id" uuid NOT NULL,
-        "product_id" uuid NOT NULL,
+        "equipment_id" uuid NOT NULL,
         "lease_expense" numeric(12,2),
         "lease_expense_date" date,
-        CONSTRAINT "PK_471ea4e27ea35bbe9cbb346793b" PRIMARY KEY ("project_id", "product_id")
+        CONSTRAINT "PK_471ea4e27ea35bbe9cbb346793b" PRIMARY KEY ("project_id", "equipment_id")
       )
     `);
     await queryRunner.query(`
@@ -235,11 +252,11 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
       )
     `);
     await queryRunner.query(`
-      CREATE TABLE "schedule_event_products" (
+      CREATE TABLE "schedule_event_equipment" (
         "event_id" uuid NOT NULL,
-        "product_id" uuid NOT NULL,
+        "equipment_id" uuid NOT NULL,
         "quantity" integer NOT NULL,
-        CONSTRAINT "PK_e7c4f14a7dcc225f662aee406e0" PRIMARY KEY ("event_id", "product_id")
+        CONSTRAINT "PK_e7c4f14a7dcc225f662aee406e0" PRIMARY KEY ("event_id", "equipment_id")
       )
     `);
     await queryRunner.query(`
@@ -390,15 +407,16 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
     await queryRunner.query('DROP TABLE "extraction_outcomes"');
     await queryRunner.query('DROP TABLE "invoice_extraction_hints"');
     await queryRunner.query('DROP TABLE "schedule_event_staff"');
-    await queryRunner.query('DROP TABLE "schedule_event_products"');
+    await queryRunner.query('DROP TABLE "schedule_event_equipment"');
     await queryRunner.query('DROP TABLE "schedule_event_days"');
     await queryRunner.query('DROP TABLE "schedule_events"');
     await queryRunner.query('DROP TABLE "company_documents"');
     await queryRunner.query('DROP TABLE "staff_documents"');
-    await queryRunner.query('DROP TABLE "project_products"');
+    await queryRunner.query('DROP TABLE "project_equipment"');
     await queryRunner.query('DROP TABLE "documents"');
     await queryRunner.query('DROP TABLE "projects"');
-    await queryRunner.query('DROP TABLE "products"');
+    await queryRunner.query('DROP TABLE "equipment_documents"');
+    await queryRunner.query('DROP TABLE "equipment"');
     await queryRunner.query('DROP TABLE "company_document_types"');
     await queryRunner.query('DROP TABLE "staff_document_types"');
     await queryRunner.query('DROP TABLE "staff_members"');

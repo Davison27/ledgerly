@@ -15,7 +15,7 @@ import { CompanyModule } from './contexts/company/company.module';
 import { ProjectsModule } from './contexts/projects/projects.module';
 import { DocumentsModule } from './contexts/documents/documents.module';
 import { SuppliersModule } from './contexts/suppliers/suppliers.module';
-import { ProductsModule } from './contexts/products/products.module';
+import { EquipmentModule } from './contexts/equipment/equipment.module';
 import { DashboardModule } from './contexts/dashboard/dashboard.module';
 import { StaffModule } from './contexts/staff/staff.module';
 import { ScheduleModule } from './contexts/schedule/schedule.module';
@@ -34,7 +34,7 @@ import { TaxComplianceModule } from './contexts/tax-compliance/tax-compliance.mo
     ProjectsModule,
     DocumentsModule,
     SuppliersModule,
-    ProductsModule,
+    EquipmentModule,
     DashboardModule,
     StaffModule,
     ScheduleModule,

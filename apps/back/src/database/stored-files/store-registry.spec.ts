@@ -59,8 +59,8 @@ describe('stored file store registry', () => {
         sizeColumn: 'image_size',
       },
       {
-        name: 'productImage',
-        table: 'products',
+        name: 'equipmentImage',
+        table: 'equipment',
         ciphertextColumn: 'image_ciphertext',
         nonceColumn: 'image_nonce',
         tagColumn: 'image_tag',
@@ -68,6 +68,17 @@ describe('stored file store registry', () => {
         envelopeMetadata: true,
         mimeTypeColumn: 'image_mime_type',
         sizeColumn: 'image_size',
+      },
+      {
+        name: 'equipmentDocument',
+        table: 'equipment_documents',
+        ciphertextColumn: 'content_ciphertext',
+        nonceColumn: 'content_nonce',
+        tagColumn: 'content_tag',
+        keyVersionColumn: 'content_key_version',
+        envelopeMetadata: false,
+        mimeTypeColumn: 'mime_type',
+        sizeColumn: 'file_size',
       },
     ]);
   });

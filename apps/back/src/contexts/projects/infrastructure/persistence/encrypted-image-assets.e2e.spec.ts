@@ -8,29 +8,29 @@ import { Company } from '../../../company/domain/company';
 import { GetCompanyBrandingUseCase } from '../../../company/application/get-company-branding/get-company-branding.use-case';
 import { CompanyOrmEntity } from '../../../company/infrastructure/persistence/company.orm-entity';
 import { TypeOrmCompanyRepository } from '../../../company/infrastructure/persistence/typeorm-company.repository';
-import { Product } from '../../../products/domain/product';
-import { ProductOrmEntity } from '../../../products/infrastructure/persistence/product.orm-entity';
-import { TypeOrmProductRepository } from '../../../products/infrastructure/persistence/typeorm-product.repository';
+import { Equipment } from '../../../equipment/domain/equipment';
+import { EquipmentOrmEntity } from '../../../equipment/infrastructure/persistence/equipment.orm-entity';
+import { TypeOrmEquipmentRepository } from '../../../equipment/infrastructure/persistence/typeorm-equipment.repository';
 import { TypeOrmScheduleProjectReader } from '../../../schedule/infrastructure/persistence/typeorm-schedule-project-reader';
 import { UpdateProjectUseCase } from '../../application/update-project/update-project.use-case';
 import { Project } from '../../domain/project';
 import { ProjectOrmEntity } from './project.orm-entity';
-import { ProjectProductOrmEntity } from './project-product.orm-entity';
-import { TypeOrmProjectProductRepository } from './typeorm-project-product.repository';
+import { ProjectEquipmentOrmEntity } from './project-equipment.orm-entity';
+import { TypeOrmProjectEquipmentRepository } from './typeorm-project-equipment.repository';
 import { TypeOrmProjectRepository } from './typeorm-project.repository';
 
 const pngBytes = Buffer.from('89504e470d0a1a0a00000000', 'hex');
 const image = `data:image/png;base64,${pngBytes.toString('base64')}`;
 const projectId = '00000000-0000-0000-0000-000000000005';
-const productId = '00000000-0000-0000-0000-000000000006';
+const equipmentId = '00000000-0000-0000-0000-000000000006';
 const companyId = '00000000-0000-0000-0000-000000000004';
 
 describe('encrypted image assets (PostgreSQL)', () => {
   let administrator: DataSource;
   let companyRepository: TypeOrmCompanyRepository;
   let dataSource: DataSource;
-  let productRepository: TypeOrmProductRepository;
-  let projectProductRepository: TypeOrmProjectProductRepository;
+  let equipmentRepository: TypeOrmEquipmentRepository;
+  let projectEquipmentRepository: TypeOrmProjectEquipmentRepository;
   let projectRepository: TypeOrmProjectRepository;
   let scheduleProjectReader: TypeOrmScheduleProjectReader;
   let schema: string;
@@ -45,7 +45,7 @@ describe('encrypted image assets (PostgreSQL)', () => {
     dataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [CompanyOrmEntity, ProductOrmEntity, ProjectOrmEntity, ProjectProductOrmEntity],
+      entities: [CompanyOrmEntity, EquipmentOrmEntity, ProjectOrmEntity, ProjectEquipmentOrmEntity],
       migrations: [
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
@@ -62,9 +62,9 @@ describe('encrypted image assets (PostgreSQL)', () => {
       keys: new Map([['v1', Buffer.alloc(32, 1)]]),
     });
     companyRepository = new TypeOrmCompanyRepository(dataSource.getRepository(CompanyOrmEntity), cipher);
-    productRepository = new TypeOrmProductRepository(dataSource.getRepository(ProductOrmEntity), cipher);
+    equipmentRepository = new TypeOrmEquipmentRepository(dataSource.getRepository(EquipmentOrmEntity), cipher);
     projectRepository = new TypeOrmProjectRepository(dataSource.getRepository(ProjectOrmEntity), cipher);
-    projectProductRepository = new TypeOrmProjectProductRepository(dataSource.getRepository(ProjectProductOrmEntity), cipher);
+    projectEquipmentRepository = new TypeOrmProjectEquipmentRepository(dataSource.getRepository(ProjectEquipmentOrmEntity), cipher);
     scheduleProjectReader = new TypeOrmScheduleProjectReader(dataSource, cipher);
   });
 
@@ -78,15 +78,15 @@ describe('encrypted image assets (PostgreSQL)', () => {
     }
   });
 
-  it('encrypts every image path and clears project, company, and product envelopes without stale reads', async () => {
+  it('encrypts every image path and clears project, company, and equipment envelopes without stale reads', async () => {
     const project = createProject(image);
-    const product = Product.create({ id: productId, name: 'Product', price: null, stock: 0, image });
+    const equipment = Equipment.create({ id: equipmentId, name: 'Equipment', price: null, stock: 0, image });
     const company = Company.create({ id: companyId, name: 'Company', logo: image });
 
     await projectRepository.save(project);
-    await productRepository.save(product);
+    await equipmentRepository.save(equipment);
     await companyRepository.save(company);
-    await projectProductRepository.save({ projectId, productId, leaseExpense: null, leaseExpenseDate: null });
+    await projectEquipmentRepository.save({ projectId, equipmentId, leaseExpense: null, leaseExpenseDate: null });
 
     const encryptedProject = requireSingleRow(await dataSource.query(
       'SELECT image_ciphertext AS "ciphertext", image_nonce AS "nonce", image_tag AS "tag", image_key_version AS "keyVersion", image_mime_type AS "mimeType", image_size AS "size" FROM projects WHERE id = $1',
@@ -103,17 +103,17 @@ describe('encrypted image assets (PostgreSQL)', () => {
     await expect(projectRepository.findSummaryById(projectId)).resolves.toMatchObject({ image });
     await expect(scheduleProjectReader.findActive()).resolves.toEqual([expect.objectContaining({ id: projectId, image })]);
     await expect(scheduleProjectReader.findByIds([projectId])).resolves.toEqual([expect.objectContaining({ id: projectId, image })]);
-    await expect(projectProductRepository.findByProjectId(projectId)).resolves.toEqual([
-      expect.objectContaining({ productId, image }),
+    await expect(projectEquipmentRepository.findByProjectId(projectId)).resolves.toEqual([
+      expect.objectContaining({ equipmentId, image }),
     ]);
     await expect(new GetCompanyBrandingUseCase(companyRepository).execute()).resolves.toEqual({
       name: 'Company',
       logo: image,
       brandColor: null,
     });
-    await expect(productRepository.findAll()).resolves.toEqual([expect.objectContaining({ id: productId, image })]);
-    await expect(productRepository.findById(productId)).resolves.toMatchObject({ image });
-    await expect(productRepository.findByName('Product')).resolves.toMatchObject({ image });
+    await expect(equipmentRepository.findAll()).resolves.toEqual([expect.objectContaining({ id: equipmentId, image })]);
+    await expect(equipmentRepository.findById(equipmentId)).resolves.toMatchObject({ image });
+    await expect(equipmentRepository.findByName('Equipment')).resolves.toMatchObject({ image });
 
     await new UpdateProjectUseCase(projectRepository).execute({ id: projectId, image: null });
 
@@ -143,25 +143,25 @@ describe('encrypted image assets (PostgreSQL)', () => {
       brandColor: null,
     });
 
-    product.changeDetails({
-      reference: product.reference,
-      category: product.category,
-      brand: product.brand,
-      description: product.description,
+    equipment.changeDetails({
+      reference: equipment.reference,
+      category: equipment.category,
+      brand: equipment.brand,
+      description: equipment.description,
       image: null,
-      tags: product.tags,
+      tags: equipment.tags,
     });
-    await productRepository.save(product);
-    const clearedProduct = requireSingleRow(await dataSource.query(
-      'SELECT image_ciphertext AS "ciphertext", image_nonce AS "nonce", image_tag AS "tag", image_key_version AS "keyVersion", image_mime_type AS "mimeType", image_size AS "size" FROM products WHERE id = $1',
-      [productId],
+    await equipmentRepository.save(equipment);
+    const clearedEquipment = requireSingleRow(await dataSource.query(
+      'SELECT image_ciphertext AS "ciphertext", image_nonce AS "nonce", image_tag AS "tag", image_key_version AS "keyVersion", image_mime_type AS "mimeType", image_size AS "size" FROM equipment WHERE id = $1',
+      [equipmentId],
     ));
-    expect(clearedProduct).toEqual({ ciphertext: null, nonce: null, tag: null, keyVersion: null, mimeType: null, size: null });
-    await expect(productRepository.findAll()).resolves.toEqual([expect.objectContaining({ id: productId, image: null })]);
-    await expect(productRepository.findById(productId)).resolves.toMatchObject({ image: null });
-    await expect(productRepository.findByName('Product')).resolves.toMatchObject({ image: null });
-    await expect(projectProductRepository.findByProjectId(projectId)).resolves.toEqual([
-      expect.objectContaining({ productId, image: null }),
+    expect(clearedEquipment).toEqual({ ciphertext: null, nonce: null, tag: null, keyVersion: null, mimeType: null, size: null });
+    await expect(equipmentRepository.findAll()).resolves.toEqual([expect.objectContaining({ id: equipmentId, image: null })]);
+    await expect(equipmentRepository.findById(equipmentId)).resolves.toMatchObject({ image: null });
+    await expect(equipmentRepository.findByName('Equipment')).resolves.toMatchObject({ image: null });
+    await expect(projectEquipmentRepository.findByProjectId(projectId)).resolves.toEqual([
+      expect.objectContaining({ equipmentId, image: null }),
     ]);
   });
 });

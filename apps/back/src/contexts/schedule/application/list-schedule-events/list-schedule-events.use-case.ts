@@ -10,9 +10,9 @@ import {
 } from '../../domain/schedule-project-reader.port';
 import { SCHEDULE_STAFF_READER, ScheduleStaffReader } from '../../domain/schedule-staff-reader.port';
 import {
-  SCHEDULE_PRODUCT_READER,
-  ScheduleProductReader,
-} from '../../domain/schedule-product-reader.port';
+  SCHEDULE_EQUIPMENT_READER,
+  ScheduleEquipmentReader,
+} from '../../domain/schedule-equipment-reader.port';
 import { buildScheduleEventViews, ScheduleEventView } from '../../domain/schedule-event-view';
 
 @Injectable()
@@ -24,8 +24,8 @@ export class ListScheduleEventsUseCase {
     private readonly projectReader: ScheduleProjectReader,
     @Inject(SCHEDULE_STAFF_READER)
     private readonly staffReader: ScheduleStaffReader,
-    @Inject(SCHEDULE_PRODUCT_READER)
-    private readonly productReader: ScheduleProductReader,
+    @Inject(SCHEDULE_EQUIPMENT_READER)
+    private readonly equipmentReader: ScheduleEquipmentReader,
   ) {}
 
   async execute(filter: ScheduleEventFilter): Promise<ScheduleEventView[]> {
@@ -33,16 +33,16 @@ export class ListScheduleEventsUseCase {
 
     const projectIds = [...new Set(events.map((event) => event.projectId))];
     const staffIds = [...new Set(events.flatMap((event) => event.staffMemberIds))];
-    const productIds = [
-      ...new Set(events.flatMap((event) => event.products.map((product) => product.productId))),
+    const equipmentIds = [
+      ...new Set(events.flatMap((event) => event.equipment.map((equipment) => equipment.equipmentId))),
     ];
 
-    const [projects, staff, products] = await Promise.all([
+    const [projects, staff, equipment] = await Promise.all([
       this.projectReader.findByIds(projectIds),
       this.staffReader.findByIds(staffIds),
-      this.productReader.findByIds(productIds),
+      this.equipmentReader.findByIds(equipmentIds),
     ]);
 
-    return buildScheduleEventViews(events, { projects, staff, products });
+    return buildScheduleEventViews(events, { projects, staff, equipment });
   }
 }

@@ -55,7 +55,7 @@ export class ScheduleController {
       notes: dto.notes,
       days: dto.days,
       staffMemberIds: dto.staffMemberIds,
-      products: dto.products,
+      equipment: dto.equipment,
     });
 
     return ScheduleEventResponse.fromView(view);
@@ -74,7 +74,7 @@ export class ScheduleController {
       notes: dto.notes,
       days: dto.days,
       staffMemberIds: dto.staffMemberIds,
-      products: dto.products,
+      equipment: dto.equipment,
     });
 
     return ScheduleEventResponse.fromView(view);

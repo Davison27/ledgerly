@@ -9,14 +9,14 @@ import {
 } from '../../domain/schedule-project-reader.port';
 import { SCHEDULE_STAFF_READER, ScheduleStaffReader } from '../../domain/schedule-staff-reader.port';
 import {
-  SCHEDULE_PRODUCT_READER,
-  ScheduleProductReader,
-} from '../../domain/schedule-product-reader.port';
+  SCHEDULE_EQUIPMENT_READER,
+  ScheduleEquipmentReader,
+} from '../../domain/schedule-equipment-reader.port';
 import { buildScheduleEventViews, ScheduleEventView } from '../../domain/schedule-event-view';
 import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-event-not-found.exception';
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
-import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
+import { ScheduleEquipmentNotFoundException } from '../../domain/errors/schedule-equipment-not-found.exception';
 import {
   DOMAIN_EVENT_PUBLISHER,
   DomainEventPublisher,
@@ -33,8 +33,8 @@ export class UpdateScheduleEventUseCase {
     private readonly projectReader: ScheduleProjectReader,
     @Inject(SCHEDULE_STAFF_READER)
     private readonly staffReader: ScheduleStaffReader,
-    @Inject(SCHEDULE_PRODUCT_READER)
-    private readonly productReader: ScheduleProductReader,
+    @Inject(SCHEDULE_EQUIPMENT_READER)
+    private readonly equipmentReader: ScheduleEquipmentReader,
     @Inject(DOMAIN_EVENT_PUBLISHER)
     private readonly eventPublisher: DomainEventPublisher,
   ) {}
@@ -48,12 +48,12 @@ export class UpdateScheduleEventUseCase {
 
     const projectId = command.projectId ?? event.projectId;
     const staffMemberIds = command.staffMemberIds ?? event.staffMemberIds;
-    const productIds = (command.products ?? event.products).map((product) => product.productId);
+    const equipmentIds = (command.equipment ?? event.equipment).map((equipment) => equipment.equipmentId);
 
-    const [projects, staff, products] = await Promise.all([
+    const [projects, staff, equipment] = await Promise.all([
       this.projectReader.findByIds([projectId]),
       this.staffReader.findByIds(staffMemberIds),
-      this.productReader.findByIds(productIds),
+      this.equipmentReader.findByIds(equipmentIds),
     ]);
 
     const project = projects.find((candidate) => candidate.id === projectId);
@@ -72,13 +72,13 @@ export class UpdateScheduleEventUseCase {
       }
     }
 
-    if (command.products !== undefined) {
-      const missingProductId = command.products.find(
-        (product) => !products.some((candidate) => candidate.id === product.productId),
-      )?.productId;
+    if (command.equipment !== undefined) {
+      const missingEquipmentId = command.equipment.find(
+        (requestedEquipment) => !equipment.some((candidate) => candidate.id === requestedEquipment.equipmentId),
+      )?.equipmentId;
 
-      if (missingProductId !== undefined) {
-        throw new ScheduleProductNotFoundException(missingProductId);
+      if (missingEquipmentId !== undefined) {
+        throw new ScheduleEquipmentNotFoundException(missingEquipmentId);
       }
     }
 
@@ -92,7 +92,7 @@ export class UpdateScheduleEventUseCase {
         endTime: day.endTime ?? null,
       })),
       staffMemberIds: command.staffMemberIds,
-      products: command.products,
+      equipment: command.equipment,
     });
 
     await this.scheduleEventRepository.save(updated);
@@ -101,6 +101,6 @@ export class UpdateScheduleEventUseCase {
       new ScheduleEventSavedEvent({ eventId: updated.id, dates: updated.days.map((day) => day.date) }),
     ]);
 
-    return buildScheduleEventViews([updated], { projects, staff, products })[0];
+    return buildScheduleEventViews([updated], { projects, staff, equipment })[0];
   }
 }

@@ -6,7 +6,7 @@ export class ScheduleConflictResponse {
   eventId: string;
   date: string | null;
   staffMemberId: string | null;
-  productId: string | null;
+  equipmentId: string | null;
   relatedEventId: string | null;
   stock: number | null;
   allocated: number | null;
@@ -19,7 +19,7 @@ export class ScheduleConflictResponse {
     response.eventId = conflict.eventId;
     response.date = conflict.date;
     response.staffMemberId = conflict.staffMemberId;
-    response.productId = conflict.productId;
+    response.equipmentId = conflict.equipmentId;
     response.relatedEventId = conflict.relatedEventId;
     response.stock = conflict.stock;
     response.allocated = conflict.allocated;

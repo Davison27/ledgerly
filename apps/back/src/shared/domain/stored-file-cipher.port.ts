@@ -6,7 +6,8 @@ export type StoredFileStore =
   | 'companyDocument'
   | 'companyLogo'
   | 'projectImage'
-  | 'productImage';
+  | 'equipmentImage'
+  | 'equipmentDocument';
 
 export interface StoredFileAadDescriptor {
   store: StoredFileStore;

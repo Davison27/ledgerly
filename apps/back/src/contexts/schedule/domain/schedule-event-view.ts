@@ -1,19 +1,19 @@
 import { ScheduleEvent } from './schedule-event';
 import { ScheduleProjectView } from './schedule-project-reader.port';
 import { ScheduleStaffView } from './schedule-staff-reader.port';
-import { ScheduleProductView } from './schedule-product-reader.port';
+import { ScheduleEquipmentView } from './schedule-equipment-reader.port';
 
 export interface ScheduleEventView {
   event: ScheduleEvent;
   project: ScheduleProjectView;
   staff: ScheduleStaffView[];
-  products: Array<ScheduleProductView & { quantity: number }>;
+  equipment: Array<ScheduleEquipmentView & { quantity: number }>;
 }
 
 export interface ScheduleEventViewSources {
   projects: ScheduleProjectView[];
   staff: ScheduleStaffView[];
-  products: ScheduleProductView[];
+  equipment: ScheduleEquipmentView[];
 }
 
 export function buildScheduleEventViews(
@@ -22,7 +22,7 @@ export function buildScheduleEventViews(
 ): ScheduleEventView[] {
   const projectsById = new Map(sources.projects.map((project) => [project.id, project]));
   const staffById = new Map(sources.staff.map((member) => [member.id, member]));
-  const productsById = new Map(sources.products.map((product) => [product.id, product]));
+  const equipmentById = new Map(sources.equipment.map((equipment) => [equipment.id, equipment]));
 
   return events.map((event) => ({
     event,
@@ -30,12 +30,12 @@ export function buildScheduleEventViews(
     staff: event.staffMemberIds
       .map((staffMemberId) => staffById.get(staffMemberId))
       .filter((member): member is ScheduleStaffView => member !== undefined),
-    products: event.products
-      .map((product) => {
-        const productView = productsById.get(product.productId);
+    equipment: event.equipment
+      .map((equipment) => {
+        const equipmentView = equipmentById.get(equipment.equipmentId);
 
-        return productView !== undefined ? { ...productView, quantity: product.quantity } : null;
+        return equipmentView !== undefined ? { ...equipmentView, quantity: equipment.quantity } : null;
       })
-      .filter((product): product is ScheduleProductView & { quantity: number } => product !== null),
+      .filter((equipment): equipment is ScheduleEquipmentView & { quantity: number } => equipment !== null),
   }));
 }

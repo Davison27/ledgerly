@@ -13,10 +13,11 @@ class InMemorySessionRevoker implements AuthSessionRevoker {
 
   constructor(private readonly operations: string[] = [], private readonly failure: Error | null = null) {}
 
-  async revokeAllForEmail(email: string): Promise<void> {
+  revokeAllForEmail(email: string): Promise<void> {
     this.operations.push('revoke');
-    if (this.failure) throw this.failure;
+    if (this.failure) return Promise.reject(this.failure);
     this.revokedEmails.push(email);
+    return Promise.resolve();
   }
 }
 
