@@ -115,9 +115,6 @@ when the mutation changes their visible state:
 | Notification state change                           | `notificationQueries.all`                                    |
 | Workspace member or integration change              | Its respective `all` key                                     |
 
-The onboarding demo-data action is the sole justified unrestricted
-`invalidateQueries()` call because it creates data across all domains.
-
 ## Company singleton sentinel
 
 `GET /api/company` returns `404` until the singleton is created. The company

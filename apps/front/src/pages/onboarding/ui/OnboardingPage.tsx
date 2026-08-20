@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   App,
   Button,
   Card,
@@ -17,10 +16,8 @@ import {
 import { UploadOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { companyNeedsSetup, companyQueries, updateCompany, useCompany } from '@/entities/company';
-import { loadDemoData } from '../api/demo.api';
-import { projectQueries } from '@/entities/project';
 import typography from '@/shared/ui/typography.module.css';
 import styles from './OnboardingPage.module.css';
 
@@ -55,7 +52,6 @@ export function OnboardingPage() {
   const [current, setCurrent] = useState(0);
   const [logo, setLogo] = useState<string | undefined>(undefined);
   const [submitting, setSubmitting] = useState(false);
-  const [loadingDemo, setLoadingDemo] = useState(false);
 
   const { company, isLoading: companyLoading } = useCompany();
   const needsSetup = companyNeedsSetup(company);
@@ -66,23 +62,6 @@ export function OnboardingPage() {
       void navigate({ to: '/dashboard' });
     }
   }, [companyLoading, needsSetup, navigate]);
-
-  const { data: projects, isPending: projectsLoading } = useQuery(projectQueries.list());
-  const demoAvailable = !projectsLoading && (projects?.length ?? 0) === 0;
-
-  const handleLoadDemoData = async () => {
-    setLoadingDemo(true);
-    try {
-      await loadDemoData();
-      await queryClient.invalidateQueries();
-      void message.success(t('onboarding.demo.success'));
-      void navigate({ to: '/dashboard' });
-    } catch {
-      void message.error(t('onboarding.demo.error'));
-    } finally {
-      setLoadingDemo(false);
-    }
-  };
 
   const isLastStep = current === STEP_FIELDS.length - 1;
 
@@ -133,20 +112,6 @@ export function OnboardingPage() {
           </Title>
           <Text type="secondary">{t('onboarding.welcome')}</Text>
         </Flex>
-
-        {demoAvailable && (
-          <Alert
-            type="info"
-            showIcon
-            message={t('onboarding.demo.helper')}
-            action={
-              <Button size="small" onClick={() => void handleLoadDemoData()} loading={loadingDemo}>
-                {t('onboarding.demo.button')}
-              </Button>
-            }
-            className={styles.demoAlert}
-          />
-        )}
 
         <Steps
           current={current}
