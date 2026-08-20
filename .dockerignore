@@ -9,7 +9,6 @@ docs
 coverage
 **/.env
 **/.env.*
-deploy/backups
 deploy/.state
 *.log
 .claude

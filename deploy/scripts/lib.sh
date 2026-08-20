@@ -13,8 +13,6 @@ ENV_FILE="$DEPLOY_DIR/.env"
 # shellcheck disable=SC2034
 ENV_EXAMPLE="$DEPLOY_DIR/.env.example"
 STATE_FILE="$DEPLOY_DIR/.state"
-# shellcheck disable=SC2034
-BACKUPS_DIR="$DEPLOY_DIR/backups"
 COMPOSE_FILE="$DEPLOY_DIR/docker-compose.yml"
 
 ENV_CONTRACT_KEYS=(

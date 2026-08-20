@@ -452,12 +452,8 @@ EOF
 
   Next steps
     make doctor      checks that everything remains healthy
-    make backup      creates a database backup
     make update      fetches a new version without data loss
     make configure   changes the domain, credentials, or administrator
-
-    Daily backup (crontab -e):
-      0 3 * * * cd /opt/ledgerly && make backup >> /var/log/ledgerly.log 2>&1
 
   make setup cannot be run again on this machine.
 EOF

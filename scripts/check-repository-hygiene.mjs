@@ -61,7 +61,6 @@ const forbiddenRepositoryFiles = existingRepositoryFiles.filter((file) => {
     isGeneratedDirectory ||
     isTemporaryPlan ||
     isLocalSkill ||
-    file.startsWith('deploy/backups/') ||
     file === 'deploy/.state' ||
     file === '.claude/settings.local.json' ||
     file === 'skills-lock.json' ||

@@ -265,103 +265,6 @@ check_network() {
   fi
 }
 
-checksum_file() {
-  local file="$1"
-  if command -v sha256sum >/dev/null 2>&1; then
-    sha256sum "$file" | awk '{print $1}'
-  else
-    shasum -a 256 "$file" | awk '{print $1}'
-  fi
-}
-
-manifest_value() {
-  local key="$1" file="$2"
-  grep -E "^${key}=" "$file" | tail -n1 | cut -d= -f2-
-}
-
-validate_backup_pair() {
-  local manifest="$1" dump="$2" expected_dump expected_bytes actual_bytes expected_hash actual_hash key
-  expected_dump="$(manifest_value dump_file "$manifest")"
-  [ "$expected_dump" = "$(basename "$dump")" ] || return 1
-
-  for key in format created_at database postgres_version bytes sha256 typeorm_migration_count better_auth_migration_status; do
-    grep -Eq "^${key}=" "$manifest" || return 1
-  done
-
-  expected_bytes="$(manifest_value bytes "$manifest")"
-  [[ "$expected_bytes" =~ ^[0-9]+$ ]] || return 1
-  actual_bytes="$(wc -c <"$dump" | tr -d '[:space:]')"
-  [ "$expected_bytes" = "$actual_bytes" ] || return 1
-
-  expected_hash="$(manifest_value sha256 "$manifest")"
-  [[ "$expected_hash" =~ ^[[:xdigit:]]{64}$ ]] || return 1
-  actual_hash="$(checksum_file "$dump")"
-  [ "$expected_hash" = "$actual_hash" ] || return 1
-
-  if [ "${BACKUP_ARCHIVE_CHECK_ENABLED:-0}" = "1" ]; then
-    compose exec -T postgres pg_restore --list - <"$dump" >/dev/null 2>&1 || return 1
-  fi
-}
-
-check_backup_inventory() {
-  category "Backups"
-  if [ ! -d "$BACKUPS_DIR" ]; then
-    emit_warn "No backup directory exists yet"
-    remedy "make backup"
-    return
-  fi
-
-  local manifests valid=0 invalid=0 manifest dump partial_count=0 orphan_dump_count=0
-  local archive_unchecked=0
-  if service_running postgres; then
-    BACKUP_ARCHIVE_CHECK_ENABLED=1
-  else
-    BACKUP_ARCHIVE_CHECK_ENABLED=0
-    archive_unchecked=1
-  fi
-
-  partial_count="$(find "$BACKUPS_DIR" -maxdepth 1 -type f -name '*.partial' | wc -l | tr -d '[:space:]')"
-  mapfile -t manifests < <(find "$BACKUPS_DIR" -maxdepth 1 -name 'ledgerly-*.manifest' -type f | sort -r)
-  for manifest in "${manifests[@]}"; do
-    dump="${manifest%.manifest}.dump"
-    if [ -f "$dump" ] && validate_backup_pair "$manifest" "$dump"; then
-      valid=$((valid + 1))
-    else
-      invalid=$((invalid + 1))
-    fi
-  done
-
-  local candidate candidate_manifest
-  for candidate in "$BACKUPS_DIR"/ledgerly-*.dump; do
-    [ -f "$candidate" ] || continue
-    candidate_manifest="${candidate%.dump}.manifest"
-    [ -f "$candidate_manifest" ] || orphan_dump_count=$((orphan_dump_count + 1))
-  done
-
-  if [ "$valid" -gt 0 ]; then
-    if [ "$archive_unchecked" -eq 1 ]; then
-      emit_warn "${valid} structurally valid backup pair(s) available; archive contents were not checked because Postgres is not running"
-    else
-      emit_ok "${valid} complete and verified backup pair(s) available"
-    fi
-  else
-    emit_warn "No complete verified backup pairs are available"
-    remedy "make backup"
-  fi
-  if [ "$invalid" -gt 0 ]; then
-    emit_warn "${invalid} invalid or incomplete backup manifest pair(s) found"
-    remedy "Run make backup and review deploy/backups before deleting orphaned files"
-  fi
-  if [ "$orphan_dump_count" -gt 0 ]; then
-    emit_warn "${orphan_dump_count} backup dump(s) have no matching manifest"
-    remedy "Keep only dump files created by make backup after verifying their recovery path"
-  fi
-  if [ "$partial_count" -gt 0 ]; then
-    emit_warn "${partial_count} partial backup artifact(s) found"
-    remedy "Inspect interrupted backup jobs and remove partial files only after confirming a valid pair exists"
-  fi
-}
-
 check_resources() {
   category "Resources"
   local free_kb free_gb images_summary
@@ -440,8 +343,6 @@ main() {
   check_database
   check_network
   check_resources
-  check_backup_inventory
-
   local err_word="error" warn_word="warning"
   [ "$FAIL_COUNT" -ne 1 ] && err_word="errors"
   [ "$WARN_COUNT" -ne 1 ] && warn_word="warnings"

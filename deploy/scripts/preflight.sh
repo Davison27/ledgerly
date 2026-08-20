@@ -43,23 +43,6 @@ check_git() {
   ok "git ${version}"
 }
 
-check_runtime_tools() {
-  local failed=0
-  if command -v flock >/dev/null 2>&1; then
-    ok "flock is available for backup locking"
-  else
-    fail "flock is required for backup and restore safety"
-    failed=1
-  fi
-  if command -v sha256sum >/dev/null 2>&1 || command -v shasum >/dev/null 2>&1; then
-    ok "SHA-256 checksum tool is available"
-  else
-    fail "sha256sum or shasum is required for backup verification"
-    failed=1
-  fi
-  return "$failed"
-}
-
 check_ports() {
   local port busy=() unknown=0 rc
   for port in 80 443; do
@@ -126,7 +109,6 @@ run_preflight() {
   check_docker || failed=1
   check_compose || failed=1
   check_git || failed=1
-  check_runtime_tools || failed=1
   check_ports || failed=1
   check_resources || failed=1
   return "$failed"

@@ -4,7 +4,7 @@ Ledgerly is deployed to a self-managed VPS from `deploy/`. The deployment
 tooling comprises `deploy/docker-compose.yml`, `deploy/Caddyfile`,
 `deploy/scripts/`, and `deploy/.env.example`; the root `Makefile` provides
 `setup`, `doctor`, `configure`, `update`, `up`, `down`, `restart`, `logs`,
-`migrate`, `backup`, and `restore`.
+`migrate`.
 
 ## Topology and same-origin policy
 
@@ -73,7 +73,6 @@ The following untracked paths contain deployment state and secrets:
 - `deploy/.env` (`0600`) contains domain, database, Better Auth, and Google
   OAuth configuration.
 - `deploy/.state` (`0600`) records installation state.
-- `deploy/backups/` (`0700`) holds database backups.
 
 `deploy/.state` is absent, `in_progress`, or `completed`. Setup marks it
 `completed` only after `https://$LEDGERLY_DOMAIN/api/health/ready` returns
@@ -102,18 +101,19 @@ that predates migrations, first run the disposable-clone rehearsal, then the
 gated cutover:
 
 ```bash
-make rehearse-existing-db-baseline
+make rehearse-existing-db-baseline FILE=/path/to/external.dump
 make baseline-existing-db
 ```
 
 When a verified production dump is already available, use it explicitly:
 
 ```bash
-make rehearse-existing-db-baseline FILE=deploy/backups/ledgerly-<timestamp>.dump
+make rehearse-existing-db-baseline FILE=/path/to/external.dump
 ```
 
-The cutover takes a verified backup, records the initial marker only after
-schema validation, applies subsequent migrations, and runs a final verify.
+The cutover validates the supplied external PostgreSQL custom-format dump with
+`pg_restore --list`, records the initial marker only after schema validation,
+applies subsequent migrations, and runs a final verify.
 `make migrate` is the normal command afterwards; `make db:verify` is exposed
 inside `apps/back` for a read-only schema check.
 
@@ -134,7 +134,7 @@ failures and never prints secret values. It checks Docker, deployment file
 permissions and required keys, production environment invariants, container
 health, database connectivity and migration state, the configured connection
 budget, DNS, Caddy ports, the public readiness endpoint, certificate expiry,
-disk usage, backup-pair inventory, and the founder record.
+disk usage, and the founder record.
 
 Use `make configure` instead of editing `deploy/.env` directly. It can change
 the domain, Google credentials, initial administrator email, or database
@@ -157,33 +157,31 @@ Update an installed instance with:
 make update
 ```
 
-It requires a completed installation, runs `git pull --ff-only`, creates a
-backup, rebuilds images, applies pending migrations, waits for healthy
-services, removes old images, and runs `make doctor`. It never runs `down -v`
-or deletes volumes.
+It requires a completed installation, runs `git pull --ff-only`, rebuilds
+images, applies pending migrations, waits for healthy services, removes old
+images, and runs `make doctor`. It never runs `down -v` or deletes volumes.
 
-## Backups and recovery
+## Recovery and local reset
 
-Uploaded documents are stored as `bytea` in Postgres, so a Postgres dump is a
-complete application backup. `make backup` writes a compressed `pg_dump -Fc`
-file and a matching `0600` manifest to `deploy/backups/`, validates the archive
-with `pg_restore`, records its byte count and SHA-256, serializes backup and
-restore operations with `flock`, and retains the 14 newest complete pairs.
-`make restore` validates the pair before use, creates a fresh safety backup by
-default, requires typed confirmation, and runs `pg_restore --clean
---if-exists`. Skipping that safety backup requires a separate explicit
-confirmation phrase.
+External recovery, dump creation, retention, and restore operations are outside
+Ledgerly. The repository does not manage database dumps or recovery schedules.
 
-Example daily local backup:
+The only supported destructive development command is:
 
-```cron
-0 3 * * * cd /opt/ledgerly && make backup >> /var/log/ledgerly.log 2>&1
+```bash
+make reset-db CONFIRM=RESET_LEDGERLY_DEV
 ```
 
-Remote/off-site backup storage, CI/CD, image registries, replicas, high
-availability, and domain aliases are not configured by this deployment. Docker
-installation and host firewall management remain host-administrator
-responsibilities.
+It refuses deployment, remote, shared, unlabeled, ambiguous, and non-local
+Docker states. On its first successful run it transitions the verified legacy
+local Compose project `back` to `ledgerly-dev`; later runs reset only the fixed
+`ledgerly-dev` project. `DRY_RUN=1 make reset-db CONFIRM=RESET_LEDGERLY_DEV`
+prints the inspected plan without deleting resources. `make clean` preserves
+PostgreSQL volumes.
+
+Remote/off-site recovery, CI/CD, image registries, replicas, high availability,
+and domain aliases are not configured by this deployment. Docker installation
+and host firewall management remain host-administrator responsibilities.
 
 ## See also
 
