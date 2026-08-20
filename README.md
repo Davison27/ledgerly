@@ -70,6 +70,14 @@ make dev
 
 This installs dependencies, creates `apps/back/.env` from the example when needed, starts PostgreSQL and the containerized backend, applies migrations, and launches the Vite frontend with hot reload.
 
+Generate a unique stored-file keyring before starting the backend, then copy both printed lines into `apps/back/.env`:
+
+```bash
+pnpm --filter @ledgerly/back run stored-files:generate-keyring
+```
+
+Keep the generated keyring private and retain it while encrypted files exist. Replacing or deleting a key prevents access to files written with that version.
+
 Google sign-in requires a local OAuth client and matching environment values. Follow the [authentication setup](docs/architecture/auth.md#google-cloud-and-local-setup) before signing in.
 
 ### Local endpoints

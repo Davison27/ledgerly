@@ -24,6 +24,8 @@ const productionEnvironment = {
   BACKEND_PUBLIC_URL: 'https://ledgerly.example.com',
   COOKIE_SECURE: true,
   TRUST_PROXY: true,
+  STORED_FILE_ACTIVE_KEY_VERSION: 'v1',
+  STORED_FILE_KEYS: JSON.stringify({ v1: Buffer.alloc(32, 0x11).toString('base64') }),
 };
 
 describe('envValidationSchema', () => {
@@ -46,6 +48,15 @@ describe('envValidationSchema', () => {
     const { error } = envValidationSchema.validate(productionEnvironment);
 
     expect(error).toBeUndefined();
+  });
+
+  it.each(['STORED_FILE_ACTIVE_KEY_VERSION', 'STORED_FILE_KEYS'])('rejects a missing %s', (key) => {
+    const environment = { ...productionEnvironment };
+    delete environment[key as keyof typeof environment];
+
+    const { error } = envValidationSchema.validate(environment);
+
+    expect(error).toBeDefined();
   });
 
   it('loads bounded pool settings from the validated environment', () => {

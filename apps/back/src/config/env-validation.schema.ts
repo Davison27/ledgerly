@@ -46,6 +46,8 @@ export const envValidationSchema = Joi.object({
     then: Joi.boolean().valid(true).required(),
     otherwise: Joi.boolean().default(false),
   }),
+  STORED_FILE_ACTIVE_KEY_VERSION: Joi.string().pattern(/^v[1-9][0-9]{0,8}$/).required(),
+  STORED_FILE_KEYS: Joi.string().min(1).required(),
   PDF_OCR_ENABLED: Joi.boolean().default(true),
   PDF_OCR_LANGUAGE: Joi.string().default('spa'),
   PDF_MAX_PAGES: Joi.number().integer().min(1).max(500).default(100),

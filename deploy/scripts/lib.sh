@@ -18,6 +18,7 @@ COMPOSE_FILE="$DEPLOY_DIR/docker-compose.yml"
 ENV_CONTRACT_KEYS=(
   LEDGERLY_DOMAIN ACME_EMAIL TZ NODE_ENV PORT
   FRONTEND_URL BACKEND_PUBLIC_URL COOKIE_SECURE TRUST_PROXY
+  STORED_FILE_ACTIVE_KEY_VERSION STORED_FILE_KEYS
   DB_HOST DB_PORT DB_NAME DB_USER DB_PASSWORD
   DB_TYPEORM_POOL_MAX DB_AUTH_POOL_MAX DB_MIGRATOR_POOL_MAX
   DB_IDLE_TIMEOUT_MS DB_CONNECTION_TIMEOUT_MS DB_STATEMENT_TIMEOUT_MS
@@ -128,6 +129,46 @@ is_client_secret() {
 
 gen_password() {
   ( LC_ALL=C tr -dc 'A-Za-z0-9' </dev/urandom | head -c 32 ) || true
+}
+
+gen_stored_file_key() {
+  ( dd if=/dev/urandom bs=32 count=1 2>/dev/null | base64 | tr -d '\n' ) || true
+}
+
+is_stored_file_key() {
+  local value="$1"
+  [[ "$value" =~ ^[A-Za-z0-9+/]{43}=$ ]]
+}
+
+is_stored_file_key_version() {
+  local value="$1"
+  [[ "$value" =~ ^v[1-9][0-9]{0,8}$ ]]
+}
+
+is_stored_file_keyring() {
+  local active_version="$1" keyring="$2" entries_body entry version key found_active=0 seen_versions=""
+  local -a entries
+  is_stored_file_key_version "$active_version" || return 1
+  [[ "$keyring" == \{*\} ]] || return 1
+  entries_body="${keyring#\{}"
+  entries_body="${entries_body%\}}"
+  [ -n "$entries_body" ] || return 1
+  IFS=',' read -r -a entries <<< "$entries_body"
+  for entry in "${entries[@]}"; do
+    if [[ "$entry" =~ ^\"(v[1-9][0-9]{0,8})\":\"([A-Za-z0-9+/]{43}=)\"$ ]]; then
+      version="${BASH_REMATCH[1]}"
+      key="${BASH_REMATCH[2]}"
+    else
+      return 1
+    fi
+    is_stored_file_key "$key" || return 1
+    case ",$seen_versions," in
+      *,"$version",*) return 1 ;;
+    esac
+    seen_versions="${seen_versions:+${seen_versions},}${version}"
+    [ "$version" = "$active_version" ] && found_active=1
+  done
+  [ "$found_active" -eq 1 ]
 }
 
 env_get() {
