@@ -19,6 +19,8 @@
     "db:verify": "ts-node src/database/migrate.ts --mode=verify",
     "db:baseline-existing": "ts-node src/database/migrate.ts --mode=baseline-existing",
     "stored-files:generate-keyring": "node scripts/generate-stored-file-keyring.mjs",
+    "stored-files:rekey": "node dist/database/stored-files/rekey-cli.js",
+    "stored-files:verify": "node dist/database/stored-files/verify-cli.js",
     "seed": "ts-node src/database/seeds/seed.ts",
     "clean": "rm -rf dist .turbo"
   },
