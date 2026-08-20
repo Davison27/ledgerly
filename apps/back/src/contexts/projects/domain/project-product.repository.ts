@@ -21,7 +21,7 @@ export interface ProjectLeaseExpenseRow {
 export interface ProjectProductRepository {
   findByProjectId(projectId: string): Promise<ProjectProductRecord[]>;
   save(input: Pick<ProjectProductRecord, 'projectId' | 'productId' | 'leaseExpense' | 'leaseExpenseDate'>): Promise<void>;
-  delete(projectId: string, productId: string): Promise<void>;
+  delete(projectId: string, productId: string): Promise<boolean>;
   deleteByProjectId(projectId: string): Promise<void>;
   findAllLeaseExpenseRows(): Promise<ProjectLeaseExpenseRow[]>;
 }

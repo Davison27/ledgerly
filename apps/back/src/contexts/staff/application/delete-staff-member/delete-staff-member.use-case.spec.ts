@@ -3,6 +3,7 @@ import { StaffMemberRepository, StaffMemberSummaryRow } from '../../domain/staff
 import { StaffMember } from '../../domain/staff-member';
 import { StaffPayrollCounter } from '../../domain/staff-payroll-counter.port';
 import { StaffMemberHasPayrollsException } from '../../domain/errors/staff-member-has-payrolls.exception';
+import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 
 class InMemoryStaffMemberRepository implements StaffMemberRepository {
   private staffMembers: StaffMember[] = [];
@@ -76,5 +77,14 @@ describe('DeleteStaffMemberUseCase', () => {
 
     await expect(useCase.execute('staff-1')).rejects.toThrow(StaffMemberHasPayrollsException);
     expect(await repository.findById('staff-1')).not.toBeNull();
+  });
+
+  it('rejects an unknown staff member without invoking deletion', async () => {
+    const repository = new InMemoryStaffMemberRepository();
+    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffPayrollCounter());
+
+    await expect(useCase.execute('missing-staff')).rejects.toThrow(StaffMemberNotFoundException);
+
+    expect(await repository.findById('missing-staff')).toBeNull();
   });
 });

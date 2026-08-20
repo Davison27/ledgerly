@@ -33,8 +33,8 @@ class StubHintRepository implements InvoiceHintRepository {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
+  delete(): Promise<boolean> {
+    return Promise.resolve(false);
   }
 }
 

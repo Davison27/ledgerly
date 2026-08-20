@@ -21,7 +21,7 @@ class NoHintsRepository implements InvoiceHintRepository {
   findByIssuer = () => Promise.resolve([]);
   findAll = () => Promise.resolve([]);
   upsert = () => Promise.resolve();
-  delete = () => Promise.resolve();
+  delete = () => Promise.resolve(false);
 }
 
 class FakeDomainEventPublisher implements DomainEventPublisher {

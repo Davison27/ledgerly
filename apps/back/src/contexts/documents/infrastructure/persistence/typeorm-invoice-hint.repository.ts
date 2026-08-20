@@ -90,7 +90,9 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
     await this.repository.save(orm);
   }
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete({ id });
+  async delete(id: string): Promise<boolean> {
+    const result = await this.repository.delete({ id });
+
+    return result.affected === 1;
   }
 }

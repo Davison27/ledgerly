@@ -47,6 +47,7 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
     { location: 'body', key: 'payload.staffMemberId' },
   ],
   'POST /projects/:projectId/products': [{ location: 'body', key: 'productId' }],
+  'POST /staff/:staffMemberId/documents': [{ location: 'body', key: 'typeId' }],
   'POST /schedule/events': [
     { location: 'body', key: 'projectId' },
     { location: 'body', key: 'staffMemberIds[]' },
