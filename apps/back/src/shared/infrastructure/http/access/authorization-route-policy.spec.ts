@@ -134,7 +134,7 @@ describe('AppModule authorization route policy', () => {
     const discoveredRoutes = discoverAuthorizationRoutes();
 
     expect(discoveredRoutes).toEqual(authorizationRoutePolicies);
-    expect(discoveredRoutes).toHaveLength(83);
+    expect(discoveredRoutes).toHaveLength(78);
     expect(discoveredRoutes.every((route) => route.public || route.access !== null)).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe('AppModule authorization route policy', () => {
     const reviewedRoutes = authorizationRouteResourceInputPolicies.map(({ method, path }) => ({ method, path }));
 
     expect(reviewedRoutes).toEqual(discoveredRoutes.map(({ method, path }) => ({ method, path })));
-    expect(authorizationRouteResourceInputPolicies).toHaveLength(83);
+    expect(authorizationRouteResourceInputPolicies).toHaveLength(78);
   });
 
   it('keeps the resource-input handoff inventory complete', () => {
@@ -157,8 +157,8 @@ describe('AppModule authorization route policy', () => {
     }));
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
-    expect(authorizationResourceParameterHandoffs).toHaveLength(45);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(69);
+    expect(authorizationResourceParameterHandoffs).toHaveLength(41);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(66);
   });
 
   it('classifies the staff document type reference as a resource handoff', () => {

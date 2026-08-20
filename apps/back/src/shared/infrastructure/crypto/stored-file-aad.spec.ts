@@ -60,7 +60,6 @@ describe('buildStoredFileAad', () => {
 
   it.each([
     ['document', 0x01],
-    ['invoicePdf', 0x02],
     ['staffDocument', 0x03],
     ['companyLogo', 0x04],
     ['projectImage', 0x05],

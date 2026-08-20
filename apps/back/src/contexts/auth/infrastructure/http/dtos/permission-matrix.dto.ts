@@ -19,8 +19,6 @@ export class PermissionMatrixDto {
   suppliers: 'none' | 'view' | 'edit';
 
   @IsIn(PERMISSION_LEVELS)
-  invoices: 'none' | 'view' | 'edit';
-
   @IsIn(PERMISSION_LEVELS)
   products: 'none' | 'view' | 'edit';
 

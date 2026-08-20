@@ -5,7 +5,6 @@ const MEBIBYTE = 1024 * 1024;
 
 export const STORED_FILE_PLAINTEXT_LIMITS: Readonly<Record<StoredFileStore, number>> = {
   document: 10 * MEBIBYTE,
-  invoicePdf: 10 * MEBIBYTE,
   staffDocument: 10 * MEBIBYTE,
   companyLogo: 2 * MEBIBYTE,
   projectImage: 2 * MEBIBYTE,

@@ -164,44 +164,6 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
       )
     `);
     await queryRunner.query(`
-      CREATE TABLE "invoices" (
-        "id" uuid NOT NULL,
-        "series" varchar(10) NOT NULL,
-        "year" integer NOT NULL,
-        "number" integer NOT NULL,
-        "issue_date" date NOT NULL,
-        "project_id" uuid NOT NULL,
-        "customer_name" varchar(200) NOT NULL,
-        "customer_tax_id" varchar(40),
-        "customer_address" varchar(255),
-        "tax_base" numeric(12,2) NOT NULL,
-        "tax_rate" numeric(5,2) NOT NULL,
-        "tax_amount" numeric(12,2) NOT NULL,
-        "irpf_rate" numeric(5,2) NOT NULL,
-        "irpf_amount" numeric(12,2) NOT NULL,
-        "total" numeric(12,2) NOT NULL,
-        "currency" varchar(3) NOT NULL,
-        "notes" text,
-        "pdf" bytea,
-        "pdf_size" integer,
-        "document_id" uuid,
-        "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT "PK_668cef7c22a427fd822cc1be3ce" PRIMARY KEY ("id")
-      )
-    `);
-    await queryRunner.query(`
-      CREATE TABLE "invoice_lines" (
-        "id" uuid NOT NULL,
-        "invoice_id" uuid NOT NULL,
-        "position" smallint NOT NULL,
-        "description" varchar(200) NOT NULL,
-        "unit_price" numeric(12,2) NOT NULL,
-        "quantity" numeric(12,3) NOT NULL,
-        "product_id" uuid,
-        CONSTRAINT "PK_3d18eb48142b916f581f0c21a65" PRIMARY KEY ("id")
-      )
-    `);
-    await queryRunner.query(`
       CREATE TABLE "project_products" (
         "project_id" uuid NOT NULL,
         "product_id" uuid NOT NULL,
@@ -408,8 +370,6 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
     await queryRunner.query('DROP TABLE "schedule_events"');
     await queryRunner.query('DROP TABLE "staff_documents"');
     await queryRunner.query('DROP TABLE "project_products"');
-    await queryRunner.query('DROP TABLE "invoice_lines"');
-    await queryRunner.query('DROP TABLE "invoices"');
     await queryRunner.query('DROP TABLE "documents"');
     await queryRunner.query('DROP TABLE "projects"');
     await queryRunner.query('DROP TABLE "products"');

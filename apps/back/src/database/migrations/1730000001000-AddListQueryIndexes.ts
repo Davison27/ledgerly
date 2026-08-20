@@ -46,16 +46,6 @@ export class AddListQueryIndexes1730000001000 implements MigrationInterface {
       table: 'documents',
     },
     {
-      name: 'IDX_invoices_project_issue_id',
-      sql: 'CREATE INDEX CONCURRENTLY "IDX_invoices_project_issue_id" ON "invoices" ("project_id", "issue_date" DESC, "id" DESC)',
-      table: 'invoices',
-    },
-    {
-      name: 'IDX_invoice_lines_invoice_position',
-      sql: 'CREATE INDEX CONCURRENTLY "IDX_invoice_lines_invoice_position" ON "invoice_lines" ("invoice_id", "position", "id")',
-      table: 'invoice_lines',
-    },
-    {
       name: 'IDX_staff_documents_member_issue_id',
       sql: 'CREATE INDEX CONCURRENTLY "IDX_staff_documents_member_issue_id" ON "staff_documents" ("staff_member_id", "issue_date" DESC, "id" DESC)',
       table: 'staff_documents',

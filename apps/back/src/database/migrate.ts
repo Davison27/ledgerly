@@ -21,8 +21,6 @@ const APPLICATION_TABLES = [
   'products',
   'projects',
   'documents',
-  'invoices',
-  'invoice_lines',
   'project_products',
   'staff_documents',
   'schedule_events',

@@ -38,10 +38,6 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
     { location: 'body', key: 'staffMemberIds[]' },
     { location: 'body', key: 'products[].productId' },
   ],
-  'POST /invoices': [
-    { location: 'body', key: 'projectId' },
-    { location: 'body', key: 'lines[].productId' },
-  ],
   'POST /projects/:projectId/documents': [
     { location: 'body', key: 'payload.supplierId' },
     { location: 'body', key: 'payload.staffMemberId' },

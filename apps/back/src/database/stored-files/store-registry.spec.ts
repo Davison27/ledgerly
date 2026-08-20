@@ -15,17 +15,6 @@ describe('stored file store registry', () => {
         sizeColumn: 'file_size',
       },
       {
-        name: 'invoicePdf',
-        table: 'invoices',
-        ciphertextColumn: 'pdf_ciphertext',
-        nonceColumn: 'pdf_nonce',
-        tagColumn: 'pdf_tag',
-        keyVersionColumn: 'pdf_key_version',
-        envelopeMetadata: false,
-        mimeType: 'application/pdf',
-        sizeColumn: 'pdf_size',
-      },
-      {
         name: 'staffDocument',
         table: 'staff_documents',
         ciphertextColumn: 'content_ciphertext',
