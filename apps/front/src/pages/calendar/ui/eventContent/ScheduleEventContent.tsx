@@ -23,8 +23,8 @@ export function ScheduleEventContent({ event, scheduleLabel, density }: Schedule
   const staff = staffDisplay(event.staff, density.maxStaff);
   const staffNames = event.staff.map((member) => `${member.firstName} ${member.lastName}`).join(', ');
 
-  const visibleProducts = event.products.slice(0, density.maxProducts);
-  const hiddenProducts = event.products.slice(density.maxProducts);
+  const visibleEquipment = event.equipment.slice(0, density.maxEquipment);
+  const hiddenEquipment = event.equipment.slice(density.maxEquipment);
 
   const staffContent =
     density.staffMode === 'chips' ? (
@@ -79,16 +79,16 @@ export function ScheduleEventContent({ event, scheduleLabel, density }: Schedule
         </Flex>
       )}
 
-      {density.maxProducts > 0 && event.products.length > 0 && (
+      {density.maxEquipment > 0 && event.equipment.length > 0 && (
         <Flex flex="none" gap={4} wrap>
-          {visibleProducts.map((product) => (
-            <Tag key={product.productId} color="blue" className={styles.productTag}>
-              {product.name} ×{product.quantity}
+          {visibleEquipment.map((equipment) => (
+            <Tag key={equipment.equipmentId} color="blue" className={styles.equipmentTag}>
+              {equipment.name} ×{equipment.quantity}
             </Tag>
           ))}
-          {hiddenProducts.length > 0 && (
-            <Tooltip title={hiddenProducts.map((product) => `${product.name} ×${product.quantity}`).join(', ')}>
-              <Tag className={styles.productTag}>+{hiddenProducts.length}</Tag>
+          {hiddenEquipment.length > 0 && (
+            <Tooltip title={hiddenEquipment.map((equipment) => `${equipment.name} ×${equipment.quantity}`).join(', ')}>
+              <Tag className={styles.equipmentTag}>+{hiddenEquipment.length}</Tag>
             </Tooltip>
           )}
         </Flex>

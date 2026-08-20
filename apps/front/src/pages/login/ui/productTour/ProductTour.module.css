@@ -258,7 +258,7 @@
 .kpiCard,
 .previewCard,
 .miniProjectCard,
-.miniProductCard,
+.miniEquipmentCard,
 .tableSurface,
 .workspaceCard {
   border: 1px solid var(--login-preview-border);
@@ -448,14 +448,14 @@
 }
 
 .miniProjectGrid,
-.miniProductGrid {
+.miniEquipmentGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--lg-space-sm);
 }
 
 .miniProjectCard,
-.miniProductCard {
+.miniEquipmentCard {
   min-width: 0;
   display: flex;
   flex-direction: column;
@@ -482,7 +482,7 @@
 }
 
 .miniProjectCard > strong,
-.miniProductCard strong {
+.miniEquipmentCard strong {
   overflow: hidden;
   color: var(--login-preview-text);
   font-size: 9px;
@@ -491,7 +491,7 @@
 }
 
 .miniProjectCard > small,
-.miniProductCard small {
+.miniEquipmentCard small {
   color: var(--login-preview-muted);
   font-size: 7px;
 }
@@ -727,7 +727,7 @@
   font-weight: 700;
 }
 
-.miniProductVisual {
+.miniEquipmentVisual {
   height: 76px;
   position: relative;
   display: grid;
@@ -742,7 +742,7 @@
   font-size: var(--lg-font-size-xl);
 }
 
-.miniProductVisual span {
+.miniEquipmentVisual span {
   position: absolute;
   top: var(--lg-space-xs);
   right: var(--lg-space-xs);
@@ -753,13 +753,13 @@
   font-size: 7px;
 }
 
-.miniProductCard > div:last-child {
+.miniEquipmentCard > div:last-child {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
 
-.productCategory {
+.equipmentCategory {
   align-self: flex-start;
   padding: 2px var(--lg-space-xs);
   border-radius: 3px;
@@ -769,7 +769,7 @@
   font-weight: 700;
 }
 
-.miniProductCard footer {
+.miniEquipmentCard footer {
   display: flex;
   justify-content: space-between;
   gap: var(--lg-space-xs);
@@ -780,7 +780,7 @@
   font-size: 7px;
 }
 
-.miniProductCard footer b {
+.miniEquipmentCard footer b {
   color: var(--login-preview-muted);
 }
 

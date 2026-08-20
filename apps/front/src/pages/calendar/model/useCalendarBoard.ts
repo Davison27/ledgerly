@@ -14,7 +14,7 @@ import {
   type UpdateScheduleEventPayload,
 } from '@/entities/schedule-event';
 import { staffQueries } from '@/entities/staff-member';
-import { productQueries } from '@/entities/product';
+import { equipmentQueries } from '@/entities/equipment';
 import { deriveProjectRange, DerivedRangeTooLongError, MAX_DERIVED_RANGE_DAYS } from './derivedRanges';
 
 export type CalendarView = 'month' | 'week';
@@ -50,7 +50,7 @@ export function useCalendarBoard() {
 
   const { data: projects = [] } = useQuery(scheduleQueries.schedulableProjects());
   const { data: staffMembers = [] } = useQuery(staffQueries.list());
-  const { data: products = [] } = useQuery(productQueries.list());
+  const { data: equipment = [] } = useQuery(equipmentQueries.list());
 
   const goToday = useCallback(() => setCursor(dayjs().format(DATE_FORMAT)), []);
 
@@ -68,7 +68,7 @@ export function useCalendarBoard() {
         projectId,
         days: [{ date }],
         staffMemberIds: [],
-        products: [],
+        equipment: [],
       }).then(async (created) => {
         await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
         return created;
@@ -129,7 +129,7 @@ export function useCalendarBoard() {
         projectId: project.id,
         days: shiftedDays.map((date) => ({ date })),
         staffMemberIds: [],
-        products: [],
+        equipment: [],
       }).then(async (created) => {
         await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
         return created;
@@ -172,7 +172,7 @@ export function useCalendarBoard() {
     loadError,
     projects,
     staffMembers,
-    products,
+    equipment,
     createFromDrop,
     moveEvent,
     resizeEvent,

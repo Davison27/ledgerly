@@ -24,7 +24,7 @@ import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ScheduleEventDto, UpdateScheduleEventPayload } from '@/entities/schedule-event';
-import type { ProductDto } from '@/entities/product';
+import type { EquipmentDto } from '@/entities/equipment';
 import type { StaffMemberDto } from '@/entities/staff-member';
 import { SPACE } from '@/shared/config/theme';
 import {
@@ -41,8 +41,8 @@ const { RangePicker } = DatePicker;
 
 type DateRangeValue = [Dayjs | null, Dayjs | null] | null;
 
-interface ProductFieldValue {
-  productId?: string;
+interface EquipmentFieldValue {
+  equipmentId?: string;
   quantity?: number;
 }
 
@@ -56,14 +56,14 @@ interface EventEditorFormValues {
   startTime?: Dayjs;
   endTime?: Dayjs;
   staffMemberIds: string[];
-  products: ProductFieldValue[];
+  equipment: EquipmentFieldValue[];
 }
 
 export interface EventEditorModalProps {
   open: boolean;
   event: ScheduleEventDto | null;
   staffMembers: StaffMemberDto[];
-  products: ProductDto[];
+  equipment: EquipmentDto[];
   onCancel: () => void;
   onSave: (eventId: string, payload: UpdateScheduleEventPayload) => void | Promise<void>;
   onDelete: (eventId: string) => void | Promise<void>;
@@ -75,7 +75,7 @@ export function EventEditorModal({
   open,
   event,
   staffMembers,
-  products,
+  equipment,
   onCancel,
   onSave,
   onDelete,
@@ -107,9 +107,9 @@ export function EventEditorModal({
         startTime: shape.startTime ? dayjs(shape.startTime, 'HH:mm') : undefined,
         endTime: shape.endTime ? dayjs(shape.endTime, 'HH:mm') : undefined,
         staffMemberIds: event.staff.map((staffMember) => staffMember.id),
-        products: event.products.map((product) => ({
-          productId: product.productId,
-          quantity: product.quantity,
+        equipment: event.equipment.map((equipment) => ({
+          equipmentId: equipment.equipmentId,
+          quantity: equipment.quantity,
         })),
       });
     }
@@ -152,9 +152,9 @@ export function EventEditorModal({
             values.fullDay ? null : (values.endTime?.format('HH:mm') ?? null),
           ),
           staffMemberIds: values.staffMemberIds ?? [],
-          products: values.products.map((product) => ({
-            productId: product.productId!,
-            quantity: product.quantity!,
+          equipment: values.equipment.map((equipment) => ({
+            equipmentId: equipment.equipmentId!,
+            quantity: equipment.quantity!,
           })),
         };
         return onSave(event.id, payload);
@@ -172,10 +172,10 @@ export function EventEditorModal({
     void onDelete(event.id);
   };
 
-  const productLabel = (product: ProductDto) =>
-    product.stock === 0
-      ? `${product.name} (${t('products.stockUnset')})`
-      : `${product.name} (${product.stock})`;
+  const equipmentLabel = (equipment: EquipmentDto) =>
+    equipment.stock === 0
+      ? `${equipment.name} (${t('equipment.stockUnset')})`
+      : `${equipment.name} (${equipment.stock})`;
 
   return (
     <Modal
@@ -353,44 +353,44 @@ export function EventEditorModal({
           </Form.Item>
 
           <Text strong className={styles.sectionLabel}>
-            {t('calendar.editor.products.title')}
+            {t('calendar.editor.equipment.title')}
           </Text>
         </div>
 
-        <Form.List name="products">
+        <Form.List name="equipment">
           {(fields, { add, remove }) => (
             <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
-              <div className={styles.productList}>
+              <div className={styles.equipmentList}>
                 <Flex vertical gap={4}>
                   {fields.map((field) => (
-                    <Flex key={field.key} gap={8} align="center" className={styles.productRow}>
-                      <div className={styles.productSelectSlot}>
+                    <Flex key={field.key} gap={8} align="center" className={styles.equipmentRow}>
+                      <div className={styles.equipmentSelectSlot}>
                         <Form.Item
-                          name={[field.name, 'productId']}
+                          name={[field.name, 'equipmentId']}
                           rules={[
                             {
                               required: true,
-                              message: t('calendar.editor.validation.productRequired'),
+                              message: t('calendar.editor.validation.equipmentRequired'),
                             },
                           ]}
                         >
                           <Select
                             showSearch
-                            placeholder={t('calendar.editor.placeholders.product')}
+                            placeholder={t('calendar.editor.placeholders.equipment')}
                             filterOption={(input, option) =>
                               (option?.label ?? '')
                                 .toString()
                                 .toLowerCase()
                                 .includes(input.toLowerCase())
                             }
-                            options={products.map((product) => ({
-                              value: product.id,
-                              label: productLabel(product),
+                            options={equipment.map((equipment) => ({
+                              value: equipment.id,
+                              label: equipmentLabel(equipment),
                             }))}
                           />
                         </Form.Item>
                       </div>
-                      <div className={styles.productQtySlot}>
+                      <div className={styles.equipmentQtySlot}>
                         <Form.Item
                           name={[field.name, 'quantity']}
                           rules={[
@@ -412,12 +412,12 @@ export function EventEditorModal({
                           />
                         </Form.Item>
                       </div>
-                      <div className={styles.productRemoveSlot}>
+                      <div className={styles.equipmentRemoveSlot}>
                         <Button
                           type="text"
                           danger
                           icon={<MinusCircleOutlined />}
-                          aria-label={t('calendar.editor.products.remove')}
+                          aria-label={t('calendar.editor.equipment.remove')}
                           onClick={() => remove(field.name)}
                         />
                       </div>
@@ -425,19 +425,19 @@ export function EventEditorModal({
                   ))}
                 </Flex>
               </div>
-              <Flex vertical gap={4} className={styles.productFooter}>
+              <Flex vertical gap={4} className={styles.equipmentFooter}>
                 <Button
                   type="dashed"
                   block
                   icon={<PlusOutlined />}
-                  disabled={products.length === 0}
+                  disabled={equipment.length === 0}
                   onClick={() => add({ quantity: 1 })}
                 >
-                  {t('calendar.editor.products.add')}
+                  {t('calendar.editor.equipment.add')}
                 </Button>
-                {products.length === 0 && (
-                  <Text type="secondary" className={styles.noProductsHint}>
-                    {t('calendar.editor.products.noneAvailable')}
+                {equipment.length === 0 && (
+                  <Text type="secondary" className={styles.noEquipmentHint}>
+                    {t('calendar.editor.equipment.noneAvailable')}
                   </Text>
                 )}
               </Flex>

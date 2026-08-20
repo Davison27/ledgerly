@@ -45,7 +45,7 @@
         "documents": "Documentos",
         "calendar": "Calendario",
         "suppliers": "Proveedores",
-        "products": "Productos",
+        "equipment": "Equipos",
         "staff": "Personal"
       },
       "user": {
@@ -92,11 +92,11 @@
           "description": "Mantén juntos los datos, documentos y gasto acumulado de cada proveedor.",
           "screenLabel": "Proveedores"
         },
-        "products": {
-          "eyebrow": "Productos",
-          "title": "Mantén un catálogo útil y listo para facturar",
-          "description": "Organiza servicios y productos con el precio, stock y referencia que necesita el equipo.",
-          "screenLabel": "Productos"
+        "equipment": {
+          "eyebrow": "Equipos",
+          "title": "Ten los equipos listos para cada proyecto",
+          "description": "Organiza los equipos con el precio, stock, referencia y documentos que necesita tu equipo.",
+          "screenLabel": "Equipos"
         },
         "staff": {
           "eyebrow": "Personal",
@@ -137,10 +137,10 @@
           "subheading": "Gestiona las empresas a las que compras",
           "action": "Nuevo proveedor"
         },
-        "products": {
-          "heading": "Productos",
-          "subheading": "Tu catálogo de productos y servicios",
-          "action": "Nuevo producto"
+        "equipment": {
+          "heading": "Equipos",
+          "subheading": "Tu catálogo de equipos para proyectos",
+          "action": "Nuevo equipo"
         },
         "staff": {
           "heading": "Personal",
@@ -370,7 +370,7 @@
           }
         }
       },
-      "products": {
+      "equipment": {
         "studio": {
           "category": "Servicio",
           "name": "Dirección de estudio",
@@ -499,7 +499,7 @@
     "calendar": "Calendario",
     "documents": "Documentos",
     "suppliers": "Proveedores",
-    "products": "Productos",
+    "equipment": "Equipos",
     "staff": "Personal"
   },
   "sider": {
@@ -1141,7 +1141,7 @@
     },
     "sections": {
       "documents": "Documentos",
-      "products": "Productos",
+      "equipment": "Equipos",
       "dashboard": "Panel",
       "schedule": "Calendario",
       "settings": "Configuración"
@@ -1151,30 +1151,30 @@
       "loadError": "No se han podido cargar los bloques de agenda.",
       "viewInCalendar": "Ver en el calendario",
       "noStaff": "Sin personal asignado",
-      "noProducts": "Sin productos asignados",
+      "noEquipment": "Sin equipos asignados",
       "columns": {
         "days": "Días",
         "staff": "Personal",
-        "products": "Productos"
+        "equipment": "Equipos"
       }
     },
-    "products": {
-      "add": "Añadir producto",
-      "addTitle": "Añadir producto al proyecto",
-      "empty": "No hay productos asignados a este proyecto.",
-      "saved": "Producto guardado en el proyecto",
-      "deleted": "Producto eliminado del proyecto",
-      "saveError": "No se ha podido guardar el producto en el proyecto.",
-      "deleteError": "No se ha podido eliminar el producto del proyecto.",
+    "equipment": {
+      "add": "Añadir equipo",
+      "addTitle": "Añadir equipo al proyecto",
+      "empty": "No hay equipos asignados a este proyecto.",
+      "saved": "Equipo guardado en el proyecto",
+      "deleted": "Equipo eliminado del proyecto",
+      "saveError": "No se ha podido guardar el equipo en el proyecto.",
+      "deleteError": "No se ha podido eliminar el equipo del proyecto.",
       "expenseHelp": "Gasto único de leasing opcional asumido por este proyecto.",
       "columns": {
-        "product": "Producto",
+        "equipment": "Equipo",
         "catalogLease": "Cuota mensual de catálogo",
         "projectExpense": "Gasto de leasing del proyecto",
         "date": "Fecha del gasto"
       },
       "validation": {
-        "productRequired": "Selecciona un producto",
+        "equipmentRequired": "Selecciona un equipo",
         "dateRequired": "La fecha del gasto es obligatoria"
       }
     },
@@ -1660,12 +1660,12 @@
       "loadError": "No se ha podido cargar el documento."
     }
   },
-  "products": {
-    "title": "Productos",
-    "subtitle": "Gestiona el catálogo de productos y servicios que facturas.",
-    "add": "Nuevo producto",
-    "empty": "Todavía no hay productos.",
-    "emptySearch": "No hay productos que coincidan con la búsqueda.",
+  "equipment": {
+    "title": "Equipos",
+    "subtitle": "Gestiona los equipos que asignas a proyectos y calendarios.",
+    "add": "Nuevo equipo",
+    "empty": "Todavía no hay equipos.",
+    "emptySearch": "No hay equipos que coincidan con la búsqueda.",
     "searchPlaceholder": "Buscar por nombre, referencia, categoría o etiqueta",
     "categoryFilter": "Todas las categorías",
     "sort": {
@@ -1674,8 +1674,8 @@
       "priceAsc": "Precio: menor a mayor",
       "priceDesc": "Precio: mayor a menor"
     },
-    "loadError": "No se han podido cargar los productos.",
-    "deleted": "Producto eliminado",
+    "loadError": "No se han podido cargar los equipos.",
+    "deleted": "Equipo eliminado",
     "fields": {
       "name": "Nombre",
       "price": "Precio",
@@ -1696,19 +1696,19 @@
     },
     "stockUnset": "sin configurar",
     "card": {
-      "imageAlt": "Imagen del producto {{name}}",
+      "imageAlt": "Imagen del equipo {{name}}",
       "leasing": "Leasing"
     },
     "form": {
-      "createTitle": "Nuevo producto",
-      "editTitle": "Editar producto",
+      "createTitle": "Nuevo equipo",
+      "editTitle": "Editar equipo",
       "submit": "Guardar",
-      "createSubmit": "Crear producto",
-      "created": "Producto creado correctamente",
-      "updated": "Producto actualizado correctamente",
-      "createError": "No se ha podido crear el producto. Inténtalo de nuevo.",
-      "updateError": "No se ha podido actualizar el producto. Inténtalo de nuevo.",
-      "duplicateName": "Ya existe un producto con ese nombre.",
+      "createSubmit": "Crear equipo",
+      "created": "Equipo creado correctamente",
+      "updated": "Equipo actualizado correctamente",
+      "createError": "No se ha podido crear el equipo. Inténtalo de nuevo.",
+      "updateError": "No se ha podido actualizar el equipo. Inténtalo de nuevo.",
+      "duplicateName": "Ya existe un equipo con ese nombre.",
       "priceHelp": "Déjalo vacío si aún no lo has decidido.",
       "stockHelp": "0 significa que el stock todavía no se ha configurado.",
       "leasingMonthlyFeeHelp": "Referencia opcional de catálogo. No se carga automáticamente a un proyecto.",
@@ -1717,25 +1717,55 @@
       "removeImage": "Quitar imagen",
       "imageInvalid": "Sube una imagen PNG, JPG o WEBP de hasta 2 MB.",
       "placeholders": {
-        "name": "Ej. Diseño de logotipo",
-        "price": "Ej. 150",
+        "name": "Ej. Kit de cámara",
+        "price": "Ej. 1500",
         "stock": "Ej. 10",
-        "reference": "Ej. SERV-001",
-        "category": "Ej. Diseño",
-        "brand": "Ej. Marca propia",
-        "description": "Explica brevemente qué ofrece este producto.",
-        "tags": "Ej. urgente, premium",
+        "reference": "Ej. EQP-001",
+        "category": "Ej. Audiovisual",
+        "brand": "Ej. Sony",
+        "description": "Describe brevemente este equipo.",
+        "tags": "Ej. cámara, 4K",
         "leasingMonthlyFee": "Ej. 2000"
       },
       "validation": {
         "nameRequired": "El nombre es obligatorio"
       }
     },
+    "documents": {
+      "title": "Documentos",
+      "subtitle": "Fichas técnicas, certificados, manuales y otros PDF de este equipo.",
+      "add": "Añadir PDF",
+      "empty": "Este equipo todavía no tiene documentos.",
+      "loadError": "No se han podido cargar los documentos del equipo.",
+      "retry": "Reintentar",
+      "view": "Ver documento",
+      "created": "Documento añadido",
+      "updated": "Documento actualizado",
+      "deleted": "Documento eliminado",
+      "saveError": "No se ha podido guardar el documento. Inténtalo de nuevo.",
+      "deleteError": "No se ha podido eliminar el documento. Inténtalo de nuevo.",
+      "deleteConfirm": "¿Eliminar este documento?",
+      "form": {
+        "createTitle": "Añadir documento del equipo",
+        "editTitle": "Editar documento del equipo",
+        "name": "Nombre visible",
+        "namePlaceholder": "Si lo dejas vacío se usará el nombre del PDF",
+        "issueDate": "Fecha de emisión",
+        "expiryDate": "Fecha de caducidad",
+        "notes": "Notas",
+        "file": "Archivo PDF",
+        "dropzone": "Selecciona o arrastra un PDF",
+        "fileHint": "Solo PDF, hasta 10 MB.",
+        "invalidFile": "Selecciona un archivo PDF válido.",
+        "fileTooLarge": "El PDF no puede superar los 10 MB.",
+        "fileRequired": "Selecciona un PDF antes de guardar."
+      }
+    },
     "deleteConfirm": {
-      "title": "Eliminar producto",
+      "title": "Eliminar equipo",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
       "ok": "Eliminar",
-      "error": "No se ha podido eliminar el producto. Inténtalo de nuevo."
+      "error": "No se ha podido eliminar el equipo. Inténtalo de nuevo."
     }
   },
   "calendar": {
@@ -1825,8 +1855,8 @@
         "outside_project_dates": "Fuera de las fechas del proyecto",
         "staff_overlap": "Solape de personal",
         "project_not_active": "Proyecto no activo",
-        "product_overallocated": "Producto sobreasignado",
-        "product_stock_unset": "Stock de producto sin configurar"
+        "equipment_overallocated": "Equipo sobreasignado",
+        "equipment_stock_unset": "Stock de equipo sin configurar"
       }
     },
     "editor": {
@@ -1842,7 +1872,7 @@
         "title": "Ej. Montaje del escenario",
         "notes": "Notas sobre este bloque...",
         "staff": "Selecciona el personal asignado",
-        "product": "Selecciona un producto",
+        "equipment": "Selecciona un equipo",
         "quantity": "Cantidad"
       },
       "schedule": {
@@ -1860,11 +1890,11 @@
         "gaps": "Este bloque tiene días sueltos. Al guardar se convertirá en un rango continuo.",
         "mixedTimes": "Este bloque tenía franjas horarias distintas por día. Al guardar se aplicará una sola franja a todos los días."
       },
-      "products": {
-        "title": "Productos",
-        "add": "Añadir producto",
-        "remove": "Eliminar producto",
-        "noneAvailable": "No hay productos dados de alta todavía."
+      "equipment": {
+        "title": "Equipos",
+        "add": "Añadir equipo",
+        "remove": "Eliminar equipo",
+        "noneAvailable": "No hay equipos dados de alta todavía."
       },
       "validation": {
         "dateRequired": "La fecha es obligatoria",
@@ -1873,7 +1903,7 @@
         "rangeRequired": "La fecha es obligatoria",
         "endAfterStart": "La hora de fin debe ser posterior a la de inicio",
         "rangeTooLong": "El rango es demasiado largo",
-        "productRequired": "Selecciona un producto",
+        "equipmentRequired": "Selecciona un equipo",
         "quantityRequired": "La cantidad es obligatoria",
         "quantityMin": "La cantidad debe ser mayor que 0",
         "formInvalid": "Revisa los campos marcados en rojo antes de guardar"

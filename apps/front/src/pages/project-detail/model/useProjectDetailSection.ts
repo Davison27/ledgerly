@@ -1,10 +1,10 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 
-export type ProjectDetailSection = 'documents' | 'products' | 'dashboard' | 'schedule' | 'settings';
+export type ProjectDetailSection = 'documents' | 'equipment' | 'dashboard' | 'schedule' | 'settings';
 
 const PROJECT_DETAIL_SECTIONS: readonly ProjectDetailSection[] = [
   'documents',
-  'products',
+  'equipment',
   'dashboard',
   'schedule',
   'settings',

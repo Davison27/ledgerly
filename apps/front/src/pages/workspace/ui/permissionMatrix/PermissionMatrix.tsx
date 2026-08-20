@@ -8,7 +8,7 @@ import {
   FileTextOutlined,
   IdcardOutlined,
   ProjectOutlined,
-  ShoppingOutlined,
+  ToolOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -32,7 +32,7 @@ const MODULE_ICONS: Record<WorkspaceModuleDto, ReactNode> = {
   calendar: <CalendarOutlined />,
   documents: <FileTextOutlined />,
   suppliers: <TeamOutlined />,
-  products: <ShoppingOutlined />,
+  equipment: <ToolOutlined />,
   staff: <IdcardOutlined />,
 };
 

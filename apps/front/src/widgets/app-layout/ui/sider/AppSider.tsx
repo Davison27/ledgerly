@@ -10,7 +10,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   ProjectOutlined,
-  ShoppingOutlined,
+  ToolOutlined,
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
@@ -35,7 +35,7 @@ type NavKey =
   | 'calendar'
   | 'documents'
   | 'suppliers'
-  | 'products'
+  | 'equipment'
   | 'staff';
 
 function getSelectedKey(pathname: string): NavKey | undefined {
@@ -44,7 +44,7 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/projects')) return 'projects';
   if (pathname.startsWith('/calendar')) return 'calendar';
   if (pathname.startsWith('/suppliers')) return 'suppliers';
-  if (pathname.startsWith('/products')) return 'products';
+  if (pathname.startsWith('/equipment')) return 'equipment';
   if (pathname.startsWith('/staff')) return 'staff';
   return undefined;
 }
@@ -125,10 +125,10 @@ export function AppSider({
         onClick: () => void navigate({ to: '/suppliers' }),
       },
       {
-        key: 'products' satisfies NavKey,
-        icon: <ShoppingOutlined />,
-        label: t('nav.products'),
-        onClick: () => void navigate({ to: '/products' }),
+        key: 'equipment' satisfies NavKey,
+        icon: <ToolOutlined />,
+        label: t('nav.equipment'),
+        onClick: () => void navigate({ to: '/equipment' }),
       },
       {
         key: 'staff' satisfies NavKey,

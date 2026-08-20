@@ -1,4 +1,4 @@
-export interface ProductDto {
+export interface EquipmentDto {
   id: string;
   name: string;
   price: number | null;
@@ -12,7 +12,7 @@ export interface ProductDto {
   leasingMonthlyFee: number | null;
 }
 
-export interface CreateProductPayload {
+export interface CreateEquipmentPayload {
   name: string;
   price?: number;
   stock?: number;
@@ -25,7 +25,7 @@ export interface CreateProductPayload {
   leasingMonthlyFee?: number | null;
 }
 
-export interface UpdateProductPayload {
+export interface UpdateEquipmentPayload {
   name?: string;
   price?: number;
   stock?: number;
@@ -36,4 +36,30 @@ export interface UpdateProductPayload {
   image?: string | null;
   tags?: string[];
   leasingMonthlyFee?: number | null;
+}
+
+export interface EquipmentDocumentDto {
+  id: string;
+  equipmentId: string;
+  name: string;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  notes?: string | null;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+}
+
+export interface CreateEquipmentDocumentPayload {
+  name?: string;
+  issueDate?: string;
+  expiryDate?: string;
+  notes?: string;
+}
+
+export interface UpdateEquipmentDocumentPayload {
+  name?: string;
+  issueDate?: string | null;
+  expiryDate?: string | null;
+  notes?: string | null;
 }

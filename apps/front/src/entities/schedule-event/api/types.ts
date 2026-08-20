@@ -5,8 +5,8 @@ export type ScheduleConflictKind =
   | 'outside_project_dates'
   | 'staff_overlap'
   | 'project_not_active'
-  | 'product_overallocated'
-  | 'product_stock_unset';
+  | 'equipment_overallocated'
+  | 'equipment_stock_unset';
 
 export type ScheduleConflictSeverity = 'error' | 'info';
 
@@ -16,7 +16,7 @@ export interface ScheduleConflictDto {
   eventId: string;
   date: string | null;
   staffMemberId: string | null;
-  productId: string | null;
+  equipmentId: string | null;
   relatedEventId: string | null;
   stock: number | null;
   allocated: number | null;
@@ -51,8 +51,8 @@ export interface ScheduleEventStaffDto {
   lastName: string;
 }
 
-export interface ScheduleEventProductDto {
-  productId: string;
+export interface ScheduleEventEquipmentDto {
+  equipmentId: string;
   name: string;
   quantity: number;
   stock: number;
@@ -68,7 +68,7 @@ export interface ScheduleEventDto {
   project: ScheduleEventProjectDto;
   days: ScheduleEventDayDto[];
   staff: ScheduleEventStaffDto[];
-  products: ScheduleEventProductDto[];
+  equipment: ScheduleEventEquipmentDto[];
 }
 
 export interface ScheduleBoardDto {
@@ -95,8 +95,8 @@ export interface ScheduleEventDayPayload {
   endTime?: string;
 }
 
-export interface ScheduleEventProductPayload {
-  productId: string;
+export interface ScheduleEventEquipmentPayload {
+  equipmentId: string;
   quantity: number;
 }
 
@@ -106,7 +106,7 @@ export interface CreateScheduleEventPayload {
   notes?: string;
   days: ScheduleEventDayPayload[];
   staffMemberIds: string[];
-  products: ScheduleEventProductPayload[];
+  equipment: ScheduleEventEquipmentPayload[];
 }
 
 export interface UpdateScheduleEventPayload {
@@ -115,7 +115,7 @@ export interface UpdateScheduleEventPayload {
   notes?: string | null;
   days?: ScheduleEventDayPayload[];
   staffMemberIds?: string[];
-  products?: ScheduleEventProductPayload[];
+  equipment?: ScheduleEventEquipmentPayload[];
 }
 
 export interface ScheduleEventListFilter {
