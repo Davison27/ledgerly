@@ -2,7 +2,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../../documents/domain/document.repository';
 import { deriveEffectiveStatus } from '../../../documents/domain/effective-status';
 import { PROJECT_REPOSITORY, ProjectRepository } from '../../../projects/domain/project.repository';
-import { PROJECT_PRODUCT_REPOSITORY, ProjectProductRepository } from '../../../projects/domain/project-product.repository';
+import { PROJECT_EQUIPMENT_REPOSITORY, ProjectEquipmentRepository } from '../../../projects/domain/project-equipment.repository';
 import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 import {
   DashboardDataProvider,
@@ -17,7 +17,7 @@ export class RepositoryDashboardDataProvider implements DashboardDataProvider {
   constructor(
     @Inject(DOCUMENT_REPOSITORY) private readonly documentRepository: DocumentRepository,
     @Inject(PROJECT_REPOSITORY) private readonly projectRepository: ProjectRepository,
-    @Inject(PROJECT_PRODUCT_REPOSITORY) private readonly projectProductRepository: ProjectProductRepository,
+    @Inject(PROJECT_EQUIPMENT_REPOSITORY) private readonly projectEquipmentRepository: ProjectEquipmentRepository,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
@@ -50,6 +50,6 @@ export class RepositoryDashboardDataProvider implements DashboardDataProvider {
   }
 
   findAllLeaseExpenseRows(): Promise<DashboardLeaseExpenseRow[]> {
-    return this.projectProductRepository.findAllLeaseExpenseRows();
+    return this.projectEquipmentRepository.findAllLeaseExpenseRows();
   }
 }

@@ -7,7 +7,7 @@ import {
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
-import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
+import { ScheduleEquipmentReader, ScheduleEquipmentView } from '../../domain/schedule-equipment-reader.port';
 
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
@@ -61,11 +61,11 @@ class FakeScheduleStaffReader implements ScheduleStaffReader {
   }
 }
 
-class FakeScheduleProductReader implements ScheduleProductReader {
-  constructor(private readonly products: ScheduleProductView[]) {}
+class FakeScheduleEquipmentReader implements ScheduleEquipmentReader {
+  constructor(private readonly equipment: ScheduleEquipmentView[]) {}
 
-  findByIds(ids: string[]): Promise<ScheduleProductView[]> {
-    return Promise.resolve(this.products.filter((product) => ids.includes(product.id)));
+  findByIds(ids: string[]): Promise<ScheduleEquipmentView[]> {
+    return Promise.resolve(this.equipment.filter((equipment) => ids.includes(equipment.id)));
   }
 }
 
@@ -89,7 +89,7 @@ const STAFF_MEMBER: ScheduleStaffView = {
   endDate: null,
 };
 
-const PRODUCT: ScheduleProductView = { id: 'product-1', name: 'Carpa', stock: 5 };
+const EQUIPMENT: ScheduleEquipmentView = { id: 'equipment-1', name: 'Carpa', stock: 5 };
 
 function buildEvent(): ScheduleEvent {
   return ScheduleEvent.create({
@@ -97,7 +97,7 @@ function buildEvent(): ScheduleEvent {
     projectId: 'project-1',
     days: [{ date: '2026-07-03', startTime: null, endTime: null }],
     staffMemberIds: ['staff-1'],
-    products: [{ productId: 'product-1', quantity: 2 }],
+    equipment: [{ equipmentId: 'equipment-1', quantity: 2 }],
   });
 }
 
@@ -107,7 +107,7 @@ describe('ListScheduleEventsUseCase', () => {
       new InMemoryScheduleEventRepository([buildEvent()]),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
     );
 
     const views = await useCase.execute({ projectId: 'project-1' });
@@ -116,7 +116,7 @@ describe('ListScheduleEventsUseCase', () => {
     expect(views[0].project.id).toBe('project-1');
     expect(views[0].project.image).toBe(projectImage);
     expect(views[0].staff).toEqual([STAFF_MEMBER]);
-    expect(views[0].products).toEqual([{ ...PRODUCT, quantity: 2 }]);
+    expect(views[0].equipment).toEqual([{ ...EQUIPMENT, quantity: 2 }]);
   });
 
   it('forwards the filter to the repository unchanged', async () => {
@@ -125,7 +125,7 @@ describe('ListScheduleEventsUseCase', () => {
       repository,
       new FakeScheduleProjectReader([]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
     );
 
     const filter: ScheduleEventFilter = { staffMemberId: 'staff-1' };
@@ -139,7 +139,7 @@ describe('ListScheduleEventsUseCase', () => {
       new InMemoryScheduleEventRepository([]),
       new FakeScheduleProjectReader([]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
     );
 
     expect(await useCase.execute({})).toEqual([]);

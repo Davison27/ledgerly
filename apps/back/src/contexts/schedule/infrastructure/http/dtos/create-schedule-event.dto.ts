@@ -9,7 +9,7 @@ import {
   ValidateNested,
 } from 'class-validator';
 import { ScheduleEventDayDto } from './schedule-event-day.dto';
-import { ScheduleEventProductDto } from './schedule-event-product.dto';
+import { ScheduleEventEquipmentDto } from './schedule-event-equipment.dto';
 
 export class CreateScheduleEventDto {
   @IsUUID()
@@ -36,6 +36,6 @@ export class CreateScheduleEventDto {
 
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => ScheduleEventProductDto)
-  products?: ScheduleEventProductDto[];
+  @Type(() => ScheduleEventEquipmentDto)
+  equipment?: ScheduleEventEquipmentDto[];
 }

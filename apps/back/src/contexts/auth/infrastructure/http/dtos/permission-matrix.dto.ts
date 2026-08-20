@@ -20,7 +20,7 @@ export class PermissionMatrixDto {
 
   @IsIn(PERMISSION_LEVELS)
   @IsIn(PERMISSION_LEVELS)
-  products: 'none' | 'view' | 'edit';
+  equipment: 'none' | 'view' | 'edit';
 
   @IsIn(PERMISSION_LEVELS)
   staff: 'none' | 'view' | 'edit';

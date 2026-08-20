@@ -4,8 +4,8 @@ export interface CreateScheduleEventDayCommand {
   endTime?: string | null;
 }
 
-export interface CreateScheduleEventProductCommand {
-  productId: string;
+export interface CreateScheduleEventEquipmentCommand {
+  equipmentId: string;
   quantity: number;
 }
 
@@ -15,5 +15,5 @@ export interface CreateScheduleEventCommand {
   notes?: string | null;
   days: CreateScheduleEventDayCommand[];
   staffMemberIds?: string[];
-  products?: CreateScheduleEventProductCommand[];
+  equipment?: CreateScheduleEventEquipmentCommand[];
 }

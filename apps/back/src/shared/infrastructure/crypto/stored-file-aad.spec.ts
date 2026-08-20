@@ -64,7 +64,8 @@ describe('buildStoredFileAad', () => {
     ['companyDocument', 0x07],
     ['companyLogo', 0x04],
     ['projectImage', 0x05],
-    ['productImage', 0x06],
+    ['equipmentImage', 0x06],
+    ['equipmentDocument', 0x08],
   ] satisfies [StoredFileStore, number][])('uses the fixed %s store identifier', (store, code) => {
     const aad = buildStoredFileAad(buildDescriptor({ store }));
 

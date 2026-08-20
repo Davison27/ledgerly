@@ -20,13 +20,13 @@ export class TypeOrmProjectFinancialsProvider implements ProjectFinancialsProvid
         FROM documents
         GROUP BY project_id, currency
         UNION ALL
-        SELECT pp.project_id AS "projectId", p.currency, 0,
-               COALESCE(SUM(pp.lease_expense), 0)
-        FROM project_products pp
-        JOIN projects p ON p.id = pp.project_id
-        WHERE pp.lease_expense IS NOT NULL
-          AND pp.lease_expense_date IS NOT NULL
-        GROUP BY pp.project_id, p.currency
+        SELECT pe.project_id AS "projectId", p.currency, 0,
+               COALESCE(SUM(pe.lease_expense), 0)
+        FROM project_equipment pe
+        JOIN projects p ON p.id = pe.project_id
+        WHERE pe.lease_expense IS NOT NULL
+          AND pe.lease_expense_date IS NOT NULL
+        GROUP BY pe.project_id, p.currency
       ) totals
       GROUP BY "projectId", currency
     `);

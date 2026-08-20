@@ -3,9 +3,9 @@ import { ProjectNotFoundException } from '../../domain/errors/project-not-found.
 import { ProjectRepository } from '../../domain/project.repository';
 import {
   ProjectLeaseExpenseRow,
-  ProjectProductRecord,
-  ProjectProductRepository,
-} from '../../domain/project-product.repository';
+  ProjectEquipmentRecord,
+  ProjectEquipmentRepository,
+} from '../../domain/project-equipment.repository';
 import { DeleteProjectUseCase } from './delete-project.use-case';
 
 class InMemoryProjectRepository implements ProjectRepository {
@@ -48,10 +48,10 @@ class InMemoryProjectRepository implements ProjectRepository {
   }
 }
 
-class InMemoryProjectProductRepository implements ProjectProductRepository {
+class InMemoryProjectEquipmentRepository implements ProjectEquipmentRepository {
   readonly deletedProjectIds: string[] = [];
 
-  findByProjectId(): Promise<ProjectProductRecord[]> {
+  findByProjectId(): Promise<ProjectEquipmentRecord[]> {
     return Promise.resolve([]);
   }
 
@@ -101,23 +101,23 @@ function project(): Project {
 describe('DeleteProjectUseCase', () => {
   it('rejects an unknown project before deleting its associations', async () => {
     const projects = new InMemoryProjectRepository();
-    const projectProducts = new InMemoryProjectProductRepository();
-    const useCase = new DeleteProjectUseCase(projects, projectProducts);
+    const projectEquipment = new InMemoryProjectEquipmentRepository();
+    const useCase = new DeleteProjectUseCase(projects, projectEquipment);
 
     await expect(useCase.execute('missing-project')).rejects.toThrow(ProjectNotFoundException);
 
-    expect(projectProducts.deletedProjectIds).toEqual([]);
+    expect(projectEquipment.deletedProjectIds).toEqual([]);
     expect(projects.deletedIds).toEqual([]);
   });
 
   it('deletes an existing project and its associations', async () => {
     const projects = new InMemoryProjectRepository([project()]);
-    const projectProducts = new InMemoryProjectProductRepository();
-    const useCase = new DeleteProjectUseCase(projects, projectProducts);
+    const projectEquipment = new InMemoryProjectEquipmentRepository();
+    const useCase = new DeleteProjectUseCase(projects, projectEquipment);
 
     await useCase.execute('project-1');
 
-    expect(projectProducts.deletedProjectIds).toEqual(['project-1']);
+    expect(projectEquipment.deletedProjectIds).toEqual(['project-1']);
     expect(projects.deletedIds).toEqual(['project-1']);
   });
 });

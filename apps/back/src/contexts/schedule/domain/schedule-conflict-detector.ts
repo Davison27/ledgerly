@@ -61,7 +61,7 @@ export function detectScheduleConflicts(
         eventId: view.event.id,
         date: null,
         staffMemberId: null,
-        productId: null,
+        equipmentId: null,
         relatedEventId: null,
         stock: null,
         allocated: null,
@@ -76,7 +76,7 @@ export function detectScheduleConflicts(
           eventId: view.event.id,
           date: day.date,
           staffMemberId: null,
-          productId: null,
+          equipmentId: null,
           relatedEventId: null,
           stock: null,
           allocated: null,
@@ -93,7 +93,7 @@ export function detectScheduleConflicts(
             eventId: view.event.id,
             date: day.date,
             staffMemberId,
-            productId: null,
+            equipmentId: null,
             relatedEventId: null,
             stock: null,
             allocated: null,
@@ -114,7 +114,7 @@ export function detectScheduleConflicts(
               eventId: view.event.id,
               date: day.date,
               staffMemberId,
-              productId: null,
+              equipmentId: null,
               relatedEventId: other.event.id,
               stock: null,
               allocated: null,
@@ -123,7 +123,7 @@ export function detectScheduleConflicts(
         }
       }
 
-      for (const product of view.products) {
+      for (const equipment of view.equipment) {
         const allocated = views.reduce((sum, other) => {
           const otherDay = findDayForDate(other.event.days, day.date);
 
@@ -131,33 +131,33 @@ export function detectScheduleConflicts(
             return sum;
           }
 
-          const otherProduct = other.event.products.find((candidate) => candidate.productId === product.id);
+          const otherEquipment = other.event.equipment.find((candidate) => candidate.equipmentId === equipment.id);
 
-          return otherProduct !== undefined ? sum + otherProduct.quantity : sum;
+          return otherEquipment !== undefined ? sum + otherEquipment.quantity : sum;
         }, 0);
 
-        if (product.stock > 0 && allocated > product.stock) {
+        if (equipment.stock > 0 && allocated > equipment.stock) {
           conflicts.push({
-            kind: 'product_overallocated',
+            kind: 'equipment_overallocated',
             severity: 'error',
             eventId: view.event.id,
             date: day.date,
             staffMemberId: null,
-            productId: product.id,
+            equipmentId: equipment.id,
             relatedEventId: null,
-            stock: product.stock,
+            stock: equipment.stock,
             allocated,
           });
-        } else if (product.stock === 0) {
+        } else if (equipment.stock === 0) {
           conflicts.push({
-            kind: 'product_stock_unset',
+            kind: 'equipment_stock_unset',
             severity: 'info',
             eventId: view.event.id,
             date: day.date,
             staffMemberId: null,
-            productId: product.id,
+            equipmentId: equipment.id,
             relatedEventId: null,
-            stock: product.stock,
+            stock: equipment.stock,
             allocated,
           });
         }

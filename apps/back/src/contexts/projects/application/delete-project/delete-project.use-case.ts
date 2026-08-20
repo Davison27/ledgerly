@@ -3,7 +3,7 @@ import {
   PROJECT_REPOSITORY,
   ProjectRepository,
 } from '../../domain/project.repository';
-import { PROJECT_PRODUCT_REPOSITORY, ProjectProductRepository } from '../../domain/project-product.repository';
+import { PROJECT_EQUIPMENT_REPOSITORY, ProjectEquipmentRepository } from '../../domain/project-equipment.repository';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 
 @Injectable()
@@ -11,8 +11,8 @@ export class DeleteProjectUseCase {
   constructor(
     @Inject(PROJECT_REPOSITORY)
     private readonly projectRepository: ProjectRepository,
-    @Inject(PROJECT_PRODUCT_REPOSITORY)
-    private readonly projectProductRepository: ProjectProductRepository,
+    @Inject(PROJECT_EQUIPMENT_REPOSITORY)
+    private readonly projectEquipmentRepository: ProjectEquipmentRepository,
   ) {}
 
   async execute(id: string): Promise<void> {
@@ -22,7 +22,7 @@ export class DeleteProjectUseCase {
       throw new ProjectNotFoundException(id);
     }
 
-    await this.projectProductRepository.deleteByProjectId(id);
+    await this.projectEquipmentRepository.deleteByProjectId(id);
     await this.projectRepository.delete(id);
   }
 }

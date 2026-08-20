@@ -7,11 +7,11 @@ import {
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
-import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
+import { ScheduleEquipmentReader, ScheduleEquipmentView } from '../../domain/schedule-equipment-reader.port';
 import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-event-not-found.exception';
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
-import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
+import { ScheduleEquipmentNotFoundException } from '../../domain/errors/schedule-equipment-not-found.exception';
 import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
@@ -67,11 +67,11 @@ class FakeScheduleStaffReader implements ScheduleStaffReader {
   }
 }
 
-class FakeScheduleProductReader implements ScheduleProductReader {
-  constructor(private readonly products: ScheduleProductView[]) {}
+class FakeScheduleEquipmentReader implements ScheduleEquipmentReader {
+  constructor(private readonly equipment: ScheduleEquipmentView[]) {}
 
-  findByIds(ids: string[]): Promise<ScheduleProductView[]> {
-    return Promise.resolve(this.products.filter((product) => ids.includes(product.id)));
+  findByIds(ids: string[]): Promise<ScheduleEquipmentView[]> {
+    return Promise.resolve(this.equipment.filter((equipment) => ids.includes(equipment.id)));
   }
 }
 
@@ -97,7 +97,7 @@ const STAFF_MEMBER: ScheduleStaffView = {
   endDate: null,
 };
 
-const PRODUCT: ScheduleProductView = { id: 'product-1', name: 'Carpa', stock: 5 };
+const EQUIPMENT: ScheduleEquipmentView = { id: 'equipment-1', name: 'Carpa', stock: 5 };
 
 class FakeDomainEventPublisher implements DomainEventPublisher {
   published: DomainEvent[] = [];
@@ -117,7 +117,7 @@ function buildEvent(): ScheduleEvent {
     title: 'Montaje',
     days: [{ date: '2026-07-03', startTime: null, endTime: null }],
     staffMemberIds: ['staff-1'],
-    products: [{ productId: 'product-1', quantity: 2 }],
+    equipment: [{ equipmentId: 'equipment-1', quantity: 2 }],
   });
 }
 
@@ -129,7 +129,7 @@ describe('UpdateScheduleEventUseCase', () => {
       repository,
       new FakeScheduleProjectReader([PROJECT, OTHER_PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
       publisher,
     );
 
@@ -152,7 +152,7 @@ describe('UpdateScheduleEventUseCase', () => {
       repository,
       new FakeScheduleProjectReader([PROJECT, OTHER_PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
       new FakeDomainEventPublisher(),
     );
 
@@ -167,7 +167,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new InMemoryScheduleEventRepository(),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
       new FakeDomainEventPublisher(),
     );
 
@@ -182,7 +182,7 @@ describe('UpdateScheduleEventUseCase', () => {
       repository,
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
       new FakeDomainEventPublisher(),
     );
 
@@ -197,7 +197,7 @@ describe('UpdateScheduleEventUseCase', () => {
       repository,
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
       new FakeDomainEventPublisher(),
     );
 
@@ -206,18 +206,18 @@ describe('UpdateScheduleEventUseCase', () => {
     ).rejects.toThrow(ScheduleStaffMemberNotFoundException);
   });
 
-  it('throws ScheduleProductNotFoundException when a new product does not exist', async () => {
+  it('throws ScheduleEquipmentNotFoundException when a new equipment does not exist', async () => {
     const repository = new InMemoryScheduleEventRepository([buildEvent()]);
     const useCase = new UpdateScheduleEventUseCase(
       repository,
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
       new FakeDomainEventPublisher(),
     );
 
     await expect(
-      useCase.execute({ id: 'event-1', products: [{ productId: 'missing-product', quantity: 1 }] }),
-    ).rejects.toThrow(ScheduleProductNotFoundException);
+      useCase.execute({ id: 'event-1', equipment: [{ equipmentId: 'missing-equipment', quantity: 1 }] }),
+    ).rejects.toThrow(ScheduleEquipmentNotFoundException);
   });
 });

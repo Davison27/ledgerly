@@ -37,19 +37,19 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
   'PATCH /schedule/events/:id': [
     { location: 'body', key: 'projectId' },
     { location: 'body', key: 'staffMemberIds[]' },
-    { location: 'body', key: 'products[].productId' },
+    { location: 'body', key: 'equipment[].equipmentId' },
   ],
   'POST /projects/:projectId/documents': [
     { location: 'body', key: 'payload.supplierId' },
     { location: 'body', key: 'payload.staffMemberId' },
   ],
   'POST /company/documents': [{ location: 'body', key: 'payload.typeId' }],
-  'POST /projects/:projectId/products': [{ location: 'body', key: 'productId' }],
+  'POST /projects/:projectId/equipment': [{ location: 'body', key: 'equipmentId' }],
   'POST /staff/:staffMemberId/documents': [{ location: 'body', key: 'typeId' }],
   'POST /schedule/events': [
     { location: 'body', key: 'projectId' },
     { location: 'body', key: 'staffMemberIds[]' },
-    { location: 'body', key: 'products[].productId' },
+    { location: 'body', key: 'equipment[].equipmentId' },
   ],
 };
 

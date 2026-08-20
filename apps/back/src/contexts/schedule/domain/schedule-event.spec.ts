@@ -11,7 +11,7 @@ const BASE_PROPS = {
     { date: '2026-07-03', startTime: '08:00', endTime: '14:00' },
   ],
   staffMemberIds: ['staff-1', 'staff-2'],
-  products: [{ productId: 'product-1', quantity: 2 }],
+  equipment: [{ equipmentId: 'equipment-1', quantity: 2 }],
 };
 
 describe('ScheduleEvent', () => {
@@ -38,7 +38,7 @@ describe('ScheduleEvent', () => {
     expect(event.title).toBeNull();
     expect(event.notes).toBeNull();
     expect(event.staffMemberIds).toEqual([]);
-    expect(event.products).toEqual([]);
+    expect(event.equipment).toEqual([]);
   });
 
   it('throws when there are no days', () => {
@@ -63,21 +63,21 @@ describe('ScheduleEvent', () => {
     ).toThrow(InvalidValueException);
   });
 
-  it('throws when a product is repeated', () => {
+  it('throws when equipment is repeated', () => {
     expect(() =>
       ScheduleEvent.create({
         ...BASE_PROPS,
-        products: [
-          { productId: 'product-1', quantity: 1 },
-          { productId: 'product-1', quantity: 2 },
+        equipment: [
+          { equipmentId: 'equipment-1', quantity: 1 },
+          { equipmentId: 'equipment-1', quantity: 2 },
         ],
       }),
     ).toThrow(InvalidValueException);
   });
 
-  it('throws when a product quantity is not a positive integer', () => {
+  it('throws when equipment quantity is not a positive integer', () => {
     expect(() =>
-      ScheduleEvent.create({ ...BASE_PROPS, products: [{ productId: 'product-1', quantity: 0 }] }),
+      ScheduleEvent.create({ ...BASE_PROPS, equipment: [{ equipmentId: 'equipment-1', quantity: 0 }] }),
     ).toThrow(InvalidValueException);
   });
 

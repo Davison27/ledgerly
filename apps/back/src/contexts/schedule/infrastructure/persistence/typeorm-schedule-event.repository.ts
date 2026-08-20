@@ -10,7 +10,7 @@ import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generato
 import { ScheduleEventOrmEntity } from './schedule-event.orm-entity';
 import { ScheduleEventDayOrmEntity } from './schedule-event-day.orm-entity';
 import { ScheduleEventStaffOrmEntity } from './schedule-event-staff.orm-entity';
-import { ScheduleEventProductOrmEntity } from './schedule-event-product.orm-entity';
+import { ScheduleEventEquipmentOrmEntity } from './schedule-event-equipment.orm-entity';
 import { ScheduleEventMapper } from './schedule-event.mapper';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 
@@ -24,8 +24,8 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
     private readonly dayRepository: Repository<ScheduleEventDayOrmEntity>,
     @InjectRepository(ScheduleEventStaffOrmEntity)
     private readonly staffRepository: Repository<ScheduleEventStaffOrmEntity>,
-    @InjectRepository(ScheduleEventProductOrmEntity)
-    private readonly productRepository: Repository<ScheduleEventProductOrmEntity>,
+    @InjectRepository(ScheduleEventEquipmentOrmEntity)
+    private readonly equipmentRepository: Repository<ScheduleEventEquipmentOrmEntity>,
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
   ) {}
 
@@ -36,13 +36,13 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
       return null;
     }
 
-    const [days, staff, products] = await Promise.all([
+    const [days, staff, equipment] = await Promise.all([
       this.dayRepository.find({ where: { eventId: id } }),
       this.staffRepository.find({ where: { eventId: id } }),
-      this.productRepository.find({ where: { eventId: id } }),
+      this.equipmentRepository.find({ where: { eventId: id } }),
     ]);
 
-    return ScheduleEventMapper.toDomain(orm, days, staff, products);
+    return ScheduleEventMapper.toDomain(orm, days, staff, equipment);
   }
 
   async findByFilter(filter: ScheduleEventFilter): Promise<ScheduleEvent[]> {
@@ -90,10 +90,10 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
 
     const ids = eventOrms.map((orm) => orm.id);
 
-    const [days, staff, products] = await Promise.all([
+    const [days, staff, equipment] = await Promise.all([
       this.dayRepository.find({ where: { eventId: In(ids) } }),
       this.staffRepository.find({ where: { eventId: In(ids) } }),
-      this.productRepository.find({ where: { eventId: In(ids) } }),
+      this.equipmentRepository.find({ where: { eventId: In(ids) } }),
     ]);
 
     return eventOrms.map((orm) =>
@@ -101,7 +101,7 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
         orm,
         days.filter((day) => day.eventId === orm.id),
         staff.filter((member) => member.eventId === orm.id),
-        products.filter((product) => product.eventId === orm.id),
+        equipment.filter((equipment) => equipment.eventId === orm.id),
       ),
     );
   }
@@ -112,7 +112,7 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
 
       await manager.getRepository(ScheduleEventDayOrmEntity).delete({ eventId: event.id });
       await manager.getRepository(ScheduleEventStaffOrmEntity).delete({ eventId: event.id });
-      await manager.getRepository(ScheduleEventProductOrmEntity).delete({ eventId: event.id });
+      await manager.getRepository(ScheduleEventEquipmentOrmEntity).delete({ eventId: event.id });
 
       const dayIds = event.days.map(() => this.idGenerator.generate());
       const dayOrms = ScheduleEventMapper.daysToOrm(event, dayIds);
@@ -127,10 +127,10 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
         await manager.getRepository(ScheduleEventStaffOrmEntity).insert(staffOrms);
       }
 
-      const productOrms = ScheduleEventMapper.productsToOrm(event);
+      const equipmentOrms = ScheduleEventMapper.equipmentToOrm(event);
 
-      if (productOrms.length > 0) {
-        await manager.getRepository(ScheduleEventProductOrmEntity).insert(productOrms);
+      if (equipmentOrms.length > 0) {
+        await manager.getRepository(ScheduleEventEquipmentOrmEntity).insert(equipmentOrms);
       }
     });
   }

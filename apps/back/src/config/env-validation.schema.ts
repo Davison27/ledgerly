@@ -49,7 +49,7 @@ export const envValidationSchema = Joi.object({
   DB_QUERY_TIMEOUT_MS: Joi.number().integer().min(1).required(),
   DB_CONNECTION_BUDGET: Joi.number().integer().min(1).required(),
   MAX_LIST_ITEMS: Joi.number().integer().min(1).max(10000).default(500),
-  MAX_PROJECT_PRODUCTS_PER_PROJECT: Joi.number().integer().min(1).max(5000).default(100),
+  MAX_PROJECT_EQUIPMENT_PER_PROJECT: Joi.number().integer().min(1).max(5000).default(100),
   MAX_CALENDAR_RANGE_DAYS: Joi.number().integer().min(1).max(3660).default(366),
   MAX_CALENDAR_RESULTS: Joi.number().integer().min(1).max(10000).default(1000),
 

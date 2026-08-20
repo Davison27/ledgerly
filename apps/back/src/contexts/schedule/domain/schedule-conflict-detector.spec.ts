@@ -3,7 +3,7 @@ import { ScheduleEvent } from './schedule-event';
 import { ScheduleEventView } from './schedule-event-view';
 import { ScheduleProjectView } from './schedule-project-reader.port';
 import { ScheduleStaffView } from './schedule-staff-reader.port';
-import { ScheduleProductView } from './schedule-product-reader.port';
+import { ScheduleEquipmentView } from './schedule-equipment-reader.port';
 
 const RANGE = { from: '2026-07-01', to: '2026-07-31' };
 
@@ -31,7 +31,7 @@ function buildView(
     event: ScheduleEvent;
     project: ScheduleProjectView;
     staff: ScheduleStaffView[];
-    products: Array<ScheduleProductView & { quantity: number }>;
+    equipment: Array<ScheduleEquipmentView & { quantity: number }>;
   }> = {},
 ): ScheduleEventView {
   return {
@@ -45,7 +45,7 @@ function buildView(
       }),
     project: overrides.project ?? ACTIVE_PROJECT,
     staff: overrides.staff ?? [HIRED_STAFF],
-    products: overrides.products ?? [],
+    equipment: overrides.equipment ?? [],
   };
 }
 
@@ -138,34 +138,34 @@ describe('detectScheduleConflicts', () => {
     );
   });
 
-  it('flags product_overallocated when the summed quantity exceeds stock on an overlapping day', () => {
+  it('flags equipment_overallocated when the summed quantity exceeds stock on an overlapping day', () => {
     const eventA = ScheduleEvent.create({
       id: 'event-a',
       projectId: 'project-1',
       days: [{ date: '2026-07-10', startTime: null, endTime: null }],
-      products: [{ productId: 'product-1', quantity: 6 }],
+      equipment: [{ equipmentId: 'equipment-1', quantity: 6 }],
     });
     const eventB = ScheduleEvent.create({
       id: 'event-b',
       projectId: 'project-1',
       days: [{ date: '2026-07-10', startTime: null, endTime: null }],
-      products: [{ productId: 'product-1', quantity: 6 }],
+      equipment: [{ equipmentId: 'equipment-1', quantity: 6 }],
     });
-    const productView = { id: 'product-1', name: 'Carpa', stock: 10, quantity: 6 };
+    const equipmentView = { id: 'equipment-1', name: 'Carpa', stock: 10, quantity: 6 };
 
     const conflicts = detectScheduleConflicts(
       [
-        buildView({ event: eventA, products: [productView] }),
-        buildView({ event: eventB, products: [productView] }),
+        buildView({ event: eventA, equipment: [equipmentView] }),
+        buildView({ event: eventB, equipment: [equipmentView] }),
       ],
       RANGE,
     );
 
     expect(conflicts).toContainEqual(
       expect.objectContaining({
-        kind: 'product_overallocated',
+        kind: 'equipment_overallocated',
         eventId: 'event-a',
-        productId: 'product-1',
+        equipmentId: 'equipment-1',
         stock: 10,
         allocated: 12,
         severity: 'error',
@@ -173,23 +173,23 @@ describe('detectScheduleConflicts', () => {
     );
   });
 
-  it('flags product_stock_unset as an info-level conflict when stock is zero', () => {
+  it('flags equipment_stock_unset as an info-level conflict when stock is zero', () => {
     const event = ScheduleEvent.create({
       id: 'event-1',
       projectId: 'project-1',
       days: [{ date: '2026-07-10', startTime: null, endTime: null }],
-      products: [{ productId: 'product-1', quantity: 3 }],
+      equipment: [{ equipmentId: 'equipment-1', quantity: 3 }],
     });
 
     const conflicts = detectScheduleConflicts(
-      [buildView({ event, products: [{ id: 'product-1', name: 'Carpa', stock: 0, quantity: 3 }] })],
+      [buildView({ event, equipment: [{ id: 'equipment-1', name: 'Carpa', stock: 0, quantity: 3 }] })],
       RANGE,
     );
 
     expect(conflicts).toContainEqual(
-      expect.objectContaining({ kind: 'product_stock_unset', severity: 'info', productId: 'product-1' }),
+      expect.objectContaining({ kind: 'equipment_stock_unset', severity: 'info', equipmentId: 'equipment-1' }),
     );
-    expect(conflicts.some((conflict) => conflict.kind === 'product_overallocated')).toBe(false);
+    expect(conflicts.some((conflict) => conflict.kind === 'equipment_overallocated')).toBe(false);
   });
 
   it('ignores days that fall outside the requested range', () => {

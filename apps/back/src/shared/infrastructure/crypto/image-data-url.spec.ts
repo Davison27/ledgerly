@@ -44,7 +44,7 @@ describe('canonical image data URL', () => {
     ['image/webp', Buffer.from('52494646060000005745425000', 'hex')],
     ['image/jpeg', Buffer.from('ffd8ff', 'hex')],
   ])('rejects MIME and magic-byte mismatches', (mimeType, bytes) => {
-    expect(() => parseCanonicalImageDataUrl(dataUrl(mimeType, bytes), 'productImage')).toThrow(StoredFileCryptographyException);
+    expect(() => parseCanonicalImageDataUrl(dataUrl(mimeType, bytes), 'equipmentImage')).toThrow(StoredFileCryptographyException);
   });
 
   it('accepts the exact image limit and rejects one decoded byte over it before encryption', () => {

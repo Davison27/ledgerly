@@ -32,9 +32,9 @@ describe('stored image envelope', () => {
     (envelope: ReturnType<typeof encryptStoredImage>['envelope']) => ({ ...envelope, size: null }),
   ])('rejects a partial image envelope', (mutateEnvelope) => {
     const cipher = createCipher();
-    const encrypted = encryptStoredImage(image, 'productImage', 'product-1', cipher);
+    const encrypted = encryptStoredImage(image, 'equipmentImage', 'equipment-1', cipher);
 
-    expect(() => decryptStoredImage(mutateEnvelope(encrypted.envelope), 'productImage', 'product-1', cipher)).toThrow(
+    expect(() => decryptStoredImage(mutateEnvelope(encrypted.envelope), 'equipmentImage', 'equipment-1', cipher)).toThrow(
       StoredFileCryptographyException,
     );
   });

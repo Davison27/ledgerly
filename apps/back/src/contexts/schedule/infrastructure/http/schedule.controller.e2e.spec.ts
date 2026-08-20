@@ -43,10 +43,10 @@ function buildView(overrides: Partial<CreateScheduleEventCommand> & { id?: strin
       endTime: day.endTime ?? null,
     })),
     staffMemberIds: overrides.staffMemberIds ?? [],
-    products: overrides.products ?? [],
+    equipment: overrides.equipment ?? [],
   });
 
-  return { event, project: PROJECT_VIEW, staff: [], products: [] };
+  return { event, project: PROJECT_VIEW, staff: [], equipment: [] };
 }
 
 describe('ScheduleController (HTTP, no DB)', () => {

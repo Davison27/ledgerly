@@ -7,10 +7,10 @@ import {
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-staff-reader.port';
-import { ScheduleProductReader, ScheduleProductView } from '../../domain/schedule-product-reader.port';
+import { ScheduleEquipmentReader, ScheduleEquipmentView } from '../../domain/schedule-equipment-reader.port';
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
 import { ScheduleStaffMemberNotFoundException } from '../../domain/errors/schedule-staff-member-not-found.exception';
-import { ScheduleProductNotFoundException } from '../../domain/errors/schedule-product-not-found.exception';
+import { ScheduleEquipmentNotFoundException } from '../../domain/errors/schedule-equipment-not-found.exception';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
@@ -67,11 +67,11 @@ class FakeScheduleStaffReader implements ScheduleStaffReader {
   }
 }
 
-class FakeScheduleProductReader implements ScheduleProductReader {
-  constructor(private readonly products: ScheduleProductView[]) {}
+class FakeScheduleEquipmentReader implements ScheduleEquipmentReader {
+  constructor(private readonly equipment: ScheduleEquipmentView[]) {}
 
-  findByIds(ids: string[]): Promise<ScheduleProductView[]> {
-    return Promise.resolve(this.products.filter((product) => ids.includes(product.id)));
+  findByIds(ids: string[]): Promise<ScheduleEquipmentView[]> {
+    return Promise.resolve(this.equipment.filter((equipment) => ids.includes(equipment.id)));
   }
 }
 
@@ -114,7 +114,7 @@ const STAFF_MEMBER: ScheduleStaffView = {
   endDate: null,
 };
 
-const PRODUCT: ScheduleProductView = { id: 'product-1', name: 'Carpa', stock: 5 };
+const EQUIPMENT: ScheduleEquipmentView = { id: 'equipment-1', name: 'Carpa', stock: 5 };
 
 describe('CreateScheduleEventUseCase', () => {
   it('creates a schedule event and returns its view', async () => {
@@ -124,7 +124,7 @@ describe('CreateScheduleEventUseCase', () => {
       repository,
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([STAFF_MEMBER]),
-      new FakeScheduleProductReader([PRODUCT]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
       new SequentialIdGenerator(),
       publisher,
     );
@@ -137,7 +137,7 @@ describe('CreateScheduleEventUseCase', () => {
         { date: '2026-07-04' },
       ],
       staffMemberIds: ['staff-1'],
-      products: [{ productId: 'product-1', quantity: 2 }],
+      equipment: [{ equipmentId: 'equipment-1', quantity: 2 }],
     });
 
     expect(view.event.id).toBe('event-1');
@@ -145,7 +145,7 @@ describe('CreateScheduleEventUseCase', () => {
     expect(view.project.id).toBe('project-1');
     expect(view.project.image).toBe(projectImage);
     expect(view.staff).toEqual([STAFF_MEMBER]);
-    expect(view.products).toEqual([{ ...PRODUCT, quantity: 2 }]);
+    expect(view.equipment).toEqual([{ ...EQUIPMENT, quantity: 2 }]);
     expect(await repository.findById('event-1')).not.toBeNull();
     expect(publisher.published).toHaveLength(1);
     const [event] = publisher.published as ScheduleEventSavedEvent[];
@@ -159,7 +159,7 @@ describe('CreateScheduleEventUseCase', () => {
       new InMemoryScheduleEventRepository(),
       new FakeScheduleProjectReader([]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
       new SequentialIdGenerator(),
       new FakeDomainEventPublisher(),
     );
@@ -174,7 +174,7 @@ describe('CreateScheduleEventUseCase', () => {
       new InMemoryScheduleEventRepository(),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
       new SequentialIdGenerator(),
       new FakeDomainEventPublisher(),
     );
@@ -188,12 +188,12 @@ describe('CreateScheduleEventUseCase', () => {
     ).rejects.toThrow(ScheduleStaffMemberNotFoundException);
   });
 
-  it('throws ScheduleProductNotFoundException when a product does not exist', async () => {
+  it('throws ScheduleEquipmentNotFoundException when equipment does not exist', async () => {
     const useCase = new CreateScheduleEventUseCase(
       new InMemoryScheduleEventRepository(),
       new FakeScheduleProjectReader([PROJECT]),
       new FakeScheduleStaffReader([]),
-      new FakeScheduleProductReader([]),
+      new FakeScheduleEquipmentReader([]),
       new SequentialIdGenerator(),
       new FakeDomainEventPublisher(),
     );
@@ -202,8 +202,8 @@ describe('CreateScheduleEventUseCase', () => {
       useCase.execute({
         projectId: 'project-1',
         days: [{ date: '2026-07-03' }],
-        products: [{ productId: 'missing-product', quantity: 1 }],
+        equipment: [{ equipmentId: 'missing-equipment', quantity: 1 }],
       }),
-    ).rejects.toThrow(ScheduleProductNotFoundException);
+    ).rejects.toThrow(ScheduleEquipmentNotFoundException);
   });
 });

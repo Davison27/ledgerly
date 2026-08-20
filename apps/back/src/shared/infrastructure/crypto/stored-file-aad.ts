@@ -8,7 +8,8 @@ const STORE_CODES: Readonly<Record<StoredFileStore, number>> = {
   companyDocument: 0x07,
   companyLogo: 0x04,
   projectImage: 0x05,
-  productImage: 0x06,
+  equipmentImage: 0x06,
+  equipmentDocument: 0x08,
 };
 
 const SCHEMA_VERSION = 0x01;

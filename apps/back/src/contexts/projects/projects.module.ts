@@ -9,27 +9,27 @@ import { GetProjectUseCase } from './application/get-project/get-project.use-cas
 import { CreateProjectUseCase } from './application/create-project/create-project.use-case';
 import { UpdateProjectUseCase } from './application/update-project/update-project.use-case';
 import { DeleteProjectUseCase } from './application/delete-project/delete-project.use-case';
-import { ProductsModule } from '../products/products.module';
-import { ProjectProductOrmEntity } from './infrastructure/persistence/project-product.orm-entity';
-import { TypeOrmProjectProductRepository } from './infrastructure/persistence/typeorm-project-product.repository';
-import { PROJECT_PRODUCT_REPOSITORY } from './domain/project-product.repository';
-import { ProjectProductsUseCase } from './application/project-products/project-products.use-case';
-import { ProjectProductsController } from './infrastructure/http/project-products.controller';
+import { EquipmentModule } from '../equipment/equipment.module';
+import { ProjectEquipmentOrmEntity } from './infrastructure/persistence/project-equipment.orm-entity';
+import { TypeOrmProjectEquipmentRepository } from './infrastructure/persistence/typeorm-project-equipment.repository';
+import { PROJECT_EQUIPMENT_REPOSITORY } from './domain/project-equipment.repository';
+import { ProjectEquipmentUseCase } from './application/project-equipment/project-equipment.use-case';
+import { ProjectEquipmentController } from './infrastructure/http/project-equipment.controller';
 import { PROJECT_FINANCIALS_PROVIDER } from './domain/project-financials-provider.port';
 import { TypeOrmProjectFinancialsProvider } from './infrastructure/persistence/typeorm-project-financials-provider';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectProductOrmEntity]), ProductsModule],
-  controllers: [ProjectsController, ProjectProductsController],
+  imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectEquipmentOrmEntity]), EquipmentModule],
+  controllers: [ProjectsController, ProjectEquipmentController],
   providers: [
     ListProjectsUseCase,
     GetProjectUseCase,
     CreateProjectUseCase,
     UpdateProjectUseCase,
     DeleteProjectUseCase,
-    ProjectProductsUseCase,
+    ProjectEquipmentUseCase,
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
-    { provide: PROJECT_PRODUCT_REPOSITORY, useClass: TypeOrmProjectProductRepository },
+    { provide: PROJECT_EQUIPMENT_REPOSITORY, useClass: TypeOrmProjectEquipmentRepository },
     { provide: PROJECT_FINANCIALS_PROVIDER, useClass: TypeOrmProjectFinancialsProvider },
   ],
 })

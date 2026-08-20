@@ -51,7 +51,8 @@ describe('stored file cipher', () => {
     'companyDocument',
     'companyLogo',
     'projectImage',
-    'productImage',
+    'equipmentImage',
+    'equipmentDocument',
   ] satisfies StoredFileStore[])('round-trips %s plaintext with a versioned AES-GCM envelope', (store) => {
     const randomBytes = jest.fn((size: number) => Buffer.alloc(size, 0x11));
     const cipher = buildCipher(randomBytes);
@@ -84,7 +85,8 @@ describe('stored file cipher', () => {
     'companyDocument',
     'companyLogo',
     'projectImage',
-    'productImage',
+    'equipmentImage',
+    'equipmentDocument',
   ] satisfies StoredFileStore[])('round-trips %s plaintext at its registered limit', (store) => {
     const cipher = buildCipher();
     const plaintext = Buffer.alloc(getStoredFilePlaintextLimit(store), 0x61);
