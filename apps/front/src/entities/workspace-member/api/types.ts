@@ -4,7 +4,6 @@ export const WORKSPACE_MODULES = [
   'calendar',
   'documents',
   'suppliers',
-  'invoices',
   'products',
   'staff',
 ] as const;

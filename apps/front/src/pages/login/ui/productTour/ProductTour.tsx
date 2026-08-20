@@ -2,7 +2,6 @@ import type { FocusEvent } from 'react';
 import {
   CalendarOutlined,
   DashboardOutlined,
-  FileDoneOutlined,
   FileTextOutlined,
   IdcardOutlined,
   PauseOutlined,
@@ -27,7 +26,7 @@ interface ProductTourProps {
   logo?: string | null;
 }
 
-type TourNavigationItem = ProductTourSlide | 'invoices';
+type TourNavigationItem = ProductTourSlide;
 
 const navigationIcons = {
   dashboard: DashboardOutlined,
@@ -35,7 +34,6 @@ const navigationIcons = {
   calendar: CalendarOutlined,
   documents: FileTextOutlined,
   suppliers: TeamOutlined,
-  invoices: FileDoneOutlined,
   products: ShoppingOutlined,
   staff: IdcardOutlined,
   workspace: SettingOutlined,
@@ -47,7 +45,6 @@ const navigationItems: TourNavigationItem[] = [
   'calendar',
   'documents',
   'suppliers',
-  'invoices',
   'products',
   'staff',
 ];

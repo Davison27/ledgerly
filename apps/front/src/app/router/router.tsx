@@ -12,7 +12,6 @@ import { CalendarPage } from '@/pages/calendar';
 import { ExtractionHintsPage } from '@/pages/extraction-hints';
 import { SuppliersPage } from '@/pages/suppliers';
 import { DocumentsPage } from '@/pages/documents';
-import { InvoicesPage } from '@/pages/invoices';
 import { ProductsPage } from '@/pages/products';
 import { StaffPage } from '@/pages/staff';
 import { StaffMemberDetailPage, type StaffDetailSection } from '@/pages/staff-detail';
@@ -111,12 +110,6 @@ const suppliersRoute = createRoute({
   component: SuppliersPage,
 });
 
-const invoicesRoute = createRoute({
-  getParentRoute: () => appLayoutRoute,
-  path: '/invoices',
-  component: InvoicesPage,
-});
-
 const productsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/products',
@@ -162,7 +155,6 @@ const routeTree = rootRoute.addChildren([
     documentsRoute,
     extractionHintsRoute,
     suppliersRoute,
-    invoicesRoute,
     productsRoute,
     staffRoute,
     staffMemberDetailRoute,

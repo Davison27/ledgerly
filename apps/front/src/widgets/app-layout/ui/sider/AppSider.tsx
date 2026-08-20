@@ -5,7 +5,6 @@ import {
   CalendarOutlined,
   DashboardOutlined,
   DownOutlined,
-  FileDoneOutlined,
   FileTextOutlined,
   IdcardOutlined,
   MenuFoldOutlined,
@@ -36,7 +35,6 @@ type NavKey =
   | 'calendar'
   | 'documents'
   | 'suppliers'
-  | 'invoices'
   | 'products'
   | 'staff';
 
@@ -46,7 +44,6 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/projects')) return 'projects';
   if (pathname.startsWith('/calendar')) return 'calendar';
   if (pathname.startsWith('/suppliers')) return 'suppliers';
-  if (pathname.startsWith('/invoices')) return 'invoices';
   if (pathname.startsWith('/products')) return 'products';
   if (pathname.startsWith('/staff')) return 'staff';
   return undefined;
@@ -126,12 +123,6 @@ export function AppSider({
         icon: <TeamOutlined />,
         label: t('nav.suppliers'),
         onClick: () => void navigate({ to: '/suppliers' }),
-      },
-      {
-        key: 'invoices' satisfies NavKey,
-        icon: <FileDoneOutlined />,
-        label: t('nav.invoices'),
-        onClick: () => void navigate({ to: '/invoices' }),
       },
       {
         key: 'products' satisfies NavKey,
