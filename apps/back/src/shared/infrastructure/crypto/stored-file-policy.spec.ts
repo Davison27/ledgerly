@@ -6,6 +6,7 @@ describe('stored file plaintext policy', () => {
   it.each([
     ['document', 10 * 1024 * 1024],
     ['staffDocument', 10 * 1024 * 1024],
+    ['companyDocument', 10 * 1024 * 1024],
     ['companyLogo', 2 * 1024 * 1024],
     ['projectImage', 2 * 1024 * 1024],
     ['productImage', 2 * 1024 * 1024],
@@ -17,6 +18,7 @@ describe('stored file plaintext policy', () => {
   it.each([
     'document',
     'staffDocument',
+    'companyDocument',
     'companyLogo',
     'projectImage',
     'productImage',

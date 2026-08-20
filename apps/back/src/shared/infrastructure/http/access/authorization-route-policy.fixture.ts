@@ -9,6 +9,7 @@ export interface AuthorizationRoutePolicy {
 
 export const authorizationRoutePolicies: readonly AuthorizationRoutePolicy[] = [
   { method: 'ALL', path: '/auth/*', public: true, access: null },
+  { method: 'DELETE', path: '/company/documents/:documentId', public: false, access: { kind: 'admin' } },
   { method: 'DELETE', path: '/extraction-hints/:id', public: false, access: { kind: 'access', module: 'documents', level: 'edit' } },
   { method: 'DELETE', path: '/products/:id', public: false, access: { kind: 'access', module: 'products', level: 'edit' } },
   { method: 'DELETE', path: '/projects/:id', public: false, access: { kind: 'access', module: 'projects', level: 'edit' } },
@@ -24,6 +25,9 @@ export const authorizationRoutePolicies: readonly AuthorizationRoutePolicy[] = [
   { method: 'GET', path: '/auth/status', public: true, access: null },
   { method: 'GET', path: '/company', public: false, access: { kind: 'authenticated' } },
   { method: 'GET', path: '/company/branding', public: true, access: { kind: 'authenticated' } },
+  { method: 'GET', path: '/company/document-types', public: false, access: { kind: 'admin' } },
+  { method: 'GET', path: '/company/documents', public: false, access: { kind: 'admin' } },
+  { method: 'GET', path: '/company/documents/:documentId/file', public: false, access: { kind: 'admin' } },
   { method: 'GET', path: '/dashboard', public: false, access: { kind: 'access', module: 'dashboard', level: 'view' } },
   { method: 'GET', path: '/documents', public: false, access: { kind: 'access', module: 'documents', level: 'view' } },
   { method: 'GET', path: '/documents/duplicate-check', public: false, access: { kind: 'access', module: 'documents', level: 'view' } },
@@ -59,6 +63,7 @@ export const authorizationRoutePolicies: readonly AuthorizationRoutePolicy[] = [
   { method: 'GET', path: '/workspace/members', public: false, access: { kind: 'admin' } },
   { method: 'GET', path: '/workspace/members/:id/avatar', public: false, access: { kind: 'admin' } },
   { method: 'PATCH', path: '/company', public: false, access: { kind: 'admin' } },
+  { method: 'PATCH', path: '/company/documents/:documentId', public: false, access: { kind: 'admin' } },
   { method: 'PATCH', path: '/products/:id', public: false, access: { kind: 'access', module: 'products', level: 'edit' } },
   { method: 'PATCH', path: '/projects/:id', public: false, access: { kind: 'access', module: 'projects', level: 'edit' } },
   { method: 'PATCH', path: '/projects/:projectId/documents/:id', public: false, access: { kind: 'access', module: 'documents', level: 'edit' } },
@@ -71,6 +76,7 @@ export const authorizationRoutePolicies: readonly AuthorizationRoutePolicy[] = [
   { method: 'PATCH', path: '/tax-compliance/sources/:sourceKey/review', public: false, access: { kind: 'admin' } },
   { method: 'PATCH', path: '/workspace/members/:id', public: false, access: { kind: 'admin' } },
   { method: 'POST', path: '/auth/bootstrap', public: true, access: null },
+  { method: 'POST', path: '/company/documents', public: false, access: { kind: 'admin' } },
   { method: 'POST', path: '/documents/extract', public: false, access: { kind: 'access', module: 'documents', level: 'edit' } },
   { method: 'POST', path: '/notifications/:id/read', public: false, access: { kind: 'notifications' } },
   { method: 'POST', path: '/notifications/:id/resolve', public: false, access: { kind: 'notifications' } },

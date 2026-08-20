@@ -5,6 +5,7 @@ import { assertStoredFilePlaintextSize } from './stored-file-policy';
 const STORE_CODES: Readonly<Record<StoredFileStore, number>> = {
   document: 0x01,
   staffDocument: 0x03,
+  companyDocument: 0x07,
   companyLogo: 0x04,
   projectImage: 0x05,
   productImage: 0x06,

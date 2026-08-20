@@ -48,6 +48,7 @@ describe('stored file cipher', () => {
   it.each([
     'document',
     'staffDocument',
+    'companyDocument',
     'companyLogo',
     'projectImage',
     'productImage',
@@ -80,6 +81,7 @@ describe('stored file cipher', () => {
   it.each([
     'document',
     'staffDocument',
+    'companyDocument',
     'companyLogo',
     'projectImage',
     'productImage',

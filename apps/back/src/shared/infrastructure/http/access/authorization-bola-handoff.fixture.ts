@@ -10,6 +10,7 @@ export interface AuthorizationResourceParameterHandoff {
 }
 
 export const authorizationResourceParameterHandoffs: readonly AuthorizationResourceParameterHandoff[] = [
+  { method: 'DELETE', path: '/company/documents/:documentId', parameters: ['documentId'], context: 'company', enforcement: 'Delete the company document only when its id affects one row.' },
   { method: 'DELETE', path: '/extraction-hints/:id', parameters: ['id'], context: 'documents', enforcement: 'Load the extraction hint by id before deletion.' },
   { method: 'DELETE', path: '/products/:id', parameters: ['id'], context: 'products', enforcement: 'Load the product by id before deletion.' },
   { method: 'DELETE', path: '/projects/:id', parameters: ['id'], context: 'projects', enforcement: 'Load the project by id before deletion.' },
@@ -20,6 +21,8 @@ export const authorizationResourceParameterHandoffs: readonly AuthorizationResou
   { method: 'DELETE', path: '/staff/:staffMemberId/documents/:documentId', parameters: ['staffMemberId', 'documentId'], context: 'staff', enforcement: 'Verify the staff document belongs to staffMemberId before deletion.' },
   { method: 'DELETE', path: '/suppliers/:id', parameters: ['id'], context: 'suppliers', enforcement: 'Load the supplier by id before deletion.' },
   { method: 'DELETE', path: '/workspace/members/:id', parameters: ['id'], context: 'auth', enforcement: 'Apply the existing global-admin member-removal rules to id.' },
+  { method: 'GET', path: '/company/documents', parameters: [], context: 'company', enforcement: 'Scope the company document list to the reviewed type identifier.', additionalInputs: [{ location: 'query', key: 'typeId' }] },
+  { method: 'GET', path: '/company/documents/:documentId/file', parameters: ['documentId'], context: 'company', enforcement: 'Verify documentId belongs to the singleton company before streaming its file.' },
   { method: 'GET', path: '/projects/:id', parameters: ['id'], context: 'projects', enforcement: 'Load the project by id before returning it.' },
   { method: 'GET', path: '/projects/:projectId/documents', parameters: ['projectId'], context: 'documents', enforcement: 'Scope the document list to projectId.' },
   { method: 'GET', path: '/projects/:projectId/documents/:documentId/file', parameters: ['projectId', 'documentId'], context: 'documents', enforcement: 'Verify documentId belongs to projectId before streaming its file.' },
@@ -31,6 +34,7 @@ export const authorizationResourceParameterHandoffs: readonly AuthorizationResou
   { method: 'GET', path: '/suppliers/:id', parameters: ['id'], context: 'suppliers', enforcement: 'Load the supplier by id before returning it.' },
   { method: 'GET', path: '/tax-compliance/profiles/:projectId', parameters: ['projectId'], context: 'tax-compliance', enforcement: 'Load the profile through projectId.' },
   { method: 'GET', path: '/workspace/members/:id/avatar', parameters: ['id'], context: 'auth', enforcement: 'Apply the existing global-admin member lookup rules to id.' },
+  { method: 'PATCH', path: '/company/documents/:documentId', parameters: ['documentId'], context: 'company', enforcement: 'Verify documentId belongs to the singleton company before updating it.' },
   { method: 'PATCH', path: '/products/:id', parameters: ['id'], context: 'products', enforcement: 'Load the product by id before updating it.' },
   { method: 'PATCH', path: '/projects/:id', parameters: ['id'], context: 'projects', enforcement: 'Load the project by id before updating it.' },
   { method: 'PATCH', path: '/projects/:projectId/documents/:id', parameters: ['projectId', 'id'], context: 'documents', enforcement: 'Verify the document belongs to projectId before updating it.', additionalInputs: [{ location: 'body', key: 'supplierId' }, { location: 'body', key: 'staffMemberId' }] },
@@ -41,6 +45,7 @@ export const authorizationResourceParameterHandoffs: readonly AuthorizationResou
   { method: 'PATCH', path: '/tax-compliance/profiles/:projectId', parameters: ['projectId'], context: 'tax-compliance', enforcement: 'Load the profile through projectId before updating it.' },
   { method: 'PATCH', path: '/tax-compliance/sources/:sourceKey/review', parameters: ['sourceKey'], context: 'tax-compliance', enforcement: 'Load the tax source by sourceKey before reviewing it.' },
   { method: 'PATCH', path: '/workspace/members/:id', parameters: ['id'], context: 'auth', enforcement: 'Apply the existing global-admin member-update rules to id.' },
+  { method: 'POST', path: '/company/documents', parameters: [], context: 'company', enforcement: 'Create the company document only for the singleton company and a known typeId.', additionalInputs: [{ location: 'body', key: 'payload.typeId' }] },
   { method: 'POST', path: '/notifications/:id/read', parameters: ['id'], context: 'notifications', enforcement: 'Load the notification by id before marking it read.' },
   { method: 'POST', path: '/notifications/:id/resolve', parameters: ['id'], context: 'notifications', enforcement: 'Load the notification by id before resolving it.' },
   { method: 'POST', path: '/projects/:projectId/documents', parameters: ['projectId'], context: 'documents', enforcement: 'Create the document only under projectId.', additionalInputs: [{ location: 'body', key: 'payload.supplierId' }, { location: 'body', key: 'payload.staffMemberId' }] },

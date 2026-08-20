@@ -19,6 +19,7 @@ function normalizeDefinition(definition: string): string {
 function hasExpectedDefinition(definition: string, index: IndexDefinition): boolean {
   const normalized = normalizeDefinition(definition);
   const expected = normalizeDefinition(index.sql)
+    .replace('create unique index concurrently ', 'create unique index ')
     .replace('create index concurrently ', 'create index ')
     .replace(`on ${index.table} (`, `on ${index.table} using btree (`);
 
@@ -30,6 +31,16 @@ export class AddListQueryIndexes1730000001000 implements MigrationInterface {
   transaction = false;
 
   private readonly indexes: IndexDefinition[] = [
+    {
+      name: 'IDX_company_document_types_code',
+      sql: 'CREATE UNIQUE INDEX CONCURRENTLY "IDX_company_document_types_code" ON "company_document_types" ("code")',
+      table: 'company_document_types',
+    },
+    {
+      name: 'IDX_company_documents_type_issue_id',
+      sql: 'CREATE INDEX CONCURRENTLY "IDX_company_documents_type_issue_id" ON "company_documents" ("type_id", "issue_date" DESC, "id" DESC)',
+      table: 'company_documents',
+    },
     {
       name: 'IDX_documents_project_date_id',
       sql: 'CREATE INDEX CONCURRENTLY "IDX_documents_project_date_id" ON "documents" ("project_id", "date" DESC, "id" DESC)',

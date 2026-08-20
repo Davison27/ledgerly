@@ -37,6 +37,17 @@ export const STORED_FILE_STORES: readonly StoredFileStoreDescriptor[] = [
     sizeColumn: 'file_size',
   },
   {
+    name: 'companyDocument',
+    table: 'company_documents',
+    ciphertextColumn: 'content_ciphertext',
+    nonceColumn: 'content_nonce',
+    tagColumn: 'content_tag',
+    keyVersionColumn: 'content_key_version',
+    envelopeMetadata: false,
+    mimeTypeColumn: 'mime_type',
+    sizeColumn: 'file_size',
+  },
+  {
     name: 'companyLogo',
     table: 'companies',
     ciphertextColumn: 'logo_ciphertext',

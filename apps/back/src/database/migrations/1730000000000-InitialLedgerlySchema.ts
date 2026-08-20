@@ -91,6 +91,15 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
       )
     `);
     await queryRunner.query(`
+      CREATE TABLE "company_document_types" (
+        "id" uuid NOT NULL,
+        "code" varchar(80) NOT NULL,
+        "name" varchar(160) NOT NULL,
+        "is_system" boolean NOT NULL,
+        CONSTRAINT "PK_company_document_types" PRIMARY KEY ("id")
+      )
+    `);
+    await queryRunner.query(`
       CREATE TABLE "products" (
         "id" uuid NOT NULL,
         "name" varchar(200) NOT NULL,
@@ -187,6 +196,22 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
         "content" bytea,
         "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT "PK_839ead62045ac25f73271e6823d" PRIMARY KEY ("id")
+      )
+    `);
+    await queryRunner.query(`
+      CREATE TABLE "company_documents" (
+        "id" uuid NOT NULL,
+        "type_id" uuid NOT NULL,
+        "name" varchar(200) NOT NULL,
+        "issue_date" date,
+        "expiry_date" date,
+        "notes" text,
+        "file_name" varchar(255) NOT NULL,
+        "mime_type" varchar(100) NOT NULL,
+        "file_size" integer NOT NULL,
+        "content" bytea,
+        "created_at" timestamptz NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "PK_company_documents" PRIMARY KEY ("id")
       )
     `);
     await queryRunner.query(`
@@ -368,11 +393,13 @@ export class InitialLedgerlySchema1730000000000 implements MigrationInterface {
     await queryRunner.query('DROP TABLE "schedule_event_products"');
     await queryRunner.query('DROP TABLE "schedule_event_days"');
     await queryRunner.query('DROP TABLE "schedule_events"');
+    await queryRunner.query('DROP TABLE "company_documents"');
     await queryRunner.query('DROP TABLE "staff_documents"');
     await queryRunner.query('DROP TABLE "project_products"');
     await queryRunner.query('DROP TABLE "documents"');
     await queryRunner.query('DROP TABLE "projects"');
     await queryRunner.query('DROP TABLE "products"');
+    await queryRunner.query('DROP TABLE "company_document_types"');
     await queryRunner.query('DROP TABLE "staff_document_types"');
     await queryRunner.query('DROP TABLE "staff_members"');
     await queryRunner.query('DROP TABLE "suppliers"');

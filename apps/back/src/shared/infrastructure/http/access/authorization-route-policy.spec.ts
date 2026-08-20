@@ -134,7 +134,7 @@ describe('AppModule authorization route policy', () => {
     const discoveredRoutes = discoverAuthorizationRoutes();
 
     expect(discoveredRoutes).toEqual(authorizationRoutePolicies);
-    expect(discoveredRoutes).toHaveLength(78);
+    expect(discoveredRoutes).toHaveLength(84);
     expect(discoveredRoutes.every((route) => route.public || route.access !== null)).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe('AppModule authorization route policy', () => {
     const reviewedRoutes = authorizationRouteResourceInputPolicies.map(({ method, path }) => ({ method, path }));
 
     expect(reviewedRoutes).toEqual(discoveredRoutes.map(({ method, path }) => ({ method, path })));
-    expect(authorizationRouteResourceInputPolicies).toHaveLength(78);
+    expect(authorizationRouteResourceInputPolicies).toHaveLength(84);
   });
 
   it('keeps the resource-input handoff inventory complete', () => {
@@ -157,8 +157,8 @@ describe('AppModule authorization route policy', () => {
     }));
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
-    expect(authorizationResourceParameterHandoffs).toHaveLength(41);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(66);
+    expect(authorizationResourceParameterHandoffs).toHaveLength(46);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(71);
   });
 
   it('classifies the staff document type reference as a resource handoff', () => {
@@ -178,6 +178,23 @@ describe('AppModule authorization route policy', () => {
       context: 'staff',
       enforcement: 'Create the staff document only under staffMemberId and a known typeId.',
       additionalInputs: [{ location: 'body', key: 'typeId' }],
+    });
+  });
+
+  it('classifies the company document type reference as a resource handoff', () => {
+    expect(authorizationRouteResourceInputPolicies).toContainEqual({
+      method: 'POST',
+      path: '/company/documents',
+      resourceInputs: [{ location: 'body', key: 'payload.typeId' }],
+    });
+
+    expect(authorizationResourceParameterHandoffs).toContainEqual({
+      method: 'POST',
+      path: '/company/documents',
+      parameters: [],
+      context: 'company',
+      enforcement: 'Create the company document only for the singleton company and a known typeId.',
+      additionalInputs: [{ location: 'body', key: 'payload.typeId' }],
     });
   });
 });
