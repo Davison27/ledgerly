@@ -2,11 +2,11 @@
   --login-positive: #2e7d5b;
   --login-expense: #c1633f;
   --login-amber: #c98a21;
-  min-height: 100dvh;
+  height: 100dvh;
   display: grid;
-  grid-template-columns: minmax(400px, 43fr) minmax(0, 57fr);
+  grid-template-columns: minmax(320px, 43fr) minmax(0, 57fr);
   position: relative;
-  overflow: auto;
+  overflow: hidden;
   color: var(--login-text);
   background: var(--login-page);
 }
@@ -76,12 +76,13 @@
 
 .formPanel {
   min-width: 0;
-  min-height: 100dvh;
+  height: 100%;
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
-  padding: var(--lg-space-xl) clamp(32px, 5vw, 88px) var(--lg-space-xl);
+  overflow-y: auto;
+  padding: var(--lg-space-xl) clamp(24px, 5vw, 88px) var(--lg-space-xl);
   background: var(--login-panel);
   border-right: 1px solid var(--login-panel-border);
 }
@@ -125,7 +126,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding-block: clamp(48px, 10vh, 112px);
+  padding-block: clamp(24px, 6vh, 80px);
 }
 
 .formCard {
@@ -268,13 +269,13 @@
 
 .previewPanel {
   min-width: 0;
-  min-height: 100dvh;
+  height: 100%;
   position: relative;
   z-index: 1;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  overflow: hidden;
+  overflow-y: auto;
   padding: clamp(24px, 4vw, 72px);
 }
 
@@ -297,25 +298,28 @@
 
 @media (max-width: 1180px) {
   .page {
-    grid-template-columns: minmax(380px, 45fr) minmax(0, 55fr);
+    grid-template-columns: minmax(320px, 45fr) minmax(0, 55fr);
   }
 
   .formPanel {
-    padding-inline: var(--lg-space-xxl);
+    padding-inline: var(--lg-space-xl);
   }
 
   .previewPanel {
-    padding-inline: var(--lg-space-xl);
+    padding-inline: var(--lg-space-lg);
   }
 }
 
 @media (max-width: 900px) {
   .page {
     display: block;
+    height: auto;
+    overflow: auto;
   }
 
   .formPanel {
     width: 100%;
+    height: auto;
     padding-inline: clamp(24px, 8vw, 72px);
     border-right: 0;
   }
