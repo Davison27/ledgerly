@@ -54,7 +54,7 @@ function CompanyBrand({ company, collapsed }: { company: Company; collapsed: boo
   const alt = company.logo ? company.name : 'Ledgerly';
 
   return (
-    <div className={styles.brand} data-collapsed={collapsed} data-custom={Boolean(company.logo) || undefined}>
+    <div className={styles.brand} data-collapsed={collapsed}>
       <img src={source} alt={alt} className={styles.brandImage} />
     </div>
   );
