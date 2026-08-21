@@ -24,6 +24,7 @@
   min-width: 0;
   display: flex;
   align-items: center;
+  justify-content: center;
 }
 
 .brand[data-collapsed='true'] {
@@ -39,7 +40,7 @@
   height: auto;
   display: block;
   object-fit: contain;
-  object-position: left center;
+  object-position: center;
   border-radius: var(--ant-border-radius-sm);
 }
 

@@ -13,6 +13,8 @@
 
 .introduction {
   max-width: 520px;
+  height: 130px;
+  overflow: hidden;
 }
 
 .slideTransition {
