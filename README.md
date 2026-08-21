@@ -1,59 +1,113 @@
 <div align="center">
-  <img src="apps/front/src/assets/ledgerly-logo.svg" alt="Ledgerly" width="252">
+  <a href="https://github.com/Davison27/ledgerly">
+    <img src="apps/front/src/assets/ledgerly-icon.svg" alt="Ledgerly" width="72" height="72">
+  </a>
   <h1>Ledgerly</h1>
   <p><strong>Your business, clearly connected.</strong></p>
-  <p>A self-hosted workspace for the projects, records, people, and decisions that keep a business moving.</p>
+  <p>An enterprise-grade, self-hosted operational workspace uniting projects, financials, encrypted documents, teams, and business decisions.</p>
+
   <p>
-    <img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square" alt="React 19">
-    <img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square" alt="NestJS 11">
-    <img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square" alt="PostgreSQL 17">
-    <img src="https://img.shields.io/badge/pnpm-11-F69220?style=flat-square" alt="pnpm 11">
-    <img src="https://img.shields.io/badge/deployment-Docker%20Compose-2496ED?style=flat-square" alt="Docker Compose deployment">
+    <a href="#run-locally"><img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white" alt="React 19"></a>
+    <a href="#run-locally"><img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11"></a>
+    <a href="#run-locally"><img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 17"></a>
+    <a href="#security-by-design"><img src="https://img.shields.io/badge/Security-AES--256--GCM-0D9488?style=flat-square" alt="AES-256-GCM"></a>
+    <a href="#install-on-a-vps"><img src="https://img.shields.io/badge/Deploy-Docker%20Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker Compose"></a>
+    <img src="https://img.shields.io/badge/Privacy-Self--Hosted-6366F1?style=flat-square" alt="Self-Hosted">
+  </p>
+
+  <p>
+    <a href="#-why-ledgerly"><strong>Explore Features »</strong></a>
+    ·
+    <a href="#-product-tour"><strong>Product Tour</strong></a>
+    ·
+    <a href="#-run-locally"><strong>Quickstart</strong></a>
+    ·
+    <a href="#-install-on-a-vps"><strong>Deploy to VPS</strong></a>
+    ·
+    <a href="#-security-by-design"><strong>Security Architecture</strong></a>
+    ·
+    <a href="#-architecture"><strong>Architecture</strong></a>
   </p>
 </div>
 
-<img src=".github/assets/readme/overview.png" alt="Ledgerly sign-in experience with a preview of business metrics, project performance, document status, and upcoming work" width="100%">
+<br>
 
-<p align="center">
-  <a href="#inside-ledgerly">Inside Ledgerly</a> ·
-  <a href="#product-tour">Product tour</a> ·
-  <a href="#run-locally">Run locally</a> ·
-  <a href="#install-on-a-vps">Install on a VPS</a> ·
-  <a href="#operations">Operations</a> ·
-  <a href="#architecture">Architecture</a>
-</p>
+<div align="center">
+  <img src=".github/assets/readme/overview.png" alt="Ledgerly Overview Dashboard" width="100%">
+</div>
 
-## Inside Ledgerly
+<br>
 
-Ledgerly brings day-to-day business operations into one coherent workspace. Projects connect financials and documents; the calendar brings together delivery work, staff events, and tax deadlines; shared catalogues keep suppliers and equipment close to the records that use them.
+---
 
-**Plan and deliver.** Track projects, dates, status, budgets, income, expenses, profitability, attached documents, and assigned equipment without losing the business context around the work.
+## ⚡ Why Ledgerly?
 
-**Keep records connected.** Manage uploaded business documents, suppliers, and reusable equipment records with filtering, encrypted PDFs, and detail views designed for regular operational use.
+Traditional business management is scattered across fragmented spreadsheets, invoice drives, and disconnected chat threads. Ledgerly brings everything into one cohesive, self-hosted operational command center:
 
-**Coordinate people and obligations.** Maintain staff profiles, payrolls, documentation expiry, schedule events, tax profiles, and monitored tax sources from the same installation.
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>📊 Real-Time Financial Visibility</h3>
+      <ul>
+        <li><strong>Project-driven P&L:</strong> Live margin, income, and expense tracking directly mapped to work orders.</li>
+        <li><strong>Multi-currency operations:</strong> Handle domestic and international transactions cleanly.</li>
+        <li><strong>Cash-flow forecasting:</strong> Instant breakdown of pending VAT and projected expenses.</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>📑 Intelligent Document Pipeline</h3>
+      <ul>
+        <li><strong>Automated OCR & Extraction:</strong> Parse incoming invoices (PDF, XML, Facturae, Factur-X, UBL) without manual data entry.</li>
+        <li><strong>Smart duplicate prevention:</strong> Flag repeated bills and anomalous amounts automatically.</li>
+        <li><strong>Full audit trail:</strong> Document lifecycle tracking with real-time alerts.</li>
+      </ul>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>🗓️ Unified Scheduling & Resource Planning</h3>
+      <ul>
+        <li><strong>Conflict detection:</strong> Prevent double-booking staff or equipment across overlapping projects.</li>
+        <li><strong>Compliance timeline:</strong> Automatic tracking of employee document expiries and tax deadlines.</li>
+        <li><strong>Multi-view calendar:</strong> Dense day, week, and agenda views tailored for rapid coordination.</li>
+      </ul>
+    </td>
+    <td width="50%" valign="top">
+      <h3>🛡️ Zero-Knowledge Encrypted Storage</h3>
+      <ul>
+        <li><strong>Authenticated AES-256-GCM:</strong> Confidential PDFs (compliance, equipment, employee records) encrypted at rest in PostgreSQL.</li>
+        <li><strong>Versioned Keyring & Re-key CLI:</strong> Seamless key rotation and validation without downtime.</li>
+        <li><strong>100% Data Sovereignty:</strong> No telemetry, no third-party cloud leaks—your database stays yours.</li>
+      </ul>
+    </td>
+  </tr>
+</table>
 
-**Understand the business.** Use the dashboard to review core indicators, cash flow, VAT, budget performance, leading projects, and upcoming activity at a glance.
+---
 
-## Product tour
+## 🖼️ Product Tour
 
-|                                                                                  Project portfolio                                                                                   |                                                               Equipment catalogue                                                               |
-| :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------: |
-| <img src=".github/assets/readme/projects.png" alt="Ledgerly project portfolio showing project identity, profitability, income, expenses, margins, and document status" width="100%"> | <img src=".github/assets/readme/products.png" alt="Ledgerly equipment catalogue showing references, categories, pricing, and stock" width="100%"> |
+| Project Portfolio & Margins | Equipment & Asset Management |
+| :---: | :---: |
+| <img src=".github/assets/readme/projects.png" alt="Ledgerly Project Portfolio" width="100%"> | <img src=".github/assets/readme/products.png" alt="Ledgerly Equipment Management" width="100%"> |
+| *Track project health, budgets, and attached documentation in real time.* | *Manage machinery and tools, track rental rates, and store encrypted tech specs.* |
 
-The screenshots use a sanitized example workspace. An installation can apply its own company name, logo, and brand colour across the sign-in experience and authenticated application.
+> The screenshots use a sanitized example workspace. An installation can apply its own company name, logo, and brand colour across the sign-in experience and authenticated application.
 
-## Made for a private workspace
+---
 
-- **Google-based access.** Better Auth handles Google sign-in and sessions, while Ledgerly separately verifies workspace membership before granting application access.
-- **Roles and module permissions.** Administrators can manage members using admin, editor, viewer, or custom permission matrices with `none`, `view`, and `edit` levels.
-- **A UI that adapts.** The interface supports persistent light and dark themes, tenant branding, and Spanish or English language selection.
-- **Guided VPS deployment.** The installer collects the domain, Google OAuth credentials, administrator email, and timezone, then validates the public installation.
-- **Automatic HTTPS.** Caddy terminates TLS and keeps the frontend and API on the same origin.
-- **Controlled updates.** The update workflow rebuilds images and applies migrations without deleting the PostgreSQL volume.
-- **Data under your control.** Application records and uploaded documents live in the installation's PostgreSQL volume. A database dump contains both structured data and uploads.
+## 🔒 Security by Design
 
-## Run locally
+Ledgerly is built with defense-in-depth security principles:
+
+- **Google Workspace & OAuth Access**: Authentication handled by Better Auth, coupled with Ledgerly's internal workspace authorization guard.
+- **Granular RBAC**: Role-based access matrices (`none`, `view`, `edit`) across every business context with admin, editor, and viewer presets.
+- **Envelope Encryption**: Stored binary files use AES-256-GCM with unique 12-byte nonces and 16-byte authentication tags across 7 isolated store kinds.
+- **Hardened Ingestion**: Strict MIME and magic-byte validation, bounded PDF parsers, and XML entity expansion (XXE) protections.
+
+---
+
+## 🚀 Run Locally
 
 ### Requirements
 
@@ -68,46 +122,40 @@ From the repository root:
 make dev
 ```
 
-This installs dependencies, creates `apps/back/.env` from the example when needed, starts PostgreSQL and the containerized backend, applies migrations, and launches the Vite frontend with hot reload.
+This installs dependencies, creates `apps/back/.env` from `.env.example` when needed, starts PostgreSQL and the containerized backend, applies database migrations, and launches the Vite frontend with hot module reload.
 
-Generate a unique stored-file keyring before starting the backend, then copy both printed lines into `apps/back/.env`:
+### Local Endpoints
 
-```bash
-pnpm --filter @ledgerly/back run stored-files:generate-keyring
-```
+- **Frontend (Vite)**: [http://localhost:5173](http://localhost:5173)
+- **API (NestJS)**: [http://localhost:3005/api](http://localhost:3005/api)
+- **PostgreSQL**: `localhost:5432`
 
-Keep the generated keyring private and retain it while encrypted files exist. Replacing or deleting a key prevents access to files written with that version.
+Vite proxies `/api` to the backend during development. Local ports and origins can be adjusted in `apps/back/.env`.
 
-Google sign-in requires a local OAuth client and matching environment values. Follow the [authentication setup](docs/architecture/auth.md#google-cloud-and-local-setup) before signing in.
+---
 
-### Local endpoints
+## 🌐 Install on a VPS
 
-- Frontend: `http://localhost:5173`
-- API: `http://localhost:3005/api`
-- PostgreSQL: `localhost:5432`
-
-Vite proxies `/api` to the backend during development. The local ports and origins can be adjusted in `apps/back/.env`.
-
-## Install on a VPS
-
-The guided deployment expects a Linux server with Docker, Docker Compose, Git, and Make. On a minimal Debian installation:
+The guided deployment expects a Linux server (Debian/Ubuntu) with Docker, Docker Compose, Git, and Make. On a minimal Debian installation:
 
 ```bash
 sudo apt-get install -y git make
-git clone <repository-url> /opt/ledgerly
+git clone https://github.com/Davison27/ledgerly.git /opt/ledgerly
 cd /opt/ledgerly
 make setup
 ```
 
-`make setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions HTTPS, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
+`make setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions automated Let's Encrypt HTTPS via Caddy, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
 
-Read the complete [deployment runbook](docs/architecture/deployment.md) before operating an installation.
+Read the complete [deployment runbook](docs/architecture/deployment.md) before operating a production installation.
 
-## Operations
+---
+
+## ⚙️ Operations
 
 Use `make help` to see commands in the current environment. Lifecycle and database commands automatically target production when `deploy/.env` exists; otherwise they target the local development stack.
 
-### Installation and lifecycle
+### Installation and Lifecycle
 
 - `make setup` — run the one-time guided VPS installation.
 - `make doctor` — validate configuration, containers, database, DNS, certificates, disk space, and public health.
@@ -115,17 +163,16 @@ Use `make help` to see commands in the current environment. Lifecycle and databa
 - `make up`, `make down`, `make restart` — control the active stack.
 - `make logs SERVICE=back` — follow all logs or select one service.
 
-### Updates and data
+### Updates and Data
 
 - `make update` — pull with fast-forward only, rebuild, migrate, restart, and run diagnostics.
-- External recovery is outside Ledgerly. This repository does not create, retain, or restore database dumps.
 - `make migrate` — apply pending database migrations and validate the application schema.
 - `make rehearse-existing-db-baseline FILE=/path/to/external.dump` — test a legacy-database cutover on a disposable clone.
 - `make baseline-existing-db` — gate and apply the legacy-database migration marker.
 - `make seed` — load development sample data.
 - `make reset-db CONFIRM=RESET_LEDGERLY_DEV` — inspect and recreate only the guarded local development database. `DRY_RUN=1` shows the resolved plan without mutation.
 
-### Quality and maintenance
+### Quality and Maintenance
 
 - `make build` — build the frontend and backend.
 - `make lint` — run repository linting and hygiene checks.
@@ -133,20 +180,22 @@ Use `make help` to see commands in the current environment. Lifecycle and databa
 - `make test` — run the test suites.
 - `make clean` — remove development builds and dependencies while preserving PostgreSQL volumes.
 
-## Architecture
+---
 
-Ledgerly is a pnpm and Turborepo monorepo with two applications and a deployment layer:
+## 🏗️ Architecture
+
+Ledgerly is architected as a clean pnpm and Turborepo monorepo:
 
 ```text
 apps/front/   React 19, Vite, Ant Design, TanStack Query, Feature-Sliced Design
-apps/back/    NestJS 11, TypeORM, PostgreSQL, hexagonal bounded contexts
+apps/back/    NestJS 11, TypeORM, PostgreSQL 17, hexagonal bounded contexts
 deploy/       Docker Compose, Caddy, guided setup, diagnostics, and updates
 docs/         Durable architecture and operations documentation
 ```
 
 The frontend consumes the API through `/api`. In production, Caddy serves the frontend and routes API requests on the same origin. The backend keeps business contexts separated behind application ports and adapters, while PostgreSQL is the shared persistence layer.
 
-### Durable documentation
+### 📚 Durable Documentation
 
 - [Authentication and access control](docs/architecture/auth.md)
 - [Deployment and updates](docs/architecture/deployment.md)
