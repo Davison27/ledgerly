@@ -87,7 +87,7 @@ export class TypeOrmProjectEquipmentRepository implements ProjectEquipmentReposi
     const rows: Array<{ projectId: string; amount: string | number; date: string }> = await this.repository.createQueryBuilder('projectEquipment')
       .select('projectEquipment.project_id', 'projectId')
       .addSelect('projectEquipment.lease_expense', 'amount')
-      .addSelect('projectEquipment.lease_expense_date', 'date')
+      .addSelect('CAST(projectEquipment.lease_expense_date AS text)', 'date')
       .where('projectEquipment.lease_expense IS NOT NULL')
       .andWhere('projectEquipment.lease_expense_date IS NOT NULL')
       .getRawMany();
