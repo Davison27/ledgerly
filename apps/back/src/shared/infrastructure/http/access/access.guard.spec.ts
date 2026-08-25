@@ -2,12 +2,14 @@ import { ExecutionContext, ForbiddenException, UnauthorizedException } from '@ne
 import { Reflector } from '@nestjs/core';
 
 jest.mock('better-auth/node', () => ({ fromNodeHeaders: jest.fn(() => new Headers()) }));
-jest.mock('../../../../lib/auth', () => ({ auth: { api: { getSession: jest.fn() } } }));
 
-import { auth } from '../../../../lib/auth';
 import { WorkspaceMember } from '../../../../contexts/auth/domain/workspace-member';
 import { MemberEmail } from '../../../../contexts/auth/domain/value-objects/member-email';
 import { PermissionMatrix, WORKSPACE_MODULES } from '../../../../contexts/auth/domain/value-objects/permission-matrix';
+import {
+  AuthSessionResolution,
+  ResolvedAuthSession,
+} from '../../../domain/auth-session-resolver.port';
 import { AccessGuard } from './access.guard';
 import { ACCESS_REQUIREMENT_KEY, AccessRequirement } from './access-requirement';
 import { IS_PUBLIC_KEY } from './public.decorator';
@@ -30,6 +32,20 @@ function member(permissions: PermissionMatrix, status: 'invited' | 'active' | 'd
     status,
     invitedAt: new Date('2026-01-01T00:00:00.000Z'),
   });
+}
+
+function session(): ResolvedAuthSession {
+  return {
+    user: { email: 'member@ledgerly.dev' },
+    session: {
+      createdAt: new Date('2026-01-01T00:00:00.000Z'),
+      token: 'session-token',
+    },
+  };
+}
+
+function resolution(sessionValue: ResolvedAuthSession | null, setCookies: string[] = []): AuthSessionResolution {
+  return { session: sessionValue, setCookies };
 }
 
 function contextFor(
@@ -55,21 +71,23 @@ function contextFor(
 }
 
 describe('AccessGuard', () => {
-  const getSession = jest.mocked(auth.api.getSession);
   const memberRepository = {
     findByEmail: jest.fn(),
     save: jest.fn(),
+  };
+  const sessionResolver = {
+    resolve: jest.fn(),
   };
   const clock = {
     now: jest.fn(() => new Date('2026-01-02T00:00:00.000Z')),
     todayIso: jest.fn(() => '2026-01-02'),
   };
-  const guard = new AccessGuard(new Reflector(), memberRepository as never, clock);
+  const guard = new AccessGuard(new Reflector(), memberRepository as never, sessionResolver, clock);
 
   beforeEach(() => {
-    getSession.mockReset();
     memberRepository.findByEmail.mockReset();
     memberRepository.save.mockReset();
+    sessionResolver.resolve.mockReset();
     clock.now.mockClear();
   });
 
@@ -77,18 +95,26 @@ describe('AccessGuard', () => {
     const request: { headers: Record<string, string>; member?: WorkspaceMember } = { headers: {} };
 
     await expect(guard.canActivate(contextFor(request, { public: true }))).resolves.toBe(true);
-    expect(getSession).not.toHaveBeenCalled();
+    expect(sessionResolver.resolve).not.toHaveBeenCalled();
   });
 
   it('denies a handler without an explicit access policy', async () => {
     const request: { headers: Record<string, string>; member?: WorkspaceMember } = { headers: {} };
 
     await expect(guard.canActivate(contextFor(request))).rejects.toBeInstanceOf(ForbiddenException);
-    expect(getSession).not.toHaveBeenCalled();
+    expect(sessionResolver.resolve).not.toHaveBeenCalled();
   });
 
   it('returns 401 when the Better Auth session has been revoked', async () => {
-    getSession.mockResolvedValue(null);
+    sessionResolver.resolve.mockResolvedValue(resolution(null));
+
+    await expect(
+      guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'authenticated' } })),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('returns 401 when the shared session resolver fails', async () => {
+    sessionResolver.resolve.mockRejectedValue(new Error('session lookup failed'));
 
     await expect(
       guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'authenticated' } })),
@@ -96,7 +122,7 @@ describe('AccessGuard', () => {
   });
 
   it('returns 403 when the session user is not a workspace member', async () => {
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(null);
 
     await expect(
@@ -105,7 +131,7 @@ describe('AccessGuard', () => {
   });
 
   it('returns 403 when the session member has been disabled', async () => {
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(member(PermissionMatrix.admin(), 'disabled'));
 
     await expect(
@@ -115,7 +141,7 @@ describe('AccessGuard', () => {
 
   it('activates an invited member before granting authenticated access', async () => {
     const invitedMember = member(permissionMatrix({ documents: 'view' }), 'invited');
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(invitedMember);
     memberRepository.save.mockResolvedValue(undefined);
     const request: { headers: Record<string, string>; member?: WorkspaceMember } = { headers: {} };
@@ -131,7 +157,7 @@ describe('AccessGuard', () => {
   });
 
   it('grants admin-only access to the admin permission matrix', async () => {
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(member(PermissionMatrix.admin()));
 
     await expect(
@@ -140,7 +166,7 @@ describe('AccessGuard', () => {
   });
 
   it('grants editor access to editable document routes', async () => {
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(
       member(permissionMatrix({ dashboard: 'view', staff: 'view', documents: 'edit', projects: 'edit', calendar: 'edit', suppliers: 'edit', equipment: 'edit' })),
     );
@@ -152,7 +178,7 @@ describe('AccessGuard', () => {
 
   it('grants viewer access to view routes and denies notifications', async () => {
     const viewer = member(permissionMatrix({ dashboard: 'view', projects: 'view', calendar: 'view', documents: 'view', suppliers: 'view', equipment: 'view', staff: 'view' }));
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(viewer);
 
     await expect(
@@ -165,7 +191,7 @@ describe('AccessGuard', () => {
 
   it('grants custom access only for the modules explicitly permitted', async () => {
     const customMember = member(permissionMatrix({ projects: 'view' }));
-    getSession.mockResolvedValue({ user: { email: 'member@ledgerly.dev' } } as never);
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(customMember);
 
     await expect(
