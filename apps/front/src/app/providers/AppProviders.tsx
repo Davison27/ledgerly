@@ -4,6 +4,7 @@ import esES from 'antd/locale/es_ES';
 import enUS from 'antd/locale/en_US';
 import { useTranslation } from 'react-i18next';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { lockSessionLifecycle } from '@/entities/session';
 import { buildThemeConfig } from '@/shared/config/theme';
 import { BrandColorProvider, useBrandColor } from '@/shared/lib/brand-color/BrandColorProvider';
 import { ThemeModeProvider, useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
@@ -12,6 +13,7 @@ import { router } from '../router/router';
 import { queryClient } from './queryClient';
 
 setUnauthorizedHandler(() => {
+  lockSessionLifecycle();
   queryClient.clear();
   void router.navigate({ to: '/', search: { sessionExpired: true } });
 });

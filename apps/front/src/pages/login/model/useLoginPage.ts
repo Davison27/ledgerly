@@ -2,7 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearch } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ApiError } from '@/shared/api/httpClient';
-import { bootstrapFirstAdmin, sessionQueries, signInWithGoogle } from '@/entities/session';
+import {
+  bootstrapFirstAdmin,
+  isSessionLifecycleLocked,
+  sessionQueries,
+  signInWithGoogle,
+} from '@/entities/session';
 
 export type LoginStatus = 'loading' | 'bootstrap' | 'signIn';
 export type LoginAuthError = 'accessDenied' | 'expired' | 'failed';
@@ -46,7 +51,8 @@ export function useLoginPage(): UseLoginPageResult {
   const sessionNotice: SessionNotice | undefined =
     search.sessionExpired === true ? 'expired' : search.signedOut === true ? 'signedOut' : undefined;
 
-  const authenticated = !isLoading && data?.authenticated === true;
+  const authenticated =
+    !isLoading && data?.authenticated === true && !isSessionLifecycleLocked() && !signInSubmitting;
 
   useEffect(() => {
     if (authenticated) {
