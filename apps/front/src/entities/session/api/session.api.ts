@@ -1,5 +1,10 @@
 import { get, post, setSigningOut } from '@/shared/api/httpClient';
 import { authClient } from '@/shared/api/auth-client';
+import {
+  clearSessionLifecycleState,
+  readSessionLifecycleState,
+  writeSessionLifecycleState,
+} from '../model/sessionLifecycle';
 import type { AuthStatusDto, BootstrapFirstAdminResultDto } from './types';
 
 export function getAuthStatus(): Promise<AuthStatusDto> {
@@ -11,19 +16,32 @@ export function bootstrapFirstAdmin(email: string): Promise<BootstrapFirstAdminR
 }
 
 export async function signInWithGoogle(callbackURL: string): Promise<void> {
-  const { error } = await authClient.signIn.social({ provider: 'google', callbackURL });
+  const previousState = readSessionLifecycleState();
+  clearSessionLifecycleState();
 
-  if (error) {
-    throw new Error(error.message);
+  try {
+    const { error } = await authClient.signIn.social({ provider: 'google', callbackURL });
+
+    if (error) {
+      throw new Error(error.message);
+    }
+  } catch (error) {
+    if (previousState.locked) {
+      writeSessionLifecycleState(previousState);
+    }
+    throw error;
   }
 }
 
 export async function logout(): Promise<void> {
   setSigningOut(true);
-  const { error } = await authClient.signOut();
+  try {
+    const { error } = await authClient.signOut();
 
-  if (error) {
+    if (error) {
+      throw new Error(error.message);
+    }
+  } finally {
     setSigningOut(false);
-    throw new Error(error.message);
   }
 }
