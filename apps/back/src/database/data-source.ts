@@ -14,7 +14,7 @@ export default new DataSource({
   password: databaseRuntimeConfig.password,
   database: databaseRuntimeConfig.database,
   entities: [join(__dirname, '..', 'contexts', '**', '*.orm-entity.{ts,js}')],
-  migrations: [join(__dirname, 'migrations', '*.{ts,js}')],
+  migrations: [join(__dirname, 'migrations', '[0-9]*-*.{ts,js}')],
   migrationsRun: false,
   synchronize: false,
   extra: {
