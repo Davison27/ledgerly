@@ -10,14 +10,19 @@ import { Reflector } from '@nestjs/core';
 import { CLOCK, Clock } from '../../../domain/clock.port';
 import { Request } from 'express';
 import { fromNodeHeaders } from 'better-auth/node';
-import { auth } from '../../../../lib/auth';
 import { WorkspaceMember } from '../../../../contexts/auth/domain/workspace-member';
 import {
   WORKSPACE_MEMBER_REPOSITORY,
   WorkspaceMemberRepository,
 } from '../../../../contexts/auth/domain/workspace-member.repository';
+import {
+  AUTH_SESSION_RESOLVER,
+  AuthSessionResolver,
+  ResolvedAuthSession,
+} from '../../../domain/auth-session-resolver.port';
 import { AccessRequirement, ACCESS_REQUIREMENT_KEY } from './access-requirement';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import { appendSetCookies } from '../session-cookies';
 
 interface RequestWithMember extends Request {
   member?: WorkspaceMember;
@@ -28,6 +33,7 @@ export class AccessGuard implements CanActivate {
   constructor(
     private readonly reflector: Reflector,
     @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
+    @Inject(AUTH_SESSION_RESOLVER) private readonly sessionResolver: AuthSessionResolver,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
@@ -63,7 +69,15 @@ export class AccessGuard implements CanActivate {
   private async resolveActiveMember(
     request: RequestWithMember,
   ): Promise<WorkspaceMember> {
-    const session = await auth.api.getSession({ headers: fromNodeHeaders(request.headers) });
+    let session: ResolvedAuthSession | null;
+
+    try {
+      const resolution = await this.sessionResolver.resolve(fromNodeHeaders(request.headers));
+      appendSetCookies(request.res, resolution.setCookies);
+      session = resolution.session;
+    } catch {
+      throw new UnauthorizedException();
+    }
 
     if (session === null) {
       throw new UnauthorizedException();

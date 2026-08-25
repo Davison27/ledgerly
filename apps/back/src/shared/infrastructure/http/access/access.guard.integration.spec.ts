@@ -13,7 +13,6 @@ jest.mock('../../../../lib/auth', () => ({
   },
 }));
 
-import { auth } from '../../../../lib/auth';
 import { AppController } from '../../../../app.controller';
 import { AppService } from '../../../../app.service';
 import { AuthController } from '../../../../contexts/auth/infrastructure/http/auth.controller';
@@ -23,6 +22,7 @@ import { WORKSPACE_MEMBER_REPOSITORY } from '../../../../contexts/auth/domain/wo
 import { WorkspaceMember } from '../../../../contexts/auth/domain/workspace-member';
 import { MemberEmail } from '../../../../contexts/auth/domain/value-objects/member-email';
 import { PermissionMatrix } from '../../../../contexts/auth/domain/value-objects/permission-matrix';
+import { AUTH_SESSION_RESOLVER } from '../../../domain/auth-session-resolver.port';
 import { CompanyController } from '../../../../contexts/company/infrastructure/http/company.controller';
 import { GetCompanyUseCase } from '../../../../contexts/company/application/get-company/get-company.use-case';
 import { GetCompanyBrandingUseCase } from '../../../../contexts/company/application/get-company-branding/get-company-branding.use-case';
@@ -54,11 +54,13 @@ function adminMember(): WorkspaceMember {
 describe('authorization HTTP integration', () => {
   let app: INestApplication;
   let httpServer: Server;
-  const getSession = jest.mocked(auth.api.getSession);
   const memberRepository = {
     countAll: jest.fn(),
     findByEmail: jest.fn(),
     save: jest.fn(),
+  };
+  const sessionResolver = {
+    resolve: jest.fn(),
   };
 
   beforeAll(async () => {
@@ -69,6 +71,7 @@ describe('authorization HTTP integration', () => {
         { provide: BootstrapFirstAdminUseCase, useValue: { execute: jest.fn(() => Promise.resolve(adminMember())) } },
         { provide: GetCurrentMemberUseCase, useValue: { execute: jest.fn() } },
         { provide: WORKSPACE_MEMBER_REPOSITORY, useValue: memberRepository },
+        { provide: AUTH_SESSION_RESOLVER, useValue: sessionResolver },
         { provide: CLOCK, useValue: { now: () => new Date('2026-01-02T00:00:00.000Z'), todayIso: () => '2026-01-02' } },
         { provide: GetCompanyUseCase, useValue: { execute: jest.fn() } },
         { provide: UpdateCompanyUseCase, useValue: { execute: jest.fn() } },
@@ -86,6 +89,7 @@ describe('authorization HTTP integration', () => {
       new AccessGuard(
         new Reflector(),
         memberRepository as never,
+        sessionResolver,
         { now: () => new Date('2026-01-02T00:00:00.000Z'), todayIso: () => '2026-01-02' },
       ),
     );
@@ -94,8 +98,8 @@ describe('authorization HTTP integration', () => {
   });
 
   beforeEach(() => {
-    getSession.mockReset();
-    getSession.mockResolvedValue(null);
+    sessionResolver.resolve.mockReset();
+    sessionResolver.resolve.mockResolvedValue({ session: null, setCookies: [] });
     memberRepository.countAll.mockReset();
     memberRepository.findByEmail.mockReset();
     memberRepository.save.mockReset();
@@ -152,5 +156,59 @@ describe('authorization HTTP integration', () => {
     const response = await request(httpServer).get('/company');
 
     expect(response.status).toBe(401);
+  });
+
+  it('forwards deletion cookies when a protected request is unauthorized', async () => {
+    const deletionCookie = 'ledgerly.session=; Max-Age=0; Path=/';
+    sessionResolver.resolve.mockResolvedValue({ session: null, setCookies: [deletionCookie] });
+
+    const response = await request(httpServer).get('/company');
+
+    expect(response.status).toBe(401);
+    expect(response.headers['set-cookie']).toContain(deletionCookie);
+  });
+
+  it('uses the shared session resolver for authenticated status', async () => {
+    sessionResolver.resolve.mockResolvedValue({
+      session: {
+        user: { email: 'admin@ledgerly.dev' },
+        session: {
+          createdAt: new Date('2026-01-02T00:00:00.000Z'),
+          token: 'session-token',
+        },
+      },
+      setCookies: ['ledgerly.session=refreshed; Path=/'],
+    });
+    memberRepository.findByEmail.mockResolvedValue(adminMember());
+
+    const response = await request(httpServer).get('/auth/status');
+    const body = response.body as { authenticated: boolean };
+
+    expect(response.status).toBe(200);
+    expect(body.authenticated).toBe(true);
+    expect(response.headers['set-cookie']).toContain('ledgerly.session=refreshed; Path=/');
+    expect(sessionResolver.resolve).toHaveBeenCalled();
+  });
+
+  it('forwards deletion cookies when status is unauthenticated', async () => {
+    const deletionCookie = 'ledgerly.session=; Max-Age=0; Path=/';
+    sessionResolver.resolve.mockResolvedValue({ session: null, setCookies: [deletionCookie] });
+
+    const response = await request(httpServer).get('/auth/status');
+    const body = response.body as { authenticated: boolean };
+
+    expect(response.status).toBe(200);
+    expect(body.authenticated).toBe(false);
+    expect(response.headers['set-cookie']).toContain(deletionCookie);
+  });
+
+  it('fails closed when the shared session resolver fails for status', async () => {
+    sessionResolver.resolve.mockRejectedValue(new Error('session lookup failed'));
+
+    const response = await request(httpServer).get('/auth/status');
+    const body = response.body as { authenticated: boolean };
+
+    expect(response.status).toBe(200);
+    expect(body.authenticated).toBe(false);
   });
 });

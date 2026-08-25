@@ -59,9 +59,9 @@ export const auth = betterAuth({
       : undefined,
   trustedOrigins: [frontendOrigin],
   session: {
-    expiresIn: 60 * 60 * 24,
-    updateAge: 60 * 60,
-    freshAge: 60 * 60,
+    expiresIn: 60 * 30,
+    updateAge: 60 * 5,
+    freshAge: 60 * 15,
   },
   rateLimit: {
     enabled: true,

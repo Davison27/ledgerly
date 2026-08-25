@@ -14,6 +14,12 @@ import { BootstrapFirstAdminDto } from './dtos/bootstrap-first-admin.dto';
 import { WorkspaceMemberResponse } from './workspace-member.response';
 import { Inject } from '@nestjs/common';
 import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
+import {
+  AUTH_SESSION_RESOLVER,
+  AuthSessionResolver,
+  ResolvedAuthSession,
+} from '../../../../shared/domain/auth-session-resolver.port';
+import { appendSetCookies } from '../../../../shared/infrastructure/http/session-cookies';
 
 const BACKEND_PUBLIC_URL = process.env.BACKEND_PUBLIC_URL ?? 'http://localhost:3005';
 const GENERIC_AUTH_ERROR = 'Authentication request failed';
@@ -127,7 +133,7 @@ function forwardAuthResponseHeaders(response: globalThis.Response, res: ExpressR
   });
 
   if (setCookies.length > 0) {
-    res.setHeader('set-cookie', setCookies);
+    appendSetCookies(res, setCookies);
   }
 }
 
@@ -137,6 +143,7 @@ export class AuthController {
     private readonly bootstrapFirstAdminUseCase: BootstrapFirstAdminUseCase,
     private readonly getCurrentMemberUseCase: GetCurrentMemberUseCase,
     @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
+    @Inject(AUTH_SESSION_RESOLVER) private readonly sessionResolver: AuthSessionResolver,
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
@@ -144,8 +151,21 @@ export class AuthController {
   @Throttle({ default: { limit: 60, ttl: 60_000 } })
   @Get('status')
   @Header('Cache-Control', 'no-store')
-  async status(@Req() req: Request): Promise<{ bootstrapNeeded: boolean; authenticated: boolean }> {
-    const session = await auth.api.getSession({ headers: authHeadersFromRequest(req) });
+  async status(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: ExpressResponse,
+  ): Promise<{ bootstrapNeeded: boolean; authenticated: boolean }> {
+    let session: ResolvedAuthSession | null = null;
+    let setCookies: string[] = [];
+
+    try {
+      const resolution = await this.sessionResolver.resolve(authHeadersFromRequest(req));
+      session = resolution.session;
+      setCookies = resolution.setCookies;
+    } catch {
+      session = null;
+    }
+    appendSetCookies(res, setCookies);
     const member = session ? await this.memberRepository.findByEmail(session.user.email) : null;
 
     if (member?.getStatus() === 'invited') {

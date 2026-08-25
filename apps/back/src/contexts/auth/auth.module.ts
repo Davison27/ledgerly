@@ -16,6 +16,8 @@ import { TypeOrmWorkspaceMemberRepository } from './infrastructure/persistence/t
 import { BetterAuthSessionRevoker } from './infrastructure/persistence/better-auth-session-revoker';
 import { BetterAuthUserDirectory } from './infrastructure/persistence/better-auth-user-directory';
 import { WorkspaceMemberOrmEntity } from './infrastructure/persistence/workspace-member.orm-entity';
+import { AUTH_SESSION_RESOLVER } from '../../shared/domain/auth-session-resolver.port';
+import { BetterAuthSessionResolver } from '../../shared/infrastructure/auth/better-auth-session-resolver';
 
 @Module({
   imports: [
@@ -31,6 +33,7 @@ import { WorkspaceMemberOrmEntity } from './infrastructure/persistence/workspace
     UpdateWorkspaceMemberUseCase,
     RemoveWorkspaceMemberUseCase,
     { provide: WORKSPACE_MEMBER_REPOSITORY, useClass: TypeOrmWorkspaceMemberRepository },
+    { provide: AUTH_SESSION_RESOLVER, useClass: BetterAuthSessionResolver },
     { provide: AUTH_SESSION_REVOKER, useClass: BetterAuthSessionRevoker },
     { provide: AUTH_USER_DIRECTORY, useClass: BetterAuthUserDirectory },
     {
@@ -39,6 +42,6 @@ import { WorkspaceMemberOrmEntity } from './infrastructure/persistence/workspace
       inject: [ConfigService],
     },
   ],
-  exports: [WORKSPACE_MEMBER_REPOSITORY],
+  exports: [WORKSPACE_MEMBER_REPOSITORY, AUTH_SESSION_RESOLVER],
 })
 export class AuthModule {}
