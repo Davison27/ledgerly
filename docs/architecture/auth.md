@@ -56,7 +56,16 @@ only enabled sign-in provider. Email-and-password login is disabled. Its
 database adapter uses the application Postgres database through Kysely.
 
 - `BETTER_AUTH_SECRET` is required and must be at least 32 characters.
-- Sessions expire after 24 hours and are refreshed after one hour.
+- Sessions expire after 30 minutes without server activity and refresh after
+  five minutes of continued use. Refresh responses forward every `Set-Cookie`
+  value to the browser so the database and cookie retain the same rolling
+  expiry.
+- `BetterAuthSessionResolver` enforces an eight-hour absolute lifetime from
+  `session.createdAt` for both protected routes and `GET /api/auth/status`.
+  Sessions at that limit, with invalid timestamps, or with future creation
+  timestamps are signed out and rejected. Resolution failures fail closed.
+- A session must be no older than 15 minutes for Better Auth operations that
+  require a fresh session.
 - Secure cookies are enabled when `COOKIE_SECURE=true`; production validation
   requires that setting.
 - CSRF and origin checks remain enabled. `trustedOrigins` contains the exact
@@ -74,6 +83,21 @@ requests when the legacy `lg_csrf` cookie is available. Better Auth manages its
 own authentication cookies and enforces its own CSRF and origin policy for its
 endpoints; do not couple application authorization to a particular cookie
 name.
+
+The frontend independently protects sensitive data already loaded in memory.
+`SessionGuard` hides authenticated content while validating on initial load,
+window focus, `pageshow`, and return to a visible document. It locks after 15
+minutes without pointer, keyboard, or touch activity and revalidates the server
+session every 60 seconds while visible. Wall-clock comparisons detect elapsed
+time even when browser timers pause during operating-system sleep.
+
+Locking clears TanStack Query before navigation, attempts server sign-out, and
+persists only a timestamp and lock flag. It never stores an authentication
+token in browser storage. Local-storage events coordinate locks across tabs;
+session storage and an in-memory fail-closed state cover unavailable or failing
+storage. Network and server validation failures hide cached data until a later
+successful validation. Only an explicit Google sign-in attempt clears the
+persisted browser lock.
 
 The Nest `AuthController` hand-off is a narrow public adapter for Better Auth.
 It builds the upstream URL from the configured `BACKEND_PUBLIC_URL`, accepts
