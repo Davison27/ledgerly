@@ -1,4 +1,4 @@
-.popoverContent {
+.drawerBody {
+  min-height: 0;
   padding: 0;
-  width: 380px;
 }

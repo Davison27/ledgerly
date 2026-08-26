@@ -432,12 +432,44 @@
   },
   "notifications": {
     "title": "Notificaciones",
+    "unreadSummary": "{{count}} sin leer",
     "empty": "No tienes avisos pendientes",
     "emptyHint": "Aquí aparecerán los vencimientos, caducidades y conflictos",
     "markAllRead": "Marcar todo como leído",
+    "view": "Ver",
+    "markRead": "Marcar como leído",
+    "retry": "Reintentar",
     "loadMore": "Ver más",
     "loadError": "No se pudieron cargar las notificaciones",
     "resolve": "Resolver",
+    "aria": {
+      "bell": "Abrir notificaciones",
+      "bellWithUnread": "Abrir notificaciones, {{count}} sin leer",
+      "drawer": "Panel de notificaciones",
+      "filter": "Filtrar notificaciones por estado",
+      "view": "Ver notificación",
+      "markRead": "Marcar notificación como leída",
+      "markAllRead": "Marcar todas las notificaciones como leídas",
+      "resolve": "Resolver notificación",
+      "retry": "Reintentar acción de notificación",
+      "dismiss": "Cerrar error de notificación"
+    },
+    "mutationError": {
+      "title": "La acción de notificación ha fallado",
+      "dismiss": "Cerrar error de notificación",
+      "labels": {
+        "view": "Ver",
+        "markRead": "Marcar como leído",
+        "markAllRead": "Marcar todo como leído",
+        "resolve": "Resolver"
+      },
+      "messages": {
+        "view": "No se ha podido abrir la notificación.",
+        "markRead": "No se ha podido marcar la notificación como leída.",
+        "markAllRead": "No se han podido marcar las notificaciones como leídas.",
+        "resolve": "No se ha podido resolver la notificación."
+      }
+    },
     "filters": {
       "open": "Abiertas",
       "unread": "Sin leer",
