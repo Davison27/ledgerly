@@ -888,14 +888,6 @@
           "name": "Google Workspace",
           "description": "Calendar, files and mail from your Google account"
         },
-        "microsoft": {
-          "name": "Microsoft 365",
-          "description": "Outlook, OneDrive and Excel through Microsoft Graph"
-        },
-        "communication": {
-          "name": "Communication",
-          "description": "Get Ledgerly alerts in your team's channel"
-        },
         "open": {
           "name": "Open standards",
           "description": "Vendor-free: webhooks, ICS, SMTP and API keys"
@@ -955,8 +947,6 @@
         "spreadsheet": "Spreadsheet",
         "mailbox": "Mailbox",
         "label": "Label",
-        "channel": "Channel",
-        "chatId": "Chat ID",
         "webhookUrl": "Webhook URL",
         "feedUrl": "Calendar URL",
         "events": "Events to send",
@@ -970,6 +960,49 @@
         "contactGroup": "Contact group",
         "autoArchive": "Archive documents automatically",
         "notifyOnError": "Notify errors too"
+      },
+      "options": {
+        "calendar": {
+          "ledgerly": "Ledgerly calendar",
+          "personal": "Personal",
+          "projects": "Projects"
+        },
+        "folder": {
+          "ledgerly-documents": "/Ledgerly/Documents",
+          "accounting-2026": "/Accounting/2026",
+          "shared": "/Shared"
+        },
+        "label": {
+          "invoices": "Invoices",
+          "suppliers": "Suppliers",
+          "ledgerly": "Ledgerly"
+        },
+        "spreadsheet": {
+          "ledgerly-invoicing": "Ledgerly invoicing",
+          "expenses-2026": "Expenses 2026"
+        },
+        "contactGroup": {
+          "suppliers": "Suppliers",
+          "customers": "Customers",
+          "all": "All contacts"
+        },
+        "syncDirection": {
+          "ledgerly-to-google": "Ledgerly → Google",
+          "google-to-ledgerly": "Google → Ledgerly",
+          "bidirectional": "Bidirectional",
+          "ics-read-only": "Read-only (ICS)",
+          "caldav-bidirectional": "Bidirectional (CalDAV)"
+        },
+        "events": {
+          "all": "All alerts",
+          "errors": "Errors only",
+          "deadlines": "Deadlines only"
+        },
+        "security": {
+          "starttls": "STARTTLS",
+          "ssl-tls": "SSL/TLS",
+          "none": "None"
+        }
       },
       "catalog": {
         "google-calendar": {
@@ -991,30 +1024,6 @@
         "google-contacts": {
           "name": "Google Contacts",
           "description": "Keeps suppliers in sync with your contacts"
-        },
-        "outlook-calendar": {
-          "name": "Outlook Calendar",
-          "description": "Publishes the schedule to the Outlook calendar"
-        },
-        "onedrive": {
-          "name": "OneDrive",
-          "description": "Archives documents into a OneDrive folder"
-        },
-        "excel-online": {
-          "name": "Excel",
-          "description": "Dumps reports into an online Excel workbook"
-        },
-        "slack": {
-          "name": "Slack",
-          "description": "Sends Ledgerly alerts to a Slack channel"
-        },
-        "telegram": {
-          "name": "Telegram",
-          "description": "Receives alerts in a Telegram chat"
-        },
-        "discord": {
-          "name": "Discord",
-          "description": "Posts alerts to a Discord channel"
         },
         "outgoing-webhooks": {
           "name": "Outgoing webhooks",

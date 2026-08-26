@@ -202,7 +202,12 @@ export function IntegrationDrawer({
                     label={label}
                     rules={field.required ? [{ required: true }] : undefined}
                   >
-                    <Select options={field.options.map((option) => ({ value: option, label: option }))} />
+                    <Select
+                      options={field.options.map((option) => ({
+                        value: option,
+                        label: t(`workspace.integrations.options.${option}`),
+                      }))}
+                    />
                   </Form.Item>
                 );
               }

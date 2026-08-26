@@ -4,18 +4,12 @@ export type IntegrationKeyDto =
   | 'gmail'
   | 'google-sheets'
   | 'google-contacts'
-  | 'outlook-calendar'
-  | 'onedrive'
-  | 'excel-online'
-  | 'slack'
-  | 'telegram'
-  | 'discord'
   | 'outgoing-webhooks'
   | 'calendar-feed'
   | 'smtp-imap'
   | 'api-keys';
 
-export type IntegrationFamilyDto = 'google' | 'microsoft' | 'communication' | 'open';
+export type IntegrationFamilyDto = 'google' | 'open';
 export type IntegrationStatusDto = 'connected' | 'disconnected' | 'error';
 export type IntegrationErrorCodeDto = 'token_expired' | 'revoked' | 'rate_limited' | 'unreachable';
 

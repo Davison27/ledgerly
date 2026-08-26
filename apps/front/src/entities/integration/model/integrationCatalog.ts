@@ -6,8 +6,6 @@ export const INTEGRATION_SETTING_KEYS = [
   'spreadsheet',
   'mailbox',
   'label',
-  'channel',
-  'chatId',
   'webhookUrl',
   'feedUrl',
   'events',
@@ -38,8 +36,23 @@ export interface IntegrationCatalogEntry {
   fields: readonly IntegrationSettingField[];
 }
 
-const SYNC_DIRECTION_TO_GOOGLE = ['Ledgerly → Google', 'Google → Ledgerly', 'Bidireccional'] as const;
-const NOTIFICATION_EVENTS = ['Todos los avisos', 'Solo errores', 'Solo vencimientos'] as const;
+const GOOGLE_CALENDAR_OPTIONS = ['calendar.ledgerly', 'calendar.personal', 'calendar.projects'] as const;
+const GOOGLE_DRIVE_FOLDER_OPTIONS = [
+  'folder.ledgerly-documents',
+  'folder.accounting-2026',
+  'folder.shared',
+] as const;
+const GMAIL_LABEL_OPTIONS = ['label.invoices', 'label.suppliers', 'label.ledgerly'] as const;
+const GOOGLE_SHEETS_OPTIONS = ['spreadsheet.ledgerly-invoicing', 'spreadsheet.expenses-2026'] as const;
+const GOOGLE_CONTACT_GROUP_OPTIONS = ['contactGroup.suppliers', 'contactGroup.customers', 'contactGroup.all'] as const;
+const GOOGLE_SYNC_DIRECTION_OPTIONS = [
+  'syncDirection.ledgerly-to-google',
+  'syncDirection.google-to-ledgerly',
+  'syncDirection.bidirectional',
+] as const;
+const NOTIFICATION_EVENT_OPTIONS = ['events.all', 'events.errors', 'events.deadlines'] as const;
+const CALENDAR_MODE_OPTIONS = ['syncDirection.ics-read-only', 'syncDirection.caldav-bidirectional'] as const;
+const MAIL_SECURITY_OPTIONS = ['security.starttls', 'security.ssl-tls', 'security.none'] as const;
 
 export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
   {
@@ -47,8 +60,8 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
     family: 'google',
     auth: 'oauth',
     fields: [
-      { key: 'calendar', kind: 'select', options: ['Ledgerly · Agenda', 'Personal', 'Obras'] },
-      { key: 'syncDirection', kind: 'select', options: SYNC_DIRECTION_TO_GOOGLE },
+      { key: 'calendar', kind: 'select', options: GOOGLE_CALENDAR_OPTIONS },
+      { key: 'syncDirection', kind: 'select', options: GOOGLE_SYNC_DIRECTION_OPTIONS },
       { key: 'notifyOnError', kind: 'toggle' },
     ],
   },
@@ -60,7 +73,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
       {
         key: 'folder',
         kind: 'select',
-        options: ['/Ledgerly/Documentos', '/Contabilidad/2026', '/Compartido'],
+        options: GOOGLE_DRIVE_FOLDER_OPTIONS,
       },
       { key: 'autoArchive', kind: 'toggle' },
     ],
@@ -71,7 +84,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
     auth: 'oauth',
     fields: [
       { key: 'mailbox', kind: 'text' },
-      { key: 'label', kind: 'select', options: ['facturas', 'proveedores', 'ledgerly'] },
+      { key: 'label', kind: 'select', options: GMAIL_LABEL_OPTIONS },
     ],
   },
   {
@@ -82,7 +95,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
       {
         key: 'spreadsheet',
         kind: 'select',
-        options: ['Ledgerly · Facturación', 'Gastos 2026'],
+        options: GOOGLE_SHEETS_OPTIONS,
       },
     ],
   },
@@ -91,63 +104,8 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
     family: 'google',
     auth: 'oauth',
     fields: [
-      { key: 'contactGroup', kind: 'select', options: ['Proveedores', 'Clientes', 'Todos'] },
-      { key: 'syncDirection', kind: 'select', options: SYNC_DIRECTION_TO_GOOGLE },
-    ],
-  },
-  {
-    key: 'outlook-calendar',
-    family: 'microsoft',
-    auth: 'oauth',
-    fields: [
-      { key: 'calendar', kind: 'select', options: ['Calendario', 'Ledgerly · Agenda'] },
-      { key: 'syncDirection', kind: 'select', options: SYNC_DIRECTION_TO_GOOGLE },
-    ],
-  },
-  {
-    key: 'onedrive',
-    family: 'microsoft',
-    auth: 'oauth',
-    fields: [
-      { key: 'folder', kind: 'select', options: ['/Ledgerly', '/Documentos/Facturas'] },
-      { key: 'autoArchive', kind: 'toggle' },
-    ],
-  },
-  {
-    key: 'excel-online',
-    family: 'microsoft',
-    auth: 'oauth',
-    fields: [
-      { key: 'spreadsheet', kind: 'select', options: ['Ledgerly.xlsx', 'Informes 2026.xlsx'] },
-    ],
-  },
-  {
-    key: 'slack',
-    family: 'communication',
-    auth: 'oauth',
-    fields: [
-      { key: 'channel', kind: 'select', options: ['#facturacion', '#general', '#avisos'] },
-      { key: 'events', kind: 'select', options: NOTIFICATION_EVENTS },
-      { key: 'notifyOnError', kind: 'toggle' },
-    ],
-  },
-  {
-    key: 'telegram',
-    family: 'communication',
-    auth: 'credentials',
-    fields: [
-      { key: 'chatId', kind: 'text', required: true },
-      { key: 'apiKey', kind: 'secret', required: true },
-      { key: 'events', kind: 'select', options: NOTIFICATION_EVENTS },
-    ],
-  },
-  {
-    key: 'discord',
-    family: 'communication',
-    auth: 'credentials',
-    fields: [
-      { key: 'webhookUrl', kind: 'text', required: true },
-      { key: 'events', kind: 'select', options: NOTIFICATION_EVENTS },
+      { key: 'contactGroup', kind: 'select', options: GOOGLE_CONTACT_GROUP_OPTIONS },
+      { key: 'syncDirection', kind: 'select', options: GOOGLE_SYNC_DIRECTION_OPTIONS },
     ],
   },
   {
@@ -156,7 +114,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
     auth: 'internal',
     fields: [
       { key: 'webhookUrl', kind: 'text', required: true },
-      { key: 'events', kind: 'select', options: NOTIFICATION_EVENTS },
+      { key: 'events', kind: 'select', options: NOTIFICATION_EVENT_OPTIONS },
       { key: 'apiKey', kind: 'secret' },
     ],
   },
@@ -169,7 +127,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
       {
         key: 'syncDirection',
         kind: 'select',
-        options: ['Solo lectura (ICS)', 'Bidireccional (CalDAV)'],
+        options: CALENDAR_MODE_OPTIONS,
       },
     ],
   },
@@ -180,7 +138,7 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
     fields: [
       { key: 'host', kind: 'text', required: true },
       { key: 'port', kind: 'text', required: true },
-      { key: 'security', kind: 'select', options: ['STARTTLS', 'SSL/TLS', 'Ninguna'] },
+      { key: 'security', kind: 'select', options: MAIL_SECURITY_OPTIONS },
       { key: 'username', kind: 'text', required: true },
       { key: 'password', kind: 'secret', required: true },
     ],
@@ -195,8 +153,6 @@ export const INTEGRATION_CATALOG: readonly IntegrationCatalogEntry[] = [
 
 export const INTEGRATION_FAMILIES: readonly IntegrationFamilyDto[] = [
   'google',
-  'microsoft',
-  'communication',
   'open',
 ];
 
