@@ -428,12 +428,44 @@
   },
   "notifications": {
     "title": "Notifications",
+    "unreadSummary": "{{count}} unread",
     "empty": "You have no pending alerts",
     "emptyHint": "Due dates, expirations and conflicts will show up here",
     "markAllRead": "Mark all as read",
+    "view": "View",
+    "markRead": "Mark as read",
+    "retry": "Retry",
     "loadMore": "Load more",
     "loadError": "Notifications could not be loaded",
     "resolve": "Resolve",
+    "aria": {
+      "bell": "Open notifications",
+      "bellWithUnread": "Open notifications, {{count}} unread",
+      "drawer": "Notifications drawer",
+      "filter": "Filter notifications by status",
+      "view": "View notification",
+      "markRead": "Mark notification as read",
+      "markAllRead": "Mark all notifications as read",
+      "resolve": "Resolve notification",
+      "retry": "Retry notification action",
+      "dismiss": "Dismiss notification error"
+    },
+    "mutationError": {
+      "title": "Notification action failed",
+      "dismiss": "Dismiss notification error",
+      "labels": {
+        "view": "View",
+        "markRead": "Mark as read",
+        "markAllRead": "Mark all as read",
+        "resolve": "Resolve"
+      },
+      "messages": {
+        "view": "The notification could not be opened.",
+        "markRead": "The notification could not be marked as read.",
+        "markAllRead": "The notifications could not be marked as read.",
+        "resolve": "The notification could not be resolved."
+      }
+    },
     "filters": {
       "open": "Open",
       "unread": "Unread",
