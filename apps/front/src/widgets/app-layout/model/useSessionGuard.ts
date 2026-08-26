@@ -312,6 +312,7 @@ export function useSessionGuard(): boolean {
     return () => {
       mountedRef.current = false;
       validationIdRef.current += 1;
+      validationInFlightRef.current = false;
       clearIdleTimer();
       window.clearInterval(revalidationInterval);
       window.removeEventListener('focus', handleResume);
