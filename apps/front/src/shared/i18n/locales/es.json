@@ -892,14 +892,6 @@
           "name": "Google Workspace",
           "description": "Agenda, archivos y correo de tu cuenta de Google"
         },
-        "microsoft": {
-          "name": "Microsoft 365",
-          "description": "Outlook, OneDrive y Excel a través de Microsoft Graph"
-        },
-        "communication": {
-          "name": "Comunicación",
-          "description": "Recibe los avisos de Ledgerly en el canal de tu equipo"
-        },
         "open": {
           "name": "Estándares abiertos",
           "description": "Sin depender de ningún proveedor: webhooks, ICS, SMTP y claves de API"
@@ -959,8 +951,6 @@
         "spreadsheet": "Hoja de cálculo",
         "mailbox": "Buzón",
         "label": "Etiqueta",
-        "channel": "Canal",
-        "chatId": "Identificador del chat",
         "webhookUrl": "URL del webhook",
         "feedUrl": "URL del calendario",
         "events": "Eventos que se envían",
@@ -974,6 +964,49 @@
         "contactGroup": "Grupo de contactos",
         "autoArchive": "Archivar documentos automáticamente",
         "notifyOnError": "Avisar también de los errores"
+      },
+      "options": {
+        "calendar": {
+          "ledgerly": "Agenda de Ledgerly",
+          "personal": "Personal",
+          "projects": "Obras"
+        },
+        "folder": {
+          "ledgerly-documents": "/Ledgerly/Documentos",
+          "accounting-2026": "/Contabilidad/2026",
+          "shared": "/Compartido"
+        },
+        "label": {
+          "invoices": "Facturas",
+          "suppliers": "Proveedores",
+          "ledgerly": "Ledgerly"
+        },
+        "spreadsheet": {
+          "ledgerly-invoicing": "Ledgerly · Facturación",
+          "expenses-2026": "Gastos 2026"
+        },
+        "contactGroup": {
+          "suppliers": "Proveedores",
+          "customers": "Clientes",
+          "all": "Todos los contactos"
+        },
+        "syncDirection": {
+          "ledgerly-to-google": "Ledgerly → Google",
+          "google-to-ledgerly": "Google → Ledgerly",
+          "bidirectional": "Bidireccional",
+          "ics-read-only": "Solo lectura (ICS)",
+          "caldav-bidirectional": "Bidireccional (CalDAV)"
+        },
+        "events": {
+          "all": "Todos los avisos",
+          "errors": "Solo errores",
+          "deadlines": "Solo vencimientos"
+        },
+        "security": {
+          "starttls": "STARTTLS",
+          "ssl-tls": "SSL/TLS",
+          "none": "Ninguna"
+        }
       },
       "catalog": {
         "google-calendar": {
@@ -995,30 +1028,6 @@
         "google-contacts": {
           "name": "Google Contacts",
           "description": "Mantiene los proveedores sincronizados con tus contactos"
-        },
-        "outlook-calendar": {
-          "name": "Outlook Calendar",
-          "description": "Publica la agenda en el calendario de Outlook"
-        },
-        "onedrive": {
-          "name": "OneDrive",
-          "description": "Archiva los documentos en una carpeta de OneDrive"
-        },
-        "excel-online": {
-          "name": "Excel",
-          "description": "Vuelca los informes en un libro de Excel en línea"
-        },
-        "slack": {
-          "name": "Slack",
-          "description": "Envía los avisos de Ledgerly a un canal de Slack"
-        },
-        "telegram": {
-          "name": "Telegram",
-          "description": "Recibe los avisos en un chat de Telegram"
-        },
-        "discord": {
-          "name": "Discord",
-          "description": "Publica los avisos en un canal de Discord"
         },
         "outgoing-webhooks": {
           "name": "Webhooks salientes",
