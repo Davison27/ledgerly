@@ -1170,6 +1170,11 @@
       "documents": "documents",
       "otherCurrencies": "Other currencies"
     },
+    "summary": {
+      "totalSpend": "Total spend",
+      "margin": "Margin",
+      "dates": "Planned dates"
+    },
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",

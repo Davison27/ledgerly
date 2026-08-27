@@ -4,7 +4,6 @@ import {
   Col,
   DatePicker,
   Divider,
-  Flex,
   Form,
   Input,
   InputNumber,
@@ -62,7 +61,7 @@ function ProjectColorPicker({ value, onChange }: ProjectColorPickerProps) {
   const isDark = mode === 'dark';
 
   return (
-    <Flex gap={8} wrap>
+    <div className={styles.colorPicker}>
       {PROJECT_COLOR_TOKENS.map((colorToken) => {
         const hex = PROJECT_PALETTE[colorToken][isDark ? 'dark' : 'light'];
         const selected = value === colorToken;
@@ -79,7 +78,7 @@ function ProjectColorPicker({ value, onChange }: ProjectColorPickerProps) {
           />
         );
       })}
-    </Flex>
+    </div>
   );
 }
 
@@ -115,7 +114,7 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
   return (
     <>
       <Row gutter={16}>
-        <Col xs={24} sm={8} md={4}>
+        <Col xs={24} sm={8} md={4} className={styles.imageColumn}>
           <Form.Item label={t('projects.form.fields.image')} className={styles.imageField}>
             <Upload
               accept="image/*"
@@ -157,12 +156,9 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
           <Text type="secondary" className={styles.imageHint}>
             {t('projects.form.image.hint')}
           </Text>
-          <Form.Item name="color" label={t('projects.form.fields.color')} className={styles.colorField}>
-            <ProjectColorPicker />
-          </Form.Item>
         </Col>
 
-        <Col xs={24} sm={16} md={20}>
+        <Col xs={24} sm={16} md={20} className={styles.generalFieldsColumn}>
           <Text strong>{t('projects.form.sections.general')}</Text>
           <Divider className={styles.sectionDivider} />
           <Row gutter={16}>
@@ -210,6 +206,9 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
               </Form.Item>
             </Col>
           </Row>
+          <Form.Item name="color" label={t('projects.form.fields.color')} className={styles.colorField}>
+            <ProjectColorPicker />
+          </Form.Item>
         </Col>
       </Row>
       <Form.Item name="description" label={t('projects.form.fields.description')}>

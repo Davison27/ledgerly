@@ -14,6 +14,8 @@ import { DashboardSection } from '../dashboard/DashboardSection';
 import { ScheduleSection } from '../schedule/ScheduleSection';
 import { SettingsSection } from '../settings/SettingsSection';
 import { ProjectEquipmentSection } from '../equipment/ProjectEquipmentSection';
+import { useProjectFinancialSummary } from '../../model/useProjectFinancialSummary';
+import { ProjectSummaryStrip } from '../projectSummary/ProjectSummaryStrip';
 import styles from './ProjectDetailPage.module.css';
 
 const { Text } = Typography;
@@ -33,6 +35,7 @@ export function ProjectDetailPage() {
   });
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
+  const financialSummary = useProjectFinancialSummary(projectId ?? '');
 
   const { section, setSection } = useProjectDetailSection(projectId);
 
@@ -84,13 +87,20 @@ export function ProjectDetailPage() {
         }
       />
 
+      <ProjectSummaryStrip
+        project={project}
+        data={financialSummary.data}
+        isFinancialsPending={financialSummary.isPending}
+        isFinancialsError={financialSummary.isError}
+      />
+
       <div className={styles.content}>
         {section === 'documents' && (
           <DocumentsSection project={project} color={token.colorPrimary} />
         )}
         {section === 'equipment' && <ProjectEquipmentSection project={project} color={token.colorPrimary} />}
         {section === 'dashboard' && (
-          <DashboardSection project={project} color={token.colorPrimary} />
+          <DashboardSection data={financialSummary.data} color={token.colorPrimary} />
         )}
         {section === 'schedule' && (
           <ScheduleSection project={project} color={token.colorPrimary} />

@@ -1,6 +1,7 @@
 .colorSwatch {
   width: 24px;
   height: 24px;
+  flex: none;
   border-radius: 50%;
   border: 2px solid transparent;
   padding: 0;
@@ -11,6 +12,13 @@
 .colorSwatch[data-selected='true'] {
   border-color: var(--ant-color-text);
   box-shadow: 0 0 0 2px var(--swatch-color);
+}
+
+.colorPicker {
+  display: flex;
+  gap: var(--lg-space-sm);
+  overflow-x: auto;
+  padding: var(--lg-space-2xs);
 }
 
 .imageField {
@@ -39,6 +47,14 @@
 .imageHint {
   font-size: var(--lg-font-size-2xs);
   display: block;
+}
+
+.imageColumn {
+  align-self: stretch;
+}
+
+.generalFieldsColumn {
+  min-width: 0;
 }
 
 .colorField {

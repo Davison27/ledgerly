@@ -1174,6 +1174,11 @@
       "documents": "documentos",
       "otherCurrencies": "Otras divisas"
     },
+    "summary": {
+      "totalSpend": "Gasto total",
+      "margin": "Margen",
+      "dates": "Fechas previstas"
+    },
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
