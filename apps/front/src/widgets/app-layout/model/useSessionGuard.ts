@@ -51,12 +51,6 @@ export function useSessionGuard(): boolean {
       setGuardState(nextState);
     };
 
-    const hideChildren = () => {
-      if (guardStateRef.current === 'ready') {
-        flushSync(() => updateGuardState('checking'));
-      }
-    };
-
     const lockChildren = () => {
       if (guardStateRef.current !== 'locked') {
         flushSync(() => updateGuardState('locked'));
@@ -224,7 +218,6 @@ export function useSessionGuard(): boolean {
 
     const handleResume = () => {
       if (redirectingRef.current || guardStateRef.current === 'locked') return;
-      hideChildren();
       void validateSession();
     };
 
