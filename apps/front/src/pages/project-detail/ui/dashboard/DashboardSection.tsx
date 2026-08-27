@@ -1,12 +1,6 @@
-import { useMemo } from 'react';
 import { Flex } from 'antd';
-import type { ProjectSectionProps } from '../../model/types';
 import { PageContainer } from '@/shared/ui/PageContainer';
-import { useProjectDocuments } from '../../model/useProjectDocuments';
-import { projectEquipmentQueries } from '@/entities/project-equipment';
-import { useQuery } from '@tanstack/react-query';
 import {
-  deriveDashboardData,
   KpiRow,
   MonthlyChart,
   MonthlyProfitChart,
@@ -16,13 +10,16 @@ import {
   StatusBreakdown,
   CashflowByStatus,
   TopIssuers,
+  type DashboardData,
 } from '@/widgets/dashboard-charts';
 import styles from './DashboardSection.module.css';
 
-export function DashboardSection({ project, color }: ProjectSectionProps) {
-  const { documents } = useProjectDocuments(project.id);
-  const { data: equipment = [] } = useQuery(projectEquipmentQueries.list(project.id));
-  const data = useMemo(() => deriveDashboardData(documents, equipment.flatMap((item) => item.leaseExpense !== null && item.leaseExpenseDate ? [{ amount: item.leaseExpense, date: item.leaseExpenseDate }] : [])), [documents, equipment]);
+interface DashboardSectionProps {
+  color: string;
+  data: DashboardData;
+}
+
+export function DashboardSection({ color, data }: DashboardSectionProps) {
 
   return (
     <PageContainer>
