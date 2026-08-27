@@ -13,7 +13,9 @@ import {
 } from '@/entities/project-equipment';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { Amount } from '@/shared/ui/Amount';
+import { PageContainer } from '@/shared/ui/PageContainer';
 import type { ProjectSectionProps } from '../../model/types';
+import styles from './ProjectEquipmentSection.module.css';
 
 interface FormValues {
   equipmentId: string;
@@ -70,23 +72,25 @@ export function ProjectEquipmentSection({ project }: ProjectSectionProps) {
   };
 
   return <>
-    <Space direction="vertical" size={16} style={{ width: '100%' }}>
-      {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>{t('projects.equipment.add')}</Button>}
-      <Table<ProjectEquipmentDto>
-        rowKey="equipmentId"
-        loading={isPending}
-        locale={{ emptyText: <Empty description={t('projects.equipment.empty')} /> }}
-        pagination={false}
-        dataSource={assigned}
-        columns={[
-          { title: t('projects.equipment.columns.equipment'), dataIndex: 'name', render: (_, item) => <Space><span>{item.name}</span>{item.reference && <Typography.Text type="secondary">{item.reference}</Typography.Text>}</Space> },
-          { title: t('projects.equipment.columns.catalogLease'), dataIndex: 'leasingMonthlyFee', render: (value: number | null) => value === null ? '—' : <Amount value={value} /> },
-          { title: t('projects.equipment.columns.projectExpense'), dataIndex: 'leaseExpense', render: (value: number | null) => value === null ? '—' : <Amount value={value} /> },
-          { title: t('projects.equipment.columns.date'), dataIndex: 'leaseExpenseDate', render: (value: string | null) => value ?? '—' },
-          ...(canEdit ? [{ title: '', key: 'actions', width: 56, render: (_: unknown, item: ProjectEquipmentDto) => <Button type="text" danger aria-label={t('common.delete')} icon={<DeleteOutlined />} onClick={() => void remove(item)} /> }] : []),
-        ]}
-      />
-    </Space>
+    <PageContainer>
+      <Space orientation="vertical" size={16} className={styles.root}>
+        {canEdit && <Button type="primary" icon={<PlusOutlined />} onClick={() => setOpen(true)}>{t('projects.equipment.add')}</Button>}
+        <Table<ProjectEquipmentDto>
+          rowKey="equipmentId"
+          loading={isPending}
+          locale={{ emptyText: <Empty description={t('projects.equipment.empty')} /> }}
+          pagination={false}
+          dataSource={assigned}
+          columns={[
+            { title: t('projects.equipment.columns.equipment'), dataIndex: 'name', render: (_, item) => <Space><span>{item.name}</span>{item.reference && <Typography.Text type="secondary">{item.reference}</Typography.Text>}</Space> },
+            { title: t('projects.equipment.columns.catalogLease'), dataIndex: 'leasingMonthlyFee', render: (value: number | null) => value === null ? '—' : <Amount value={value} /> },
+            { title: t('projects.equipment.columns.projectExpense'), dataIndex: 'leaseExpense', render: (value: number | null) => value === null ? '—' : <Amount value={value} /> },
+            { title: t('projects.equipment.columns.date'), dataIndex: 'leaseExpenseDate', render: (value: string | null) => value ?? '—' },
+            ...(canEdit ? [{ title: '', key: 'actions', width: 56, render: (_: unknown, item: ProjectEquipmentDto) => <Button type="text" danger aria-label={t('common.delete')} icon={<DeleteOutlined />} onClick={() => void remove(item)} /> }] : []),
+          ]}
+        />
+      </Space>
+    </PageContainer>
     <Modal open={open} title={t('projects.equipment.addTitle')} onCancel={() => setOpen(false)} onOk={() => void add()} confirmLoading={submitting} okText={t('common.add')}>
       <Form form={form} layout="vertical" initialValues={{ leaseExpenseDate: dayjs() }}>
         <Form.Item name="equipmentId" label={t('projects.equipment.columns.equipment')} rules={[{ required: true, message: t('projects.equipment.validation.equipmentRequired') }]}>
