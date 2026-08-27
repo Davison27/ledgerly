@@ -91,14 +91,14 @@ export function SettingsSection({ project }: ProjectSectionProps) {
 
   if (loading || !fullProject) {
     return (
-      <PageContainer maxWidth={1080}>
+      <PageContainer>
         <Skeleton active paragraph={{ rows: 8 }} />
       </PageContainer>
     );
   }
 
   return (
-    <PageContainer maxWidth={1080}>
+    <PageContainer>
       <Flex align="center" justify="space-between" className={styles.header}>
         <Title level={5} className={styles.title}>
           {t('projects.settings.details')}
