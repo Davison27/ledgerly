@@ -59,5 +59,6 @@ skills-lock.json
 
 # Temporary agent plans
 docs/plans/
+docs/superpowers/
 .claude/plans/
 .codex/plans/
