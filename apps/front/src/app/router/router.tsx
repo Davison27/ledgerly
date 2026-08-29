@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ComponentType } from 'react';
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
 
 import { AppShell } from './AppShell';
@@ -5,23 +6,39 @@ import { RootLayout } from './RootLayout';
 import { SessionGuard } from '@/widgets/app-layout';
 import { LoginPage } from '@/pages/login';
 import { OnboardingPage } from '@/pages/onboarding';
-import { DashboardPage } from '@/pages/dashboard';
-import { ProjectsPage } from '@/pages/projects';
-import { ProjectDetailPage, type ProjectDetailSection } from '@/pages/project-detail';
-import { CalendarPage } from '@/pages/calendar';
-import { ExtractionHintsPage } from '@/pages/extraction-hints';
-import { SuppliersPage } from '@/pages/suppliers';
-import { DocumentsPage } from '@/pages/documents';
-import { EquipmentPage } from '@/pages/equipment';
-import { StaffPage } from '@/pages/staff';
-import { StaffMemberDetailPage, type StaffDetailSection } from '@/pages/staff-detail';
-import { WorkspacePage, type WorkspaceTab } from '@/pages/workspace';
+import type { ProjectDetailSection } from '@/pages/project-detail';
+import type { StaffDetailSection } from '@/pages/staff-detail';
+import type { WorkspaceTab } from '@/pages/workspace';
 
 interface LoginSearch {
   authError?: string;
   sessionExpired?: boolean;
   signedOut?: boolean;
 }
+
+const routeFallback = <div role="status">Cargando página…</div>;
+
+function withRouteFallback(Component: ComponentType) {
+  return function LazyRoute() {
+    return (
+      <Suspense fallback={routeFallback}>
+        <Component />
+      </Suspense>
+    );
+  };
+}
+
+const DashboardPage = withRouteFallback(lazy(() => import('@/pages/dashboard').then(({ DashboardPage }) => ({ default: DashboardPage }))));
+const ProjectsPage = withRouteFallback(lazy(() => import('@/pages/projects').then(({ ProjectsPage }) => ({ default: ProjectsPage }))));
+const ProjectDetailPage = withRouteFallback(lazy(() => import('@/pages/project-detail').then(({ ProjectDetailPage }) => ({ default: ProjectDetailPage }))));
+const CalendarPage = withRouteFallback(lazy(() => import('@/pages/calendar').then(({ CalendarPage }) => ({ default: CalendarPage }))));
+const DocumentsPage = withRouteFallback(lazy(() => import('@/pages/documents').then(({ DocumentsPage }) => ({ default: DocumentsPage }))));
+const ExtractionHintsPage = withRouteFallback(lazy(() => import('@/pages/extraction-hints').then(({ ExtractionHintsPage }) => ({ default: ExtractionHintsPage }))));
+const SuppliersPage = withRouteFallback(lazy(() => import('@/pages/suppliers').then(({ SuppliersPage }) => ({ default: SuppliersPage }))));
+const EquipmentPage = withRouteFallback(lazy(() => import('@/pages/equipment').then(({ EquipmentPage }) => ({ default: EquipmentPage }))));
+const StaffPage = withRouteFallback(lazy(() => import('@/pages/staff').then(({ StaffPage }) => ({ default: StaffPage }))));
+const StaffMemberDetailPage = withRouteFallback(lazy(() => import('@/pages/staff-detail').then(({ StaffMemberDetailPage }) => ({ default: StaffMemberDetailPage }))));
+const WorkspacePage = withRouteFallback(lazy(() => import('@/pages/workspace').then(({ WorkspacePage }) => ({ default: WorkspacePage }))));
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
