@@ -10,11 +10,14 @@
     "dev:local": "nest start --watch",
     "start": "node dist/main",
     "start:prod": "node dist/main",
-    "lint": "eslint \"{src,test}/**/*.ts\" --fix",
+    "lint": "eslint \"{src,test}/**/*.ts\"",
     "typecheck": "pnpm run typecheck:ts7",
     "typecheck:ts7": "tsc --noEmit",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json",
+    "test:integration": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-integration.json --runInBand",
+    "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand",
+    "test:e2e:http": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e-http.json --runInBand",
+    "test:e2e:database": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e-database.json --runInBand",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:schema": "ts-node src/database/migrate.ts --mode=auto",
@@ -94,6 +97,10 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "testPathIgnorePatterns": [
+      "\\.integration\\.spec\\.ts$",
+      "\\.e2e\\.spec\\.ts$"
+    ]
   }
 }

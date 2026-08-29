@@ -1,0 +1,12 @@
+{
+  "rootDir": "../src",
+  "testRegex": ".*\\.e2e\\.spec\\.ts$",
+  "testPathIgnorePatterns": [
+    "(encrypted-stored-files\\.migration|typeorm-document\\.repository|encrypted-image-assets)\\.e2e\\.spec\\.ts$"
+  ],
+  "transform": {
+    "^.+\\.(t|j)s$": "ts-jest"
+  },
+  "moduleFileExtensions": ["js", "json", "ts"],
+  "testEnvironment": "node"
+}
