@@ -7,15 +7,12 @@ interface JsonLoggerOptions {
   write?: (event: string) => void;
 }
 
-const SENSITIVE_KEY = /authorization|cookie|token|secret|password|document|file|content/i;
-
-function redact(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map(redact);
-  if (!value || typeof value !== 'object') return value;
-
-  return Object.fromEntries(
-    Object.entries(value).map(([key, nestedValue]) => [key, SENSITIVE_KEY.test(key) ? '[REDACTED]' : redact(nestedValue)]),
-  );
+export interface HttpRequestLogContext {
+  requestId: string;
+  method: string;
+  path: string;
+  statusCode: number;
+  durationMs: number;
 }
 
 export class JsonLogger implements LoggerService {
@@ -27,38 +24,58 @@ export class JsonLogger implements LoggerService {
     this.write = options.write ?? ((event) => process.stdout.write(`${event}\n`));
   }
 
-  log(message: unknown, context?: unknown): void {
-    this.emit('log', message, context);
+  log(_message: unknown, _context?: unknown): void {
+    void _message;
+    void _context;
+    this.emit('log');
   }
 
-  error(message: unknown, context?: unknown): void {
-    this.emit('error', message, context);
+  error(_message: unknown, _context?: unknown): void {
+    void _message;
+    void _context;
+    this.emit('error');
   }
 
-  warn(message: unknown, context?: unknown): void {
-    this.emit('warn', message, context);
+  warn(_message: unknown, _context?: unknown): void {
+    void _message;
+    void _context;
+    this.emit('warn');
   }
 
-  debug(message: unknown, context?: unknown): void {
-    this.emit('debug', message, context);
+  debug(_message: unknown, _context?: unknown): void {
+    void _message;
+    void _context;
+    this.emit('debug');
   }
 
-  verbose(message: unknown, context?: unknown): void {
-    this.emit('verbose', message, context);
+  verbose(_message: unknown, _context?: unknown): void {
+    void _message;
+    void _context;
+    this.emit('verbose');
   }
 
-  fatal(message: unknown, context?: unknown): void {
-    this.emit('fatal', message, context);
+  fatal(_message: unknown, _context?: unknown): void {
+    void _message;
+    void _context;
+    this.emit('fatal');
   }
 
-  private emit(level: LogLevel, message: unknown, context: unknown): void {
+  logHttpRequest(context: HttpRequestLogContext): void {
     this.write(
       JSON.stringify({
         timestamp: this.now(),
-        level,
-        message: typeof message === 'string' ? message : redact(message),
-        ...(context === undefined ? {} : { context: redact(context) }),
+        level: 'log',
+        event: 'http_request',
+        requestId: context.requestId,
+        method: context.method,
+        path: context.path,
+        statusCode: context.statusCode,
+        durationMs: context.durationMs,
       }),
     );
+  }
+
+  private emit(level: LogLevel): void {
+    this.write(JSON.stringify({ timestamp: this.now(), level, event: 'application_log' }));
   }
 }

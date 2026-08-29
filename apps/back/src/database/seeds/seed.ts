@@ -475,7 +475,7 @@ async function run(): Promise<void> {
   await dataSource.destroy();
 }
 
-run().catch((error) => {
-  console.error(error);
+run().catch(() => {
+  process.stderr.write('Seed failed\n');
   process.exit(1);
 });

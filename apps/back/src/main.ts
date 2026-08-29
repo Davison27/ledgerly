@@ -95,13 +95,13 @@ export function configureHttpBoundary(
 export async function bootstrap(): Promise<void> {
   const logger = new JsonLogger();
   const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false, logger });
-  app.use(createRequestContextMiddleware({ log: (context) => logger.log('http request', context) }));
+  app.use(createRequestContextMiddleware({ log: (context) => logger.logHttpRequest(context) }));
   configureHttpBoundary(app);
   app.enableShutdownHooks();
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port);
-  console.log(`Backend listening on http://localhost:${port}/api`);
+  logger.log('backend_started');
 }
 
 if (require.main === module) {
