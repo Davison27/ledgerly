@@ -20,7 +20,7 @@ export function IntegrationsTab() {
   }
 
   if (panel.loadError) {
-    return <Alert type="error" showIcon message={t('workspace.integrations.loadError')} />;
+    return <Alert type="error" showIcon title={t('workspace.integrations.loadError')} />;
   }
 
   return (

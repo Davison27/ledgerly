@@ -483,7 +483,7 @@ export function DocumentsPage() {
       {loading ? (
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('documents.loadError')} />
+        <Alert type="error" showIcon title={t('documents.loadError')} />
       ) : (documentsPage?.total ?? 0) === 0 ? (
         <EmptyHint
           icon={<FileTextOutlined />}
@@ -526,7 +526,7 @@ export function DocumentsPage() {
         {detailLoading ? (
           <Skeleton active paragraph={{ rows: 6 }} />
         ) : detailError ? (
-          <Alert type="error" showIcon message={t('documents.detail.loadError')} />
+          <Alert type="error" showIcon title={t('documents.detail.loadError')} />
         ) : (
           <DocumentDetail
             document={selectedDocument ?? null}

@@ -26,7 +26,7 @@ export function TipsPanel({ tips }: TipsPanelProps) {
             <Alert
               key={tip.id}
               type={tip.severity}
-              message={t(tip.messageKey, tip.values)}
+              title={t(tip.messageKey, tip.values)}
               showIcon
             />
           ))}

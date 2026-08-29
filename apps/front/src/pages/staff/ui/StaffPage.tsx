@@ -266,7 +266,7 @@ export function StaffPage() {
       {loading ? (
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('staff.loadError')} />
+        <Alert type="error" showIcon title={t('staff.loadError')} />
       ) : staffMembers.length === 0 ? (
         <EmptyHint
           icon={<IdcardOutlined />}

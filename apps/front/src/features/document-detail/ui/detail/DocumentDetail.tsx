@@ -201,7 +201,7 @@ export function DocumentDetail({
           )}
           {viewerState === 'error' && (
             <Flex align="center" justify="center" className={styles.stateFill}>
-              <Alert type="error" showIcon message={t('projects.documents.preview.viewer.error')} />
+              <Alert type="error" showIcon title={t('projects.documents.preview.viewer.error')} />
             </Flex>
           )}
           {viewerState === 'ready' && objectUrl && (

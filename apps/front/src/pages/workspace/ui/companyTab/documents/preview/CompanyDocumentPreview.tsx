@@ -95,7 +95,7 @@ export function CompanyDocumentPreview({ document }: CompanyDocumentPreviewProps
         )}
         {state === 'error' && (
           <Flex align="center" justify="center" className={styles.stateFill}>
-            <Alert type="error" showIcon message={t('company.documents.preview.error')} />
+            <Alert type="error" showIcon title={t('company.documents.preview.error')} />
           </Flex>
         )}
         {state === 'ready' && objectUrl && (

@@ -813,7 +813,7 @@ export function DocumentUploadModal({
                 <Alert
                   type="warning"
                   showIcon
-                  message={t('projects.documents.upload.scannedPdfAlert')}
+                  title={t('projects.documents.upload.scannedPdfAlert')}
                   className={typography.caption}
                 />
               )}
@@ -821,7 +821,7 @@ export function DocumentUploadModal({
                 <Alert
                   type="warning"
                   showIcon
-                  message={t('projects.documents.upload.pdfPageLimitAlert')}
+                  title={t('projects.documents.upload.pdfPageLimitAlert')}
                   className={typography.caption}
                 />
               )}
@@ -848,7 +848,7 @@ export function DocumentUploadModal({
                 <Alert
                   type="warning"
                   showIcon
-                  message={t('projects.documents.upload.duplicate.title')}
+                  title={t('projects.documents.upload.duplicate.title')}
                   description={
                     <ul className={styles.duplicateList}>
                       {duplicateMatches.map((match) => (
@@ -1178,7 +1178,7 @@ export function DocumentUploadModal({
                 <Alert
                   type="warning"
                   showIcon
-                  message={t('projects.documents.upload.validation.amountMismatch')}
+                  title={t('projects.documents.upload.validation.amountMismatch')}
                   className={styles.mismatchAlert}
                 />
               )}

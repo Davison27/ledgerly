@@ -76,7 +76,7 @@ function QualityPanel() {
   }
 
   if (loadError || !quality) {
-    return <Alert type="error" showIcon message={t('extractionHints.quality.loadError')} />;
+    return <Alert type="error" showIcon title={t('extractionHints.quality.loadError')} />;
   }
 
   if (quality.totalExtractions === 0) {
@@ -291,7 +291,7 @@ export function ExtractionHintsPage() {
             children: loading ? (
               <Skeleton active paragraph={{ rows: 6 }} />
             ) : loadError ? (
-              <Alert type="error" showIcon message={t('extractionHints.loadError')} />
+              <Alert type="error" showIcon title={t('extractionHints.loadError')} />
             ) : groups.length === 0 ? (
               <Empty description={t('extractionHints.empty')} />
             ) : (

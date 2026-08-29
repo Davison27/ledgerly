@@ -52,7 +52,7 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
       {loading ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('staff.schedule.loadError')} />
+        <Alert type="error" showIcon title={t('staff.schedule.loadError')} />
       ) : events.length === 0 ? (
         <EmptyHint
           icon={<CalendarOutlined />}

@@ -102,7 +102,7 @@ export function CompanyDocumentsManager() {
         <Alert
           type="error"
           showIcon
-          message={t('company.documents.typesLoadError')}
+          title={t('company.documents.typesLoadError')}
           action={<Button onClick={() => void refetchTypes()}>{t('company.documents.retry')}</Button>}
         />
       </section>

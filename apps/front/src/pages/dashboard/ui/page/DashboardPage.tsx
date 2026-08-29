@@ -151,7 +151,7 @@ export function DashboardPage() {
       )}
 
       {!loading && error && (
-        <Alert type="error" showIcon message={t('dashboard.loadError')} />
+        <Alert type="error" showIcon title={t('dashboard.loadError')} />
       )}
 
       {!loading && !error && data && isEmpty && (

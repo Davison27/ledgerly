@@ -222,7 +222,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
         <Alert
           type="info"
           showIcon
-          message={t('projects.documents.edit.fileNote')}
+          title={t('projects.documents.edit.fileNote')}
           className={styles.fileAlert}
         />
       )}
@@ -459,7 +459,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
             <Alert
               type="warning"
               showIcon
-              message={t('projects.documents.upload.validation.amountMismatch')}
+              title={t('projects.documents.upload.validation.amountMismatch')}
               className={styles.mismatchAlert}
             />
           )}

@@ -174,7 +174,7 @@ export function EquipmentPage() {
           ))}
         </div>
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('equipment.loadError')} />
+        <Alert type="error" showIcon title={t('equipment.loadError')} />
       ) : equipment.length === 0 ? (
         <EmptyHint
           icon={<ShoppingOutlined />}

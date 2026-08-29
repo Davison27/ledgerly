@@ -192,7 +192,7 @@ export function EquipmentDocumentsManager({ equipmentId, canEdit }: EquipmentDoc
         <Alert
           type="error"
           showIcon
-          message={t('equipment.documents.loadError')}
+          title={t('equipment.documents.loadError')}
           action={<Button onClick={() => void refetch()}>{t('equipment.documents.retry')}</Button>}
         />
       ) : documents.length === 0 ? (
