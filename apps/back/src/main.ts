@@ -6,6 +6,8 @@ import type { NextFunction, Request, Response } from 'express';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { DomainExceptionFilter } from './shared/infrastructure/http/domain-exception.filter';
+import { JsonLogger } from './shared/infrastructure/observability/json-logger';
+import { createRequestContextMiddleware } from './shared/infrastructure/observability/request-context.middleware';
 
 const DEFAULT_FRONTEND_ORIGIN = 'http://localhost:5173';
 const JSON_BODY_LIMIT = '256kb';
@@ -91,7 +93,9 @@ export function configureHttpBoundary(
 }
 
 export async function bootstrap(): Promise<void> {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false });
+  const logger = new JsonLogger();
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bodyParser: false, logger });
+  app.use(createRequestContextMiddleware({ log: (context) => logger.log('http request', context) }));
   configureHttpBoundary(app);
   app.enableShutdownHooks();
 
