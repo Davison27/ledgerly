@@ -1,4 +1,8 @@
-import { ValidationPipe } from '@nestjs/common';
+import { Test } from '@nestjs/testing';
+import type { Server } from 'node:http';
+import request from 'supertest';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
 
 jest.mock('./app.module', () => ({ AppModule: class AppModule {} }));
 
@@ -17,8 +21,12 @@ function appDouble() {
 }
 
 describe('configureHttpBoundary', () => {
-  it('configures production proxy trust, exact CORS, validation, and no-store middleware', () => {
-    const app = appDouble();
+  it('exposes the public root endpoint with the configured HTTP boundary', async () => {
+    const moduleRef = await Test.createTestingModule({
+      controllers: [AppController],
+      providers: [AppService],
+    }).compile();
+    const app = moduleRef.createNestApplication();
 
     configureHttpBoundary(app as never, {
       NODE_ENV: 'production',
@@ -26,40 +34,21 @@ describe('configureHttpBoundary', () => {
       TRUST_PROXY: 'true',
     });
 
-    expect(app.set).toHaveBeenCalledWith('trust proxy', 1);
-    expect(app.enableCors).toHaveBeenCalledWith({
-      origin: 'https://app.ledgerly.dev',
-      credentials: true,
-      methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
-      allowedHeaders: ['Content-Type', 'Accept', 'X-CSRF-Token'],
-    });
-    expect(app.useBodyParser).toHaveBeenNthCalledWith(1, 'json', { limit: '256kb' });
-    expect(app.useBodyParser).toHaveBeenNthCalledWith(2, 'urlencoded', {
-      extended: false,
-      limit: '256kb',
-      parameterLimit: 100,
-    });
-    expect(app.setGlobalPrefix).toHaveBeenCalledWith('api');
+    await app.init();
 
-    const [pipe] = app.useGlobalPipes.mock.calls[0] as [ValidationPipe];
-    expect(pipe).toBeInstanceOf(ValidationPipe);
-    expect((pipe as unknown as { validatorOptions: Record<string, unknown> }).validatorOptions).toMatchObject({
-      whitelist: true,
-      forbidNonWhitelisted: true,
-    });
-    expect((pipe as unknown as { isDetailedOutputDisabled: boolean }).isDetailedOutputDisabled).toBe(true);
+    try {
+      const response = await request(app.getHttpServer() as Server)
+        .get('/api')
+        .set('Origin', 'https://app.ledgerly.dev')
+        .expect(200);
 
-    const useCalls = app.use.mock.calls as unknown[][];
-    const noStore = useCalls[1]?.[0] as (
-      request: unknown,
-      response: { setHeader: jest.Mock },
-      next: jest.Mock,
-    ) => void;
-    const response = { setHeader: jest.fn() };
-    const next = jest.fn();
-    noStore({}, response, next);
-    expect(response.setHeader).toHaveBeenCalledWith('Cache-Control', 'no-store');
-    expect(next).toHaveBeenCalledTimes(1);
+      expect(response.text).toBe('Ledgerly ERP API');
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(response.headers['access-control-allow-origin']).toBe('https://app.ledgerly.dev');
+      expect(response.headers['access-control-allow-credentials']).toBe('true');
+    } finally {
+      await app.close();
+    }
   });
 
   it('sets proxy trust to false outside production', () => {

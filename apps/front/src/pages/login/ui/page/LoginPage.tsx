@@ -106,7 +106,7 @@ export function LoginPage() {
                   <Alert
                     type="error"
                     showIcon
-                    message={t(`login.errors.${authError}`)}
+                    title={t(`login.errors.${authError}`)}
                     className={styles.alert}
                   />
                 )}
@@ -115,7 +115,7 @@ export function LoginPage() {
                   <Alert
                     type="info"
                     showIcon
-                    message={t(`session.${sessionNotice}`)}
+                    title={t(`session.${sessionNotice}`)}
                     className={styles.alert}
                   />
                 )}
@@ -125,7 +125,7 @@ export function LoginPage() {
                     <Alert
                       type="error"
                       showIcon
-                      message={t(`login.setup.errors.${bootstrapError}`)}
+                      title={t(`login.setup.errors.${bootstrapError}`)}
                       className={styles.alert}
                     />
                   ) : (

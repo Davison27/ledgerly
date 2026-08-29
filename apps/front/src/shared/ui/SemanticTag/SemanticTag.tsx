@@ -4,13 +4,7 @@ import { useSemanticColors } from '../../lib/useSemanticColors';
 import styles from './SemanticTag.module.css';
 
 export type SemanticTone =
-  | 'income'
-  | 'expense'
-  | 'paid'
-  | 'pending'
-  | 'overdue'
-  | 'info'
-  | 'neutral';
+  'income' | 'expense' | 'paid' | 'pending' | 'overdue' | 'info' | 'neutral';
 
 export interface SemanticTagProps {
   tone: SemanticTone;
@@ -42,7 +36,7 @@ export function SemanticTag({ tone, children }: SemanticTagProps) {
   })();
 
   return (
-    <Tag bordered={false} className={styles.tag} style={{ color, background }}>
+    <Tag variant="filled" className={styles.tag} style={{ color, background }}>
       {children}
     </Tag>
   );
