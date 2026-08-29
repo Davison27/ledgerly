@@ -18,6 +18,7 @@
     "test:e2e": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e.json --runInBand",
     "test:e2e:http": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e-http.json --runInBand",
     "test:e2e:database": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config ./test/jest-e2e-database.json --runInBand",
+    "test:e2e:database:local": "node scripts/run-migration-test-e2e.mjs",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
     "db:schema": "ts-node src/database/migrate.ts --mode=auto",
