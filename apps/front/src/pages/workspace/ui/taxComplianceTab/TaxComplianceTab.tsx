@@ -135,7 +135,7 @@ export function TaxComplianceTab() {
 
   if (settingsLoading) return <Skeleton active paragraph={{ rows: 8 }} />;
   if (settingsError)
-    return <Alert type="error" showIcon message={t('workspace.taxCompliance.loadError')} />;
+    return <Alert type="error" showIcon title={t('workspace.taxCompliance.loadError')} />;
 
   return (
     <div className={workspace.tabBody}>

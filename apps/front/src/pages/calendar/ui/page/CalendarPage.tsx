@@ -278,7 +278,7 @@ export function CalendarPage() {
           <Alert
             type="error"
             showIcon
-            message={t('calendar.loadError')}
+            title={t('calendar.loadError')}
             className={styles.loadError}
           />
         ) : (
@@ -287,7 +287,7 @@ export function CalendarPage() {
               <Alert
                 type="warning"
                 showIcon
-                message={t('calendar.tax.loadError')}
+                title={t('calendar.tax.loadError')}
                 className={styles.taxLoadError}
               />
             )}

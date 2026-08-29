@@ -111,7 +111,7 @@ export function IntegrationDrawer({
               <Alert
                 type="error"
                 showIcon
-                message={t(`workspace.integrations.errors.${integration.errorCode}`)}
+                title={t(`workspace.integrations.errors.${integration.errorCode}`)}
                 action={
                   <Button size="small" danger loading={busy} onClick={() => onConnect(integration.key)}>
                     {t('workspace.integrations.actions.reconnect')}
@@ -154,7 +154,7 @@ export function IntegrationDrawer({
               <Alert
                 type={testResult.ok ? 'success' : 'error'}
                 showIcon
-                message={t(
+                title={t(
                   testResult.ok ? 'workspace.integrations.toast.tested' : 'workspace.integrations.toast.testFailed',
                 )}
               />

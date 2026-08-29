@@ -222,7 +222,7 @@ export function EventEditorModal({
             <Alert
               type="warning"
               showIcon
-              message={t('calendar.editor.legacy.gaps')}
+              title={t('calendar.editor.legacy.gaps')}
               className={styles.warningAlert}
             />
           )}
@@ -230,7 +230,7 @@ export function EventEditorModal({
             <Alert
               type="warning"
               showIcon
-              message={t('calendar.editor.legacy.mixedTimes')}
+              title={t('calendar.editor.legacy.mixedTimes')}
               className={styles.warningAlert}
             />
           )}

@@ -55,7 +55,7 @@ export function CompanyDocumentList({
         <Alert
           type="error"
           showIcon
-          message={t('company.documents.loadError')}
+          title={t('company.documents.loadError')}
           action={<Button onClick={onRetry}>{t('company.documents.retry')}</Button>}
         />
       </div>

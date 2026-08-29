@@ -341,7 +341,7 @@ export function MembersTab() {
         <Alert
           type="error"
           showIcon
-          message={t('workspace.members.loadError')}
+          title={t('workspace.members.loadError')}
           action={
             <Button size="small" onClick={refetch}>
               {t('workspace.members.retry')}

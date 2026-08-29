@@ -71,7 +71,7 @@ export function ScheduleSection({ project }: ProjectSectionProps) {
       {loading ? (
         <Skeleton active paragraph={{ rows: 6 }} />
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('projects.schedule.loadError')} />
+        <Alert type="error" showIcon title={t('projects.schedule.loadError')} />
       ) : events.length === 0 ? (
         <EmptyHint icon={<CalendarOutlined />} title={t('projects.schedule.empty')} />
       ) : (

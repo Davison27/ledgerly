@@ -229,7 +229,7 @@ export function SuppliersPage() {
       {loading ? (
         <Skeleton active paragraph={{ rows: 8 }} />
       ) : loadError ? (
-        <Alert type="error" showIcon message={t('suppliers.loadError')} />
+        <Alert type="error" showIcon title={t('suppliers.loadError')} />
       ) : suppliers.length === 0 ? (
         <EmptyHint
           icon={<TeamOutlined />}
