@@ -35,9 +35,24 @@ services:
         condition: service_healthy
       migrator:
         condition: service_completed_successfully
+      clamav:
+        condition: service_healthy
     init: true
     security_opt:
       - no-new-privileges:true
+
+  clamav:
+    image: clamav/clamav:1.5.3
+    restart: unless-stopped
+    init: true
+    volumes:
+      - ledgerly-clamav-data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --ping 1 >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 6
 
   migrator:
     build:
@@ -55,3 +70,4 @@ services:
 
 volumes:
   ledgerly-pgdata:
+  ledgerly-clamav-data:
