@@ -49,6 +49,7 @@ describe('StaffDocumentsController', () => {
       { execute: updateExecute } as unknown as UpdateStaffDocumentUseCase,
       { execute: deleteExecute } as unknown as DeleteStaffDocumentUseCase,
       { execute: getFileExecute } as unknown as GetStaffDocumentFileUseCase,
+      { scan: () => Promise.resolve() },
     );
   });
 

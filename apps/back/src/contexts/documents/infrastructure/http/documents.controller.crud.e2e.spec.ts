@@ -16,6 +16,7 @@ import { RecordExtractionOutcomeUseCase } from '../../application/record-extract
 import { Document } from '../../domain/document';
 import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
 
 function buildDocument(overrides: Partial<Parameters<typeof Document.create>[0]> = {}): Document {
   return Document.create({
@@ -74,6 +75,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
         { provide: GetDocumentFileUseCase, useValue: { execute: getFileExecute } },
         { provide: RecordExtractionFeedbackUseCase, useValue: { execute: recordFeedbackExecute } },
         { provide: RecordExtractionOutcomeUseCase, useValue: { execute: jest.fn() } },
+        { provide: MALWARE_SCANNER, useValue: { scan: () => Promise.resolve() } },
       ],
     }).compile();
 

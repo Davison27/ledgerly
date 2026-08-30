@@ -11,6 +11,7 @@ import { UpdateEquipmentDocumentCommand } from '../../application/update-equipme
 import { UpdateEquipmentDocumentUseCase } from '../../application/update-equipment-document/update-equipment-document.use-case';
 import { EquipmentDocument } from '../../domain/equipment-document';
 import { EquipmentDocumentsController } from './equipment-documents.controller';
+import { MalwareDetectedException } from '../../../../shared/domain/errors/malware-detected.exception';
 
 function buildDocument(): EquipmentDocument {
   return EquipmentDocument.create({
@@ -32,6 +33,7 @@ describe('EquipmentDocumentsController', () => {
   let updateExecute: jest.Mock<Promise<EquipmentDocument>, [UpdateEquipmentDocumentCommand]>;
   let deleteExecute: jest.Mock<Promise<void>, [string, string]>;
   let getFileExecute: jest.Mock<Promise<EquipmentDocumentFileResult | null>, [string, string]>;
+  let scan: jest.Mock<Promise<void>, [Buffer]>;
   let controller: EquipmentDocumentsController;
 
   beforeEach(() => {
@@ -44,12 +46,14 @@ describe('EquipmentDocumentsController', () => {
       fileName: 'inspection.pdf',
       mimeType: 'application/pdf',
     });
+    scan = jest.fn<Promise<void>, [Buffer]>().mockResolvedValue(undefined);
     controller = new EquipmentDocumentsController(
       { execute: listExecute } as unknown as ListEquipmentDocumentsUseCase,
       { execute: createExecute } as unknown as CreateEquipmentDocumentUseCase,
       { execute: updateExecute } as unknown as UpdateEquipmentDocumentUseCase,
       { execute: deleteExecute } as unknown as DeleteEquipmentDocumentUseCase,
       { execute: getFileExecute } as unknown as GetEquipmentDocumentFileUseCase,
+      { scan },
     );
   });
 
@@ -80,6 +84,20 @@ describe('EquipmentDocumentsController', () => {
       mimeType: 'application/pdf',
       size: 8,
     });
+    expect(scan).toHaveBeenCalledWith(file.buffer);
+  });
+
+  it('rejects an infected upload before it reaches the create use case', async () => {
+    scan.mockRejectedValueOnce(new MalwareDetectedException());
+    const file = {
+      buffer: Buffer.from('%PDF-1.7'),
+      originalname: 'inspection.pdf',
+      mimetype: 'application/pdf',
+      size: 8,
+    } as Express.Multer.File;
+
+    await expect(controller.create('equipment-1', JSON.stringify({}), file)).rejects.toMatchObject({ code: 'MALWARE_DETECTED' });
+    expect(createExecute).not.toHaveBeenCalled();
   });
 
   it('forwards both route identifiers for metadata updates and deletion', async () => {

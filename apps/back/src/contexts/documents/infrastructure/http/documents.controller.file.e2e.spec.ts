@@ -20,6 +20,7 @@ import { CreateDocumentCommand } from '../../application/create-document/create-
 import { Document } from '../../domain/document';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
 
 function loadFixture(name: string): Buffer {
   return readFileSync(join(__dirname, '../pdf/__fixtures__', name));
@@ -90,6 +91,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         { provide: GetDocumentFileUseCase, useValue: { execute: getFileExecute } },
         { provide: RecordExtractionFeedbackUseCase, useValue: { execute: recordFeedbackExecute } },
         { provide: RecordExtractionOutcomeUseCase, useValue: { execute: recordOutcomeExecute } },
+        { provide: MALWARE_SCANNER, useValue: { scan: () => Promise.resolve() } },
       ],
     }).compile();
 
