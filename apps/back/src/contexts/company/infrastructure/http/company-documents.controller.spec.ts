@@ -45,6 +45,7 @@ describe('CompanyDocumentsController', () => {
       { execute: updateExecute } as unknown as UpdateCompanyDocumentUseCase,
       { execute: deleteExecute } as unknown as DeleteCompanyDocumentUseCase,
       { execute: getFileExecute } as unknown as GetCompanyDocumentFileUseCase,
+      { scan: () => Promise.resolve() },
     );
   });
 

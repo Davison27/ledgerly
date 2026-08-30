@@ -21,6 +21,7 @@ import { INVOICE_HINT_REPOSITORY } from '../../domain/extraction/hints/invoice-h
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 import { DOMAIN_EVENT_PUBLISHER } from '../../../../shared/domain/domain-event-publisher.port';
+import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
 
 function loadFixture(name: string): Buffer {
   return readFileSync(join(__dirname, '../pdf/__fixtures__', name));
@@ -47,6 +48,7 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
         { provide: PDF_READER, useClass: PdfjsPdfReader },
         { provide: INVOICE_HINT_REPOSITORY, useValue: { findByIssuer: () => Promise.resolve([]) } },
         { provide: DOMAIN_EVENT_PUBLISHER, useValue: { publish: () => Promise.resolve(), register: () => {} } },
+        { provide: MALWARE_SCANNER, useValue: { scan: () => Promise.resolve() } },
       ],
     }).compile();
 

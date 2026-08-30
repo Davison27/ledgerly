@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -32,6 +33,7 @@ import { UpdateEquipmentDocumentUseCase } from '../../application/update-equipme
 import { CreateEquipmentDocumentDto } from './dtos/create-equipment-document.dto';
 import { UpdateEquipmentDocumentDto } from './dtos/update-equipment-document.dto';
 import { EquipmentDocumentResponse } from './equipment-document.response';
+import { MALWARE_SCANNER, MalwareScanner } from '../../../../shared/domain/malware-scanner.port';
 
 export const EQUIPMENT_DOCUMENT_MULTIPART_LIMITS = {
   fileSize: STORED_FILE_PLAINTEXT_LIMITS.equipmentDocument,
@@ -50,6 +52,7 @@ export class EquipmentDocumentsController {
     private readonly updateEquipmentDocumentUseCase: UpdateEquipmentDocumentUseCase,
     private readonly deleteEquipmentDocumentUseCase: DeleteEquipmentDocumentUseCase,
     private readonly getEquipmentDocumentFileUseCase: GetEquipmentDocumentFileUseCase,
+    @Inject(MALWARE_SCANNER) private readonly malwareScanner: MalwareScanner,
   ) {}
 
   @Get()
@@ -87,6 +90,8 @@ export class EquipmentDocumentsController {
     if (!isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
+
+    await this.malwareScanner.scan(file.buffer);
 
     const document = await this.createEquipmentDocumentUseCase.execute({
       equipmentId,

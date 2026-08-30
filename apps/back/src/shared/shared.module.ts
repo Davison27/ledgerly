@@ -10,6 +10,8 @@ import { UploadCapacityGate, UploadCapacityInterceptor } from './infrastructure/
 import { STORED_FILE_CIPHER } from './domain/stored-file-cipher.port';
 import { createStoredFileCipher } from './infrastructure/crypto/stored-file-cipher';
 import { parseStoredFileKeyring } from './infrastructure/crypto/stored-file-keyring';
+import { MALWARE_SCANNER } from './domain/malware-scanner.port';
+import { createClamAvMalwareScanner } from './infrastructure/malware/clamav-malware-scanner';
 
 @Global()
 @Module({
@@ -20,6 +22,16 @@ import { parseStoredFileKeyring } from './infrastructure/crypto/stored-file-keyr
     { provide: DOMAIN_EVENT_PUBLISHER, useClass: InProcessDomainEventPublisher },
     UploadCapacityGate,
     UploadCapacityInterceptor,
+    {
+      provide: MALWARE_SCANNER,
+      useFactory: (configService: ConfigService) =>
+        createClamAvMalwareScanner({
+          host: configService.get<string>('CLAMAV_HOST', 'clamav'),
+          port: configService.get<number>('CLAMAV_PORT', 3310),
+          timeoutMs: configService.get<number>('CLAMAV_TIMEOUT_MS', 30000),
+        }),
+      inject: [ConfigService],
+    },
     {
       provide: STORED_FILE_CIPHER,
       useFactory: (configService: ConfigService) =>
@@ -39,6 +51,7 @@ import { parseStoredFileKeyring } from './infrastructure/crypto/stored-file-keyr
     DOMAIN_EVENT_PUBLISHER,
     UploadCapacityGate,
     UploadCapacityInterceptor,
+    MALWARE_SCANNER,
     STORED_FILE_CIPHER,
   ],
 })

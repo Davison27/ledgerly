@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -33,6 +34,7 @@ import { CreateCompanyDocumentDto } from './dtos/create-company-document.dto';
 import { ListCompanyDocumentsQueryDto } from './dtos/list-company-documents.query.dto';
 import { UpdateCompanyDocumentDto } from './dtos/update-company-document.dto';
 import { CompanyDocumentResponse } from './company-document.response';
+import { MALWARE_SCANNER, MalwareScanner } from '../../../../shared/domain/malware-scanner.port';
 
 export const COMPANY_DOCUMENT_MULTIPART_LIMITS = {
   fileSize: MAX_PDF_UPLOAD_SIZE_BYTES,
@@ -51,6 +53,7 @@ export class CompanyDocumentsController {
     private readonly updateCompanyDocumentUseCase: UpdateCompanyDocumentUseCase,
     private readonly deleteCompanyDocumentUseCase: DeleteCompanyDocumentUseCase,
     private readonly getCompanyDocumentFileUseCase: GetCompanyDocumentFileUseCase,
+    @Inject(MALWARE_SCANNER) private readonly malwareScanner: MalwareScanner,
   ) {}
 
   @Get()
@@ -82,6 +85,8 @@ export class CompanyDocumentsController {
     if (!isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
+
+    await this.malwareScanner.scan(file.buffer);
 
     const document = await this.createCompanyDocumentUseCase.execute({
       typeId: dto.typeId,

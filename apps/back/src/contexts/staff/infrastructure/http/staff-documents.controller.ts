@@ -5,6 +5,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   NotFoundException,
   Param,
   Patch,
@@ -37,6 +38,7 @@ import {
   STAFF_DOCUMENT_MIME_TYPES,
 } from './staff-document-file.validator';
 import { UploadCapacityInterceptor } from '../../../../shared/infrastructure/http/upload-capacity.interceptor';
+import { MALWARE_SCANNER, MalwareScanner } from '../../../../shared/domain/malware-scanner.port';
 
 @RequiresAccess('staff', 'view')
 @Controller('staff/:staffMemberId/documents')
@@ -47,6 +49,7 @@ export class StaffDocumentsController {
     private readonly updateStaffDocumentUseCase: UpdateStaffDocumentUseCase,
     private readonly deleteStaffDocumentUseCase: DeleteStaffDocumentUseCase,
     private readonly getStaffDocumentFileUseCase: GetStaffDocumentFileUseCase,
+    @Inject(MALWARE_SCANNER) private readonly malwareScanner: MalwareScanner,
   ) {}
 
   @Get()
@@ -83,6 +86,8 @@ export class StaffDocumentsController {
     if (!isValidStaffDocumentFile(file.mimetype, file.buffer)) {
       throw new BadRequestException(`file must be one of ${STAFF_DOCUMENT_MIME_TYPES.join(', ')}`);
     }
+
+    await this.malwareScanner.scan(file.buffer);
 
     const staffDocument = await this.createStaffDocumentUseCase.execute({
       staffMemberId,

@@ -45,6 +45,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      clamav:
+        condition: service_healthy
     restart: unless-stopped
     init: true
     read_only: true
@@ -74,6 +76,40 @@ services:
     networks:
       - proxy
       - data
+      - scanner
+
+  clamav:
+    image: clamav/clamav:1.5.3
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+    volumes:
+      - clamav_data:/var/lib/clamav
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
+          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
+    pids_limit: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --ping 1 >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 6
+    networks:
+      - scanner
 
   front:
     build:
@@ -183,8 +219,11 @@ volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  clamav_data:
 
 networks:
   proxy:
   data:
+    internal: true
+  scanner:
     internal: true

@@ -6,6 +6,7 @@ import {
   Get,
   Header,
   HttpCode,
+  Inject,
   Logger,
   NotFoundException,
   Param,
@@ -44,6 +45,7 @@ import { isValidPdfFile, MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
 import { UploadCapacityInterceptor } from '../../../../shared/infrastructure/http/upload-capacity.interceptor';
 import { getOptionalPageRequest } from '../../../../shared/infrastructure/http/dtos/page.query.dto';
 import { DocumentPageResponse } from './document-page.response';
+import { MALWARE_SCANNER, MalwareScanner } from '../../../../shared/domain/malware-scanner.port';
 
 @RequiresAccess('documents', 'view')
 @Controller('projects/:projectId/documents')
@@ -60,6 +62,7 @@ export class DocumentsController {
     private readonly getDocumentFileUseCase: GetDocumentFileUseCase,
     private readonly recordExtractionFeedbackUseCase: RecordExtractionFeedbackUseCase,
     private readonly recordExtractionOutcomeUseCase: RecordExtractionOutcomeUseCase,
+    @Inject(MALWARE_SCANNER) private readonly malwareScanner: MalwareScanner,
   ) {}
 
   @Get()
@@ -111,6 +114,8 @@ export class DocumentsController {
     if (file && !isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
+
+    if (file) await this.malwareScanner.scan(file.buffer);
 
     const document = await this.createDocumentUseCase.execute({
       projectId,
@@ -233,6 +238,8 @@ export class DocumentsController {
     if (!isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
+
+    await this.malwareScanner.scan(file.buffer);
 
     return this.extractInvoiceUseCase.execute({
       fileBuffer: file.buffer,
