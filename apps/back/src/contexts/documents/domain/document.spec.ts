@@ -1,5 +1,6 @@
 import { Document } from './document';
 import { InvalidValueException } from '../../../shared/domain/invalid-value.exception';
+import { isCreatableDocumentType } from './document-type';
 
 const BASE_PROPS = {
   id: 'doc-1',
@@ -13,6 +14,12 @@ const BASE_PROPS = {
 };
 
 describe('Document', () => {
+  it('recognizes only factura and impuesto as creatable document types', () => {
+    expect(isCreatableDocumentType('factura')).toBe(true);
+    expect(isCreatableDocumentType('impuesto')).toBe(true);
+    expect(isCreatableDocumentType('nomina')).toBe(false);
+  });
+
   it('throws when creating a nomina without a staffMemberId', () => {
     expect(() => Document.create({ ...BASE_PROPS, type: 'nomina' })).toThrow(InvalidValueException);
   });

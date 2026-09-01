@@ -3,16 +3,13 @@ import { Document, DocumentProps } from '../../domain/document';
 import { DOCUMENT_REPOSITORY, DocumentRepository } from '../../domain/document.repository';
 import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
-import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import {
   SUPPLIER_EXISTENCE_CHECKER,
   SupplierExistenceChecker,
 } from '../../domain/supplier-existence-checker.port';
-import {
-  STAFF_MEMBER_EXISTENCE_CHECKER,
-  StaffMemberExistenceChecker,
-} from '../../domain/staff-member-existence-checker.port';
 import { UpdateDocumentCommand } from './update-document.command';
+import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
+import { isCreatableDocumentType } from '../../domain/document-type';
 
 type DocumentChanges = Partial<Omit<DocumentProps, 'id' | 'projectId'>>;
 
@@ -22,11 +19,13 @@ export class UpdateDocumentUseCase {
     @Inject(DOCUMENT_REPOSITORY) private readonly repository: DocumentRepository,
     @Inject(SUPPLIER_EXISTENCE_CHECKER)
     private readonly supplierExistenceChecker: SupplierExistenceChecker,
-    @Inject(STAFF_MEMBER_EXISTENCE_CHECKER)
-    private readonly staffMemberExistenceChecker: StaffMemberExistenceChecker,
   ) {}
 
   async execute(command: UpdateDocumentCommand): Promise<Document> {
+    if (Object.hasOwn(command, 'staffMemberId')) {
+      throw new InvalidValueException('staffMemberId cannot be changed');
+    }
+
     const document = await this.repository.findById(command.id);
 
     if (
@@ -36,19 +35,18 @@ export class UpdateDocumentUseCase {
       throw new DocumentNotFoundException(command.id);
     }
 
+    if (
+      (document.getType() === 'nomina' && command.type !== undefined) ||
+      (command.type !== undefined && !isCreatableDocumentType(command.type))
+    ) {
+      throw new InvalidValueException('Payroll document type cannot be changed');
+    }
+
     if (command.supplierId !== undefined && command.supplierId !== null) {
       const supplierExists = await this.supplierExistenceChecker.exists(command.supplierId);
 
       if (!supplierExists) {
         throw new DocumentSupplierNotFoundException(command.supplierId);
-      }
-    }
-
-    if (command.staffMemberId !== undefined && command.staffMemberId !== null) {
-      const staffMemberExists = await this.staffMemberExistenceChecker.exists(command.staffMemberId);
-
-      if (!staffMemberExists) {
-        throw new DocumentStaffMemberNotFoundException(command.staffMemberId);
       }
     }
 
@@ -71,7 +69,6 @@ export class UpdateDocumentUseCase {
     if (command.issuerTaxId !== undefined) changes.issuerTaxId = command.issuerTaxId;
     if (command.invoiceNumber !== undefined) changes.invoiceNumber = command.invoiceNumber;
     if (command.supplierId !== undefined) changes.supplierId = command.supplierId;
-    if (command.staffMemberId !== undefined) changes.staffMemberId = command.staffMemberId;
 
     if (command.date !== undefined) {
       changes.month = Number(command.date.slice(5, 7));

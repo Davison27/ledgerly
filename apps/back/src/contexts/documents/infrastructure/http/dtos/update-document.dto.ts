@@ -8,7 +8,7 @@ import {
   Matches,
   Min,
 } from 'class-validator';
-import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
+import { CREATABLE_DOCUMENT_TYPES, CreatableDocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
 import { DOCUMENT_CURRENCIES, DocumentCurrency } from '../../../domain/document-currency';
 import { DOCUMENT_DIRECTIONS, DocumentDirection } from '../../../domain/document-direction';
@@ -22,8 +22,8 @@ export class UpdateDocumentDto {
   name?: string;
 
   @IsOptional()
-  @IsIn(DOCUMENT_TYPES)
-  type?: DocumentType;
+  @IsIn(CREATABLE_DOCUMENT_TYPES)
+  type?: CreatableDocumentType;
 
   @IsOptional()
   @IsIn(DOCUMENT_DIRECTIONS)
@@ -94,8 +94,4 @@ export class UpdateDocumentDto {
   @IsUUID()
   supplierId?: string | null;
 
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  staffMemberId?: string | null;
 }

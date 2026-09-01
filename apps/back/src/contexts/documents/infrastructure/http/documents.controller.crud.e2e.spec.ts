@@ -178,6 +178,15 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
       expect(updateExecute).not.toHaveBeenCalled();
     });
 
+    it('returns 400 and does not call the use case when the body carries staffMemberId', async () => {
+      const response = await request(httpServer)
+        .patch('/projects/p1/documents/doc-1')
+        .send({ staffMemberId: 'staff-1' });
+
+      expect(response.status).toBe(400);
+      expect(updateExecute).not.toHaveBeenCalled();
+    });
+
     it('returns 404 when the use case reports the document does not exist', async () => {
       updateExecute.mockRejectedValueOnce(new DocumentNotFoundException('missing-id'));
 
