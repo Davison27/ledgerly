@@ -82,9 +82,14 @@ services:
     image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
     restart: unless-stopped
     init: true
+    user: clamav
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exec clamd --foreground"]
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=256m
+      - /run/clamav:rw,noexec,nosuid,nodev,size=32m,uid=1000,gid=1000,mode=700
+      - /var/log/clamav:rw,noexec,nosuid,nodev,size=16m,uid=1000,gid=1000,mode=700
     volumes:
       - clamav_data:/var/lib/clamav
     cap_drop:
@@ -116,9 +121,17 @@ services:
     profiles: [maintenance]
     restart: "no"
     init: true
+    user: clamav
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        cp /etc/clamav/freshclam.conf /tmp/freshclam.conf &&
+        sed -i 's|^UpdateLogFile .*|UpdateLogFile /tmp/freshclam.log|' /tmp/freshclam.conf &&
+        exec freshclam --config-file=/tmp/freshclam.conf --stdout --foreground
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=128m
+      - /run/clamav:rw,noexec,nosuid,nodev,size=32m,uid=1000,gid=1000,mode=700
     volumes:
       - clamav_data:/var/lib/clamav
     cap_drop:
@@ -136,7 +149,6 @@ services:
         max-file: "2"
     security_opt:
       - no-new-privileges:true
-    command: ["freshclam", "--stdout", "--foreground"]
     networks:
       - clamav_update_egress
 
