@@ -4,6 +4,10 @@
   gap: var(--lg-space-md);
 }
 
+.securityNotice {
+  margin-bottom: var(--lg-space-md);
+}
+
 .fullWidth {
   width: 100%;
 }

@@ -1,4 +1,6 @@
 export type DocumentTypeDto = 'factura' | 'nomina' | 'impuesto';
+export type CreatableDocumentType = Exclude<DocumentTypeDto, 'nomina'>;
+export const CREATABLE_DOCUMENT_TYPES = ['factura', 'impuesto'] as const satisfies readonly CreatableDocumentType[];
 export type DocumentStatusDto = 'pagado' | 'pendiente' | 'vencido';
 export type DocumentDirectionDto = 'ingreso' | 'gasto';
 
@@ -109,7 +111,7 @@ export interface DuplicateCheckResultDto {
 
 export interface CreateDocumentPayload {
   name: string;
-  type: DocumentTypeDto;
+  type: CreatableDocumentType;
   direction: DocumentDirectionDto;
   month: number;
   date: string;
@@ -126,12 +128,11 @@ export interface CreateDocumentPayload {
   irpfAmount?: number;
   currency?: string;
   supplierId?: string;
-  staffMemberId?: string;
 }
 
 export interface UpdateDocumentPayload {
   name?: string;
-  type?: DocumentTypeDto;
+  type?: CreatableDocumentType;
   direction?: DocumentDirectionDto;
   status?: DocumentStatusDto;
   date?: string;
@@ -147,7 +148,6 @@ export interface UpdateDocumentPayload {
   issuerTaxId?: string | null;
   invoiceNumber?: string | null;
   supplierId?: string | null;
-  staffMemberId?: string | null;
 }
 
 export type ExtractInvoiceSource = 'facturae' | 'facturx' | 'ubl' | 'heuristic';

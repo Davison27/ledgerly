@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { ExtractInvoiceResult } from '@/entities/document';
 import { ApiError } from '@/shared/api/httpClient';
 import { ThemeModeProvider } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { DocumentUploadModal } from './DocumentUploadModal';
@@ -10,8 +11,6 @@ import { DocumentUploadModal } from './DocumentUploadModal';
 const mocks = vi.hoisted(() => ({
   createDocument: vi.fn(),
   extractInvoice: vi.fn(),
-  extractInvoiceStandalone: vi.fn(),
-  createStaffMember: vi.fn(),
   createSupplier: vi.fn(),
 }));
 
@@ -19,7 +18,6 @@ vi.mock('@/entities/document', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/entities/document')>()),
   createDocument: mocks.createDocument,
   extractInvoice: mocks.extractInvoice,
-  extractInvoiceStandalone: mocks.extractInvoiceStandalone,
   documentQueries: {
     all: ['documents'],
     duplicateCheckPage: () => ({
@@ -33,14 +31,6 @@ vi.mock('@/entities/project', () => ({
   projectQueries: {
     all: ['projects'],
     list: () => ({ queryKey: ['projects'], queryFn: async () => [] }),
-  },
-}));
-
-vi.mock('@/entities/staff-member', () => ({
-  createStaffMember: mocks.createStaffMember,
-  staffQueries: {
-    all: ['staff-members'],
-    list: () => ({ queryKey: ['staff-members'], queryFn: async () => [] }),
   },
 }));
 
@@ -68,12 +58,12 @@ function deferred<T>(): Deferred<T> {
   return { promise, resolve, reject };
 }
 
-const extractionResult = {
-  source: 'heuristic' as const,
-  confidence: 'high' as const,
+const extractionResult: ExtractInvoiceResult = {
+  source: 'heuristic',
+  confidence: 'high',
   fields: {
     name: 'Factura septiembre',
-    type: 'factura' as const,
+    type: 'factura',
     date: '2026-09-01',
     amount: 121,
     currency: 'EUR',
@@ -153,7 +143,6 @@ describe('DocumentUploadModal', () => {
   beforeEach(() => {
     mocks.createDocument.mockReset();
     mocks.extractInvoice.mockReset();
-    mocks.extractInvoiceStandalone.mockReset();
     const getComputedStyle = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => getComputedStyle(element));
   });
@@ -204,6 +193,33 @@ describe('DocumentUploadModal', () => {
 
     expect(screen.getByRole('status')).toHaveTextContent('Subiendo el PDF');
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+  });
+
+  it('maps a historical payroll extraction type to an allowed document type before creation', async () => {
+    const user = userEvent.setup();
+    const extraction = deferred<typeof extractionResult>();
+    mocks.extractInvoice.mockReturnValue(extraction.promise);
+    mocks.createDocument.mockResolvedValue({});
+    renderModal();
+
+    selectPdf();
+    extraction.resolve({
+      ...extractionResult,
+      fields: { ...extractionResult.fields, type: 'nomina' },
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Listo para revisar');
+    });
+    await user.click(screen.getByRole('button', { name: 'Crear documento' }));
+
+    await waitFor(() => {
+      expect(mocks.createDocument).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ type: 'factura' }),
+        expect.any(File),
+      );
+    });
   });
 
   it.each([

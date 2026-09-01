@@ -742,6 +742,7 @@
         "submit": "Subir documento",
         "created": "Documento subido correctamente",
         "createError": "No se ha podido subir el documento. Inténtalo de nuevo.",
+        "securityNotice": "Sube únicamente documentos que pertenezcan a tu empresa. Eres responsable del contenido que subas y de proteger el acceso a la información sensible.",
         "invalidFile": "Solo se admiten archivos PDF.",
         "fileTooLarge": "Los archivos PDF deben pesar como máximo 10 MiB.",
         "typeRequired": "Selecciona una categoría de documento para continuar.",
@@ -2047,8 +2048,8 @@
       "ok": "Eliminar",
       "error": "No se ha podido eliminar el trabajador. Inténtalo de nuevo.",
       "blockedTitle": "No se puede eliminar",
-      "blockedGeneric": "Este trabajador tiene nóminas imputadas y no se puede eliminar.",
-      "blockedHint": "Puedes reasignar sus nóminas a otro trabajador desde su ficha (pestaña Nóminas), o darlo de baja indicando una fecha de fin en su edición, en lugar de eliminarlo.",
+      "blockedGeneric": "Este trabajador tiene registros históricos de nóminas y no se puede eliminar.",
+      "blockedHint": "Conserva sus nóminas históricas y dale de baja indicando una fecha de fin, en lugar de eliminarlo.",
       "goToProfile": "Ir a su ficha"
     },
     "detail": {
@@ -2098,6 +2099,7 @@
     },
     "documents": {
       "add": "Añadir documento",
+      "comingSoon": "Próximamente",
       "subtitle": "Mantén al día la documentación laboral y de cumplimiento.",
       "noTypes": "No se ha podido cargar el catálogo de tipos de documento.",
       "empty": "Todavía no hay documentos de este tipo.",
@@ -2156,7 +2158,6 @@
     },
     "payrolls": {
       "title": "Nóminas",
-      "add": "Añadir nómina",
       "subtitle": "Documentos de nómina vinculados a este trabajador.",
       "empty": "Todavía no hay nóminas.",
       "columns": {

@@ -148,10 +148,7 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
           <Title level={3} className={shared.title}>{t('staff.sections.documents')}</Title>
           <Text type="secondary">{t('staff.documents.subtitle')}</Text>
         </div>
-        <AddStaffDocumentButton
-          staffMemberId={staffMember.id}
-          mode="document"
-        />
+        <AddStaffDocumentButton />
       </Flex>
 
       {!typesLoading && documentTypes.length === 0 ? (

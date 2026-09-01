@@ -738,6 +738,7 @@
         "submit": "Upload document",
         "created": "Document uploaded successfully",
         "createError": "The document could not be uploaded. Please try again.",
+        "securityNotice": "Only upload documents that belong to your company. You are responsible for the content you upload and for protecting access to sensitive information.",
         "invalidFile": "Only PDF files are allowed.",
         "fileTooLarge": "PDF files must be 10 MiB or smaller.",
         "typeRequired": "Select a document category to continue.",
@@ -2043,8 +2044,8 @@
       "ok": "Delete",
       "error": "The staff member could not be deleted. Please try again.",
       "blockedTitle": "This staff member can't be deleted",
-      "blockedGeneric": "This staff member has payrolls imputed to them and can't be deleted.",
-      "blockedHint": "You can reassign their payrolls to another staff member from their page (Payrolls tab), or mark them inactive with an end date when editing them, instead of deleting them.",
+      "blockedGeneric": "This staff member has historical payroll records and can't be deleted.",
+      "blockedHint": "Keep their historical payroll records and mark them inactive with an end date instead of deleting them.",
       "goToProfile": "Go to their page"
     },
     "detail": {
@@ -2094,6 +2095,7 @@
     },
     "documents": {
       "add": "Add document",
+      "comingSoon": "Coming soon",
       "subtitle": "Keep employment and compliance documents up to date.",
       "noTypes": "The document type catalogue could not be loaded.",
       "empty": "There are no documents of this type yet.",
@@ -2152,7 +2154,6 @@
     },
     "payrolls": {
       "title": "Payrolls",
-      "add": "Add payroll",
       "subtitle": "Payroll documents linked to this staff member.",
       "empty": "There are no payrolls yet.",
       "columns": {

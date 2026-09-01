@@ -29,6 +29,7 @@ import {
   useTypeLabel,
   DirectionTag,
   StatusTag,
+  CREATABLE_DOCUMENT_TYPES,
   type DocumentDirectionDto,
   type DocumentListFiltersDto,
   type DocumentListItemDto,
@@ -51,7 +52,6 @@ import styles from './DocumentsPage.module.css';
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
 
-const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
 const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
 const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const SEARCH_DEBOUNCE_MS = 350;
@@ -385,7 +385,7 @@ export function DocumentsPage() {
           value={type}
           onChange={setType}
           className={styles.filterSelect}
-          options={DOCUMENT_TYPES.map((value) => ({
+          options={CREATABLE_DOCUMENT_TYPES.map((value) => ({
             value,
             label: t(`projects.documents.types.${value}`),
           }))}

@@ -35,18 +35,17 @@ import {
   createDocument,
   documentQueries,
   extractInvoice,
-  extractInvoiceStandalone,
   formatEUR,
+  CREATABLE_DOCUMENT_TYPES,
   type CreateDocumentPayload,
+  type CreatableDocumentType,
   type DocumentDirectionDto,
   type DocumentStatusDto,
-  type DocumentTypeDto,
   type DuplicateCheckParams,
   type ExtractInvoiceConfidence,
   type ExtractInvoiceResult,
 } from '@/entities/document';
 import { ApiError } from '@/shared/api/httpClient';
-import { createStaffMember, staffQueries } from '@/entities/staff-member';
 import { createSupplier, supplierQueries, type SupplierDto } from '@/entities/supplier';
 import { projectQueries } from '@/entities/project';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
@@ -85,8 +84,10 @@ const { useBreakpoint } = Grid;
 
 const MAX_QUEUE_FILES = 20;
 
-export type DocumentUploadContext =
-  { kind: 'project'; projectId: string } | { kind: 'staffPayroll'; staffMemberId: string };
+export interface DocumentUploadContext {
+  kind: 'project';
+  projectId: string;
+}
 
 interface DocumentUploadModalProps {
   open: boolean;
@@ -97,7 +98,7 @@ interface DocumentUploadModalProps {
 
 interface DocumentFormFields {
   name: string;
-  type: DocumentTypeDto;
+  type: CreatableDocumentType;
   direction: DocumentDirectionDto;
   status: DocumentStatusDto;
   date: dayjs.Dayjs;
@@ -121,7 +122,6 @@ type UploadFailure =
   | 'pdfNoTextLayer'
   | 'pdfPageLimitExceeded';
 
-const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
 const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
 const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
@@ -135,7 +135,7 @@ const CONFIDENCE_TONE: Record<ExtractInvoiceConfidence, SemanticTone> = {
 const AMOUNT_MISMATCH_TOLERANCE = 0.02;
 
 const FORM_INITIAL_VALUES = {
-  type: 'factura' as DocumentTypeDto,
+  type: 'factura' as CreatableDocumentType,
   direction: 'gasto' as DocumentDirectionDto,
   status: 'pendiente' as DocumentStatusDto,
   currency: 'EUR',
@@ -150,15 +150,9 @@ export function DocumentUploadModal({
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
-  const { data: projectsData } = useQuery(projectQueries.list());
-  const projects = projectsData ?? [];
   const screens = useBreakpoint();
   const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
-
-  const lockedType: DocumentTypeDto | undefined =
-    context.kind === 'staffPayroll' ? 'nomina' : undefined;
-  const showProjectSelect = context.kind === 'staffPayroll';
 
   const [queue, setQueue] = useState<File[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -193,27 +187,8 @@ export function DocumentUploadModal({
   const [newSupplierTaxId, setNewSupplierTaxId] = useState('');
   const [creatingSupplierSubmitting, setCreatingSupplierSubmitting] = useState(false);
 
-  const { data: staffMembersData } = useQuery({
-    ...staffQueries.list(),
-    enabled: open && context.kind === 'project',
-  });
-  const staffMembers = staffMembersData ?? [];
-  const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
-  const [staffMemberError, setStaffMemberError] = useState(false);
-  const [creatingStaffMember, setCreatingStaffMember] = useState(false);
-  const [newStaffMemberFirstName, setNewStaffMemberFirstName] = useState('');
-  const [newStaffMemberLastName, setNewStaffMemberLastName] = useState('');
-  const [creatingStaffMemberSubmitting, setCreatingStaffMemberSubmitting] = useState(false);
-
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
-  const [projectError, setProjectError] = useState(false);
-
-  const typeWatch = Form.useWatch('type', form);
-  const showStaffSelect = context.kind === 'project' && typeWatch === 'nomina';
-
   const resetItemState = () => {
     form.resetFields();
-    if (lockedType) form.setFieldsValue({ type: lockedType });
     setExtractResult(null);
     setUploadFailure(null);
     setStep('idle');
@@ -224,13 +199,6 @@ export function DocumentUploadModal({
     setCreatingSupplier(false);
     setNewSupplierName('');
     setNewSupplierTaxId('');
-    setStaffMemberId(null);
-    setStaffMemberError(false);
-    setCreatingStaffMember(false);
-    setNewStaffMemberFirstName('');
-    setNewStaffMemberLastName('');
-    setSelectedProjectId(null);
-    setProjectError(false);
   };
 
   const applyApiError = (error: unknown): boolean => {
@@ -270,10 +238,7 @@ export function DocumentUploadModal({
       setStep('processing');
     };
 
-    const extraction =
-      context.kind === 'project'
-        ? extractInvoice(context.projectId, file, onProgress, onUploadComplete)
-        : extractInvoiceStandalone(file, onProgress, onUploadComplete);
+    const extraction = extractInvoice(context.projectId, file, onProgress, onUploadComplete);
 
     extraction
       .then((result) => {
@@ -282,7 +247,7 @@ export function DocumentUploadModal({
         setStep('done');
         form.setFieldsValue({
           name: result.fields.name,
-          type: lockedType ?? result.fields.type ?? 'factura',
+          type: result.fields.type === 'impuesto' ? 'impuesto' : 'factura',
           date: result.fields.date ? dayjs(result.fields.date) : undefined,
           dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
           amount: result.fields.amount,
@@ -336,7 +301,6 @@ export function DocumentUploadModal({
   useEffect(() => {
     if (open) {
       form.resetFields();
-      if (lockedType) form.setFieldsValue({ type: lockedType });
       setQueue([]);
       setCurrentIndex(0);
       setStep('idle');
@@ -355,24 +319,8 @@ export function DocumentUploadModal({
       setNewSupplierName('');
       setNewSupplierTaxId('');
 
-      setStaffMemberId(null);
-      setStaffMemberError(false);
-      setCreatingStaffMember(false);
-      setNewStaffMemberFirstName('');
-      setNewStaffMemberLastName('');
-
-      setSelectedProjectId(null);
-      setProjectError(false);
     }
-  }, [open, form, context.kind, lockedType]);
-
-  useEffect(() => {
-    if (context.kind !== 'project') return;
-    if (typeWatch !== 'nomina') {
-      setStaffMemberId(null);
-      setStaffMemberError(false);
-    }
-  }, [context.kind, typeWatch]);
+  }, [open, form, context.projectId]);
 
   useEffect(() => {
     if (!currentFile) {
@@ -531,80 +479,10 @@ export function DocumentUploadModal({
     }
   };
 
-  const handleSelectStaffMember = (value: string | undefined) => {
-    setStaffMemberId(value ?? null);
-    setStaffMemberError(false);
-  };
-
-  const handleOpenCreateStaffMember = () => {
-    setNewStaffMemberFirstName('');
-    setNewStaffMemberLastName('');
-    setCreatingStaffMember(true);
-  };
-
-  const handleCancelCreateStaffMember = () => {
-    setCreatingStaffMember(false);
-    setNewStaffMemberFirstName('');
-    setNewStaffMemberLastName('');
-  };
-
-  const handleCreateStaffMemberPopoverOpenChange = (nextOpen: boolean) => {
-    if (nextOpen) {
-      handleOpenCreateStaffMember();
-    } else {
-      handleCancelCreateStaffMember();
-    }
-  };
-
-  const handleCreateStaffMember = async () => {
-    const firstName = newStaffMemberFirstName.trim();
-    const lastName = newStaffMemberLastName.trim();
-    if (!firstName || !lastName) {
-      void message.warning(t('projects.documents.upload.staffMember.createNameRequired'));
-      return;
-    }
-
-    setCreatingStaffMemberSubmitting(true);
-    try {
-      const created = await createStaffMember({ firstName, lastName });
-      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
-      setStaffMemberId(created.id);
-      setStaffMemberError(false);
-      handleCancelCreateStaffMember();
-      void message.success(t('projects.documents.upload.staffMember.created'));
-    } catch {
-      void message.error(t('projects.documents.upload.staffMember.createError'));
-    } finally {
-      setCreatingStaffMemberSubmitting(false);
-    }
-  };
-
-  const handleSelectProject = (value: string | undefined) => {
-    setSelectedProjectId(value ?? null);
-    setProjectError(false);
-  };
-
-  const resolveTarget = (): { projectId: string; staffMemberId: string | null } =>
-    context.kind === 'staffPayroll'
-      ? { projectId: selectedProjectId ?? '', staffMemberId: context.staffMemberId }
-      : { projectId: context.projectId, staffMemberId: showStaffSelect ? staffMemberId : null };
-
   const handleOk = () => {
     form
       .validateFields()
       .then((values) => {
-        let hasSelectorError = false;
-        if (showStaffSelect && !staffMemberId) {
-          setStaffMemberError(true);
-          hasSelectorError = true;
-        }
-        if (showProjectSelect && !selectedProjectId) {
-          setProjectError(true);
-          hasSelectorError = true;
-        }
-        if (hasSelectorError) return;
-
-        const { projectId, staffMemberId: targetStaffMemberId } = resolveTarget();
         const { date, dueDate, ...rest } = values;
         const payload: CreateDocumentPayload = {
           ...rest,
@@ -612,12 +490,11 @@ export function DocumentUploadModal({
           dueDate: dueDate ? dueDate.format('YYYY-MM-DD') : undefined,
           month: date.month() + 1,
           supplierId: supplierId ?? undefined,
-          staffMemberId: targetStaffMemberId ?? undefined,
         };
 
         setSubmitting(true);
 
-        createDocument(projectId, payload, currentFile ?? undefined)
+        createDocument(context.projectId, payload, currentFile ?? undefined)
           .then(async () => {
             void message.success(t('projects.documents.upload.created'));
             await queryClient.invalidateQueries({ queryKey: documentQueries.all });
@@ -685,36 +562,6 @@ export function DocumentUploadModal({
           onClick={() => void handleCreateSupplier()}
         >
           {t('projects.documents.upload.supplier.createSubmit')}
-        </Button>
-      </Flex>
-    </Flex>
-  );
-
-  const createStaffMemberPopoverContent = (
-    <Flex vertical gap={8} className={styles.popoverContent}>
-      <Input
-        size="small"
-        placeholder={t('projects.documents.upload.staffMember.createFirstNamePlaceholder')}
-        value={newStaffMemberFirstName}
-        onChange={(event) => setNewStaffMemberFirstName(event.target.value)}
-      />
-      <Input
-        size="small"
-        placeholder={t('projects.documents.upload.staffMember.createLastNamePlaceholder')}
-        value={newStaffMemberLastName}
-        onChange={(event) => setNewStaffMemberLastName(event.target.value)}
-      />
-      <Flex gap={8} justify="end">
-        <Button size="small" onClick={handleCancelCreateStaffMember}>
-          {t('common.cancel')}
-        </Button>
-        <Button
-          size="small"
-          type="primary"
-          loading={creatingStaffMemberSubmitting}
-          onClick={() => void handleCreateStaffMember()}
-        >
-          {t('projects.documents.upload.staffMember.createSubmit')}
         </Button>
       </Flex>
     </Flex>
@@ -985,8 +832,7 @@ export function DocumentUploadModal({
                 <Col xs={24} sm={12} md={8}>
                   <Form.Item name="type" label={t('projects.documents.upload.fields.type')}>
                     <Select
-                      disabled={Boolean(lockedType)}
-                      options={DOCUMENT_TYPES.map((type) => ({
+                      options={CREATABLE_DOCUMENT_TYPES.map((type) => ({
                         value: type,
                         label: t(`projects.documents.types.${type}`),
                       }))}
@@ -1035,85 +881,6 @@ export function DocumentUploadModal({
                   </Form.Item>
                 </Col>
               </Row>
-
-              {(showStaffSelect || showProjectSelect) && (
-                <Row gutter={12} align="top">
-                  {showStaffSelect && (
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={t('projects.documents.upload.staffMember.label')}
-                        validateStatus={staffMemberError ? 'error' : undefined}
-                        help={
-                          staffMemberError
-                            ? t('projects.documents.upload.staffMember.required')
-                            : t('projects.documents.upload.staffMember.hint')
-                        }
-                      >
-                        <Select
-                          showSearch
-                          value={staffMemberId ?? undefined}
-                          onChange={handleSelectStaffMember}
-                          placeholder={t('projects.documents.upload.staffMember.placeholder')}
-                          filterOption={(input, option) =>
-                            (option?.label ?? '')
-                              .toString()
-                              .toLowerCase()
-                              .includes(input.toLowerCase())
-                          }
-                          options={staffMembers.map((member) => ({
-                            value: member.id,
-                            label: `${member.firstName} ${member.lastName}`,
-                          }))}
-                        />
-                      </Form.Item>
-                      <Popover
-                        trigger="click"
-                        open={creatingStaffMember}
-                        onOpenChange={handleCreateStaffMemberPopoverOpenChange}
-                        placement="bottomLeft"
-                        content={createStaffMemberPopoverContent}
-                      >
-                        <Button
-                          type="link"
-                          size="small"
-                          icon={<PlusOutlined />}
-                          className={styles.createLinkButton}
-                        >
-                          {t('projects.documents.upload.staffMember.createNew')}
-                        </Button>
-                      </Popover>
-                    </Col>
-                  )}
-                  {showProjectSelect && (
-                    <Col xs={24} md={8}>
-                      <Form.Item
-                        label={t('projects.documents.upload.project.label')}
-                        validateStatus={projectError ? 'error' : undefined}
-                        help={
-                          projectError ? t('projects.documents.upload.project.required') : undefined
-                        }
-                      >
-                        <Select
-                          showSearch
-                          value={selectedProjectId ?? undefined}
-                          onChange={handleSelectProject}
-                          placeholder={t('projects.documents.upload.project.placeholder')}
-                          filterOption={(input, option) =>
-                            (option?.label ?? '')
-                              .toString()
-                              .toLowerCase()
-                              .includes(input.toLowerCase())
-                          }
-                          options={projects.map((project) => ({
-                            value: project.id,
-                            label: project.name,
-                          }))}
-                        />
-                      </Form.Item>
-                    </Col>
-                  )}
-                </Row>
-              )}
 
               <Text strong className={styles.sectionLabel}>
                 {t('projects.documents.upload.sections.supplier')}
