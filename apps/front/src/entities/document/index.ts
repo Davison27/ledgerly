@@ -13,6 +13,7 @@ export {
   extractInvoice,
   extractInvoiceStandalone,
 } from './api/documents.api';
+export { CREATABLE_DOCUMENT_TYPES } from './api/types';
 export type {
   DocumentListFiltersDto,
   DocumentListItemDto,
@@ -20,6 +21,7 @@ export type {
   DocumentDirectionDto,
   DocumentStatusDto,
   DocumentTypeDto,
+  CreatableDocumentType,
   DuplicateCheckParams,
   CreateDocumentPayload,
   UpdateDocumentPayload,

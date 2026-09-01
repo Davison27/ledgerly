@@ -22,14 +22,14 @@ import {
   updateDocument,
   documentQueries,
   mapDocumentDto,
+  CREATABLE_DOCUMENT_TYPES,
   type DocumentDirectionDto,
   type DocumentStatusDto,
-  type DocumentTypeDto,
+  type CreatableDocumentType,
   type ProjectDocument,
   type UpdateDocumentPayload,
 } from '@/entities/document';
 import { projectQueries } from '@/entities/project';
-import { staffQueries } from '@/entities/staff-member';
 import { supplierQueries } from '@/entities/supplier';
 import { SPACE } from '@/shared/config/theme';
 import styles from './DocumentEditModal.module.css';
@@ -45,7 +45,7 @@ interface DocumentEditModalProps {
 
 interface DocumentEditFormFields {
   name: string;
-  type: DocumentTypeDto;
+  type?: CreatableDocumentType;
   direction: DocumentDirectionDto;
   status: DocumentStatusDto;
   date: dayjs.Dayjs;
@@ -62,7 +62,6 @@ interface DocumentEditFormFields {
   issuerTaxId?: string;
 }
 
-const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
 const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
 const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
@@ -83,21 +82,14 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
   const { data: suppliers = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
-  const { data: staffMembers = [] } = useQuery({ ...staffQueries.list(), enabled: open });
-  const [staffMemberId, setStaffMemberId] = useState<string | null>(null);
-  const [staffMemberError, setStaffMemberError] = useState(false);
-
   useEffect(() => {
     if (!open || !document) return;
 
     setSupplierId(document.supplierId ?? null);
 
-    setStaffMemberId(document.staffMemberId ?? null);
-    setStaffMemberError(false);
-
     form.setFieldsValue({
       name: document.name,
-      type: document.type,
+      type: document.type === 'nomina' ? undefined : document.type,
       direction: document.direction,
       status: document.rawStatus,
       date: dayjs(document.date),
@@ -127,18 +119,10 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     }
   };
 
-  const handleSelectStaffMember = (value: string | undefined) => {
-    setStaffMemberId(value ?? null);
-    setStaffMemberError(false);
-  };
-
   const handleCancel = () => {
     form.resetFields();
     onCancel();
   };
-
-  const typeWatch = Form.useWatch('type', form);
-  const showStaffSelect = typeWatch === 'nomina';
 
   const amountWatch = Form.useWatch('amount', form);
   const taxBaseWatch = Form.useWatch('taxBase', form);
@@ -158,14 +142,9 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
     form
       .validateFields()
       .then((values) => {
-        if (values.type === 'nomina' && !staffMemberId) {
-          setStaffMemberError(true);
-          return;
-        }
-
         const payload: UpdateDocumentPayload = {
           name: values.name,
-          type: values.type,
+          ...(document.type === 'nomina' ? {} : { type: values.type }),
           direction: values.direction,
           status: values.status,
           date: values.date.format('YYYY-MM-DD'),
@@ -181,7 +160,6 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           issuerTaxId: blankToNull(values.issuerTaxId),
           invoiceNumber: blankToNull(values.invoiceNumber),
           supplierId,
-          staffMemberId: values.type === 'nomina' ? staffMemberId : null,
         };
 
         setSubmitting(true);
@@ -253,14 +231,20 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8}>
-              <Form.Item name="type" label={t('projects.documents.upload.fields.type')}>
-                <Select
-                  options={DOCUMENT_TYPES.map((type) => ({
-                    value: type,
-                    label: t(`projects.documents.types.${type}`),
-                  }))}
-                />
-              </Form.Item>
+              {document?.type === 'nomina' ? (
+                <Form.Item label={t('projects.documents.upload.fields.type')}>
+                  <Input value={t('projects.documents.types.nomina')} disabled />
+                </Form.Item>
+              ) : (
+                <Form.Item name="type" label={t('projects.documents.upload.fields.type')}>
+                  <Select
+                    options={CREATABLE_DOCUMENT_TYPES.map((type) => ({
+                      value: type,
+                      label: t(`projects.documents.types.${type}`),
+                    }))}
+                  />
+                </Form.Item>
+              )}
             </Col>
             <Col xs={24} sm={12} md={8}>
               <Form.Item name="status" label={t('projects.documents.upload.fields.status')}>
@@ -302,36 +286,6 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
               </Form.Item>
             </Col>
           </Row>
-
-          {showStaffSelect && (
-            <Row gutter={12}>
-              <Col xs={24} md={8}>
-                <Form.Item
-                  label={t('projects.documents.upload.staffMember.label')}
-                  validateStatus={staffMemberError ? 'error' : undefined}
-                  help={
-                    staffMemberError
-                      ? t('projects.documents.upload.staffMember.required')
-                      : t('projects.documents.upload.staffMember.hint')
-                  }
-                >
-                  <Select
-                    showSearch
-                    value={staffMemberId ?? undefined}
-                    onChange={handleSelectStaffMember}
-                    placeholder={t('projects.documents.upload.staffMember.placeholder')}
-                    filterOption={(input, option) =>
-                      (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                    }
-                    options={staffMembers.map((member) => ({
-                      value: member.id,
-                      label: `${member.firstName} ${member.lastName}`,
-                    }))}
-                  />
-                </Form.Item>
-              </Col>
-            </Row>
-          )}
 
           <Text strong className={styles.sectionLabel}>
             {t('projects.documents.upload.sections.supplier')}

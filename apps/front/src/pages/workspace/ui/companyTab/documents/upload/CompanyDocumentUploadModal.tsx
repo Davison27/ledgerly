@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { App, Button, DatePicker, Form, Input, Modal, Typography, Upload } from 'antd';
+import { Alert, App, Button, DatePicker, Form, Input, Modal, Typography, Upload } from 'antd';
 import { InboxOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
@@ -134,6 +134,12 @@ export function CompanyDocumentUploadModal({
         </Button>,
       ]}
     >
+      <Alert
+        type="info"
+        showIcon
+        title={t('company.documents.upload.securityNotice')}
+        className={styles.securityNotice}
+      />
       <Form<CompanyDocumentUploadFormFields>
         form={form}
         layout="vertical"

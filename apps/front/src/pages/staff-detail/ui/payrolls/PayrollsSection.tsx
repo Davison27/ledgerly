@@ -7,7 +7,6 @@ import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
-import { AddStaffDocumentButton } from '../addDocument/AddStaffDocumentButton';
 import type { StaffSectionProps } from '../../model/types';
 import shared from '../staff-detail.module.css';
 
@@ -16,7 +15,7 @@ const { Title, Text } = Typography;
 export function PayrollsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const { data: payrolls = [], isPending: loading } = useQuery(
-    documentQueries.list({ staffMemberId: staffMember.id }),
+    documentQueries.list({ staffMemberId: staffMember.id, type: 'nomina' }),
   );
 
   const columns: TableColumnsType<DocumentListItemDto> = [
@@ -65,7 +64,6 @@ export function PayrollsSection({ staffMember }: StaffSectionProps) {
           <Title level={3} className={shared.title}>{t('staff.sections.payrolls')}</Title>
           <Text type="secondary">{t('staff.payrolls.subtitle')}</Text>
         </div>
-        <AddStaffDocumentButton staffMemberId={staffMember.id} mode="payroll" />
       </Flex>
 
       {!loading && payrolls.length === 0 ? (

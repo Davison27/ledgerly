@@ -123,7 +123,6 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const typeOptions = [
     { value: 'all', label: t('projects.documents.filters.allTypes') },
     { value: 'factura', label: t('projects.documents.types.factura') },
-    { value: 'nomina', label: t('projects.documents.types.nomina') },
     { value: 'impuesto', label: t('projects.documents.types.impuesto') },
   ];
 
