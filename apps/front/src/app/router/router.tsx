@@ -1,8 +1,11 @@
-import { lazy, Suspense, type ComponentType } from 'react';
+import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
 import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
+import { Flex, Spin } from 'antd';
+import { useTranslation } from 'react-i18next';
 
 import { AppShell } from './AppShell';
 import { RootLayout } from './RootLayout';
+import styles from './router.module.css';
 import { SessionGuard } from '@/widgets/app-layout';
 import { LoginPage } from '@/pages/login';
 import { OnboardingPage } from '@/pages/onboarding';
@@ -16,12 +19,38 @@ interface LoginSearch {
   signedOut?: boolean;
 }
 
-const routeFallback = <div role="status">Cargando página…</div>;
+const ROUTE_FALLBACK_DELAY_MS = 120;
+
+export function RouteFallback() {
+  const { t } = useTranslation();
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsVisible(true);
+    }, ROUTE_FALLBACK_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, []);
+
+  if (!isVisible) return null;
+
+  return (
+    <Flex className={styles.fallback} align="center" justify="center">
+      <Flex vertical align="center" gap="small" role="status" aria-live="polite" className={styles.status}>
+        <Spin />
+        <span>{t('common.loadingPage')}</span>
+      </Flex>
+    </Flex>
+  );
+}
 
 function withRouteFallback(Component: ComponentType) {
   return function LazyRoute() {
     return (
-      <Suspense fallback={routeFallback}>
+      <Suspense fallback={<RouteFallback />}>
         <Component />
       </Suspense>
     );
