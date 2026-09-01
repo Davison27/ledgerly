@@ -18,12 +18,29 @@ Internet -> Caddy (TLS, :80/:443)
 ```
 
 The production frontend is built with `VITE_API_URL=/api`, a relative URL.
-This keeps the frontend and API on one origin and lets `make configure` change
+This keeps the frontend and API on one origin and lets `make MODE=production configure` change
 the domain without rebuilding the frontend image. It also makes browser CORS
 configuration unnecessary in production and aligns `FRONTEND_URL`, origin
 checks, and secure cookies with the single public domain. A runtime
 `config.json` was rejected because it adds a blocking request and another
 runtime failure mode for no benefit.
+
+## Command modes
+
+Make defaults to the development stack. Production commands require the
+explicit `MODE=production` variable; the presence of `deploy/.env` never changes
+the selected mode. Use `make MODE=production build-production` to build the
+`ledgerly-back:local` image consumed by the production stack and by the existing
+database rehearsal.
+
+## PDF processing
+
+The backend uses PDF.js for bounded text-layer extraction and for structured
+data embedded in supported PDF attachments. XML, Facturae, Factur-X, and UBL
+payloads use their dedicated parsers. The production image uses bounded PDF.js
+readers rather than an image-to-text pipeline. A scanned or otherwise textless
+PDF can still be uploaded, but extraction reports that it has no text layer so
+the user can complete its metadata manually.
 
 ## Containers and persistent data
 
@@ -33,15 +50,21 @@ Always invoke the production stack with:
 docker compose -f deploy/docker-compose.yml --env-file deploy/.env
 ```
 
+For normal lifecycle operations, use `make MODE=production up`,
+`make MODE=production down`, `make MODE=production restart`, or
+`make MODE=production logs` so the production mode is explicit.
+
 | Service    | Image                                   | Public ports           | Persistent volume            |
 | ---------- | --------------------------------------- | ---------------------- | ---------------------------- |
 | `postgres` | `postgres:17-alpine`                    | None                   | `pgdata`                     |
 | `back`     | `ledgerly-back:local`                   | None                   | None                         |
 | `front`    | `ledgerly-front:local`                  | None                   | None                         |
 | `caddy`    | `caddy:2.11-alpine`                     | `80`, `443`, `443/udp` | `caddy_data`, `caddy_config` |
+| `clamav`   | `clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c` | None | `clamav_data` |
 | `migrator` | `ledgerly-back:local` (`tools` profile) | None                   | None                         |
 
-`migrator` runs only on demand through `make migrate` and `make update`.
+`migrator` runs only on demand through `make MODE=production migrate` and
+`make MODE=production update`.
 Postgres is intentionally not published outside the Docker network. For
 server-side inspection, use:
 
@@ -65,6 +88,20 @@ The base images are pinned to multi-platform registry digests in the Compose
 and Dockerfile definitions. Refresh them only as an explicit release change:
 verify the new digest for the target architecture, rebuild and test the
 images, then record the change in the release notes.
+
+## Malware scanning and signature freshness
+
+Before PDF parsing or persistence, the backend sends the file bytes to ClamAV
+over the private `scanner` Docker network using the ClamD protocol. ClamAV has
+no published host port, but the backend and the scanner both see the PDF bytes
+while the scan is running. This is an internal service boundary, not a
+client-only confidentiality boundary.
+
+The official ClamAV image uses FreshClam to download signature updates. The
+production `scanner` network is internal and has no default outbound path, so
+signature freshness requires an explicit, controlled VPS operations procedure.
+Do not assume that a successful scan means the definitions are current, and do
+not add unrestricted scanner egress as a convenience.
 
 ## Encrypted file persistence
 
@@ -108,9 +145,15 @@ encrypted data exists; only an empty schema can return to empty legacy columns.
 The disposable development reset is therefore a prerequisite for adopting the
 encrypted schema when old local rows are present.
 
+This provides encryption at rest rather than client-only encryption. The backend
+holds the configured application keys so it can encrypt, decrypt, scan, extract,
+and serve files for authorized operations. The VPS operator and Docker daemon
+are trusted boundaries: anyone who controls them may access deployment secrets,
+process memory, mounted volumes, or database contents.
+
 ## Key management and stored-file operations
 
-`make setup` generates a fresh 32-byte stored-file key for a new installation
+`make MODE=production setup` generates a fresh 32-byte stored-file key for a new installation
 and writes the active version and keyring to the mode-600 `deploy/.env`.
 For controlled manual generation, the backend script is:
 
@@ -186,14 +229,14 @@ are ready.
 Run the interactive installer once:
 
 ```bash
-make setup
+make MODE=production setup
 ```
 
 It validates the domain, collects Google credentials, the initial
 administrator email, and timezone, generates deployment secrets, builds the
 images, applies database migrations, starts the stack, requests TLS, and
 checks the public readiness endpoint. It refuses to overwrite a completed
-installation. `LEDGERLY_ALLOW_RESETUP=1 make setup` is a support escape hatch;
+installation. `LEDGERLY_ALLOW_RESETUP=1 make MODE=production setup` is a support escape hatch;
 it does not delete existing data.
 
 Database startup is explicit and fail-closed. Fresh databases run TypeORM and
@@ -203,20 +246,20 @@ that predates migrations, first run the disposable-clone rehearsal, then the
 gated cutover:
 
 ```bash
-make rehearse-existing-db-baseline FILE=/path/to/external.dump
-make baseline-existing-db
+make MODE=production rehearse-existing-db-baseline FILE=/path/to/external.dump
+make MODE=production baseline-existing-db
 ```
 
 When a verified production dump is already available, use it explicitly:
 
 ```bash
-make rehearse-existing-db-baseline FILE=/path/to/external.dump
+make MODE=production rehearse-existing-db-baseline FILE=/path/to/external.dump
 ```
 
 The cutover validates the supplied external PostgreSQL custom-format dump with
 `pg_restore --list`, records the initial marker only after schema validation,
 applies subsequent migrations, and runs a final verify.
-`make migrate` is the normal command afterwards;
+`make MODE=production migrate` is the normal command afterwards;
 `pnpm --filter @ledgerly/back run db:verify` is the backend package script for
 a read-only schema check.
 
@@ -232,16 +275,16 @@ authentication model and the required OAuth scopes.
 
 ## Operations
 
-`make doctor` is safe for manual use and cron. It exits non-zero only for
+`make MODE=production doctor` is safe for manual use and cron. It exits non-zero only for
 failures and never prints secret values. It checks Docker, deployment file
 permissions and required keys, production environment invariants, container
 health, database connectivity and migration state, the configured connection
 budget, DNS, Caddy ports, the public readiness endpoint, certificate expiry,
 disk usage, and the founder record.
 
-Use `make configure` instead of editing `deploy/.env` directly. It can change
+Use `make MODE=production configure` instead of editing `deploy/.env` directly. It can change
 the domain, Google credentials, initial administrator email, or database
-password and finishes with `make doctor`.
+password and finishes with `make MODE=production doctor`.
 
 - Changing the domain requires updating the Google origin and redirect URI;
   existing browser sessions do not move to the new domain. The frontend image
@@ -257,12 +300,12 @@ password and finishes with `make doctor`.
 Update an installed instance with:
 
 ```bash
-make update
+make MODE=production update
 ```
 
 It requires a completed installation, runs `git pull --ff-only`, rebuilds
 images, applies pending migrations, waits for healthy services, removes old
-images, and runs `make doctor`. It never runs `down -v` or deletes volumes.
+images, and runs `make MODE=production doctor`. It never runs `down -v` or deletes volumes.
 
 ## Recovery and local reset
 
@@ -302,13 +345,13 @@ claims:
 - VPS and Google configuration: host hardening, DNS/provider operations, and
   Google OAuth console setup and credential administration.
 - Distributed throttling across multiple backend instances.
-- Malware scanning and content disarm and reconstruction (CDR).
+- Content disarm and reconstruction (CDR).
 - Encryption and search design for searchable/display metadata.
 - Immutable retention for security audit logs.
 - Legal retention and deletion policy.
 
 Ledgerly documents defense-in-depth controls and residual risk; it does not
-claim 100% security.
+claim complete security.
 
 ## See also
 

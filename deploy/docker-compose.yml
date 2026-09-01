@@ -79,7 +79,7 @@ services:
       - scanner
 
   clamav:
-    image: clamav/clamav:1.5.3
+    image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
     restart: unless-stopped
     init: true
     read_only: true

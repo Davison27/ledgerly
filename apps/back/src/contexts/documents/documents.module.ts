@@ -21,8 +21,6 @@ import { DocumentsGlobalController } from './infrastructure/http/documents-globa
 import { ExtractionHintsController } from './infrastructure/http/extraction-hints.controller';
 import { ExtractionQualityController } from './infrastructure/http/extraction-quality.controller';
 import { PdfjsPdfReader } from './infrastructure/pdf/pdfjs-pdf-reader';
-import { OcrPdfReader } from './infrastructure/pdf/ocr-pdf-reader';
-import { LocalPdfOcr } from './infrastructure/pdf/local-pdf-ocr';
 import { BoundedPdfReader } from './infrastructure/pdf/bounded-pdf-reader';
 import { ListDocumentsUseCase } from './application/list-documents/list-documents.use-case';
 import { ListAllDocumentsUseCase } from './application/list-all-documents/list-all-documents.use-case';
@@ -76,8 +74,6 @@ import { ProjectRepositoryNameProvider } from './infrastructure/projects/project
     { provide: SUPPLIER_EXISTENCE_CHECKER, useClass: TypeOrmSupplierExistenceChecker },
     { provide: STAFF_MEMBER_EXISTENCE_CHECKER, useClass: TypeOrmStaffMemberExistenceChecker },
     PdfjsPdfReader,
-    LocalPdfOcr,
-    OcrPdfReader,
     BoundedPdfReader,
     { provide: PDF_READER, useExisting: BoundedPdfReader },
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },

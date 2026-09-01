@@ -77,10 +77,6 @@ export class ExtractInvoiceUseCase {
     const { fields, warnings } = extractInvoiceHeuristics(text);
     const improvedFields = await this.applyLearnedHints(fields, text);
 
-    if (readResult.ocrApplied) {
-      warnings.push('El texto se ha reconocido mediante OCR local');
-    }
-
     return buildResult('heuristic', computeHeuristicConfidence(improvedFields), improvedFields, warnings);
   }
 

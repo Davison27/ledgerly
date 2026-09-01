@@ -25,11 +25,11 @@ ENV_CONTRACT_KEYS=(
   DB_QUERY_TIMEOUT_MS DB_CONNECTION_BUDGET
   MAX_LIST_ITEMS MAX_PROJECT_EQUIPMENT_PER_PROJECT MAX_CALENDAR_RANGE_DAYS MAX_CALENDAR_RESULTS
   BETTER_AUTH_SECRET GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET BOOTSTRAP_ADMIN_EMAIL
-  PDF_OCR_ENABLED PDF_OCR_LANGUAGE PDF_MAX_PAGES PDF_OCR_MAX_PAGES PDF_OCR_TIMEOUT_SECONDS
+  PDF_MAX_PAGES
   PDF_UPLOAD_MAX_ACTIVE PDF_UPLOAD_MAX_QUEUED PDF_UPLOAD_QUEUE_TIMEOUT_MS
   PDF_READER_MAX_ACTIVE PDF_READER_MAX_QUEUED PDF_READER_QUEUE_TIMEOUT_MS
   PDF_RETRY_AFTER_SECONDS PDF_MAX_EXTRACTED_TEXT_BYTES PDF_MAX_ATTACHMENTS
-  PDF_MAX_ATTACHMENT_BYTES PDF_MAX_TOTAL_ATTACHMENT_BYTES PDF_MAX_OCR_OUTPUT_BYTES
+  PDF_MAX_ATTACHMENT_BYTES PDF_MAX_TOTAL_ATTACHMENT_BYTES
   DEPLOY_BACK_CPUS DEPLOY_BACK_MEMORY DEPLOY_FRONT_CPUS DEPLOY_FRONT_MEMORY
   DEPLOY_POSTGRES_CPUS DEPLOY_POSTGRES_MEMORY DEPLOY_POSTGRES_SHM_SIZE
   DEPLOY_TMPFS_SIZE DEPLOY_FRONT_TMPFS_SIZE DEPLOY_PIDS_LIMIT DEPLOY_POSTGRES_PIDS_LIMIT
@@ -347,7 +347,7 @@ service_running() {
 require_installed() {
   if [ ! -f "$ENV_FILE" ]; then
     fail "There is no installation on this server (deploy/.env is missing)."
-    printf '       → Run this first: make setup\n'
+    printf '       → Run this first: make MODE=production setup\n'
     exit 1
   fi
 }
@@ -356,9 +356,9 @@ print_already_installed() {
   local when
   when="$(format_date "$(state_get TIMESTAMP 2>/dev/null || date -u +%Y-%m-%dT%H:%M:%SZ)" 0)"
   fail "Ledgerly is already installed on this machine (${when})."
-  printf '       → To change the domain or secrets: make configure\n'
-  printf '       → To diagnose an issue:            make doctor\n'
-  printf '       → To update the version:           make update\n'
+  printf '       → To change the domain or secrets: make MODE=production configure\n'
+  printf '       → To diagnose an issue:            make MODE=production doctor\n'
+  printf '       → To update the version:           make MODE=production update\n'
 }
 
 require_not_installed() {

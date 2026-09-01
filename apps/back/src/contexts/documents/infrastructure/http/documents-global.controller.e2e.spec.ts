@@ -6,11 +6,20 @@ import { DocumentsGlobalController } from './documents-global.controller';
 import { ListAllDocumentsUseCase } from '../../application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from '../../application/check-document-duplicate/check-document-duplicate.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
+import { ExtractInvoiceCommand } from '../../application/extract-invoice/extract-invoice.command';
+import { ExtractedInvoiceResult } from '../../application/extract-invoice/extracted-invoice';
 import { DocumentListItem } from '../../application/list-all-documents/document-list-item';
 import { DocumentDuplicateMatch } from '../../application/check-document-duplicate/document-duplicate-match';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
+import { MalwareDetectedException } from '../../../../shared/domain/errors/malware-detected.exception';
+import { MalwareScannerUnavailableException } from '../../../../shared/domain/errors/malware-scanner-unavailable.exception';
+import { PDF_READER, PdfReadResult } from '../../domain/extraction/pdf-reader.port';
+import { INVOICE_HINT_REPOSITORY } from '../../domain/extraction/hints/invoice-hint.repository';
+import { DOMAIN_EVENT_PUBLISHER } from '../../../../shared/domain/domain-event-publisher.port';
 
 const PDF_HEADER = Buffer.from('%PDF-1.4\n%mock');
+const PDF_READ_RESULT: PdfReadResult = { text: 'invoice', attachments: [] };
 
 function buildListItem(overrides: Partial<DocumentListItem> = {}): DocumentListItem {
   return {
@@ -50,19 +59,27 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
   let httpServer: Server;
   let listExecute: jest.Mock;
   let duplicateCheckExecute: jest.Mock;
-  let extractExecute: jest.Mock;
+  let extractExecute: jest.SpyInstance<Promise<ExtractedInvoiceResult>, [ExtractInvoiceCommand]>;
+  let extractOriginal: (command: ExtractInvoiceCommand) => Promise<ExtractedInvoiceResult>;
+  let readExecute: jest.Mock;
+  let scanExecute: jest.Mock;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildListItem()]));
     duplicateCheckExecute = jest.fn(() => Promise.resolve([]));
-    extractExecute = jest.fn(() => Promise.resolve({ fields: {}, confidence: 'low' }));
+    readExecute = jest.fn(() => Promise.resolve(PDF_READ_RESULT));
+    scanExecute = jest.fn(() => Promise.resolve());
 
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsGlobalController],
       providers: [
         { provide: ListAllDocumentsUseCase, useValue: { execute: listExecute } },
         { provide: CheckDocumentDuplicateUseCase, useValue: { execute: duplicateCheckExecute } },
-        { provide: ExtractInvoiceUseCase, useValue: { execute: extractExecute } },
+        ExtractInvoiceUseCase,
+        { provide: PDF_READER, useValue: { read: readExecute } },
+        { provide: INVOICE_HINT_REPOSITORY, useValue: { findByIssuer: () => Promise.resolve([]) } },
+        { provide: DOMAIN_EVENT_PUBLISHER, useValue: { publish: () => Promise.resolve(), register: () => {} } },
+        { provide: MALWARE_SCANNER, useValue: { scan: scanExecute } },
       ],
     }).compile();
 
@@ -71,15 +88,24 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
     httpServer = app.getHttpServer() as Server;
+    const extractInvoiceUseCase = moduleRef.get(ExtractInvoiceUseCase);
+    extractOriginal = extractInvoiceUseCase.execute.bind(extractInvoiceUseCase);
+    extractExecute = jest.spyOn(extractInvoiceUseCase, 'execute');
   });
 
   afterEach(() => {
     listExecute.mockClear();
     duplicateCheckExecute.mockClear();
-    extractExecute.mockClear();
+    extractExecute.mockReset();
+    extractExecute.mockImplementation(extractOriginal);
+    readExecute.mockReset();
+    readExecute.mockResolvedValue(PDF_READ_RESULT);
+    scanExecute.mockReset();
+    scanExecute.mockResolvedValue(undefined);
   });
 
   afterAll(async () => {
+    extractExecute.mockRestore();
     await app.close();
   });
 
@@ -234,13 +260,70 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
   });
 
   describe('POST /documents/extract', () => {
-    it('extracts a PDF without requiring a projectId', async () => {
+    it('scans the uploaded buffer before extracting it', async () => {
+      const events: string[] = [];
+      let scannedBuffer: Buffer | undefined;
+      let readBuffer: Buffer | undefined;
+      let extractedBuffer: Buffer | undefined;
+      scanExecute.mockImplementationOnce((buffer: Buffer) => {
+        events.push('scan');
+        scannedBuffer = buffer;
+      });
+      readExecute.mockImplementationOnce((buffer: Buffer) => {
+        events.push('read');
+        readBuffer = buffer;
+        return Promise.resolve(PDF_READ_RESULT);
+      });
+      extractExecute.mockImplementationOnce(async (command: ExtractInvoiceCommand) => {
+        const result = await extractOriginal(command);
+        events.push('extract');
+        extractedBuffer = command.fileBuffer;
+        return result;
+      });
+
       const response = await request(httpServer)
         .post('/documents/extract')
         .attach('file', PDF_HEADER, { filename: 'invoice.pdf', contentType: 'application/pdf' });
 
       expect(response.status).toBe(201);
+      expect(events).toEqual(['scan', 'read', 'extract']);
+      expect(scanExecute).toHaveBeenCalledWith(expect.any(Buffer));
+      expect(readExecute).toHaveBeenCalledWith(expect.any(Buffer));
+      expect(extractedBuffer).toBe(scannedBuffer);
+      expect(readBuffer).toBe(scannedBuffer);
       expect(extractExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not extract a file when the malware scanner rejects it', async () => {
+      scanExecute.mockRejectedValueOnce(new MalwareDetectedException());
+
+      const response = await request(httpServer)
+        .post('/documents/extract')
+        .attach('file', PDF_HEADER, { filename: 'invoice.pdf', contentType: 'application/pdf' });
+
+      expect(response.status).toBe(422);
+      expect(response.body).toEqual({
+        code: 'MALWARE_DETECTED',
+        message: 'The uploaded file was rejected by the malware scanner',
+      });
+      expect(readExecute).not.toHaveBeenCalled();
+      expect(extractExecute).not.toHaveBeenCalled();
+    });
+
+    it('does not read or extract a file when the malware scanner is unavailable', async () => {
+      scanExecute.mockRejectedValueOnce(new MalwareScannerUnavailableException());
+
+      const response = await request(httpServer)
+        .post('/documents/extract')
+        .attach('file', PDF_HEADER, { filename: 'invoice.pdf', contentType: 'application/pdf' });
+
+      expect(response.status).toBe(503);
+      expect(response.body).toEqual({
+        code: 'MALWARE_SCANNER_UNAVAILABLE',
+        message: 'The malware scanner is currently unavailable',
+      });
+      expect(readExecute).not.toHaveBeenCalled();
+      expect(extractExecute).not.toHaveBeenCalled();
     });
 
     it('requires a file', async () => {
