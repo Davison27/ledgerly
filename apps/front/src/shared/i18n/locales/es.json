@@ -1305,7 +1305,9 @@
         "submit": "Crear documento",
         "created": "Documento creado correctamente",
         "extractError": "No se ha podido procesar el documento. Inténtalo de nuevo.",
-        "scannedPdfAlert": "No pudimos leer el PDF automáticamente (parece una imagen escaneada). Rellena los campos manualmente.",
+        "malwareDetectedAlert": "Este PDF se ha rechazado porque se ha detectado una amenaza de seguridad. Selecciona otro archivo para continuar.",
+        "malwareScannerUnavailableAlert": "El análisis de seguridad no está disponible temporalmente. Mantén este archivo seleccionado e inténtalo de nuevo más tarde.",
+        "scannedPdfAlert": "No pudimos leer el texto de este PDF automáticamente. El archivo sigue seleccionado para que puedas rellenar los campos manualmente.",
         "pdfPageLimitAlert": "Este PDF tiene demasiadas páginas para procesarlo de forma segura. Usa un documento más corto o divídelo en varios archivos.",
         "dropzone": {
           "title": "Sube el PDF de la factura",
@@ -1324,6 +1326,12 @@
           "uploading": "Subiendo",
           "processing": "Procesando PDF",
           "done": "Listo"
+        },
+        "status": {
+          "uploading": "Subiendo el PDF",
+          "uploadingProgress": "Subiendo el PDF: {{percent}}%",
+          "scanningAndExtracting": "Analizando amenazas de seguridad y leyendo el PDF",
+          "readyForReview": "Listo para revisar"
         },
         "extraction": {
           "source": {

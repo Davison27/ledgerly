@@ -98,13 +98,18 @@ describe('frontend API contracts', () => {
     expect(get).toHaveBeenNthCalledWith(2, '/dashboard?year=2025');
   });
 
-  it('uploads invoice extraction with credentials, CSRF and progress reporting', async () => {
+  it('uploads invoice extraction with credentials, CSRF, progress and upload completion reporting', async () => {
     const progress = vi.fn();
+    const events: string[] = [];
+    const uploadComplete = vi.fn(() => events.push('uploadComplete'));
     const result = { source: 'heuristic', confidence: 'high', fields: {}, warnings: [] };
 
     class FakeXmlHttpRequest {
       static last: FakeXmlHttpRequest;
-      readonly upload: { onprogress?: (event: ProgressEvent) => void } = {};
+      readonly upload: {
+        onprogress?: (event: ProgressEvent) => void;
+        onload?: () => void;
+      } = {};
       readonly open = vi.fn();
       readonly setRequestHeader = vi.fn();
       readonly send = vi.fn((body: FormData) => {
@@ -114,6 +119,8 @@ describe('frontend API contracts', () => {
           loaded: 50,
           total: 100,
         } as ProgressEvent);
+        this.upload.onload?.();
+        events.push('response');
         this.status = 200;
         this.responseText = JSON.stringify(result);
         this.onload?.();
@@ -134,7 +141,7 @@ describe('frontend API contracts', () => {
     vi.stubGlobal('XMLHttpRequest', FakeXmlHttpRequest);
 
     await expect(
-      extractInvoice('project-1', new File(['pdf'], 'invoice.pdf'), progress),
+      extractInvoice('project-1', new File(['pdf'], 'invoice.pdf'), progress, uploadComplete),
     ).resolves.toEqual(result);
 
     expect(FakeXmlHttpRequest.last.open).toHaveBeenCalledWith(
@@ -150,11 +157,13 @@ describe('frontend API contracts', () => {
     const submittedFormData = FakeXmlHttpRequest.last.send.mock.calls[0]?.[0] as FormData;
     expect(submittedFormData.get('file')).toBeInstanceOf(File);
     expect(progress).toHaveBeenCalledWith(50);
+    expect(uploadComplete).toHaveBeenCalledOnce();
+    expect(events).toEqual(['uploadComplete', 'response']);
   });
 
   it('returns malformed non-success responses as ApiError values', async () => {
     class ErrorXmlHttpRequest {
-      readonly upload: { onprogress?: (event: ProgressEvent) => void } = {};
+      readonly upload: { onprogress?: (event: ProgressEvent) => void; onload?: () => void } = {};
       readonly open = vi.fn();
       readonly setRequestHeader = vi.fn();
       readonly send = vi.fn(() => {
@@ -181,7 +190,7 @@ describe('frontend API contracts', () => {
     const progress = vi.fn();
 
     class NetworkXmlHttpRequest {
-      readonly upload: { onprogress?: (event: ProgressEvent) => void } = {};
+      readonly upload: { onprogress?: (event: ProgressEvent) => void; onload?: () => void } = {};
       readonly open = vi.fn();
       readonly setRequestHeader = vi.fn();
       readonly send = vi.fn(() => {
