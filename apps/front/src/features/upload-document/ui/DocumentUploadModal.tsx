@@ -18,6 +18,7 @@ import {
   Row,
   Segmented,
   Select,
+  Spin,
   Typography,
   Upload,
 } from 'antd';
@@ -114,6 +115,11 @@ interface DocumentFormFields {
 }
 
 type FlowStep = 'idle' | 'uploading' | 'processing' | 'done';
+type UploadFailure =
+  | 'malwareDetected'
+  | 'malwareScannerUnavailable'
+  | 'pdfNoTextLayer'
+  | 'pdfPageLimitExceeded';
 
 const DOCUMENT_TYPES: DocumentTypeDto[] = ['factura', 'nomina', 'impuesto'];
 const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
@@ -164,9 +170,9 @@ export function DocumentUploadModal({
   const [pdfObjectUrl, setPdfObjectUrl] = useState<string | null>(null);
   const [step, setStep] = useState<FlowStep>('idle');
   const [progress, setProgress] = useState(0);
+  const [uploadProgressKnown, setUploadProgressKnown] = useState(false);
   const [extractResult, setExtractResult] = useState<ExtractInvoiceResult | null>(null);
-  const [scannedPdfError, setScannedPdfError] = useState(false);
-  const [pdfPageLimitError, setPdfPageLimitError] = useState(false);
+  const [uploadFailure, setUploadFailure] = useState<UploadFailure | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const extractionTokenRef = useRef(0);
 
@@ -209,10 +215,10 @@ export function DocumentUploadModal({
     form.resetFields();
     if (lockedType) form.setFieldsValue({ type: lockedType });
     setExtractResult(null);
-    setScannedPdfError(false);
-    setPdfPageLimitError(false);
+    setUploadFailure(null);
     setStep('idle');
     setProgress(0);
+    setUploadProgressKnown(false);
     setAutoMatchAttempted(false);
     setSupplierId(null);
     setCreatingSupplier(false);
@@ -227,21 +233,47 @@ export function DocumentUploadModal({
     setProjectError(false);
   };
 
+  const applyApiError = (error: unknown): boolean => {
+    if (!(error instanceof ApiError) || !error.body || typeof error.body !== 'object') {
+      return false;
+    }
+
+    const code = 'code' in error.body ? String((error.body as { code?: unknown }).code) : undefined;
+    const failures: Record<string, UploadFailure> = {
+      MALWARE_DETECTED: 'malwareDetected',
+      MALWARE_SCANNER_UNAVAILABLE: 'malwareScannerUnavailable',
+      PDF_NO_TEXT_LAYER: 'pdfNoTextLayer',
+      PDF_PAGE_LIMIT_EXCEEDED: 'pdfPageLimitExceeded',
+    };
+    const failure = code ? failures[code] : undefined;
+    if (!failure) return false;
+
+    setUploadFailure(failure);
+    return true;
+  };
+
   const runExtraction = (file: File) => {
     const extractionToken = ++extractionTokenRef.current;
     setStep('uploading');
     setProgress(0);
+    setUploadProgressKnown(false);
+    setUploadFailure(null);
 
     const onProgress = (percent: number) => {
       if (extractionTokenRef.current !== extractionToken) return;
+      setUploadProgressKnown(true);
       setProgress(percent);
-      if (percent >= 100) setStep('processing');
+    };
+
+    const onUploadComplete = () => {
+      if (extractionTokenRef.current !== extractionToken) return;
+      setStep('processing');
     };
 
     const extraction =
       context.kind === 'project'
-        ? extractInvoice(context.projectId, file, onProgress)
-        : extractInvoiceStandalone(file, onProgress);
+        ? extractInvoice(context.projectId, file, onProgress, onUploadComplete)
+        : extractInvoiceStandalone(file, onProgress, onUploadComplete);
 
     extraction
       .then((result) => {
@@ -269,18 +301,8 @@ export function DocumentUploadModal({
         if (extractionTokenRef.current !== extractionToken) return;
         setStep('idle');
         setProgress(0);
-        if (error instanceof ApiError && error.status === 422) {
-          const code =
-            error.body && typeof error.body === 'object' && 'code' in error.body
-              ? String((error.body as { code?: unknown }).code)
-              : undefined;
-          if (code === 'PDF_PAGE_LIMIT_EXCEEDED') {
-            setPdfPageLimitError(true);
-          } else {
-            setScannedPdfError(true);
-          }
-          return;
-        }
+        setUploadProgressKnown(false);
+        if (applyApiError(error)) return;
         void message.error(t('projects.documents.upload.extractError'));
       });
   };
@@ -319,9 +341,9 @@ export function DocumentUploadModal({
       setCurrentIndex(0);
       setStep('idle');
       setProgress(0);
+      setUploadProgressKnown(false);
       setExtractResult(null);
-      setScannedPdfError(false);
-      setPdfPageLimitError(false);
+      setUploadFailure(null);
       setSubmitting(false);
       extractionTokenRef.current += 1;
 
@@ -606,7 +628,8 @@ export function DocumentUploadModal({
               advanceQueue();
             }
           })
-          .catch(() => {
+          .catch((error: unknown) => {
+            if (applyApiError(error)) return;
             void message.error(t('projects.documents.upload.extractError'));
           })
           .finally(() => setSubmitting(false));
@@ -619,8 +642,6 @@ export function DocumentUploadModal({
   };
 
   const isBusy = step === 'uploading' || step === 'processing';
-  const progressPercent = step === 'uploading' ? progress : step === 'idle' ? 0 : 100;
-  const progressStatus = step === 'done' ? 'success' : step === 'processing' ? 'active' : 'normal';
   const showReviewNote =
     extractResult && (extractResult.confidence === 'low' || extractResult.confidence === 'partial');
 
@@ -714,7 +735,7 @@ export function DocumentUploadModal({
         </Button>,
         ...(isMultiQueue
           ? [
-              <Button key="skip" disabled={!currentFile || submitting} onClick={handleSkip}>
+              <Button key="skip" disabled={!currentFile || submitting || isBusy} onClick={handleSkip}>
                 {t('projects.documents.upload.queue.skip')}
               </Button>,
             ]
@@ -774,8 +795,57 @@ export function DocumentUploadModal({
                 </Button>
               </Flex>
 
-              {isBusy && (
-                <Progress percent={progressPercent} status={progressStatus} size="small" />
+              {step === 'uploading' && uploadProgressKnown && (
+                <div role="status" aria-live="polite" className={styles.uploadStatus}>
+                  <Text type="secondary" className={typography.caption}>
+                    {t('projects.documents.upload.status.uploadingProgress', { percent: progress })}
+                  </Text>
+                  <Progress percent={progress} status="active" size="small" />
+                </div>
+              )}
+
+              {step === 'uploading' && !uploadProgressKnown && (
+                <Flex
+                  align="center"
+                  gap={8}
+                  role="status"
+                  aria-live="polite"
+                  className={styles.indeterminateStatus}
+                >
+                  <Spin size="small" />
+                  <Text type="secondary" className={typography.caption}>
+                    {t('projects.documents.upload.status.uploading')}
+                  </Text>
+                </Flex>
+              )}
+
+              {step === 'processing' && (
+                <Flex
+                  align="center"
+                  gap={8}
+                  role="status"
+                  aria-live="polite"
+                  className={styles.indeterminateStatus}
+                >
+                  <Spin size="small" />
+                  <Text type="secondary" className={typography.caption}>
+                    {t('projects.documents.upload.status.scanningAndExtracting')}
+                  </Text>
+                </Flex>
+              )}
+
+              {step === 'done' && (
+                <Flex
+                  align="center"
+                  gap={8}
+                  role="status"
+                  aria-live="polite"
+                  className={styles.readyStatus}
+                >
+                  <Text type="success" className={typography.caption}>
+                    {t('projects.documents.upload.status.readyForReview')}
+                  </Text>
+                </Flex>
               )}
 
               {extractResult && (
@@ -809,18 +879,38 @@ export function DocumentUploadModal({
                 </Flex>
               )}
 
-              {scannedPdfError && (
+              {uploadFailure === 'malwareDetected' && (
+                <Alert
+                  type="error"
+                  showIcon
+                  role="alert"
+                  title={t('projects.documents.upload.malwareDetectedAlert')}
+                  className={typography.caption}
+                />
+              )}
+              {uploadFailure === 'malwareScannerUnavailable' && (
+                <Alert
+                  type="error"
+                  showIcon
+                  role="alert"
+                  title={t('projects.documents.upload.malwareScannerUnavailableAlert')}
+                  className={typography.caption}
+                />
+              )}
+              {uploadFailure === 'pdfNoTextLayer' && (
                 <Alert
                   type="warning"
                   showIcon
+                  role="alert"
                   title={t('projects.documents.upload.scannedPdfAlert')}
                   className={typography.caption}
                 />
               )}
-              {pdfPageLimitError && (
+              {uploadFailure === 'pdfPageLimitExceeded' && (
                 <Alert
                   type="warning"
                   showIcon
+                  role="alert"
                   title={t('projects.documents.upload.pdfPageLimitAlert')}
                   className={typography.caption}
                 />

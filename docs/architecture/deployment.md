@@ -42,6 +42,15 @@ readers rather than an image-to-text pipeline. A scanned or otherwise textless
 PDF can still be uploaded, but extraction reports that it has no text layer so
 the user can complete its metadata manually.
 
+The upload modal keeps the extraction API as a single JSON request. The browser
+reports byte progress while the request body is being sent, then switches to an
+indeterminate “security scan and PDF extraction” state after the upload-complete
+event. It marks the document ready for review only after the JSON response has
+filled the form. Malware rejection, scanner unavailability, and a missing text
+layer remain distinct states, including when the final document-save request
+performs its own malware scan; no streaming endpoint, polling loop, or worker is
+needed for this feedback.
+
 ## Containers and persistent data
 
 Always invoke the production stack with:

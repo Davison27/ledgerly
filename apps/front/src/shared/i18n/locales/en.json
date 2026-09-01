@@ -1301,7 +1301,9 @@
         "submit": "Create document",
         "created": "Document created successfully",
         "extractError": "The document could not be processed. Please try again.",
-        "scannedPdfAlert": "We couldn't read the PDF automatically (it looks like a scanned image). Fill in the fields manually.",
+        "malwareDetectedAlert": "This PDF was rejected because a security threat was detected. Choose a different file to continue.",
+        "malwareScannerUnavailableAlert": "The security scan is temporarily unavailable. Keep this file selected and try again later.",
+        "scannedPdfAlert": "We couldn't read text from this PDF automatically. The file is still selected, so you can complete the fields manually.",
         "pdfPageLimitAlert": "This PDF has too many pages to process safely. Use a shorter document or split it into smaller files.",
         "dropzone": {
           "title": "Upload the invoice PDF",
@@ -1320,6 +1322,12 @@
           "uploading": "Uploading",
           "processing": "Processing PDF",
           "done": "Done"
+        },
+        "status": {
+          "uploading": "Uploading PDF",
+          "uploadingProgress": "Uploading PDF: {{percent}}%",
+          "scanningAndExtracting": "Scanning for security threats and reading the PDF",
+          "readyForReview": "Ready for review"
         },
         "extraction": {
           "source": {

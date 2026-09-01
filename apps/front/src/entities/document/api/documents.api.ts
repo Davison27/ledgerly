@@ -184,6 +184,7 @@ function requestExtraction(
   url: string,
   file: File,
   onProgress?: (percent: number) => void,
+  onUploadComplete?: () => void,
 ): Promise<ExtractInvoiceResult> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
@@ -204,6 +205,10 @@ function requestExtraction(
           onProgress(Math.round((event.loaded / event.total) * 100));
         }
       };
+    }
+
+    if (onUploadComplete) {
+      xhr.upload.onload = onUploadComplete;
     }
 
     xhr.onload = () => {
@@ -238,13 +243,20 @@ export function extractInvoice(
   projectId: string,
   file: File,
   onProgress?: (percent: number) => void,
+  onUploadComplete?: () => void,
 ): Promise<ExtractInvoiceResult> {
-  return requestExtraction(`${API_URL}/projects/${projectId}/documents/extract`, file, onProgress);
+  return requestExtraction(
+    `${API_URL}/projects/${projectId}/documents/extract`,
+    file,
+    onProgress,
+    onUploadComplete,
+  );
 }
 
 export function extractInvoiceStandalone(
   file: File,
   onProgress?: (percent: number) => void,
+  onUploadComplete?: () => void,
 ): Promise<ExtractInvoiceResult> {
-  return requestExtraction(`${API_URL}/documents/extract`, file, onProgress);
+  return requestExtraction(`${API_URL}/documents/extract`, file, onProgress, onUploadComplete);
 }
