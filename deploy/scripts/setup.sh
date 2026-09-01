@@ -191,6 +191,7 @@ write_env_file() {
   env_set PDF_MAX_ATTACHMENTS "20"
   env_set PDF_MAX_ATTACHMENT_BYTES "5242880"
   env_set PDF_MAX_TOTAL_ATTACHMENT_BYTES "20971520"
+  env_set CLAMAV_MAX_SIGNATURE_AGE_HOURS "72"
   env_set DEPLOY_BACK_CPUS "1.0"
   env_set DEPLOY_BACK_MEMORY "768m"
   env_set DEPLOY_FRONT_CPUS "0.5"
@@ -204,6 +205,9 @@ write_env_file() {
   env_set DEPLOY_POSTGRES_PIDS_LIMIT "256"
   env_set DEPLOY_FRONT_PIDS_LIMIT "128"
   env_set DEPLOY_MIGRATOR_PIDS_LIMIT "128"
+  env_set DEPLOY_CLAMAV_CPUS "1.0"
+  env_set DEPLOY_CLAMAV_MEMORY "768m"
+  env_set DEPLOY_CLAMAV_PIDS_LIMIT "256"
   chmod 600 "$ENV_FILE"
 }
 
@@ -385,8 +389,8 @@ EOF
   progress_done
 
   run_step_quiet "Validating the Compose configuration" compose config --quiet
-  run_step_quiet "Building the backend image" compose build back
-  run_step_quiet "Building the frontend image" compose build front
+  run_step_quiet "Auditing dependencies and production images" bash "$SCRIPT_DIR/release-audit.sh"
+  run_step_quiet "Updating and verifying ClamAV signatures" bash "$SCRIPT_DIR/update-clamav-signatures.sh" --skip-doctor
 
   progress_start "Starting Postgres"
   if compose up -d --wait postgres >/dev/null 2>&1; then

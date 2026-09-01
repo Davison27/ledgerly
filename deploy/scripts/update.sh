@@ -31,10 +31,9 @@ main() {
   fi
   ok "Code updated"
 
-  step "Rebuilding and migrating"
+  step "Auditing, rebuilding, and migrating"
   compose config --quiet
-  compose build --pull
-  ok "Images rebuilt"
+  bash "$SCRIPT_DIR/release-audit.sh"
 
   compose up -d --wait postgres
   compose run --rm migrator node dist/database/migrate.js --mode=auto

@@ -107,7 +107,7 @@ Ledgerly is built with defense-in-depth security principles:
 - **Server-held Application Keys**: The backend holds the configured stored-file keys so it can encrypt, decrypt, scan, and serve authorized files; this is encryption at rest rather than client-only encryption.
 - **Self-Hosted Trust Boundary**: The VPS operator and Docker daemon can access deployment secrets, process memory, and mounted data. Host firewall, SSH, operating-system updates, disk protection, and backups remain operational responsibilities.
 - **Private Malware Scanning**: Uploaded PDF bytes are sent to ClamAV over the private scanner network without a public ClamAV port. The backend and scanner both process those bytes during the scan.
-- **Signature Freshness**: The official image uses FreshClam to download signature updates. The internal production scanner network has no default outbound path, so keeping definitions current requires an explicit, controlled VPS operations procedure.
+- **Signature Freshness**: The official image uses FreshClam to download and verify signature updates. The internal production scanner network has no default outbound path, so keeping definitions current uses the controlled `make MODE=production clamav-update` procedure.
 
 ---
 
@@ -140,7 +140,7 @@ Vite proxies `/api` to the backend during development. Local ports and origins c
 
 ## 🌐 Install on a VPS
 
-The guided deployment expects a Linux server (Debian/Ubuntu) with Docker, Docker Compose, Git, and Make. On a minimal Debian installation:
+The guided deployment expects a Linux server (Debian/Ubuntu) with Docker, Docker Compose, Docker Scout, Git, and Make. On a minimal Debian installation:
 
 ```bash
 sudo apt-get install -y git make
@@ -170,6 +170,8 @@ Use `make help` to see commands in the current environment. Make defaults to the
 ### Updates and Data
 
 - `make MODE=production update` — pull with fast-forward only, rebuild, migrate, restart, and run diagnostics.
+- `make MODE=production release-audit` — audit production dependencies and Compose images before building a release.
+- `make MODE=production clamav-update` — refresh and verify ClamAV definitions through the isolated maintenance profile.
 - `make MODE=production migrate` — apply pending database migrations and validate the application schema.
 - `make MODE=production build-production` — build the `ledgerly-back:local` image used by the production stack and database rehearsal.
 - `make MODE=production rehearse-existing-db-baseline FILE=/path/to/external.dump` — test a legacy-database cutover on a disposable clone.

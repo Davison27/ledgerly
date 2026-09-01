@@ -106,6 +106,74 @@ check_services() {
   done
 }
 
+check_clamav() {
+  category "Malware scanner"
+
+  if ! env_file_complete "$ENV_FILE" 2>/dev/null; then
+    emit_fail "Cannot check ClamAV: deploy/.env is missing keys"
+    return
+  fi
+
+  local container status health restarts max_age_hours
+  container="$(container_name clamav)"
+  status="$(container_status clamav)"
+  if [ "$status" = "absent" ]; then
+    emit_fail "clamav   not found"
+    remedy "make MODE=production up"
+    return
+  fi
+
+  health="$(docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$container" 2>/dev/null | tr -d '[:space:]')"
+  health="${health:-none}"
+  restarts="$(docker inspect --format '{{.RestartCount}}' "$container" 2>/dev/null | tr -d '[:space:]')"
+  restarts="${restarts:-0}"
+  if [ "$status" = "running" ] && [ "$health" = "healthy" ]; then
+    emit_ok "clamav   running (healthy) · ${restarts} restarts"
+  else
+    emit_fail "clamav   ${status} (${health}; ${restarts} restarts)"
+    remedy "make MODE=production logs SERVICE=clamav"
+  fi
+
+  if [ "$status" = "running" ] && compose exec -T clamav clamdscan --ping 1 >/dev/null 2>&1; then
+    emit_ok "ClamD private health probe passed"
+  elif [ "$status" = "running" ]; then
+    emit_fail "ClamD is not responding"
+    remedy "make MODE=production logs SERVICE=clamav"
+  fi
+
+  max_age_hours="$(clamav_signature_age_hours || true)"
+  if [ -z "$max_age_hours" ]; then
+    emit_fail "CLAMAV_MAX_SIGNATURE_AGE_HOURS is invalid"
+    remedy "Set a value from 1 to 8760 in deploy/.env"
+  elif [ "$status" = "running" ] && clamav_definitions_fresh "$container" "$max_age_hours"; then
+    emit_ok "ClamAV definitions are present, parseable, and fresh (<${max_age_hours}h)"
+  elif [ "$status" = "running" ]; then
+    emit_fail "ClamAV definitions are missing, invalid, or stale"
+    remedy "make MODE=production clamav-update"
+  fi
+
+  local configured_memory configured_cpus configured_pids expected_memory expected_cpus
+  local actual_memory actual_cpus actual_pids
+  configured_memory="$(env_get DEPLOY_CLAMAV_MEMORY)"
+  configured_cpus="$(env_get DEPLOY_CLAMAV_CPUS)"
+  configured_pids="$(env_get DEPLOY_CLAMAV_PIDS_LIMIT)"
+  expected_memory="$(size_to_bytes "$configured_memory" 2>/dev/null || printf '0')"
+  expected_cpus="$(cpu_to_nanocpus "$configured_cpus" 2>/dev/null || printf '0')"
+  actual_memory="$(docker inspect --format '{{.HostConfig.Memory}}' "$container" 2>/dev/null | tr -d '[:space:]' || printf '0')"
+  actual_cpus="$(docker inspect --format '{{.HostConfig.NanoCpus}}' "$container" 2>/dev/null | tr -d '[:space:]' || printf '0')"
+  actual_pids="$(docker inspect --format '{{.HostConfig.PidsLimit}}' "$container" 2>/dev/null | tr -d '[:space:]' || printf '0')"
+  if [[ "$expected_memory" =~ ^[0-9]+$ && "$expected_cpus" =~ ^[0-9]+$ && "$configured_pids" =~ ^[0-9]+$ &&
+    "$actual_memory" =~ ^[0-9]+$ && "$actual_cpus" =~ ^[0-9]+$ && "$actual_pids" =~ ^[0-9]+$ &&
+    "$actual_memory" -gt 0 && "$actual_memory" -le "$expected_memory" &&
+    "$actual_cpus" -gt 0 && "$actual_cpus" -le "$expected_cpus" &&
+    "$actual_pids" -gt 0 && "$actual_pids" -le "$configured_pids" ]]; then
+    emit_ok "clamav limits effective (memory ${configured_memory}, CPU ${configured_cpus}, PIDs ${configured_pids})"
+  else
+    emit_fail "clamav effective Docker limits do not match the configured safeguards"
+    remedy "Recreate the stack with make MODE=production restart and inspect docker inspect clamav"
+  fi
+}
+
 container_uptime() {
   local svc="$1" started started_epoch now_epoch days
   started="$(docker inspect --format '{{.State.StartedAt}}' "$(container_name "$svc")" 2>/dev/null || printf '')"
@@ -340,6 +408,7 @@ main() {
   check_environment
   check_configuration
   check_services
+  check_clamav
   check_database
   check_network
   check_resources
