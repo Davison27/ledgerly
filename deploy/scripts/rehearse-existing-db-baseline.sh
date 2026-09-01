@@ -30,7 +30,7 @@ validate_supplied_dump() {
 
 docker image inspect ledgerly-back:local >/dev/null 2>&1 || {
   fail "The backend image ledgerly-back:local is not available"
-  printf '       → Run make build or make setup first.\n'
+  printf '       → Run make MODE=production build-production or make MODE=production setup first.\n'
   exit 1
 }
 service_running postgres || { fail "postgres is not running"; exit 1; }

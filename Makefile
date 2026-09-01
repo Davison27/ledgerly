@@ -10,38 +10,56 @@ DEV_COMPOSE := docker compose --project-name ledgerly-dev -f apps/back/docker-co
 SERVICE ?=
 FILE ?=
 
-# Contextual: production when deploy/.env exists; otherwise development Postgres.
-ifneq (,$(wildcard $(DEPLOY_ENV)))
-MODE := production
+MODE ?= development
+
+ifneq ($(filter development production,$(MODE)),$(MODE))
+$(error Invalid MODE='$(MODE)'. Use MODE=development or MODE=production)
+endif
+
+PRODUCTION_ONLY_TARGETS := setup doctor configure update build-production baseline-existing-db rehearse-existing-db-baseline
+REQUESTED_PRODUCTION_TARGETS := $(filter $(PRODUCTION_ONLY_TARGETS),$(MAKECMDGOALS))
+ifneq ($(strip $(REQUESTED_PRODUCTION_TARGETS)),)
+ifneq ($(MODE),production)
+$(error Target(s) $(REQUESTED_PRODUCTION_TARGETS) require MODE=production)
+endif
+endif
+
+export MODE
+
+ifeq ($(MODE),production)
 COMPOSE := $(DEPLOY_COMPOSE)
 DEV_PREREQ :=
 else
-MODE := development
 COMPOSE := $(DEV_COMPOSE)
 DEV_PREREQ := _check-tools
 endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup doctor configure update up down restart logs dev build lint \
+.PHONY: help setup doctor configure update build-production up down restart logs dev build lint \
 	typecheck test migrate baseline-existing-db rehearse-existing-db-baseline reset-db seed clean _check-tools
 
 help:
 	@echo "Ledgerly — available commands (current mode: $(MODE))"
+	@echo "Set MODE=development (default) or MODE=production explicitly."
 	@echo ""
 	@echo "Installation (server)"
-	@echo "  make setup       Guided interactive installation. Cannot be run twice."
-	@echo "  make doctor      Diagnoses the installation; fails if anything is wrong."
-	@echo "  make configure   Changes the domain, Google credentials, admin, or database password."
+	@echo "  make MODE=production setup      Guided interactive installation. Cannot be run twice."
+	@echo "  make MODE=production doctor     Diagnoses the installation; fails if anything is wrong."
+	@echo "  make MODE=production configure  Changes the domain, Google credentials, admin, or database password."
 	@echo ""
 	@echo "Updates"
-	@echo "  make update      Fetches the latest version, rebuilds images, and migrates without data loss."
+	@echo "  make MODE=production update     Fetches the latest version, rebuilds images, and migrates without data loss."
 	@echo ""
-	@echo "Lifecycle (contextual: production when deploy/.env exists; otherwise development Postgres)"
-	@echo "  make up          Starts the stack."
-	@echo "  make down        Stops the stack."
-	@echo "  make restart     Restarts the stack."
-	@echo "  make logs        Follows logs; SERVICE=<name> filters a service."
+	@echo "Lifecycle (development by default; production requires MODE=production)"
+	@echo "  make up          Starts the development stack."
+	@echo "  make down        Stops the development stack."
+	@echo "  make restart     Restarts the development stack."
+	@echo "  make logs        Follows development logs; SERVICE=<name> filters a service."
+	@echo "  make MODE=production up       Starts the production stack."
+	@echo "  make MODE=production down     Stops the production stack."
+	@echo "  make MODE=production restart  Restarts the production stack."
+	@echo "  make MODE=production logs     Follows production logs; SERVICE=<name> filters a service."
 	@echo ""
 	@echo "Development"
 	@echo "  make dev         Local loop: dependencies, Postgres, migrations, and 'pnpm dev'."
@@ -50,10 +68,12 @@ help:
 	@echo "  make typecheck   Checks types."
 	@echo "  make test        Runs tests."
 	@echo ""
-	@echo "Database (contextual unless noted)"
-	@echo "  make migrate     Applies pending migrations."
-	@echo "  make baseline-existing-db  Records the initial migration after a verified rehearsal."
-	@echo "  make rehearse-existing-db-baseline  Tests the existing-database cutover on a disposable clone."
+	@echo "Database"
+	@echo "  make migrate     Applies development migrations."
+	@echo "  make MODE=production migrate  Applies production migrations."
+	@echo "  make MODE=production build-production  Builds ledgerly-back:local for the production stack."
+	@echo "  make MODE=production baseline-existing-db  Records the initial migration after a verified rehearsal."
+	@echo "  make MODE=production rehearse-existing-db-baseline FILE=/path/to/dump  Tests an existing-database cutover on a disposable clone."
 	@echo "  make reset-db CONFIRM=RESET_LEDGERLY_DEV  Inspects and recreates only the guarded local development database."
 	@echo "  make seed        Sample data. Development only."
 	@echo ""
@@ -75,6 +95,10 @@ configure:
 
 update:
 	@bash deploy/scripts/update.sh
+
+build-production:
+	@echo "→ Mode: $(MODE)"
+	$(COMPOSE) build back
 
 up: $(DEV_PREREQ)
 	@echo "→ Mode: $(MODE)"

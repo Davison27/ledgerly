@@ -1,3 +1,4 @@
+import type { ValidationResult } from 'joi';
 import { envValidationSchema } from './env-validation.schema';
 import { loadDatabaseRuntimeConfig } from './database-runtime-config';
 
@@ -98,6 +99,29 @@ describe('envValidationSchema', () => {
     const { error } = envValidationSchema.validate(productionEnvironment);
 
     expect(error).toBeUndefined();
+  });
+
+  it('accepts and strips legacy OCR settings from existing environments', () => {
+    const validationResult = envValidationSchema.validate(
+      {
+        ...productionEnvironment,
+        PDF_OCR_ENABLED: true,
+        PDF_OCR_LANGUAGE: 'spa',
+        PDF_OCR_MAX_PAGES: 12,
+        PDF_OCR_TIMEOUT_SECONDS: 90,
+        PDF_MAX_OCR_OUTPUT_BYTES: 20 * 1024 * 1024,
+      },
+      { allowUnknown: false },
+    ) as ValidationResult<Record<string, unknown>>;
+
+    expect(validationResult.error).toBeUndefined();
+    if (!validationResult.error) {
+      expect(validationResult.value).not.toHaveProperty('PDF_OCR_ENABLED');
+      expect(validationResult.value).not.toHaveProperty('PDF_OCR_LANGUAGE');
+      expect(validationResult.value).not.toHaveProperty('PDF_OCR_MAX_PAGES');
+      expect(validationResult.value).not.toHaveProperty('PDF_OCR_TIMEOUT_SECONDS');
+      expect(validationResult.value).not.toHaveProperty('PDF_MAX_OCR_OUTPUT_BYTES');
+    }
   });
 
   it.each(['STORED_FILE_ACTIVE_KEY_VERSION', 'STORED_FILE_KEYS'])('rejects a missing %s', (key) => {

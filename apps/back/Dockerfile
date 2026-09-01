@@ -19,7 +19,7 @@ RUN pnpm deploy --legacy --filter @ledgerly/back --prod /out
 FROM node:22-bookworm-slim@sha256:f32b81066cde10a75dbac96646099533316d94bac4150c55da1636e1f0ffdc46 AS runtime
 WORKDIR /app
 RUN apt-get update \
-	&& apt-get install -y --no-install-recommends ocrmypdf tesseract-ocr tesseract-ocr-spa wget \
+	&& apt-get install -y --no-install-recommends wget \
 	&& rm -rf /var/lib/apt/lists/*
 COPY --from=prune /out/node_modules ./node_modules
 COPY --from=build /app/apps/back/dist ./dist

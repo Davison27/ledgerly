@@ -42,7 +42,7 @@ run_step_quiet() {
     printf '\n'
     cat "$logfile"
     rm -f "$logfile"
-    fail "${label} failed. The state remains in_progress: run \"make setup\" again to retry from here."
+    fail "${label} failed. The state remains in_progress: run \"make MODE=production setup\" again to retry from here."
     exit 1
   fi
 }
@@ -179,11 +179,7 @@ write_env_file() {
   env_set GOOGLE_CLIENT_ID "$google_client_id"
   env_set GOOGLE_CLIENT_SECRET "$google_client_secret"
   env_set BOOTSTRAP_ADMIN_EMAIL "$admin_email"
-  env_set PDF_OCR_ENABLED "true"
-  env_set PDF_OCR_LANGUAGE "spa"
   env_set PDF_MAX_PAGES "100"
-  env_set PDF_OCR_MAX_PAGES "12"
-  env_set PDF_OCR_TIMEOUT_SECONDS "90"
   env_set PDF_UPLOAD_MAX_ACTIVE "4"
   env_set PDF_UPLOAD_MAX_QUEUED "16"
   env_set PDF_UPLOAD_QUEUE_TIMEOUT_MS "15000"
@@ -195,7 +191,6 @@ write_env_file() {
   env_set PDF_MAX_ATTACHMENTS "20"
   env_set PDF_MAX_ATTACHMENT_BYTES "5242880"
   env_set PDF_MAX_TOTAL_ATTACHMENT_BYTES "20971520"
-  env_set PDF_MAX_OCR_OUTPUT_BYTES "20971520"
   env_set DEPLOY_BACK_CPUS "1.0"
   env_set DEPLOY_BACK_MEMORY "768m"
   env_set DEPLOY_FRONT_CPUS "0.5"
@@ -225,7 +220,7 @@ main() {
   step "[1/6] Preflight checks"
   if ! run_preflight; then
     printf '\n'
-    fail "Some preflight checks are unresolved. Fix them and run \"make setup\" again."
+    fail "Some preflight checks are unresolved. Fix them and run \"make MODE=production setup\" again."
     exit 1
   fi
 
@@ -398,7 +393,7 @@ EOF
     progress_done "healthy"
   else
     progress_fail
-    fail "Postgres did not start healthy. The state remains in_progress: run \"make setup\" again."
+    fail "Postgres did not start healthy. The state remains in_progress: run \"make MODE=production setup\" again."
     exit 1
   fi
 
@@ -414,7 +409,7 @@ EOF
     printf '\n'
     cat "$migration_log"
     rm -f "$migration_log"
-    fail "Migrations failed. The state remains in_progress: run \"make setup\" again."
+    fail "Migrations failed. The state remains in_progress: run \"make MODE=production setup\" again."
     exit 1
   fi
 
@@ -423,7 +418,7 @@ EOF
     progress_done "healthy"
   else
     progress_fail
-    fail "A service did not start healthy. \"make doctor\" shows what is missing; the state remains in_progress."
+    fail "A service did not start healthy. \"make MODE=production doctor\" shows what is missing; the state remains in_progress."
     exit 1
   fi
 
@@ -441,7 +436,7 @@ EOF
   else
     progress_fail "unconfirmed"
     warn "The certificate-issued message has not appeared in the Caddy logs yet."
-    printf '       → docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs caddy\n'
+    printf '       → make MODE=production logs SERVICE=caddy\n'
   fi
 
   progress_start "https://${domain}/api/health/ready"
@@ -460,7 +455,7 @@ EOF
     progress_fail "${status:-no response}"
     printf '\n'
     fail "The installation has not finished starting."
-    printf '       → \"make doctor\" shows what is missing. The state remains in_progress: run \"make setup\" again to continue.\n'
+    printf '       → \"make MODE=production doctor\" shows what is missing. The state remains in_progress: run \"make MODE=production setup\" again to continue.\n'
     exit 1
   fi
 
@@ -476,11 +471,11 @@ EOF
   account, then it will collect company details.
 
   Next steps
-    make doctor      checks that everything remains healthy
-    make update      fetches a new version without data loss
-    make configure   changes the domain, credentials, or administrator
+    make MODE=production doctor      checks that everything remains healthy
+    make MODE=production update      fetches a new version without data loss
+    make MODE=production configure   changes the domain, credentials, or administrator
 
-  make setup cannot be run again on this machine.
+  make MODE=production setup cannot be run again on this machine.
 EOF
 }
 

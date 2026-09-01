@@ -12,7 +12,7 @@ main() {
   status="$(state_get STATUS 2>/dev/null || printf '')"
   if [ "$status" != "completed" ]; then
     fail "The installation is not complete yet."
-    printf '       → Complete it with: make setup\n'
+    printf '       → Complete it with: make MODE=production setup\n'
     exit 1
   fi
 
@@ -26,7 +26,7 @@ main() {
 
   if ! git -C "$REPO_ROOT" pull --ff-only; then
     fail "git pull --ff-only failed (the local and remote histories have likely diverged)."
-    printf '       → Run git -C %s log --oneline -5 and resolve it manually before running make update again.\n' "$REPO_ROOT"
+    printf '       → Run git -C %s log --oneline -5 and resolve it manually before running make MODE=production update again.\n' "$REPO_ROOT"
     exit 1
   fi
   ok "Code updated"
@@ -47,7 +47,7 @@ main() {
   ok "Old images removed"
 
   printf '\n'
-  bash "$SCRIPT_DIR/doctor.sh"
+  MODE=production bash "$SCRIPT_DIR/doctor.sh"
 }
 
 main

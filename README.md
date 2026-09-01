@@ -57,7 +57,7 @@ Traditional business management is scattered across fragmented spreadsheets, inv
     <td width="50%" valign="top">
       <h3>📑 Intelligent Document Pipeline</h3>
       <ul>
-        <li><strong>Automated OCR & Extraction:</strong> Parse incoming invoices (PDF, XML, Facturae, Factur-X, UBL) without manual data entry.</li>
+        <li><strong>PDF.js & Structured Extraction:</strong> Extract text and embedded structured data from incoming invoices (PDF, XML, Facturae, Factur-X, UBL), with manual completion for scanned PDFs without a text layer.</li>
         <li><strong>Smart duplicate prevention:</strong> Flag repeated bills and anomalous amounts automatically.</li>
         <li><strong>Full audit trail:</strong> Document lifecycle tracking with real-time alerts.</li>
       </ul>
@@ -73,11 +73,11 @@ Traditional business management is scattered across fragmented spreadsheets, inv
       </ul>
     </td>
     <td width="50%" valign="top">
-      <h3>🛡️ Zero-Knowledge Encrypted Storage</h3>
+      <h3>🛡️ Encrypted Self-Hosted Storage</h3>
       <ul>
         <li><strong>Authenticated AES-256-GCM:</strong> Confidential PDFs (compliance, equipment, employee records) encrypted at rest in PostgreSQL.</li>
         <li><strong>Versioned Keyring & Re-key CLI:</strong> Seamless key rotation and validation without downtime.</li>
-        <li><strong>100% Data Sovereignty:</strong> No telemetry, no third-party cloud leaks—your database stays yours.</li>
+        <li><strong>Self-hosted control:</strong> Your database and stored files remain on the configured VPS, with the host and Docker administrator as trusted operational boundaries.</li>
       </ul>
     </td>
   </tr>
@@ -104,6 +104,10 @@ Ledgerly is built with defense-in-depth security principles:
 - **Granular RBAC**: Role-based access matrices (`none`, `view`, `edit`) across every business context with admin, editor, and viewer presets.
 - **Envelope Encryption**: Stored binary files use AES-256-GCM with unique 12-byte nonces and 16-byte authentication tags across 7 isolated store kinds.
 - **Hardened Ingestion**: Strict MIME and magic-byte validation, bounded PDF parsers, and XML entity expansion (XXE) protections.
+- **Server-held Application Keys**: The backend holds the configured stored-file keys so it can encrypt, decrypt, scan, and serve authorized files; this is encryption at rest rather than client-only encryption.
+- **Self-Hosted Trust Boundary**: The VPS operator and Docker daemon can access deployment secrets, process memory, and mounted data. Host firewall, SSH, operating-system updates, disk protection, and backups remain operational responsibilities.
+- **Private Malware Scanning**: Uploaded PDF bytes are sent to ClamAV over the private scanner network without a public ClamAV port. The backend and scanner both process those bytes during the scan.
+- **Signature Freshness**: The official image uses FreshClam to download signature updates. The internal production scanner network has no default outbound path, so keeping definitions current requires an explicit, controlled VPS operations procedure.
 
 ---
 
@@ -142,10 +146,10 @@ The guided deployment expects a Linux server (Debian/Ubuntu) with Docker, Docker
 sudo apt-get install -y git make
 git clone https://github.com/Davison27/ledgerly.git /opt/ledgerly
 cd /opt/ledgerly
-make setup
+make MODE=production setup
 ```
 
-`make setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions automated Let's Encrypt HTTPS via Caddy, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL and the backend remain inside Docker networks.
+`make MODE=production setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions automated Let's Encrypt HTTPS via Caddy, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL, the backend, and ClamAV remain inside Docker networks.
 
 Read the complete [deployment runbook](docs/architecture/deployment.md) before operating a production installation.
 
@@ -153,22 +157,24 @@ Read the complete [deployment runbook](docs/architecture/deployment.md) before o
 
 ## ⚙️ Operations
 
-Use `make help` to see commands in the current environment. Lifecycle and database commands automatically target production when `deploy/.env` exists; otherwise they target the local development stack.
+Use `make help` to see commands in the current environment. Make defaults to the local development stack; production commands require the explicit `MODE=production` variable, regardless of whether `deploy/.env` exists.
 
 ### Installation and Lifecycle
 
-- `make setup` — run the one-time guided VPS installation.
-- `make doctor` — validate configuration, containers, database, DNS, certificates, disk space, and public health.
-- `make configure` — change the domain, Google credentials, administrator email, or database password safely.
-- `make up`, `make down`, `make restart` — control the active stack.
-- `make logs SERVICE=back` — follow all logs or select one service.
+- `make MODE=production setup` — run the one-time guided VPS installation.
+- `make MODE=production doctor` — validate configuration, containers, database, DNS, certificates, disk space, and public health.
+- `make MODE=production configure` — change the domain, Google credentials, administrator email, or database password safely.
+- `make MODE=production up`, `make MODE=production down`, `make MODE=production restart` — control the production stack.
+- `make MODE=production logs SERVICE=back` — follow production logs or select one service.
 
 ### Updates and Data
 
-- `make update` — pull with fast-forward only, rebuild, migrate, restart, and run diagnostics.
-- `make migrate` — apply pending database migrations and validate the application schema.
-- `make rehearse-existing-db-baseline FILE=/path/to/external.dump` — test a legacy-database cutover on a disposable clone.
-- `make baseline-existing-db` — gate and apply the legacy-database migration marker.
+- `make MODE=production update` — pull with fast-forward only, rebuild, migrate, restart, and run diagnostics.
+- `make MODE=production migrate` — apply pending database migrations and validate the application schema.
+- `make MODE=production build-production` — build the `ledgerly-back:local` image used by the production stack and database rehearsal.
+- `make MODE=production rehearse-existing-db-baseline FILE=/path/to/external.dump` — test a legacy-database cutover on a disposable clone.
+- `make MODE=production baseline-existing-db` — gate and apply the legacy-database migration marker.
+- `make up`, `make down`, `make restart` — control the local development stack.
 - `make seed` — load development sample data.
 - `make reset-db CONFIRM=RESET_LEDGERLY_DEV` — inspect and recreate only the guarded local development database. `DRY_RUN=1` shows the resolved plan without mutation.
 

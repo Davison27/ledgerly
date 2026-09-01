@@ -146,7 +146,7 @@ configure_db_password() {
     ok "back recreated and migrator verified with the new credentials"
   else
     fail "The new database password could not be verified by the migrator"
-    printf '       → Run make logs SERVICE=back and inspect the migrator output.\n'
+    printf '       → Run make MODE=production logs SERVICE=back and inspect the migrator output.\n'
     return 1
   fi
 }

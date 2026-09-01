@@ -35,7 +35,7 @@ check_configuration() {
 
   if [ ! -f "$ENV_FILE" ]; then
     emit_fail "deploy/.env does not exist"
-    remedy "make setup"
+    remedy "make MODE=production setup"
     return
   fi
 
@@ -50,7 +50,7 @@ check_configuration() {
 
   if [ -n "$missing" ]; then
     emit_fail "Missing keys in deploy/.env: ${missing}"
-    remedy "Run make configure, or compare it with deploy/.env.example"
+    remedy "Run make MODE=production configure, or compare it with deploy/.env.example"
     return
   fi
 
@@ -72,7 +72,7 @@ check_configuration() {
     emit_ok "Consistent: production, secure cookies, trusted proxy"
   else
     emit_fail "Inconsistent deploy/.env values: ${problems[*]}"
-    remedy "Run make configure to fix them, or edit them manually and run \"make restart\""
+    remedy "Run make MODE=production configure to fix them, or edit them manually and run \"make MODE=production restart\""
   fi
 }
 
@@ -83,7 +83,7 @@ check_services() {
     status="$(container_status "$svc")"
     if [ "$status" = "absent" ]; then
       emit_fail "$(printf '%-8s' "$svc") not found"
-      remedy "docker compose -f deploy/docker-compose.yml --env-file deploy/.env up -d"
+      remedy "make MODE=production up"
       continue
     fi
 
@@ -101,7 +101,7 @@ check_services() {
       fi
     else
       emit_fail "$(printf '%-8s %s (%s restarts in 5 min)' "$svc" "$status" "$restarts")"
-      remedy "Run make logs SERVICE=${svc}; port 80 is often occupied by another system web server (systemctl stop nginx)"
+      remedy "Run make MODE=production logs SERVICE=${svc}; port 80 is often occupied by another system web server (systemctl stop nginx)"
     fi
   done
 }
@@ -135,7 +135,7 @@ check_database() {
 
   if ! compose exec -T postgres pg_isready -U "$db_user" -d "$db_name" >/dev/null 2>&1; then
     emit_fail "Postgres is not responding (pg_isready)"
-    remedy "docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs postgres"
+    remedy "make MODE=production logs SERVICE=postgres"
     return
   fi
 
@@ -143,7 +143,7 @@ check_database() {
   probe="$(compose exec -T postgres psql -U "$db_user" -d "$db_name" -tAc 'SELECT 1' 2>/dev/null | tr -d '[:space:]' || printf '')"
   if [ "$probe" != "1" ]; then
     emit_fail "Could not connect to the database with deploy/.env credentials"
-    remedy "Check DB_PASSWORD in deploy/.env; if you changed it manually, run make configure"
+    remedy "Check DB_PASSWORD in deploy/.env; if you changed it manually, run make MODE=production configure"
     return
   fi
 
@@ -153,7 +153,7 @@ check_database() {
     emit_ok "Connection successful · migration verification passed"
   else
     emit_fail "Migration verification failed"
-    remedy "make migrate; inspect the migrator output for schema or pending migration details"
+    remedy "make MODE=production migrate; inspect the migrator output for schema or pending migration details"
     [ "$QUIET" -eq 1 ] || sed 's/^/         /' "$migration_log"
   fi
   rm -f "$migration_log"
@@ -223,7 +223,7 @@ check_network() {
       emit_ok "Port ${port} is listening"
     elif [ "$rc" -eq 1 ]; then
       emit_fail "Port ${port} is not listening"
-      remedy "make logs SERVICE=caddy"
+      remedy "make MODE=production logs SERVICE=caddy"
     else
       emit_warn "Could not check port ${port} (neither ss nor netstat is available)"
     fi
@@ -236,7 +236,7 @@ check_network() {
     emit_ok "https://${domain}/api/health/ready → 200"
   else
     emit_fail "https://${domain}/api/health/ready → ${status_code}"
-    remedy "docker compose -f deploy/docker-compose.yml --env-file deploy/.env logs caddy back"
+    remedy "make MODE=production logs SERVICE='caddy back'"
   fi
 
   if command -v openssl >/dev/null 2>&1; then
@@ -323,7 +323,7 @@ check_resources() {
       emit_ok "${service} limits effective (memory ${configured_memory}, CPU ${configured_cpus}, PIDs ${configured_pids})"
     else
       emit_fail "${service} effective Docker limits do not match the configured safeguards"
-      remedy "Recreate the stack with make restart and inspect docker inspect ${service}"
+      remedy "Recreate the stack with make MODE=production restart and inspect docker inspect ${service}"
     fi
   done
 }

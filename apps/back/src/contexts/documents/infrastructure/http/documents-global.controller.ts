@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  Inject,
   Post,
   Query,
   UploadedFile,
@@ -23,6 +24,7 @@ import { isValidPdfFile, MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
 import { UploadCapacityInterceptor } from '../../../../shared/infrastructure/http/upload-capacity.interceptor';
 import { getOptionalPageRequest } from '../../../../shared/infrastructure/http/dtos/page.query.dto';
 import { DocumentListPageResponse } from './document-list-page.response';
+import { MALWARE_SCANNER, MalwareScanner } from '../../../../shared/domain/malware-scanner.port';
 
 @RequiresAccess('documents', 'view')
 @Controller('documents')
@@ -31,6 +33,7 @@ export class DocumentsGlobalController {
     private readonly listAllDocumentsUseCase: ListAllDocumentsUseCase,
     private readonly checkDocumentDuplicateUseCase: CheckDocumentDuplicateUseCase,
     private readonly extractInvoiceUseCase: ExtractInvoiceUseCase,
+    @Inject(MALWARE_SCANNER) private readonly malwareScanner: MalwareScanner,
   ) {}
 
   @Get('duplicate-check')
@@ -104,6 +107,8 @@ export class DocumentsGlobalController {
     if (!isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
     }
+
+    await this.malwareScanner.scan(file.buffer);
 
     return this.extractInvoiceUseCase.execute({
       fileBuffer: file.buffer,

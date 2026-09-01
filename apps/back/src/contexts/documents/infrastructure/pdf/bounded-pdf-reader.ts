@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PdfReadResult, PdfReader } from '../../domain/extraction/pdf-reader.port';
 import { PdfCapacityExceededException } from '../../domain/errors/pdf-capacity-exceeded.exception';
-import { OcrPdfReader } from './ocr-pdf-reader';
+import { PdfjsPdfReader } from './pdfjs-pdf-reader';
 
 type ReaderWaiter = {
   resolve: (release: () => void) => void;
@@ -15,7 +15,7 @@ export class BoundedPdfReader implements PdfReader {
   private readonly waiters: ReaderWaiter[] = [];
 
   constructor(
-    private readonly reader: OcrPdfReader,
+    private readonly reader: PdfjsPdfReader,
     private readonly config: ConfigService,
   ) {}
 
