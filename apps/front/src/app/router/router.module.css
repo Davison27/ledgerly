@@ -1,0 +1,8 @@
+.fallback {
+  flex: 1;
+  min-height: 100%;
+}
+
+.status {
+  text-align: center;
+}
