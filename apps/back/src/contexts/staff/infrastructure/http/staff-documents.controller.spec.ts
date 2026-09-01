@@ -1,7 +1,6 @@
 import type { Response } from 'express';
 import { StaffDocumentsController } from './staff-documents.controller';
 import { ListStaffDocumentsUseCase } from '../../application/list-staff-documents/list-staff-documents.use-case';
-import { CreateStaffDocumentUseCase } from '../../application/create-staff-document/create-staff-document.use-case';
 import { UpdateStaffDocumentUseCase } from '../../application/update-staff-document/update-staff-document.use-case';
 import { UpdateStaffDocumentCommand } from '../../application/update-staff-document/update-staff-document.command';
 import { DeleteStaffDocumentUseCase } from '../../application/delete-staff-document/delete-staff-document.use-case';
@@ -45,11 +44,9 @@ describe('StaffDocumentsController', () => {
     deleteExecute = jest.fn<Promise<void>, [string, string?]>().mockResolvedValue(undefined);
     controller = new StaffDocumentsController(
       {} as ListStaffDocumentsUseCase,
-      {} as CreateStaffDocumentUseCase,
       { execute: updateExecute } as unknown as UpdateStaffDocumentUseCase,
       { execute: deleteExecute } as unknown as DeleteStaffDocumentUseCase,
       { execute: getFileExecute } as unknown as GetStaffDocumentFileUseCase,
-      { scan: () => Promise.resolve() },
     );
   });
 

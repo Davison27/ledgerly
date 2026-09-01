@@ -1,4 +1,4 @@
-import { DocumentType } from '../../domain/document-type';
+import { CreatableDocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
 import { DocumentDirection } from '../../domain/document-direction';
@@ -6,7 +6,7 @@ import { DocumentDirection } from '../../domain/document-direction';
 export interface CreateDocumentCommand {
   projectId: string;
   name: string;
-  type: DocumentType;
+  type: CreatableDocumentType;
   month: number;
   date: string;
   amount: number;
@@ -22,7 +22,6 @@ export interface CreateDocumentCommand {
   irpfAmount?: number | null;
   currency?: DocumentCurrency;
   supplierId?: string | null;
-  staffMemberId?: string | null;
   direction: DocumentDirection;
   file?: {
     buffer: Buffer;

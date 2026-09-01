@@ -1,9 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import dataSource from '../data-source';
-
-type DocumentType = 'factura' | 'nomina' | 'impuesto';
-type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
-type DocumentDirection = 'ingreso' | 'gasto';
+import { generateDocuments } from './document-seed-data';
 
 const COMPANY = {
   name: 'Ledgerly',
@@ -204,44 +201,6 @@ const PROJECTS: ProjectSeed[] = [
   },
 ];
 
-const NAMES: Record<DocumentType, string[]> = {
-  factura: [
-    'Suministros Norte',
-    'Transporte Rápido SL',
-    'Materiales García',
-    'Servicios Cloud SA',
-    'Oficina Total',
-    'Distribuciones Ebro',
-  ],
-  nomina: [
-    'Nómina Enero',
-    'Nómina Febrero',
-    'Nómina Marzo',
-    'Nómina Abril',
-    'Nómina Mayo',
-    'Nómina Junio',
-  ],
-  impuesto: [
-    'IVA Trimestre 1',
-    'IRPF Enero',
-    'IVA Trimestre 2',
-    'Retenciones Q1',
-    'Impuesto Sociedades',
-    'IVA Trimestre 3',
-  ],
-};
-
-const TYPES: DocumentType[] = ['factura', 'nomina', 'impuesto'];
-const STATUSES: DocumentStatus[] = ['pagado', 'pendiente', 'vencido'];
-const ISSUER_TAX_IDS: Record<string, string> = {
-  'Suministros Norte': 'B10203040',
-  'Transporte Rápido SL': 'B20304050',
-  'Materiales García': 'B30405060',
-  'Servicios Cloud SA': 'B40506070',
-  'Oficina Total': 'B50607080',
-  'Distribuciones Ebro': 'B60708090',
-};
-
 interface StaffMemberSeed {
   firstName: string;
   lastName: string;
@@ -253,101 +212,6 @@ const STAFF_MEMBERS: StaffMemberSeed[] = [
   { firstName: 'Elena', lastName: 'Torres', position: 'Encargada' },
   { firstName: 'David', lastName: 'Pérez', position: 'Administrativo' },
 ];
-
-interface DocumentSeed {
-  name: string;
-  type: DocumentType;
-  month: number;
-  date: string;
-  amount: number;
-  status: DocumentStatus;
-  issuerName: string | null;
-  issuerTaxId: string | null;
-  invoiceNumber: string | null;
-  dueDate: string | null;
-  taxBase: number | null;
-  taxRate: number | null;
-  taxAmount: number | null;
-  irpfRate: number | null;
-  irpfAmount: number | null;
-  currency: 'EUR' | 'USD' | 'GBP';
-  direction: DocumentDirection;
-  staffMemberId: string | null;
-}
-
-function addDays(date: string, days: number): string {
-  const parsed = new Date(`${date}T00:00:00Z`);
-  parsed.setUTCDate(parsed.getUTCDate() + days);
-  return parsed.toISOString().slice(0, 10);
-}
-
-function generateDocuments(seed: number, staffMemberIds: string[]): DocumentSeed[] {
-  const docs: DocumentSeed[] = [];
-  for (let i = 0; i < 20; i++) {
-    const type = TYPES[(i + seed) % 3];
-    const names = NAMES[type];
-    const name = names[i % names.length];
-    const month = ((i * 2 + seed) % 12) + 1;
-    const day = ((i * 7 + seed * 3) % 27) + 1;
-    const date = `2024-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-    const amount = 180 + ((i * 137 + seed * 53) % 9600);
-    const status = STATUSES[(i + seed * 2) % 3];
-
-    if (type === 'factura') {
-      const taxRate = 21;
-      const taxBase = Math.round((amount / (1 + taxRate / 100)) * 100) / 100;
-      const taxAmount = Math.round((amount - taxBase) * 100) / 100;
-      const direction: DocumentDirection = (i + seed) % 2 === 0 ? 'ingreso' : 'gasto';
-      const hasIrpf = direction === 'ingreso' && (i + seed) % 3 === 0;
-      const irpfRate = hasIrpf ? 15 : null;
-      const irpfAmount = hasIrpf ? Math.round(taxBase * 0.15 * 100) / 100 : null;
-      docs.push({
-        name,
-        type,
-        month,
-        date,
-        amount,
-        status,
-        issuerName: name,
-        issuerTaxId: ISSUER_TAX_IDS[name] ?? 'B00000000',
-        invoiceNumber: `FRA-${date.slice(0, 4)}-${String(i + seed * 20).padStart(4, '0')}`,
-        dueDate: addDays(date, 30),
-        taxBase,
-        taxRate,
-        taxAmount,
-        irpfRate,
-        irpfAmount,
-        currency: 'EUR',
-        direction,
-        staffMemberId: null,
-      });
-    } else {
-      const staffMemberId =
-        type === 'nomina' ? staffMemberIds[(i + seed) % staffMemberIds.length] : null;
-      docs.push({
-        name,
-        type,
-        month,
-        date,
-        amount,
-        status,
-        issuerName: null,
-        issuerTaxId: null,
-        invoiceNumber: null,
-        dueDate: null,
-        taxBase: null,
-        taxRate: null,
-        taxAmount: null,
-        irpfRate: null,
-        irpfAmount: null,
-        currency: 'EUR',
-        direction: 'gasto',
-        staffMemberId,
-      });
-    }
-  }
-  return docs;
-}
 
 async function run(): Promise<void> {
   await dataSource.initialize();
@@ -390,10 +254,8 @@ async function run(): Promise<void> {
       ],
     );
 
-    const staffMemberIds: string[] = [];
     for (const staffMember of STAFF_MEMBERS) {
       const staffMemberId = randomUUID();
-      staffMemberIds.push(staffMemberId);
       await manager.query(
         `INSERT INTO staff_members (id, first_name, last_name, position)
          VALUES ($1, $2, $3, $4)`,
@@ -434,7 +296,7 @@ async function run(): Promise<void> {
         ],
       );
 
-      const documents = generateDocuments(p + 1, staffMemberIds);
+      const documents = generateDocuments(p + 1);
       for (const document of documents) {
         await manager.query(
           `INSERT INTO documents (

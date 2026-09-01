@@ -1,4 +1,4 @@
-import { DocumentType } from '../../domain/document-type';
+import { CreatableDocumentType } from '../../domain/document-type';
 import { DocumentStatus } from '../../domain/document-status';
 import { DocumentCurrency } from '../../domain/document-currency';
 import { DocumentDirection } from '../../domain/document-direction';
@@ -7,7 +7,7 @@ export interface UpdateDocumentCommand {
   id: string;
   projectId?: string;
   name?: string;
-  type?: DocumentType;
+  type?: CreatableDocumentType;
   direction?: DocumentDirection;
   status?: DocumentStatus;
   date?: string;
@@ -23,5 +23,4 @@ export interface UpdateDocumentCommand {
   issuerTaxId?: string | null;
   invoiceNumber?: string | null;
   supplierId?: string | null;
-  staffMemberId?: string | null;
 }

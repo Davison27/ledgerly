@@ -260,6 +260,24 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       expect(response.status).toBe(400);
     });
 
+    it('returns 400 when the payload requests a nomina', async () => {
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify({ ...BASE_PAYLOAD, type: 'nomina' }));
+
+      expect(response.status).toBe(400);
+      expect(createExecute).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when the payload carries staffMemberId', async () => {
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field('payload', JSON.stringify({ ...BASE_PAYLOAD, staffMemberId: 'staff-1' }));
+
+      expect(response.status).toBe(400);
+      expect(createExecute).not.toHaveBeenCalled();
+    });
+
     it('returns 400 when direction is missing (D11: no silent default)', async () => {
       const payloadWithoutDirection: Record<string, unknown> = { ...BASE_PAYLOAD };
       delete payloadWithoutDirection.direction;

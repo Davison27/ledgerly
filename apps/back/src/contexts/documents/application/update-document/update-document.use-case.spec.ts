@@ -1,14 +1,13 @@
 import { UpdateDocumentUseCase } from './update-document.use-case';
+import { UpdateDocumentCommand } from './update-document.command';
 import { DocumentRepository } from '../../domain/document.repository';
 import { Document } from '../../domain/document';
 import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
 import { DocumentListRow } from '../../domain/document-list-row';
 import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import { SupplierExistenceChecker } from '../../domain/supplier-existence-checker.port';
-import { StaffMemberExistenceChecker } from '../../domain/staff-member-existence-checker.port';
 import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
-import { DocumentStaffMemberNotFoundException } from '../../domain/errors/document-staff-member-not-found.exception';
 import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 class InMemoryDocumentRepository implements DocumentRepository {
@@ -68,14 +67,6 @@ class FakeSupplierExistenceChecker implements SupplierExistenceChecker {
   }
 }
 
-class FakeStaffMemberExistenceChecker implements StaffMemberExistenceChecker {
-  constructor(private readonly existingIds: Set<string> = new Set()) {}
-
-  exists(id: string): Promise<boolean> {
-    return Promise.resolve(this.existingIds.has(id));
-  }
-}
-
 function buildDocument(overrides: Partial<Parameters<typeof Document.create>[0]> = {}): Document {
   return Document.create({
     id: 'doc-1',
@@ -111,7 +102,7 @@ describe('UpdateDocumentUseCase', () => {
     const document = buildDocument();
     await repository.save(document);
     const before = document.toPrimitives();
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', direction: 'ingreso' });
 
@@ -123,7 +114,7 @@ describe('UpdateDocumentUseCase', () => {
   it('recomputes month when date changes', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ date: '2026-06-01', month: 6 }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', date: '2026-11-15' });
 
@@ -134,7 +125,7 @@ describe('UpdateDocumentUseCase', () => {
   it('does not accept month directly: it is always derived from date', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ date: '2026-06-01', month: 6 }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', direction: 'ingreso' });
 
@@ -144,7 +135,7 @@ describe('UpdateDocumentUseCase', () => {
   it('sets an optional field to null when the command explicitly carries null', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ invoiceNumber: 'INV-1' }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', invoiceNumber: null });
 
@@ -154,7 +145,7 @@ describe('UpdateDocumentUseCase', () => {
   it('leaves an optional field untouched when it is not present in the command', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ invoiceNumber: 'INV-1' }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', direction: 'ingreso' });
 
@@ -163,7 +154,7 @@ describe('UpdateDocumentUseCase', () => {
 
   it('throws DocumentNotFoundException when the document does not exist', async () => {
     const repository = new InMemoryDocumentRepository();
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     await expect(
       useCase.execute({ id: 'missing-id', direction: 'ingreso' }),
@@ -173,7 +164,7 @@ describe('UpdateDocumentUseCase', () => {
   it('throws DocumentNotFoundException when the document belongs to another project', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ projectId: 'project-1' }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     await expect(
       useCase.execute({ id: 'doc-1', projectId: 'project-2', direction: 'ingreso' }),
@@ -185,7 +176,7 @@ describe('UpdateDocumentUseCase', () => {
   it('updates the document when it belongs to the requested project', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ projectId: 'project-1' }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', projectId: 'project-1', direction: 'ingreso' });
 
@@ -195,7 +186,7 @@ describe('UpdateDocumentUseCase', () => {
   it('throws DocumentSupplierNotFoundException when supplierId does not exist', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     await expect(
       useCase.execute({ id: 'doc-1', supplierId: 'missing-supplier' }),
@@ -208,7 +199,6 @@ describe('UpdateDocumentUseCase', () => {
     const useCase = new UpdateDocumentUseCase(
       repository,
       new FakeSupplierExistenceChecker(new Set(['supplier-1'])),
-      new FakeStaffMemberExistenceChecker(),
     );
 
     const updated = await useCase.execute({ id: 'doc-1', supplierId: 'supplier-1' });
@@ -219,39 +209,24 @@ describe('UpdateDocumentUseCase', () => {
   it('unassigns a supplier without checking existence when supplierId is null', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument({ supplierId: 'supplier-1' }));
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', supplierId: null });
 
     expect(updated.getSupplierId()).toBeNull();
   });
 
-  it('assigns a staff member when it exists', async () => {
+  it('rejects a staffMemberId supplied by a JavaScript caller', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
     const useCase = new UpdateDocumentUseCase(
       repository,
       new FakeSupplierExistenceChecker(new Set()),
-      new FakeStaffMemberExistenceChecker(new Set(['staff-1'])),
-    );
-
-    const updated = await useCase.execute({ id: 'doc-1', staffMemberId: 'staff-1' });
-
-    expect(updated.getStaffMemberId()).toBe('staff-1');
-  });
-
-  it('throws DocumentStaffMemberNotFoundException when staffMemberId does not exist', async () => {
-    const repository = new InMemoryDocumentRepository();
-    await repository.save(buildDocument());
-    const useCase = new UpdateDocumentUseCase(
-      repository,
-      new FakeSupplierExistenceChecker(new Set()),
-      new FakeStaffMemberExistenceChecker(),
     );
 
     await expect(
-      useCase.execute({ id: 'doc-1', staffMemberId: 'missing-staff' }),
-    ).rejects.toThrow(DocumentStaffMemberNotFoundException);
+      useCase.execute({ id: 'doc-1', staffMemberId: 'staff-1' } as unknown as UpdateDocumentCommand),
+    ).rejects.toThrow(InvalidValueException);
   });
 
   it('keeps the existing staffMemberId of a nomina when the command omits it', async () => {
@@ -262,7 +237,6 @@ describe('UpdateDocumentUseCase', () => {
     const useCase = new UpdateDocumentUseCase(
       repository,
       new FakeSupplierExistenceChecker(new Set()),
-      new FakeStaffMemberExistenceChecker(),
     );
 
     const updated = await useCase.execute({ id: 'doc-1', amount: 2200 });
@@ -271,7 +245,7 @@ describe('UpdateDocumentUseCase', () => {
     expect(updated.getAmount()).toBe(2200);
   });
 
-  it('throws InvalidValueException (D3) when unassigning the staff member of a nomina', async () => {
+  it('rejects a type change for a historic nomina', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(
       buildDocument({ type: 'nomina', direction: 'gasto', staffMemberId: 'staff-1' }),
@@ -279,18 +253,30 @@ describe('UpdateDocumentUseCase', () => {
     const useCase = new UpdateDocumentUseCase(
       repository,
       new FakeSupplierExistenceChecker(new Set()),
-      new FakeStaffMemberExistenceChecker(),
     );
 
-    await expect(useCase.execute({ id: 'doc-1', staffMemberId: null })).rejects.toThrow(
+    await expect(useCase.execute({ id: 'doc-1', type: 'factura' })).rejects.toThrow(
       InvalidValueException,
     );
+  });
+
+  it('rejects an explicit nomina type for an existing invoice', async () => {
+    const repository = new InMemoryDocumentRepository();
+    await repository.save(buildDocument());
+    const useCase = new UpdateDocumentUseCase(
+      repository,
+      new FakeSupplierExistenceChecker(new Set()),
+    );
+
+    await expect(
+      useCase.execute({ id: 'doc-1', type: 'nomina' } as unknown as UpdateDocumentCommand),
+    ).rejects.toThrow(InvalidValueException);
   });
 
   it('rejects a negative amount', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
-    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()), new FakeStaffMemberExistenceChecker());
+    const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     await expect(useCase.execute({ id: 'doc-1', amount: -1 })).rejects.toThrow(InvalidValueException);
   });

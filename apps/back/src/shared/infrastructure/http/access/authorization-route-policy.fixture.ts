@@ -93,7 +93,6 @@ export const authorizationRoutePolicies: readonly AuthorizationRoutePolicy[] = [
   { method: 'POST', path: '/projects/:projectId/equipment', public: false, access: { kind: 'access', module: 'projects', level: 'edit' } },
   { method: 'POST', path: '/schedule/events', public: false, access: { kind: 'access', module: 'calendar', level: 'edit' } },
   { method: 'POST', path: '/staff', public: false, access: { kind: 'access', module: 'staff', level: 'edit' } },
-  { method: 'POST', path: '/staff/:staffMemberId/documents', public: false, access: { kind: 'access', module: 'staff', level: 'edit' } },
   { method: 'POST', path: '/suppliers', public: false, access: { kind: 'access', module: 'suppliers', level: 'edit' } },
   { method: 'POST', path: '/tax-compliance/sources/refresh', public: false, access: { kind: 'admin' } },
   { method: 'POST', path: '/workspace/members', public: false, access: { kind: 'admin' } },

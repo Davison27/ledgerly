@@ -134,7 +134,7 @@ describe('AppModule authorization route policy', () => {
     const discoveredRoutes = discoverAuthorizationRoutes();
 
     expect(discoveredRoutes).toEqual(authorizationRoutePolicies);
-    expect(discoveredRoutes).toHaveLength(89);
+    expect(discoveredRoutes).toHaveLength(88);
     expect(discoveredRoutes.every((route) => route.public || route.access !== null)).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe('AppModule authorization route policy', () => {
     const reviewedRoutes = authorizationRouteResourceInputPolicies.map(({ method, path }) => ({ method, path }));
 
     expect(reviewedRoutes).toEqual(discoveredRoutes.map(({ method, path }) => ({ method, path })));
-    expect(authorizationRouteResourceInputPolicies).toHaveLength(89);
+    expect(authorizationRouteResourceInputPolicies).toHaveLength(88);
   });
 
   it('keeps the resource-input handoff inventory complete', () => {
@@ -157,27 +157,35 @@ describe('AppModule authorization route policy', () => {
     }));
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
-    expect(authorizationResourceParameterHandoffs).toHaveLength(51);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(77);
+    expect(authorizationResourceParameterHandoffs).toHaveLength(50);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(73);
   });
 
-  it('classifies the staff document type reference as a resource handoff', () => {
+  it('omits the retired staff document upload route from every authorization inventory', () => {
+    const staffDocumentUploadRoute = { method: 'POST', path: '/staff/:staffMemberId/documents' };
+
+    expect(authorizationRoutePolicies).not.toContainEqual(expect.objectContaining(staffDocumentUploadRoute));
+    expect(authorizationRouteResourceInputPolicies).not.toContainEqual(expect.objectContaining(staffDocumentUploadRoute));
+    expect(authorizationResourceParameterHandoffs).not.toContainEqual(expect.objectContaining(staffDocumentUploadRoute));
+  });
+
+  it('omits staff member body inputs from project document authorization inventories', () => {
     expect(authorizationRouteResourceInputPolicies).toContainEqual({
-      method: 'POST',
-      path: '/staff/:staffMemberId/documents',
+      method: 'PATCH',
+      path: '/projects/:projectId/documents/:id',
       resourceInputs: [
-        { location: 'path', key: 'staffMemberId' },
-        { location: 'body', key: 'typeId' },
+        { location: 'path', key: 'projectId' },
+        { location: 'path', key: 'id' },
+        { location: 'body', key: 'supplierId' },
       ],
     });
-
-    expect(authorizationResourceParameterHandoffs).toContainEqual({
+    expect(authorizationRouteResourceInputPolicies).toContainEqual({
       method: 'POST',
-      path: '/staff/:staffMemberId/documents',
-      parameters: ['staffMemberId'],
-      context: 'staff',
-      enforcement: 'Create the staff document only under staffMemberId and a known typeId.',
-      additionalInputs: [{ location: 'body', key: 'typeId' }],
+      path: '/projects/:projectId/documents',
+      resourceInputs: [
+        { location: 'path', key: 'projectId' },
+        { location: 'body', key: 'payload.supplierId' },
+      ],
     });
   });
 

@@ -136,7 +136,6 @@ export class DocumentsController {
       irpfAmount: dto.irpfAmount,
       currency: dto.currency,
       supplierId: dto.supplierId,
-      staffMemberId: dto.staffMemberId,
       direction: dto.direction,
       file: file
         ? {
@@ -306,7 +305,6 @@ export class DocumentsController {
       issuerTaxId: dto.issuerTaxId,
       invoiceNumber: dto.invoiceNumber,
       supplierId: dto.supplierId,
-      staffMemberId: dto.staffMemberId,
     });
 
     await this.recordEditFeedback(updated, dto);
