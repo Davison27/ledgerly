@@ -59,6 +59,13 @@ assert_invalid is_client_secret ""
 assert_invalid is_client_secret "short"
 assert_invalid is_client_secret "with space12"
 
+step "is_signature_age_hours"
+assert_valid is_signature_age_hours "72"
+assert_valid is_signature_age_hours "8760"
+assert_invalid is_signature_age_hours "0"
+assert_invalid is_signature_age_hours "8761"
+assert_invalid is_signature_age_hours "72h"
+
 step "gen_password"
 pw1="$(gen_password)"
 pw2="$(gen_password)"

@@ -32,6 +32,15 @@ check_compose() {
   ok "Docker Compose v${version}"
 }
 
+check_docker_scout() {
+  if ! docker scout version >/dev/null 2>&1; then
+    fail "The Docker Scout CLI is not available"
+    printf '         → Install it from https://docs.docker.com/scout/install/ before production setup\n'
+    return 1
+  fi
+  ok "Docker Scout available"
+}
+
 check_git() {
   if ! command -v git >/dev/null 2>&1; then
     fail "git is not installed"
@@ -108,6 +117,7 @@ run_preflight() {
   local failed=0
   check_docker || failed=1
   check_compose || failed=1
+  check_docker_scout || failed=1
   check_git || failed=1
   check_ports || failed=1
   check_resources || failed=1

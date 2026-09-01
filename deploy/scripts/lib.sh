@@ -30,10 +30,12 @@ ENV_CONTRACT_KEYS=(
   PDF_READER_MAX_ACTIVE PDF_READER_MAX_QUEUED PDF_READER_QUEUE_TIMEOUT_MS
   PDF_RETRY_AFTER_SECONDS PDF_MAX_EXTRACTED_TEXT_BYTES PDF_MAX_ATTACHMENTS
   PDF_MAX_ATTACHMENT_BYTES PDF_MAX_TOTAL_ATTACHMENT_BYTES
+  CLAMAV_MAX_SIGNATURE_AGE_HOURS
   DEPLOY_BACK_CPUS DEPLOY_BACK_MEMORY DEPLOY_FRONT_CPUS DEPLOY_FRONT_MEMORY
   DEPLOY_POSTGRES_CPUS DEPLOY_POSTGRES_MEMORY DEPLOY_POSTGRES_SHM_SIZE
   DEPLOY_TMPFS_SIZE DEPLOY_FRONT_TMPFS_SIZE DEPLOY_PIDS_LIMIT DEPLOY_POSTGRES_PIDS_LIMIT
   DEPLOY_FRONT_PIDS_LIMIT DEPLOY_MIGRATOR_PIDS_LIMIT
+  DEPLOY_CLAMAV_CPUS DEPLOY_CLAMAV_MEMORY DEPLOY_CLAMAV_PIDS_LIMIT
 )
 
 if [ -t 1 ]; then
@@ -342,6 +344,59 @@ container_status() {
 
 service_running() {
   [ "$(container_status "$1")" = "running" ]
+}
+
+is_signature_age_hours() {
+  local value="$1"
+  [[ "$value" =~ ^[1-9][0-9]{0,3}$ ]] && [ "$value" -le 8760 ]
+}
+
+clamav_signature_age_hours() {
+  local value
+  value="$(env_get CLAMAV_MAX_SIGNATURE_AGE_HOURS 2>/dev/null || printf '72')"
+  is_signature_age_hours "$value" || return 1
+  printf '%s' "$value"
+}
+
+ensure_clamav_defaults() {
+  env_get CLAMAV_MAX_SIGNATURE_AGE_HOURS >/dev/null 2>&1 || env_set CLAMAV_MAX_SIGNATURE_AGE_HOURS "72"
+  env_get DEPLOY_CLAMAV_CPUS >/dev/null 2>&1 || env_set DEPLOY_CLAMAV_CPUS "1.0"
+  env_get DEPLOY_CLAMAV_MEMORY >/dev/null 2>&1 || env_set DEPLOY_CLAMAV_MEMORY "768m"
+  env_get DEPLOY_CLAMAV_PIDS_LIMIT >/dev/null 2>&1 || env_set DEPLOY_CLAMAV_PIDS_LIMIT "256"
+}
+
+clamav_definitions_fresh() {
+  local container="$1" max_age_hours="$2" now timestamp max_age_seconds
+  is_signature_age_hours "$max_age_hours" || return 1
+  now="$(date +%s)"
+  max_age_seconds=$(( max_age_hours * 3600 ))
+  timestamp="$(docker exec "$container" sh -c '
+    set -eu
+    newest=0
+    for family in main daily bytecode; do
+      file=""
+      for extension in cvd cld; do
+        candidate="/var/lib/clamav/${family}.${extension}"
+        if [ -s "$candidate" ]; then
+          file="$candidate"
+          break
+        fi
+      done
+      [ -n "$file" ] || exit 21
+      sigtool --info "$file" >/dev/null 2>&1 || exit 22
+      modified="$(stat -c %Y "$file" 2>/dev/null || printf 0)"
+      case "$modified" in
+        ""|*[!0-9]*) exit 23 ;;
+      esac
+      [ "$modified" -gt "$newest" ] && newest="$modified"
+    done
+    printf "%s" "$newest"
+  ' 2>/dev/null || true)"
+  case "$timestamp" in
+    ""|*[!0-9]*) return 1 ;;
+  esac
+  [ "$timestamp" -le "$now" ] || return 1
+  [ $(( now - timestamp )) -le "$max_age_seconds" ]
 }
 
 require_installed() {

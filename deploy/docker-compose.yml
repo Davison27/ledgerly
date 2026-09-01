@@ -111,6 +111,35 @@ services:
     networks:
       - scanner
 
+  clamav-updater:
+    image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
+    profiles: [maintenance]
+    restart: "no"
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m
+    volumes:
+      - clamav_data:/var/lib/clamav
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
+          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
+          pids: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "2"
+    security_opt:
+      - no-new-privileges:true
+    command: ["freshclam", "--stdout", "--foreground"]
+    networks:
+      - clamav_update_egress
+
   front:
     build:
       context: ..
@@ -233,3 +262,5 @@ networks:
     internal: true
   scanner:
     internal: true
+  clamav_update_egress:
+    internal: false

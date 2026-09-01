@@ -16,7 +16,7 @@ ifneq ($(filter development production,$(MODE)),$(MODE))
 $(error Invalid MODE='$(MODE)'. Use MODE=development or MODE=production)
 endif
 
-PRODUCTION_ONLY_TARGETS := setup doctor configure update build-production baseline-existing-db rehearse-existing-db-baseline
+PRODUCTION_ONLY_TARGETS := setup doctor configure update build-production baseline-existing-db rehearse-existing-db-baseline clamav-update release-audit
 REQUESTED_PRODUCTION_TARGETS := $(filter $(PRODUCTION_ONLY_TARGETS),$(MAKECMDGOALS))
 ifneq ($(strip $(REQUESTED_PRODUCTION_TARGETS)),)
 ifneq ($(MODE),production)
@@ -36,7 +36,7 @@ endif
 
 .DEFAULT_GOAL := help
 
-.PHONY: help setup doctor configure update build-production up down restart logs dev build lint \
+.PHONY: help setup doctor configure update build-production clamav-update release-audit up down restart logs dev build lint \
 	typecheck test migrate baseline-existing-db rehearse-existing-db-baseline reset-db seed clean _check-tools
 
 help:
@@ -47,6 +47,8 @@ help:
 	@echo "  make MODE=production setup      Guided interactive installation. Cannot be run twice."
 	@echo "  make MODE=production doctor     Diagnoses the installation; fails if anything is wrong."
 	@echo "  make MODE=production configure  Changes the domain, Google credentials, admin, or database password."
+	@echo "  make MODE=production clamav-update Refreshes and verifies ClamAV signatures in a short-lived egress container."
+	@echo "  make MODE=production release-audit Runs dependency and production-image vulnerability audits before rollout."
 	@echo ""
 	@echo "Updates"
 	@echo "  make MODE=production update     Fetches the latest version, rebuilds images, and migrates without data loss."
@@ -99,6 +101,14 @@ update:
 build-production:
 	@echo "→ Mode: $(MODE)"
 	$(COMPOSE) build back
+
+clamav-update:
+	@echo "→ Mode: $(MODE)"
+	@bash deploy/scripts/update-clamav-signatures.sh
+
+release-audit:
+	@echo "→ Mode: $(MODE)"
+	@bash deploy/scripts/release-audit.sh
 
 up: $(DEV_PREREQ)
 	@echo "→ Mode: $(MODE)"

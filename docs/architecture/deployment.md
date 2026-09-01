@@ -70,6 +70,7 @@ For normal lifecycle operations, use `make MODE=production up`,
 | `front`    | `ledgerly-front:local`                  | None                   | None                         |
 | `caddy`    | `caddy:2.11-alpine`                     | `80`, `443`, `443/udp` | `caddy_data`, `caddy_config` |
 | `clamav`   | `clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c` | None | `clamav_data` |
+| `clamav-updater` | same pinned ClamAV image (`maintenance` profile) | None | `clamav_data` |
 | `migrator` | `ledgerly-back:local` (`tools` profile) | None                   | None                         |
 
 `migrator` runs only on demand through `make MODE=production migrate` and
@@ -106,11 +107,42 @@ no published host port, but the backend and the scanner both see the PDF bytes
 while the scan is running. This is an internal service boundary, not a
 client-only confidentiality boundary.
 
-The official ClamAV image uses FreshClam to download signature updates. The
+The official ClamAV image uses FreshClam to download signature updates. FreshClam
+checks the upstream database version and digital signatures; Ledgerly adds a
+post-update `sigtool` parseability and freshness check. The
 production `scanner` network is internal and has no default outbound path, so
-signature freshness requires an explicit, controlled VPS operations procedure.
-Do not assume that a successful scan means the definitions are current, and do
-not add unrestricted scanner egress as a convenience.
+signature freshness is maintained by the short-lived `clamav-updater` service.
+It is available only through the `maintenance` Compose profile and attaches to
+the separate `clamav_update_egress` network. The long-running `clamav` service
+never joins that network and has no published port.
+
+Run the update from a low-traffic window because the scanner is stopped while
+FreshClam updates the shared volume:
+
+```bash
+make MODE=production clamav-update
+```
+
+The command runs FreshClam, verifies the `main`, `daily`, and `bytecode`
+databases with `sigtool`, requires the newest database timestamp to be within
+`CLAMAV_MAX_SIGNATURE_AGE_HOURS` (72 hours by default), starts ClamD again,
+checks its private ping endpoint, and streams the EICAR verification string
+without persisting it. It then runs `doctor`; any update or verification
+failure leaves ClamD stopped, so uploads remain fail-closed, and returns a
+non-zero status.
+The age threshold deliberately uses the newest valid database in the set:
+`main.cvd` is a long-lived baseline, while `daily.cvd` and `bytecode.cvd` may
+change independently; a missing or malformed member still fails the check.
+
+Schedule the command daily with the host's systemd timer or cron. The updater
+is the only Ledgerly container that receives outbound access, and it has no
+access to the `scanner` network or the Docker socket. Do not remove the
+`internal: true` setting from `scanner` as a shortcut.
+
+`make MODE=production doctor` fails when ClamD is stopped or unhealthy, the
+definitions are missing, malformed, or stale, or the scanner's configured
+resource limits are not effective. A fresh deployment must run the updater
+before accepting document uploads.
 
 ## Encrypted file persistence
 
@@ -287,9 +319,10 @@ authentication model and the required OAuth scopes.
 `make MODE=production doctor` is safe for manual use and cron. It exits non-zero only for
 failures and never prints secret values. It checks Docker, deployment file
 permissions and required keys, production environment invariants, container
-health, database connectivity and migration state, the configured connection
-budget, DNS, Caddy ports, the public readiness endpoint, certificate expiry,
-disk usage, and the founder record.
+health including ClamAV definition freshness and effective limits, database
+connectivity and migration state, the configured connection budget, DNS, Caddy
+ports, the public readiness endpoint, certificate expiry, disk usage, and the
+founder record.
 
 Use `make MODE=production configure` instead of editing `deploy/.env` directly. It can change
 the domain, Google credentials, initial administrator email, or database
@@ -315,6 +348,34 @@ make MODE=production update
 It requires a completed installation, runs `git pull --ff-only`, rebuilds
 images, applies pending migrations, waits for healthy services, removes old
 images, and runs `make MODE=production doctor`. It never runs `down -v` or deletes volumes.
+
+Setup and update call the release audit before migrations or changed services
+start:
+
+```bash
+make MODE=production release-audit
+```
+
+The release audit uses the pinned Node image to run a recursive `pnpm audit
+--prod` against the committed lockfile, then builds the backend and frontend
+candidate images and scans all images declared by the production Compose file
+with Docker Scout from the local image store. It pulls the pinned Postgres,
+ClamAV, and Caddy images before scanning, so the report covers the exact
+artifacts Compose will run. High or critical findings, an unavailable scanner,
+or a failed dependency audit stop the operation before migrations or changed
+application services start. The audit never runs automatic dependency
+remediation and keeps its temporary workspace outside the repository without
+mounting `deploy/.env`.
+
+Docker Scout must be installed on the VPS before the first production setup.
+Review moderate findings separately; the existing TypeORM development-only
+advisory remains outside the production dependency graph. Docker Scout's
+local analysis may send package URLs and layer digests to its vulnerability
+service, never the application files or `deploy/.env`; set
+`DOCKER_SCOUT_OFFLINE=true` when the host has a pre-populated Scout cache and
+outbound metadata sharing is not permitted. See the [Docker Scout data
+handling](https://docs.docker.com/scout/deep-dive/data-handling/) guidance
+before choosing the VPS policy.
 
 ## Recovery and local reset
 
