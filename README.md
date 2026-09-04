@@ -108,6 +108,7 @@ Ledgerly is built with defense-in-depth security principles:
 - **Self-Hosted Trust Boundary**: The VPS operator and Docker daemon can access deployment secrets, process memory, and mounted data. Host firewall, SSH, operating-system updates, disk protection, and backups remain operational responsibilities.
 - **Private Malware Scanning**: Uploaded PDF bytes are sent to ClamAV over the private scanner network without a public ClamAV port. The backend and scanner both process those bytes during the scan.
 - **Signature Freshness**: The official image uses FreshClam to download and verify signature updates. The internal production scanner network has no default outbound path, so keeping definitions current uses the controlled `make MODE=production clamav-update` procedure.
+- **Staff document scope**: New staff-document uploads are currently deferred and shown as “Coming soon”. Payroll document creation is disabled; historical staff and payroll records remain available under the existing access rules.
 
 ---
 
@@ -212,3 +213,11 @@ The frontend consumes the API through `/api`. In production, Caddy serves the fr
 - [Frontend data layer](docs/architecture/data-layer.md)
 - [Themes, tokens, and responsive styling](docs/architecture/styling.md)
 - [Persisted notifications](docs/architecture/notifications.md)
+
+---
+
+## 📄 License
+
+Ledgerly's source code and documentation are distributed under the [Apache License 2.0](LICENSE.md), unless a file states otherwise. The license permits use, modification, and redistribution when the license and attribution notices are retained and modified files are marked. The software is provided “AS IS” without warranties; see [LICENSE.md](LICENSE.md) for the complete warranty and liability terms.
+
+The Ledgerly name and logo are not granted under the software license. Apache-2.0 permits reasonable reference to the original work, but branded redistributions require separate authorization.

@@ -48,6 +48,18 @@ as well; do not rely on disabled UI controls for security.
 `workspace-member` intentionally names application users separately from
 `staff-member`, which represents company employees.
 
+## Staff document scope
+
+New staff-document uploads are intentionally deferred. The staff detail page
+keeps a disabled `Coming soon` control, and the backend does not expose a
+`POST /staff/:staffMemberId/documents` route. Existing staff-document records
+remain available through their authorized list, file, metadata-update, and
+delete paths.
+
+Payroll document creation is retired. Historical payroll entries remain
+visible in the staff detail view, but the application does not provide a
+creation path for new payroll documents.
+
 ## Integration prototype
 
 `INTEGRATION_CATALOG` defines supported integration shapes, families,

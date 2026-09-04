@@ -33,6 +33,13 @@ the selected mode. Use `make MODE=production build-production` to build the
 `ledgerly-back:local` image consumed by the production stack and by the existing
 database rehearsal.
 
+The deployment operator needs permission to access the Docker daemon, but no
+application container requires host root privileges. Membership in the Docker
+group is effectively root-equivalent because it can control the daemon; keep
+that access limited to trusted operators. The service containers apply their
+own non-root users, dropped capabilities, read-only filesystems, and
+`no-new-privileges` settings where supported by their images.
+
 ## PDF processing
 
 The backend uses PDF.js for bounded text-layer extraction and for structured
