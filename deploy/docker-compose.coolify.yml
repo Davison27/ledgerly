@@ -127,7 +127,10 @@ services:
       - >-
         cp /etc/clamav/freshclam.conf /tmp/freshclam.conf &&
         sed -i 's|^UpdateLogFile .*|UpdateLogFile /tmp/freshclam.log|' /tmp/freshclam.conf &&
-        exec freshclam --config-file=/tmp/freshclam.conf --stdout --foreground
+        while true; do
+        freshclam --config-file=/tmp/freshclam.conf --stdout --foreground || exit 1;
+        sleep 21600;
+        done
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=128m
