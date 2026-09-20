@@ -122,10 +122,12 @@ services:
     restart: unless-stopped
     init: true
     user: clamav
-    environment:
-      CLAMAV_NO_CLAMD: "true"
-      CLAMAV_NO_FRESHCLAMD: "false"
-      FRESHCLAM_CHECKS: ${FRESHCLAM_CHECKS:-4}
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - >-
+        cp /etc/clamav/freshclam.conf /tmp/freshclam.conf &&
+        sed -i 's|^UpdateLogFile .*|UpdateLogFile /tmp/freshclam.log|' /tmp/freshclam.conf &&
+        exec freshclam --config-file=/tmp/freshclam.conf --stdout --foreground
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=128m
