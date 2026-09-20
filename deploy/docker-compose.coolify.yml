@@ -144,7 +144,7 @@ services:
       resources:
         limits:
           cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
-          memory: ${DEPLOY_CLAMAV_MEMORY:-1280m}
+          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
           pids: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
     logging:
       driver: local
@@ -190,7 +190,7 @@ services:
       resources:
         limits:
           cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
-          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
+          memory: ${DEPLOY_CLAMAV_MEMORY:-1280m}
           pids: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
     logging:
       driver: local
