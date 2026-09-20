@@ -1,0 +1,281 @@
+name: ledgerly
+
+services:
+  back:
+    build:
+      context: ..
+      dockerfile: apps/back/Dockerfile
+    image: ledgerly-back:coolify
+    environment: &backend-environment
+      TZ: ${TZ:-Europe/Madrid}
+      NODE_ENV: production
+      PORT: "3000"
+      FRONTEND_URL: ${FRONTEND_URL:?}
+      BACKEND_PUBLIC_URL: ${BACKEND_PUBLIC_URL:?}
+      COOKIE_SECURE: "true"
+      TRUST_PROXY: "true"
+      STORED_FILE_ACTIVE_KEY_VERSION: ${STORED_FILE_ACTIVE_KEY_VERSION:?}
+      STORED_FILE_KEYS: ${STORED_FILE_KEYS:?}
+      DB_HOST: ${DB_HOST:?}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_NAME: ${DB_NAME:?}
+      DB_USER: ${DB_USER:?}
+      DB_PASSWORD: ${DB_PASSWORD:?}
+      DB_TYPEORM_POOL_MAX: ${DB_TYPEORM_POOL_MAX:-8}
+      DB_AUTH_POOL_MAX: ${DB_AUTH_POOL_MAX:-4}
+      DB_MIGRATOR_POOL_MAX: ${DB_MIGRATOR_POOL_MAX:-2}
+      DB_IDLE_TIMEOUT_MS: ${DB_IDLE_TIMEOUT_MS:-30000}
+      DB_CONNECTION_TIMEOUT_MS: ${DB_CONNECTION_TIMEOUT_MS:-5000}
+      DB_STATEMENT_TIMEOUT_MS: ${DB_STATEMENT_TIMEOUT_MS:-30000}
+      DB_QUERY_TIMEOUT_MS: ${DB_QUERY_TIMEOUT_MS:-30000}
+      DB_CONNECTION_BUDGET: ${DB_CONNECTION_BUDGET:-17}
+      MAX_LIST_ITEMS: ${MAX_LIST_ITEMS:-500}
+      MAX_PROJECT_EQUIPMENT_PER_PROJECT: ${MAX_PROJECT_EQUIPMENT_PER_PROJECT:-100}
+      MAX_CALENDAR_RANGE_DAYS: ${MAX_CALENDAR_RANGE_DAYS:-366}
+      MAX_CALENDAR_RESULTS: ${MAX_CALENDAR_RESULTS:-1000}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:?}
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      GOOGLE_CLIENT_SECRET: ${GOOGLE_CLIENT_SECRET:-}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:?}
+      PDF_MAX_PAGES: ${PDF_MAX_PAGES:-100}
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: "3310"
+      CLAMAV_TIMEOUT_MS: ${CLAMAV_TIMEOUT_MS:-30000}
+      PDF_UPLOAD_MAX_ACTIVE: ${PDF_UPLOAD_MAX_ACTIVE:-4}
+      PDF_UPLOAD_MAX_QUEUED: ${PDF_UPLOAD_MAX_QUEUED:-16}
+      PDF_UPLOAD_QUEUE_TIMEOUT_MS: ${PDF_UPLOAD_QUEUE_TIMEOUT_MS:-15000}
+      PDF_READER_MAX_ACTIVE: ${PDF_READER_MAX_ACTIVE:-2}
+      PDF_READER_MAX_QUEUED: ${PDF_READER_MAX_QUEUED:-8}
+      PDF_READER_QUEUE_TIMEOUT_MS: ${PDF_READER_QUEUE_TIMEOUT_MS:-30000}
+      PDF_RETRY_AFTER_SECONDS: ${PDF_RETRY_AFTER_SECONDS:-15}
+      PDF_MAX_EXTRACTED_TEXT_BYTES: ${PDF_MAX_EXTRACTED_TEXT_BYTES:-2097152}
+      PDF_MAX_ATTACHMENTS: ${PDF_MAX_ATTACHMENTS:-20}
+      PDF_MAX_ATTACHMENT_BYTES: ${PDF_MAX_ATTACHMENT_BYTES:-5242880}
+      PDF_MAX_TOTAL_ATTACHMENT_BYTES: ${PDF_MAX_TOTAL_ATTACHMENT_BYTES:-20971520}
+    depends_on:
+      clamav:
+        condition: service_healthy
+      migrator:
+        condition: service_completed_successfully
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${DEPLOY_TMPFS_SIZE:-256m}
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_BACK_CPUS:-1.0}
+          memory: ${DEPLOY_BACK_MEMORY:-768m}
+          pids: ${DEPLOY_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/api/health/ready >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 6
+    networks:
+      - proxy
+      - data
+      - scanner
+
+  migrator:
+    image: ledgerly-back:coolify
+    environment: *backend-environment
+    restart: "no"
+    exclude_from_hc: true
+    command: ["node", "dist/database/migrate.js", "--mode=auto"]
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${DEPLOY_TMPFS_SIZE:-256m}
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          pids: ${DEPLOY_MIGRATOR_PIDS_LIMIT:-128}
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "2"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - data
+
+  clamav-updater:
+    image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
+    restart: unless-stopped
+    init: true
+    user: clamav
+    environment:
+      CLAMAV_NO_CLAMD: "true"
+      CLAMAV_NO_FRESHCLAMD: "false"
+      FRESHCLAM_CHECKS: ${FRESHCLAM_CHECKS:-4}
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=128m
+      - /run/clamav:rw,noexec,nosuid,nodev,size=32m,uid=1000,gid=1000,mode=700
+      - /var/log/clamav:rw,noexec,nosuid,nodev,size=16m,uid=1000,gid=1000,mode=700
+    volumes:
+      - clamav_data:/var/lib/clamav
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
+          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
+          pids: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "2"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "find /var/lib/clamav -maxdepth 1 -type f \\( -name '*.cvd' -o -name '*.cld' \\) -size +0c -print -quit | grep -q ."]
+      interval: 30s
+      timeout: 5s
+      start_period: 180s
+      retries: 6
+    networks:
+      - clamav_update_egress
+
+  clamav:
+    image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
+    depends_on:
+      clamav-updater:
+        condition: service_healthy
+    restart: unless-stopped
+    init: true
+    user: clamav
+    entrypoint: ["/bin/sh", "-c"]
+    command: ["exec clamd --foreground"]
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=256m
+      - /run/clamav:rw,noexec,nosuid,nodev,size=32m,uid=1000,gid=1000,mode=700
+      - /var/log/clamav:rw,noexec,nosuid,nodev,size=16m,uid=1000,gid=1000,mode=700
+    volumes:
+      - clamav_data:/var/lib/clamav:ro
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
+          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
+          pids: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
+    logging:
+      driver: local
+      options:
+        max-size: 10m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --ping 1 >/dev/null"]
+      interval: 30s
+      timeout: 10s
+      start_period: 120s
+      retries: 6
+    networks:
+      - scanner
+
+  front:
+    build:
+      context: ..
+      dockerfile: apps/front/Dockerfile
+    image: ledgerly-front:coolify
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=${DEPLOY_FRONT_TMPFS_SIZE:-64m}
+    cap_drop:
+      - ALL
+    deploy:
+      resources:
+        limits:
+          cpus: ${DEPLOY_FRONT_CPUS:-0.5}
+          memory: ${DEPLOY_FRONT_MEMORY:-128m}
+          pids: ${DEPLOY_FRONT_PIDS_LIMIT:-128}
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 5s
+      retries: 6
+    networks:
+      - proxy
+
+  caddy:
+    image: caddy:2.11-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=32m
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      resources:
+        limits:
+          pids: 128
+    logging:
+      driver: local
+      options:
+        max-size: 5m
+        max-file: "3"
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
+      - caddy_config:/config
+    depends_on:
+      back:
+        condition: service_healthy
+      front:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 10s
+      start_period: 20s
+      retries: 5
+    networks:
+      - proxy
+
+volumes:
+  clamav_data:
+  caddy_config:
+
+networks:
+  proxy:
+  data:
+    internal: true
+  scanner:
+    internal: true
+  clamav_update_egress:
+    internal: false

@@ -139,9 +139,17 @@ Vite proxies `/api` to the backend during development. Local ports and origins c
 
 ---
 
-## 🌐 Install on a VPS
+## 🌐 Deploy to a VPS
 
-The guided deployment expects a Linux server (Debian/Ubuntu) with Docker, Docker Compose, Docker Scout, Git, and Make. On a minimal Debian installation:
+Ledgerly supports two production deployment contracts. Choose one for each
+host. Do not run both public proxies on the same VPS because both require
+ports `80` and `443`.
+
+### Standalone Docker Compose
+
+The guided standalone deployment expects a Linux server (Debian/Ubuntu) with
+Docker, Docker Compose, Docker Scout, Git, and Make. On a minimal Debian
+installation:
 
 ```bash
 sudo apt-get install -y git make
@@ -150,15 +158,50 @@ cd /opt/ledgerly
 make MODE=production setup
 ```
 
-`make MODE=production setup` builds the application, initializes PostgreSQL, applies database migrations, starts the Docker Compose stack, provisions automated Let's Encrypt HTTPS via Caddy, and checks the public readiness endpoint. Production exposes only ports `80` and `443`; PostgreSQL, the backend, and ClamAV remain inside Docker networks.
+`make MODE=production setup` builds the application, initializes PostgreSQL,
+applies database migrations, starts the Docker Compose stack, provisions
+automated Let's Encrypt HTTPS via Caddy, and checks the public readiness
+endpoint. Production exposes only ports `80` and `443`; PostgreSQL, the
+backend, and ClamAV remain inside Docker networks.
 
-Read the complete [deployment runbook](docs/architecture/deployment.md) before operating a production installation.
+This is the standalone-only control plane. Do not run it on a host where
+Coolify owns `80` and `443`.
+
+### Coolify Git Docker Compose
+
+Use the private deployment repository with Coolify's GitHub App integration.
+Create an application with the **Docker Compose** build pack
+in normal Git mode, select `main`, set Base Directory to `/`, and set Compose
+Location to `deploy/docker-compose.coolify.yml`. Preserve the repository during
+deployment because the Compose stack mounts its tracked Caddyfile.
+
+Attach only `https://<ledgerly-domain>:80` to the `caddy` service in Coolify.
+Coolify owns TLS and public routing; do not add a domain, host port,
+or public URL to `back`, `clamav`, or `front`. Create PostgreSQL as a separate
+private Coolify Database resource on the same destination, then supply its
+internal connection values to Ledgerly. There is currently no API or staging
+domain.
+
+Set the required production environment values in Coolify before the first
+deployment, including database credentials, Better Auth and Google OAuth
+credentials, bootstrap administrator email, production origin URLs, and the
+stored-file keyring. Never commit them or create `deploy/.env` for this route.
+Configure S3-compatible PostgreSQL backups in Coolify as a separate follow-up,
+then run and restore-test an initial backup before relying on it.
+
+The full [deployment runbook](docs/architecture/deployment.md) defines the
+required volumes, migration ordering, ClamAV checks, rollback procedure, and
+the boundary between the two deployment contracts.
 
 ---
 
 ## ⚙️ Operations
 
-Use `make help` to see commands in the current environment. Make defaults to the local development stack; production commands require the explicit `MODE=production` variable, regardless of whether `deploy/.env` exists.
+Use `make help` to see commands in the current environment. Make defaults to
+the local development stack; production commands require the explicit
+`MODE=production` variable, regardless of whether `deploy/.env` exists. The
+production Make commands below are standalone-only. Coolify deployments and
+rollbacks are performed through Coolify, not these commands.
 
 ### Installation and Lifecycle
 
