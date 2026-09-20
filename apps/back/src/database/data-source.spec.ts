@@ -24,6 +24,7 @@ describe('database migration discovery', () => {
         '1730000002000-AddEncryptedStoredFileEnvelopes.ts',
         '1730000003000-ReconcileEntitySchemaDrift.ts',
         '1730000004000-AddMissingUniqueConstraints.ts',
+        '1730000005000-AddReferentialIntegrity.ts',
       ].toSorted(),
     );
     expect(discoveredFiles).not.toContain('encrypted-stored-files.migration.e2e.spec.ts');

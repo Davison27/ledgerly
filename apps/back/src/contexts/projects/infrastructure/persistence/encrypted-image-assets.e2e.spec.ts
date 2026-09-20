@@ -3,6 +3,9 @@ import { DataSource } from 'typeorm';
 import { InitialLedgerlySchema1730000000000 } from '../../../../database/migrations/1730000000000-InitialLedgerlySchema';
 import { AddListQueryIndexes1730000001000 } from '../../../../database/migrations/1730000001000-AddListQueryIndexes';
 import { AddEncryptedStoredFileEnvelopes1730000002000 } from '../../../../database/migrations/1730000002000-AddEncryptedStoredFileEnvelopes';
+import { ReconcileEntitySchemaDrift1730000003000 } from '../../../../database/migrations/1730000003000-ReconcileEntitySchemaDrift';
+import { AddMissingUniqueConstraints1730000004000 } from '../../../../database/migrations/1730000004000-AddMissingUniqueConstraints';
+import { AddReferentialIntegrity1730000005000 } from '../../../../database/migrations/1730000005000-AddReferentialIntegrity';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { Company } from '../../../company/domain/company';
 import { GetCompanyBrandingUseCase } from '../../../company/application/get-company-branding/get-company-branding.use-case';
@@ -50,6 +53,9 @@ describe('encrypted image assets (PostgreSQL)', () => {
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
         AddEncryptedStoredFileEnvelopes1730000002000,
+        ReconcileEntitySchemaDrift1730000003000,
+        AddMissingUniqueConstraints1730000004000,
+        AddReferentialIntegrity1730000005000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },

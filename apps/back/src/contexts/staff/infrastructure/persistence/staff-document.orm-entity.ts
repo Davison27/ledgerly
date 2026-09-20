@@ -1,7 +1,10 @@
-import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { StaffDocumentTypeOrmEntity } from './staff-document-type.orm-entity';
+import { StaffMemberOrmEntity } from './staff-member.orm-entity';
 
 @Entity('staff_documents')
 @Index('IDX_staff_documents_member_issue_id', { synchronize: false })
+@Index(['typeId'])
 @Check(
   'CHK_staff_documents_content_envelope',
   '("content_ciphertext" IS NULL AND "content_nonce" IS NULL AND "content_tag" IS NULL AND "content_key_version" IS NULL) OR ("content_ciphertext" IS NOT NULL AND "content_nonce" IS NOT NULL AND "content_tag" IS NOT NULL AND "content_key_version" IS NOT NULL)',
@@ -16,9 +19,11 @@ export class StaffDocumentOrmEntity {
   id: string;
 
   @Column({ name: 'staff_member_id', type: 'uuid' })
+  @ForeignKey(() => StaffMemberOrmEntity, { name: 'FK_staff_documents_staff_member', onDelete: 'CASCADE' })
   staffMemberId: string;
 
   @Column({ name: 'type_id', type: 'uuid' })
+  @ForeignKey(() => StaffDocumentTypeOrmEntity, { name: 'FK_staff_documents_type', onDelete: 'RESTRICT' })
   typeId: string;
 
   @Column({ length: 200 })

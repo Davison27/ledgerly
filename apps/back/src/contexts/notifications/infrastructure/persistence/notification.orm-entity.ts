@@ -1,7 +1,9 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 
 @Entity('notifications')
 @Index('UQ_notifications_dedupe_key_open', { synchronize: false })
+@Index(['resourceProjectId'])
 export class NotificationOrmEntity {
   @PrimaryColumn('uuid')
   id: string;
@@ -37,6 +39,7 @@ export class NotificationOrmEntity {
   resourceId: string | null;
 
   @Column({ name: 'resource_project_id', type: 'uuid', nullable: true })
+  @ForeignKey(() => ProjectOrmEntity, { name: 'FK_notifications_resource_project', onDelete: 'CASCADE' })
   resourceProjectId: string | null;
 
   @Column({ name: 'created_at', type: 'timestamptz', default: () => 'CURRENT_TIMESTAMP' })

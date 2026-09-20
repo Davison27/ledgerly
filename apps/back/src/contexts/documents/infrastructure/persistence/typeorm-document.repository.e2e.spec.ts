@@ -3,8 +3,14 @@ import { DataSource } from 'typeorm';
 import { InitialLedgerlySchema1730000000000 } from '../../../../database/migrations/1730000000000-InitialLedgerlySchema';
 import { AddListQueryIndexes1730000001000 } from '../../../../database/migrations/1730000001000-AddListQueryIndexes';
 import { AddEncryptedStoredFileEnvelopes1730000002000 } from '../../../../database/migrations/1730000002000-AddEncryptedStoredFileEnvelopes';
+import { ReconcileEntitySchemaDrift1730000003000 } from '../../../../database/migrations/1730000003000-ReconcileEntitySchemaDrift';
+import { AddMissingUniqueConstraints1730000004000 } from '../../../../database/migrations/1730000004000-AddMissingUniqueConstraints';
+import { AddReferentialIntegrity1730000005000 } from '../../../../database/migrations/1730000005000-AddReferentialIntegrity';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { DocumentOrmEntity } from './document.orm-entity';
+import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
+import { StaffMemberOrmEntity } from '../../../staff/infrastructure/persistence/staff-member.orm-entity';
+import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence/supplier.orm-entity';
 import { TypeOrmDocumentRepository } from './typeorm-document.repository';
 
 describe('TypeOrmDocumentRepository encrypted delete (PostgreSQL)', () => {
@@ -22,11 +28,14 @@ describe('TypeOrmDocumentRepository encrypted delete (PostgreSQL)', () => {
     dataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [DocumentOrmEntity],
+      entities: [DocumentOrmEntity, ProjectOrmEntity, SupplierOrmEntity, StaffMemberOrmEntity],
       migrations: [
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
         AddEncryptedStoredFileEnvelopes1730000002000,
+        ReconcileEntitySchemaDrift1730000003000,
+        AddMissingUniqueConstraints1730000004000,
+        AddReferentialIntegrity1730000005000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -46,6 +55,9 @@ describe('TypeOrmDocumentRepository encrypted delete (PostgreSQL)', () => {
   });
 
   it('leaves an encrypted row unchanged when a different project attempts deletion', async () => {
+    await dataSource.query(
+      `INSERT INTO projects (id, name, code, type) VALUES ('00000000-0000-0000-0000-000000000101', 'Project', 'PROJECT-001', 'obra')`,
+    );
     const entityRepository = dataSource.getRepository(DocumentOrmEntity);
     const document = entityRepository.create({
       id: '00000000-0000-0000-0000-000000000001',

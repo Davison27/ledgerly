@@ -1,4 +1,5 @@
-import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { CompanyDocumentTypeOrmEntity } from './company-document-type.orm-entity';
 
 @Entity('company_documents')
 @Index('IDX_company_documents_type_issue_id', { synchronize: false })
@@ -16,6 +17,7 @@ export class CompanyDocumentOrmEntity {
   id: string;
 
   @Column({ name: 'type_id', type: 'uuid' })
+  @ForeignKey(() => CompanyDocumentTypeOrmEntity, { name: 'FK_company_documents_type', onDelete: 'RESTRICT' })
   typeId: string;
 
   @Column({ length: 200 })

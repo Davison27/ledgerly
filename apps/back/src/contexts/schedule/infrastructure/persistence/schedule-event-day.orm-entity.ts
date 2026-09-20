@@ -1,12 +1,15 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { ScheduleEventOrmEntity } from './schedule-event.orm-entity';
 
 @Entity('schedule_event_days')
 @Index('IDX_schedule_event_days_date_event', { synchronize: false })
+@Index(['eventId'])
 export class ScheduleEventDayOrmEntity {
   @PrimaryColumn('uuid')
   id: string;
 
   @Column({ name: 'event_id', type: 'uuid' })
+  @ForeignKey(() => ScheduleEventOrmEntity, { name: 'FK_schedule_event_days_event', onDelete: 'CASCADE' })
   eventId: string;
 
   @Column({ type: 'date' })

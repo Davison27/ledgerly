@@ -1,8 +1,10 @@
-import { Column, Entity, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, ForeignKey, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 
 @Entity('tax_deadline_occurrences')
 @Index(['occurrenceKey'], { unique: true })
 @Index('IDX_tax_deadline_due_project', { synchronize: false })
+@Index(['projectId'])
 export class TaxDeadlineOccurrenceOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -11,6 +13,7 @@ export class TaxDeadlineOccurrenceOrmEntity {
   occurrenceKey: string;
 
   @Column({ name: 'project_id', type: 'uuid' })
+  @ForeignKey(() => ProjectOrmEntity, { name: 'FK_tax_deadline_occurrences_project', onDelete: 'CASCADE' })
   projectId: string;
 
   @Column({ name: 'obligation_key', type: 'varchar', length: 80 })

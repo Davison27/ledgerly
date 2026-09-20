@@ -1,9 +1,24 @@
-import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import {
+  Check,
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  ForeignKey,
+  Index,
+  PrimaryColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
+import { StaffMemberOrmEntity } from '../../../staff/infrastructure/persistence/staff-member.orm-entity';
+import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence/supplier.orm-entity';
 
 @Entity('documents')
 @Index('IDX_documents_project_date_id', { synchronize: false })
 @Index('IDX_documents_listing_date_id', { synchronize: false })
 @Index('IDX_documents_invoice_amount', { synchronize: false })
+@Index(['supplierId'])
+@Index(['staffMemberId'])
 @Check(
   'CHK_documents_content_envelope',
   '("content_ciphertext" IS NULL AND "content_nonce" IS NULL AND "content_tag" IS NULL AND "content_key_version" IS NULL) OR ("content_ciphertext" IS NOT NULL AND "content_nonce" IS NOT NULL AND "content_tag" IS NOT NULL AND "content_key_version" IS NOT NULL)',
@@ -18,6 +33,7 @@ export class DocumentOrmEntity {
   id: string;
 
   @Column({ name: 'project_id', type: 'uuid' })
+  @ForeignKey(() => ProjectOrmEntity, { name: 'FK_documents_project', onDelete: 'RESTRICT' })
   projectId: string;
 
   @Column({ length: 200 })
@@ -90,11 +106,28 @@ export class DocumentOrmEntity {
   contentKeyVersion: string | null;
 
   @Column({ name: 'supplier_id', type: 'uuid', nullable: true })
+  @ForeignKey(() => SupplierOrmEntity, { name: 'FK_documents_supplier', onDelete: 'RESTRICT' })
   supplierId: string | null;
 
   @Column({ name: 'staff_member_id', type: 'uuid', nullable: true })
+  @ForeignKey(() => StaffMemberOrmEntity, { name: 'FK_documents_staff_member', onDelete: 'RESTRICT' })
   staffMemberId: string | null;
 
   @Column({ length: 16 })
   direction: string;
+
+  @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  createdAt: Date;
+
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  updatedAt: Date;
+
+  @DeleteDateColumn({ name: 'deleted_at', type: 'timestamptz', nullable: true })
+  deletedAt: Date | null;
+
+  @Column({ name: 'created_by', type: 'uuid', nullable: true })
+  createdBy: string | null;
+
+  @Column({ name: 'deleted_by', type: 'uuid', nullable: true })
+  deletedBy: string | null;
 }

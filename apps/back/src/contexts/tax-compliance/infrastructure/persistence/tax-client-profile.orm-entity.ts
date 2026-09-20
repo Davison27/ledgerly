@@ -1,4 +1,5 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 
 @Entity('tax_client_profiles')
 @Index(['projectId'], { unique: true })
@@ -7,6 +8,7 @@ export class TaxClientProfileOrmEntity {
   id: string;
 
   @Column({ name: 'project_id', type: 'uuid' })
+  @ForeignKey(() => ProjectOrmEntity, { name: 'FK_tax_client_profiles_project', onDelete: 'CASCADE' })
   projectId: string;
 
   @Column({ name: 'country_code', type: 'varchar', length: 2 })
