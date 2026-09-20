@@ -89,6 +89,9 @@ services:
       - scanner
 
   migrator:
+    build:
+      context: ..
+      dockerfile: apps/back/Dockerfile
     image: ledgerly-back:coolify
     environment: *backend-environment
     restart: "no"
