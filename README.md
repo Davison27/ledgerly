@@ -9,7 +9,7 @@
   <p>
     <a href="#run-locally"><img src="https://img.shields.io/badge/React-19-149ECA?style=flat-square&logo=react&logoColor=white" alt="React 19"></a>
     <a href="#run-locally"><img src="https://img.shields.io/badge/NestJS-11-E0234E?style=flat-square&logo=nestjs&logoColor=white" alt="NestJS 11"></a>
-    <a href="#run-locally"><img src="https://img.shields.io/badge/PostgreSQL-17-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 17"></a>
+    <a href="#run-locally"><img src="https://img.shields.io/badge/PostgreSQL-18-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL 18"></a>
     <a href="#security-by-design"><img src="https://img.shields.io/badge/Security-AES--256--GCM-0D9488?style=flat-square" alt="AES-256-GCM"></a>
     <a href="#install-on-a-vps"><img src="https://img.shields.io/badge/Deploy-Docker%20Compose-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker Compose"></a>
     <img src="https://img.shields.io/badge/Privacy-Self--Hosted-6366F1?style=flat-square" alt="Self-Hosted">
@@ -240,7 +240,7 @@ Ledgerly is architected as a clean pnpm and Turborepo monorepo:
 
 ```text
 apps/front/   React 19, Vite, Ant Design, TanStack Query, Feature-Sliced Design
-apps/back/    NestJS 11, TypeORM, PostgreSQL 17, hexagonal bounded contexts
+apps/back/    NestJS 11, TypeORM, PostgreSQL 18, hexagonal bounded contexts
 deploy/       Docker Compose, Caddy, guided setup, diagnostics, and updates
 docs/         Durable architecture and operations documentation
 ```

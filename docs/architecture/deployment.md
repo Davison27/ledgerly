@@ -213,7 +213,7 @@ For normal lifecycle operations, use `make MODE=production up`,
 
 | Service    | Image                                   | Public ports           | Persistent volume            |
 | ---------- | --------------------------------------- | ---------------------- | ---------------------------- |
-| `postgres` | `postgres:17-alpine`                    | None                   | `pgdata`                     |
+| `postgres` | `postgres:18-alpine`                    | None                   | `pgdata`                     |
 | `back`     | `ledgerly-back:local`                   | None                   | None                         |
 | `front`    | `ledgerly-front:local`                  | None                   | None                         |
 | `caddy`    | `caddy:2.11-alpine`                     | `80`, `443`, `443/udp` | `caddy_data`, `caddy_config` |
@@ -233,6 +233,51 @@ docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
 
 Never delete `caddy_data`: it contains Let's Encrypt certificates and forcing
 reissue can hit certificate limits.
+
+### PostgreSQL 18 data directory
+
+The official PostgreSQL 18 images moved `PGDATA` from
+`/var/lib/postgresql/data` to the version-scoped `/var/lib/postgresql/18/docker`
+and declare the volume at `/var/lib/postgresql`. Both Compose files mount
+`pgdata` at `/var/lib/postgresql` to match.
+
+A `pgdata` volume initialised by PostgreSQL 17 is therefore **not** usable by
+PostgreSQL 18. The container refuses to start and enters a restart loop rather
+than corrupting or ignoring the old cluster. `docker logs` reports:
+
+```text
+Error: in 18+, these Docker images are configured to store database data in a
+       format which is compatible with "pg_ctlcluster" [...]
+       Counter to that, there appears to be PostgreSQL data in:
+         /var/lib/postgresql
+```
+
+The failure is loud and safe: the PostgreSQL 17 cluster is left untouched
+inside the volume. A container stuck in this loop after an upgrade means the
+volume still holds pre-18 data, not that data was lost.
+
+Upgrading an installation that holds data therefore requires a dump taken
+**before** the image is switched:
+
+```bash
+docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
+  exec postgres pg_dumpall -U ledgerly > ledgerly-pg17.sql
+```
+
+Then stop the stack, remove the `pgdata` volume, start the PostgreSQL 18
+service, and restore the dump with `psql` before running the migrator. If the
+image was already switched and the container will no longer start, temporarily
+pin the service back to `postgres:17-alpine` with the mount at
+`/var/lib/postgresql/data` to take the dump, then proceed as above.
+
+An installation with no data worth keeping — a development machine, or a fresh
+deployment — recovers by discarding the volume instead:
+`docker compose ... down -v`, or `docker volume rm ledgerly-dev_ledgerly-pgdata`
+for the development stack.
+
+Installations that keep PostgreSQL outside Compose, such as the Coolify
+database resource described above, upgrade through their own provider and are
+unaffected by this change.
 
 The application containers use a read-only root filesystem, a `tmpfs` for
 temporary work, dropped Linux capabilities, `no-new-privileges`, process

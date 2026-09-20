@@ -2,7 +2,7 @@ name: ledgerly-dev
 
 services:
   postgres:
-    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    image: postgres:18-alpine@sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd
     container_name: ledgerly-postgres
     restart: unless-stopped
     environment:
@@ -12,7 +12,7 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - ledgerly-pgdata:/var/lib/postgresql/data
+      - ledgerly-pgdata:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-ledgerly} -d ${DB_NAME:-ledgerly}"]
       interval: 5s

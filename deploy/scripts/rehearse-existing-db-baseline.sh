@@ -59,7 +59,7 @@ name: ledgerly-baseline-rehearsal
 
 services:
   postgres:
-    image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+    image: postgres:18-alpine@sha256:6c538e7206ea40ff740ef27883529390a690b6ead6ba96b44c67a9f7c638e8fd
     environment:
       POSTGRES_USER: ${REHEARSAL_DB_USER}
       POSTGRES_PASSWORD: ${REHEARSAL_DB_PASSWORD}
