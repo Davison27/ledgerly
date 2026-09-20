@@ -245,7 +245,10 @@ services:
       - proxy
 
   caddy:
-    image: caddy:2.11-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.caddy
+    image: ledgerly-caddy:coolify
     restart: unless-stopped
     read_only: true
     tmpfs:
@@ -266,7 +269,6 @@ services:
     security_opt:
       - no-new-privileges:true
     volumes:
-      - ./Caddyfile.coolify:/etc/caddy/Caddyfile:ro
       - caddy_config:/config
     depends_on:
       back:
