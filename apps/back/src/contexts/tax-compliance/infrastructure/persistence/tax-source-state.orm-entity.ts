@@ -3,7 +3,7 @@ import type { TaxSourceEvent } from '../../domain/tax-source-event';
 
 @Entity('tax_source_states')
 export class TaxSourceStateOrmEntity {
-  @PrimaryColumn({ type: 'varchar', length: 80 })
+  @PrimaryColumn({ name: 'source_key', type: 'varchar', length: 80 })
   sourceKey: string;
 
   @Column({ name: 'country_code', type: 'varchar', length: 2 })
@@ -27,13 +27,13 @@ export class TaxSourceStateOrmEntity {
   @Column({ name: 'accepted_hash', type: 'varchar', length: 64, nullable: true })
   acceptedHash: string | null;
 
-  @Column({ name: 'accepted_events', type: 'jsonb', default: () => "'[]'::jsonb" })
+  @Column({ name: 'accepted_events', type: 'jsonb', default: () => "'[]'" })
   acceptedEvents: TaxSourceEvent[];
 
   @Column({ name: 'observed_hash', type: 'varchar', length: 64, nullable: true })
   observedHash: string | null;
 
-  @Column({ name: 'observed_events', type: 'jsonb', default: () => "'[]'::jsonb" })
+  @Column({ name: 'observed_events', type: 'jsonb', default: () => "'[]'" })
   observedEvents: TaxSourceEvent[];
 
   @Column({ name: 'last_checked_at', type: 'timestamptz', nullable: true })

@@ -1,7 +1,7 @@
 import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('company_document_types')
-@Index(['code'], { unique: true })
+@Index('IDX_company_document_types_code', ['code'], { unique: true })
 export class CompanyDocumentTypeOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

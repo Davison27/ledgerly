@@ -1,6 +1,6 @@
 {
   "rootDir": "../src",
-  "testRegex": ".*(encrypted-stored-files\\.migration|typeorm-document\\.repository|encrypted-image-assets)\\.e2e\\.spec\\.ts$",
+  "testRegex": ".*(encrypted-stored-files\\.migration|schema-parity\\.migration|typeorm-document\\.repository|encrypted-image-assets)\\.e2e\\.spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },

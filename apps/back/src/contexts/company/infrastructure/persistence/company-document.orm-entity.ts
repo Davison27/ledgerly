@@ -1,7 +1,16 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('company_documents')
 @Index('IDX_company_documents_type_issue_id', { synchronize: false })
+@Check(
+  'CHK_company_documents_content_envelope',
+  '("content_ciphertext" IS NULL AND "content_nonce" IS NULL AND "content_tag" IS NULL AND "content_key_version" IS NULL) OR ("content_ciphertext" IS NOT NULL AND "content_nonce" IS NOT NULL AND "content_tag" IS NOT NULL AND "content_key_version" IS NOT NULL)',
+)
+@Check(
+  'CHK_company_documents_content_bounds',
+  '"content_ciphertext" IS NULL OR (octet_length("content_nonce") = 12 AND octet_length("content_tag") = 16 AND "content_key_version" ~ \'^v[1-9][0-9]{0,8}$\' AND "file_size" IS NOT NULL AND "file_size" >= 0 AND "file_size" <= 10485760 AND octet_length("content_ciphertext") = "file_size" AND "mime_type" IS NOT NULL AND octet_length("mime_type") <= 127)',
+)
+@Check('CHK_company_documents_content_metadata_size', '"file_size" IS NULL OR ("file_size" >= 0 AND "file_size" <= 10485760)')
 export class CompanyDocumentOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

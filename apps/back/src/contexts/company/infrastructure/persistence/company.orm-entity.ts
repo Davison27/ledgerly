@@ -1,6 +1,14 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('companies')
+@Check(
+  'CHK_companies_logo_envelope',
+  '("logo_ciphertext" IS NULL AND "logo_nonce" IS NULL AND "logo_tag" IS NULL AND "logo_key_version" IS NULL AND "logo_mime_type" IS NULL AND "logo_size" IS NULL) OR ("logo_ciphertext" IS NOT NULL AND "logo_nonce" IS NOT NULL AND "logo_tag" IS NOT NULL AND "logo_key_version" IS NOT NULL AND "logo_mime_type" IS NOT NULL AND "logo_size" IS NOT NULL)',
+)
+@Check(
+  'CHK_companies_logo_bounds',
+  '"logo_ciphertext" IS NULL OR (octet_length("logo_nonce") = 12 AND octet_length("logo_tag") = 16 AND "logo_key_version" ~ \'^v[1-9][0-9]{0,8}$\' AND "logo_size" IS NOT NULL AND "logo_size" >= 0 AND "logo_size" <= 2097152 AND octet_length("logo_ciphertext") = "logo_size" AND "logo_mime_type" IS NOT NULL AND octet_length("logo_mime_type") <= 127 AND "logo_mime_type" IN (\'image/png\', \'image/jpeg\', \'image/webp\'))',
+)
 export class CompanyOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

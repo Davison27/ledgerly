@@ -27,6 +27,6 @@ export class TaxClientProfileOrmEntity {
   @Column({ type: 'boolean', default: true })
   enabled: boolean;
 
-  @Column({ name: 'obligation_keys', type: 'jsonb', default: () => "'[]'::jsonb" })
+  @Column({ name: 'obligation_keys', type: 'jsonb', default: () => "'[]'" })
   obligationKeys: string[];
 }

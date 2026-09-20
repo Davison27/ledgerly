@@ -17,13 +17,16 @@ describe('database migration discovery', () => {
       matchesGlob(join(migrationDirectory, fileName), migrationPattern),
     );
 
-    expect(discoveredFiles).toEqual(
-      expect.arrayContaining([
+    expect(discoveredFiles.toSorted()).toEqual(
+      [
         '1730000000000-InitialLedgerlySchema.ts',
         '1730000001000-AddListQueryIndexes.ts',
         '1730000002000-AddEncryptedStoredFileEnvelopes.ts',
-      ]),
+        '1730000003000-ReconcileEntitySchemaDrift.ts',
+        '1730000004000-AddMissingUniqueConstraints.ts',
+      ].toSorted(),
     );
     expect(discoveredFiles).not.toContain('encrypted-stored-files.migration.e2e.spec.ts');
+    expect(discoveredFiles).not.toContain('schema-parity.migration.e2e.spec.ts');
   });
 });

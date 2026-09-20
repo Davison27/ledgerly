@@ -1,6 +1,14 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, PrimaryColumn } from 'typeorm';
 
 @Entity('equipment')
+@Check(
+  'CHK_equipment_image_envelope',
+  '("image_ciphertext" IS NULL AND "image_nonce" IS NULL AND "image_tag" IS NULL AND "image_key_version" IS NULL AND "image_mime_type" IS NULL AND "image_size" IS NULL) OR ("image_ciphertext" IS NOT NULL AND "image_nonce" IS NOT NULL AND "image_tag" IS NOT NULL AND "image_key_version" IS NOT NULL AND "image_mime_type" IS NOT NULL AND "image_size" IS NOT NULL)',
+)
+@Check(
+  'CHK_equipment_image_bounds',
+  '"image_ciphertext" IS NULL OR (octet_length("image_nonce") = 12 AND octet_length("image_tag") = 16 AND "image_key_version" ~ \'^v[1-9][0-9]{0,8}$\' AND "image_size" IS NOT NULL AND "image_size" >= 0 AND "image_size" <= 2097152 AND octet_length("image_ciphertext") = "image_size" AND "image_mime_type" IS NOT NULL AND octet_length("image_mime_type") <= 127 AND "image_mime_type" IN (\'image/png\', \'image/jpeg\', \'image/webp\'))',
+)
 export class EquipmentOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

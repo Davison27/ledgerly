@@ -1,12 +1,23 @@
-import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { EquipmentOrmEntity } from './equipment.orm-entity';
 
 @Entity('equipment_documents')
 @Index('IDX_equipment_documents_equipment_issue_id', { synchronize: false })
+@Check(
+  'CHK_equipment_documents_content_envelope',
+  '("content_ciphertext" IS NULL AND "content_nonce" IS NULL AND "content_tag" IS NULL AND "content_key_version" IS NULL) OR ("content_ciphertext" IS NOT NULL AND "content_nonce" IS NOT NULL AND "content_tag" IS NOT NULL AND "content_key_version" IS NOT NULL)',
+)
+@Check(
+  'CHK_equipment_documents_content_bounds',
+  '"content_ciphertext" IS NULL OR (octet_length("content_nonce") = 12 AND octet_length("content_tag") = 16 AND "content_key_version" ~ \'^v[1-9][0-9]{0,8}$\' AND "file_size" IS NOT NULL AND "file_size" >= 0 AND "file_size" <= 10485760 AND octet_length("content_ciphertext") = "file_size" AND "mime_type" IS NOT NULL AND octet_length("mime_type") <= 127)',
+)
+@Check('CHK_equipment_documents_content_metadata_size', '"file_size" IS NULL OR ("file_size" >= 0 AND "file_size" <= 10485760)')
 export class EquipmentDocumentOrmEntity {
   @PrimaryColumn('uuid')
   id: string;
 
   @Column({ name: 'equipment_id', type: 'uuid' })
+  @ForeignKey(() => EquipmentOrmEntity, { name: 'FK_equipment_documents_equipment', onDelete: 'CASCADE' })
   equipmentId: string;
 
   @Column({ length: 200 })
