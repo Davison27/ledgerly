@@ -169,6 +169,8 @@ services:
         condition: service_healthy
     restart: unless-stopped
     init: true
+    environment:
+      CLAMAV_NO_FRESHCLAMD: "true"
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=256m
@@ -178,6 +180,11 @@ services:
       - clamav_data:/var/lib/clamav
     cap_drop:
       - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
+      - SETGID
+      - SETUID
     deploy:
       resources:
         limits:
