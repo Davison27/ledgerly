@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
+import { UniqueConstraintException } from '../../../../shared/domain/unique-constraint.exception';
 import { Company } from '../../domain/company';
 import { CompanyRepository } from '../../domain/company.repository';
 import { CompanyMapper } from './company.mapper';
@@ -62,6 +63,20 @@ export class TypeOrmCompanyRepository implements CompanyRepository {
     orm.logoKeyVersion = encryptedImage.envelope.keyVersion ?? null;
     orm.logoMimeType = encryptedImage.envelope.mimeType ?? null;
     orm.logoSize = encryptedImage.envelope.size ?? null;
-    await this.repository.save(orm);
+    try {
+      await this.repository.save(orm);
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as QueryFailedError & { driverError?: { code?: string; constraint?: string } }).driverError?.code ===
+          '23505' &&
+        (error as QueryFailedError & { driverError?: { code?: string; constraint?: string } }).driverError?.constraint ===
+          'UQ_companies_singleton'
+      ) {
+        throw new UniqueConstraintException('Company', 'singleton', 'true');
+      }
+
+      throw error;
+    }
   }
 }

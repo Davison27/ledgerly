@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('notifications')
+@Index('UQ_notifications_dedupe_key_open', { synchronize: false })
 export class NotificationOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

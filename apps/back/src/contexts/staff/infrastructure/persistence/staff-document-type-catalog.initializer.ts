@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { In, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { StaffDocumentTypeOrmEntity } from './staff-document-type.orm-entity';
 
 const SYSTEM_DOCUMENT_TYPES: Array<Pick<StaffDocumentTypeOrmEntity, 'id' | 'code' | 'name' | 'expires' | 'defaultValidityMonths' | 'isSystem'>> = [
@@ -25,14 +25,7 @@ export class StaffDocumentTypeCatalogInitializer implements OnApplicationBootstr
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
-    const codes = SYSTEM_DOCUMENT_TYPES.map((type) => type.code);
-    const existing = await this.repository.find({ where: { code: In(codes) } });
-    const existingCodes = new Set(existing.map((type) => type.code));
-    const missing = SYSTEM_DOCUMENT_TYPES.filter((type) => !existingCodes.has(type.code));
-
-    if (missing.length === 0) return;
-
-    await this.repository.insert(missing);
-    this.logger.log(`Created ${missing.length} missing system staff document types`);
+    await this.repository.upsert([...SYSTEM_DOCUMENT_TYPES], ['code']);
+    this.logger.log(`Ensured ${SYSTEM_DOCUMENT_TYPES.length} staff document types`);
   }
 }

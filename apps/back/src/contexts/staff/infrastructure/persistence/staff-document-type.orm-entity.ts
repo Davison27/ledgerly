@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('staff_document_types')
+@Index('UQ_staff_document_types_code', ['code'], { unique: true })
 export class StaffDocumentTypeOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

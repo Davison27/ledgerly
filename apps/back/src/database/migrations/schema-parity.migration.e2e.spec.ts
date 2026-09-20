@@ -5,12 +5,14 @@ import { InitialLedgerlySchema1730000000000 } from './1730000000000-InitialLedge
 import { AddListQueryIndexes1730000001000 } from './1730000001000-AddListQueryIndexes';
 import { AddEncryptedStoredFileEnvelopes1730000002000 } from './1730000002000-AddEncryptedStoredFileEnvelopes';
 import { ReconcileEntitySchemaDrift1730000003000 } from './1730000003000-ReconcileEntitySchemaDrift';
+import { AddMissingUniqueConstraints1730000004000 } from './1730000004000-AddMissingUniqueConstraints';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
   AddListQueryIndexes1730000001000,
   AddEncryptedStoredFileEnvelopes1730000002000,
   ReconcileEntitySchemaDrift1730000003000,
+  AddMissingUniqueConstraints1730000004000,
 ];
 
 describe('entity and migration schema parity', () => {
@@ -51,6 +53,24 @@ describe('entity and migration schema parity', () => {
 
     expect(schemaLog.upQueries).toHaveLength(0);
     expect(schemaLog.downQueries).toHaveLength(0);
+  });
+
+  it('applies every U1 unique index', async () => {
+    const expectedIndexes = [
+      'UQ_notifications_dedupe_key_open',
+      'UQ_workspace_members_founder',
+      'UQ_workspace_members_email',
+      'UQ_workspace_members_google_subject',
+      'UQ_staff_document_types_code',
+      'UQ_invoice_extraction_hints_issuer_field',
+      'UQ_companies_singleton',
+    ];
+    const rows: Array<{ indexname: string }> = await dataSource.query(
+      `SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() AND indexname = ANY($1) ORDER BY indexname`,
+      [expectedIndexes],
+    );
+
+    expect(rows.map((row) => row.indexname)).toEqual([...expectedIndexes].sort());
   });
 
 });

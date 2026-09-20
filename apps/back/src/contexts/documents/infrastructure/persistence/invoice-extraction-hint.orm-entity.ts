@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('invoice_extraction_hints')
+@Index('UQ_invoice_extraction_hints_issuer_field', ['issuerName', 'field'], { unique: true })
 export class InvoiceExtractionHintOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

@@ -1,6 +1,9 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('workspace_members')
+@Index('UQ_workspace_members_founder', { synchronize: false })
+@Index('UQ_workspace_members_email', ['email'], { unique: true })
+@Index('UQ_workspace_members_google_subject', ['googleSubject'], { unique: true })
 export class WorkspaceMemberOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

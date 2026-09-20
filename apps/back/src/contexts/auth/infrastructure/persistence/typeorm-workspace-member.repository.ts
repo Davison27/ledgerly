@@ -18,6 +18,12 @@ function isUniqueViolation(error: unknown): boolean {
   );
 }
 
+function getUniqueConstraint(error: unknown): string | undefined {
+  if (!isUniqueViolation(error)) return undefined;
+
+  return (error as QueryFailedError & { driverError?: { constraint?: string } }).driverError?.constraint;
+}
+
 @Injectable()
 export class TypeOrmWorkspaceMemberRepository implements WorkspaceMemberRepository {
   constructor(
@@ -68,11 +74,20 @@ export class TypeOrmWorkspaceMemberRepository implements WorkspaceMemberReposito
     try {
       await this.repository.insert(WorkspaceMemberMapper.toOrm(member));
     } catch (error) {
-      if (isUniqueViolation(error)) {
-        throw new UniqueConstraintException('WorkspaceMember', 'is_founder', 'true');
+      switch (getUniqueConstraint(error)) {
+        case 'UQ_workspace_members_founder':
+          throw new UniqueConstraintException('WorkspaceMember', 'is_founder', 'true');
+        case 'UQ_workspace_members_email':
+          throw new UniqueConstraintException('WorkspaceMember', 'email', member.getEmail());
+        case 'UQ_workspace_members_google_subject':
+          throw new UniqueConstraintException(
+            'WorkspaceMember',
+            'google_subject',
+            member.getGoogleSubject() ?? '',
+          );
+        default:
+          throw error;
       }
-
-      throw error;
     }
   }
 

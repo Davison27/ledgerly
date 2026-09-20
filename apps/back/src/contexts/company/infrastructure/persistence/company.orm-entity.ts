@@ -1,6 +1,7 @@
-import { Check, Column, Entity, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('companies')
+@Index('UQ_companies_singleton', { synchronize: false })
 @Check(
   'CHK_companies_logo_envelope',
   '("logo_ciphertext" IS NULL AND "logo_nonce" IS NULL AND "logo_tag" IS NULL AND "logo_key_version" IS NULL AND "logo_mime_type" IS NULL AND "logo_size" IS NULL) OR ("logo_ciphertext" IS NOT NULL AND "logo_nonce" IS NOT NULL AND "logo_tag" IS NOT NULL AND "logo_key_version" IS NOT NULL AND "logo_mime_type" IS NOT NULL AND "logo_size" IS NOT NULL)',
