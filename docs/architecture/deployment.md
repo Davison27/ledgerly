@@ -40,6 +40,23 @@ that access limited to trusted operators. The service containers apply their
 own non-root users, dropped capabilities, read-only filesystems, and
 `no-new-privileges` settings where supported by their images.
 
+## Source and release validation
+
+The public `Davison27/ledgerly` repository is the development source. Its
+root Husky `pre-push` hook runs `pnpm verify:push`, which delegates to the
+standard workspace `pnpm test` command. This gate covers backend Jest and
+frontend Vitest unit suites before a public ref is pushed. Integration and
+end-to-end suites remain separate commands because they require additional
+local services.
+
+The private `private deployment repository` repository owns deployment automation.
+Its hosted CI keeps repository hygiene, lint, type checking, and production
+build checks, while the unit-test gate stays local to avoid repeating the same
+runtime cost on GitHub-hosted runners. The private repository synchronizes
+from the public source only after the root `package.json` changes or a
+maintainer explicitly forces a synchronization. Coolify deploys only the
+private `main` branch after its synchronization pull request is merged.
+
 ## PDF processing
 
 The backend uses PDF.js for bounded text-layer extraction and for structured
