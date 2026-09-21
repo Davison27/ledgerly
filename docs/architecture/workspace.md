@@ -48,6 +48,23 @@ as well; do not rely on disabled UI controls for security.
 `workspace-member` intentionally names application users separately from
 `staff-member`, which represents company employees.
 
+The `DELETE /workspace/members/:id` contract removes application access rather
+than physically deleting a membership. The backend disables and persists the
+member before revoking Better Auth sessions. `AccessGuard` denies the disabled
+member on the next request even when session revocation fails. The membership
+row, UUID, unique email, and Google-subject identity remain as the audit actor
+for documents, so a reinvite with the same email is a duplicate-member
+conflict. Only the existing member status-update flow can reactivate the same
+record, preserving its UUID and document history.
+
+## Staff employment and archive lifecycle
+
+`StaffMember.endDate` is the employment end date. It may be set, changed, or
+cleared only subject to date validity and ordering. `archivedAt` is the
+visibility and deletion-lifecycle state. These fields are independent:
+archiving or unarchiving never changes employment dates, and changing an end
+date never archives or unarchives the staff member.
+
 ## Staff document scope
 
 New staff-document uploads are intentionally deferred. The staff detail page

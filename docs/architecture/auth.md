@@ -131,11 +131,17 @@ application access.
 
 Changing a member's permissions or status persists the membership change and
 revokes that member's Better Auth sessions through `BetterAuthSessionRevoker`.
-Removing a member deletes the membership record before attempting best-effort
-session revocation; any remaining authentication session then fails the member
-lookup on its next protected request. Neither path relies on cookie expiry to
-remove application access. See `docs/architecture/workspace.md` for the
-permission matrix and member management rules.
+Removing a member disables and persists the membership before attempting
+best-effort session revocation. The disabled membership is denied by
+`AccessGuard` immediately, even if revocation has a transient failure. The row,
+UUID, unique email, and Google-subject identity remain available as the audit
+identity for uploaded and soft-deleted documents. The retained unique identity
+means that reinviting the same email follows the existing duplicate-member
+conflict path; only the existing status-update flow can reactivate that same
+member and preserve its UUID and document history. Neither path relies on
+cookie expiry to remove application access. See
+`docs/architecture/workspace.md` for the permission matrix and member
+management rules.
 
 The `equipment` permission covers both the Equipment catalogue and nested
 Equipment PDFs. `view` permits `GET /api/equipment`, document listing, and file

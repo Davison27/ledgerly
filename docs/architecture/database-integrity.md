@@ -21,8 +21,20 @@ Foreign-key delete actions express lifecycle policy:
 - Historical and financial references restrict physical deletion.
 - Referenced projects, suppliers, staff members, equipment, and clients are
   archived instead of being physically deleted.
+- Document audit actors are nullable, indexed `ON DELETE RESTRICT` foreign keys
+  from `documents.created_by` and `documents.deleted_by` to
+  `workspace_members.id`. A legacy audit UUID with no matching member is
+  normalized to `NULL`; `NULL` is the explicit unknown-actor value. Member
+  removal therefore retains the membership row and its audit identity.
 - Soft-deleted documents remain physical references for integrity and deletion
   decisions, but normal listings and financial projections exclude them.
+
+The `PhysicalDocumentReferenceCounter` /
+`countPhysicalDocumentReferences()` boundary supplies deletion-policy inputs
+for projects, suppliers, and staff members. It counts physical `documents`
+rows, including soft-deleted rows. Operational lists, summaries, and financial
+readers apply `deleted_at IS NULL` and must not use this boundary as their
+visibility query.
 
 ## Derived and normalized data
 
@@ -33,6 +45,27 @@ individual rows rather than a mutable aggregate amount.
 
 Clients are first-class records referenced by projects. Archived clients are
 kept for historical references and excluded from active selection.
+
+Client and supplier tax IDs use one canonical representation: trim, uppercase,
+remove spaces, hyphens, and periods, and convert an empty result to `NULL`.
+Each table has a partial unique index over non-null `tax_id`; `NULL` remains
+repeatable and archived rows continue to reserve their canonical IDs. Friendly
+application prechecks are complemented by PostgreSQL uniqueness for concurrent
+writes. Client and supplier uniqueness is enforced independently.
+
+Staff employment and archive lifecycles are independent. `endDate` records the
+employment end date and may be set, changed, or cleared subject to date
+validity and ordering. `archivedAt` controls visibility and deletion lifecycle;
+archiving or unarchiving never changes employment dates, and changing an end
+date never archives or unarchives a staff member.
+
+Project dashboards and financial reporting derive their selected year from
+document dates and lease-expense dates, so `projects.fiscal_year` is not part
+of the current contract. Its removal is authorized and intentionally discards
+the obsolete stored values; a schema rollback can restore only a nullable empty
+column. The tax-compliance setting
+`tax_client_profiles.fiscal_year_start_month` remains supported and is
+unrelated to project reporting.
 
 ## Language boundaries
 
