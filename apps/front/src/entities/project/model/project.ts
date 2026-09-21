@@ -48,7 +48,7 @@ export interface Project {
   type?: ProjectType;
   status?: ProjectStatus;
   description?: string;
-  clientId?: string | null;
+  clientId?: string;
   client?: Client | null;
   address?: string;
   startDate?: string;
@@ -62,8 +62,10 @@ export interface Project {
 
 export type ProjectFormValues = Omit<
   Project,
-  'id' | 'documentCount' | 'pendingCount' | 'financials' | 'client'
->;
+  'id' | 'documentCount' | 'pendingCount' | 'financials' | 'client' | 'clientId'
+> & { clientId: string };
+
+export type ProjectUpdateValues = Partial<ProjectFormValues>;
 
 function mapProjectFinancials(dto: ProjectFinancialsDto): ProjectFinancials {
   return {
@@ -146,7 +148,7 @@ export async function addProject(values: ProjectFormValues): Promise<Project> {
 
 export async function updateProject(
   projectId: string,
-  values: ProjectFormValues,
+  values: ProjectUpdateValues,
 ): Promise<Project> {
   const payload: UpdateProjectPayload = {
     name: values.name,
@@ -154,7 +156,7 @@ export async function updateProject(
     type: values.type,
     status: values.status,
     description: values.description,
-    clientId: values.clientId,
+    ...(values.clientId === undefined ? {} : { clientId: values.clientId }),
     address: values.address,
     startDate: values.startDate,
     endDate: values.endDate,

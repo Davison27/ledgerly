@@ -69,13 +69,14 @@ describe('frontend API contracts', () => {
   });
 
   it('sends project mutations through the expected HTTP verbs and routes', async () => {
-    await createProject({ name: 'Project One', code: 'P-001', type: 'client' });
+    await createProject({ name: 'Project One', code: 'P-001', type: 'client', clientId: 'client-1' });
     await updateProject('project-1', { name: 'Updated', image: null });
 
     expect(post).toHaveBeenCalledWith('/projects', {
       name: 'Project One',
       code: 'P-001',
       type: 'client',
+      clientId: 'client-1',
     });
     expect(patch).toHaveBeenCalledWith('/projects/project-1', { name: 'Updated', image: null });
   });

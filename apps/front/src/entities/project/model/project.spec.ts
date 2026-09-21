@@ -81,7 +81,7 @@ describe('project view model', () => {
       type: 'client',
       status: 'active',
       description: null,
-      clientId: null,
+      clientId: 'client-1',
       client: null,
       budget: null,
       currency: null,
@@ -100,7 +100,7 @@ describe('project view model', () => {
       type: 'client',
       status: 'active',
       description: undefined,
-      clientId: null,
+      clientId: 'client-1',
       client: null,
       address: undefined,
       startDate: undefined,
@@ -120,7 +120,7 @@ describe('project view model', () => {
       code: 'P-001',
       type: 'other',
       status: 'active',
-      clientId: null,
+      clientId: 'client-1',
       client: null,
     });
     vi.mocked(updateProjectRequest).mockResolvedValue({
@@ -171,5 +171,23 @@ describe('project view model', () => {
       color: undefined,
     });
     expect(deleteProject).toHaveBeenCalledWith('project-1');
+  });
+
+  it('omits the client parent when an update does not change it', async () => {
+    vi.mocked(updateProjectRequest).mockResolvedValue({
+      id: 'project-1',
+      name: 'Updated project',
+      code: 'P-001',
+      type: 'client',
+      status: 'active',
+      clientId: 'client-1',
+      client: null,
+    });
+
+    await updateProject('project-1', { name: 'Updated project' });
+
+    const payload = vi.mocked(updateProjectRequest).mock.calls[0]?.[1];
+    expect(payload).not.toHaveProperty('clientId');
+    expect(payload).toMatchObject({ name: 'Updated project' });
   });
 });

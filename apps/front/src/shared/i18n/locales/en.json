@@ -1530,6 +1530,8 @@
       "updateError": "The project could not be updated. Please try again.",
       "duplicateCode": "A project with that code already exists.",
       "loadError": "The project could not be loaded.",
+      "clientArchived": "Current client is archived",
+      "reassignClient": "Reassign client",
       "sections": {
         "general": "General",
         "client": "Client / Contact",
@@ -1611,6 +1613,7 @@
         "nameRequired": "Name is required",
         "codeRequired": "Code is required",
         "typeRequired": "Type is required",
+        "clientRequired": "Select a client",
         "emailInvalid": "Enter a valid email",
         "budgetMin": "Budget cannot be negative"
       }

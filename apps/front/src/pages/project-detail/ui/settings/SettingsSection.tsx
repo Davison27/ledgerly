@@ -56,16 +56,19 @@ export function SettingsSection({ project }: ProjectSectionProps) {
   }, [fullProject, form]);
 
   const handleSave = () => {
+    if (!fullProject) return;
+
     form
       .validateFields()
       .then(async (values) => {
         const { startDate, endDate, ...rest } = values;
-        const payload: ProjectFormValues = {
+        const payload = {
           ...rest,
+          clientId: values.clientId === fullProject.clientId ? undefined : values.clientId,
           startDate: startDate ? startDate.format('YYYY-MM-DD') : undefined,
           endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
           image,
-        };
+        } as ProjectFormValues;
         setSaving(true);
         try {
           await updateProject(project.id, payload);
@@ -106,6 +109,7 @@ export function SettingsSection({ project }: ProjectSectionProps) {
           onImageChange={setImage}
           colorSeed={fullProject.id}
           canEdit={canEdit}
+          currentClient={fullProject.client ?? null}
         />
       </Form>
     </PageContainer>

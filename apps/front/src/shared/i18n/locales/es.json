@@ -1534,6 +1534,8 @@
       "updateError": "No se ha podido actualizar el proyecto. Inténtalo de nuevo.",
       "duplicateCode": "Ya existe un proyecto con ese código.",
       "loadError": "No se ha podido cargar el proyecto.",
+      "clientArchived": "El cliente actual está archivado",
+      "reassignClient": "Reasignar cliente",
       "sections": {
         "general": "General",
         "client": "Cliente / Contacto",
@@ -1615,6 +1617,7 @@
         "nameRequired": "El nombre es obligatorio",
         "codeRequired": "El código es obligatorio",
         "typeRequired": "El tipo es obligatorio",
+        "clientRequired": "Selecciona un cliente",
         "emailInvalid": "Introduce un email válido",
         "budgetMin": "El presupuesto no puede ser negativo"
       }

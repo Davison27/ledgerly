@@ -51,7 +51,7 @@ export interface ProjectDto {
   type: ProjectTypeDto;
   status: ProjectStatusDto;
   description?: string | null;
-  clientId: string | null;
+  clientId: string;
   client: ClientDto | null;
   address?: string | null;
   startDate?: string | null;
@@ -69,7 +69,7 @@ export interface CreateProjectPayload {
   type: ProjectTypeDto;
   status?: ProjectStatusDto;
   description?: string;
-  clientId?: string | null;
+  clientId: string;
   address?: string;
   startDate?: string;
   endDate?: string;
@@ -86,7 +86,7 @@ export interface UpdateProjectPayload {
   type?: ProjectTypeDto;
   status?: ProjectStatusDto;
   description?: string;
-  clientId?: string | null;
+  clientId?: string;
   address?: string;
   startDate?: string;
   endDate?: string;

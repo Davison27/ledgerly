@@ -29,7 +29,7 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
         type: project.type ?? 'other',
         status: project.status ?? 'active',
         description: project.description,
-        clientId: project.clientId,
+        clientId: project.clientId ?? '',
         address: project.address,
         startDate: project.startDate ? dayjs(project.startDate) : undefined,
         endDate: project.endDate ? dayjs(project.endDate) : undefined,
@@ -55,12 +55,15 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
       .validateFields()
       .then((values) => {
         const { startDate, endDate, ...rest } = values;
-        const payload: ProjectFormValues = {
+        const payload = {
           ...rest,
+          clientId: isEdit && project && values.clientId === project.clientId
+            ? undefined
+            : values.clientId,
           startDate: startDate ? startDate.format('YYYY-MM-DD') : undefined,
           endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
           image,
-        };
+        } as ProjectFormValues;
         form.resetFields();
         setImage(undefined);
         void onSubmit(payload);
@@ -87,7 +90,12 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
         requiredMark={false}
         initialValues={{ status: 'active', currency: 'EUR' }}
       >
-        <ProjectFormFields image={image} onImageChange={setImage} colorSeed={project?.id} />
+        <ProjectFormFields
+          image={image}
+          onImageChange={setImage}
+          colorSeed={project?.id}
+          currentClient={project?.client ?? null}
+        />
       </Form>
     </Modal>
   );

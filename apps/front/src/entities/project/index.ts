@@ -21,6 +21,7 @@ export type {
   ProjectCurrency,
   ProjectFinancials,
   ProjectFormValues,
+  ProjectUpdateValues,
   ProjectColorToken,
 } from './model/project';
 export { projectQueries } from './api/project.queries';

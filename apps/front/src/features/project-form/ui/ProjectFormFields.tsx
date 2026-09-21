@@ -1,4 +1,4 @@
-import { useEffect, type CSSProperties } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import {
   App,
   Button,
@@ -19,6 +19,7 @@ import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectCurrency, ProjectStatus, ProjectType } from '@/entities/project';
+import type { Client } from '@/entities/client';
 import { ApiError } from '@/shared/api/httpClient';
 import {
   PROJECT_COLOR_TOKENS,
@@ -40,7 +41,7 @@ export interface ProjectFormFieldValues {
   type: ProjectType;
   status: ProjectStatus;
   description?: string;
-  clientId?: string | null;
+  clientId: string;
   address?: string;
   startDate?: Dayjs;
   endDate?: Dayjs;
@@ -100,6 +101,7 @@ interface ProjectFormFieldsProps {
   onImageChange: (image: string | null | undefined) => void;
   colorSeed?: string;
   canEdit?: boolean;
+  currentClient?: Client | null;
 }
 
 export function ProjectFormFields({
@@ -107,11 +109,21 @@ export function ProjectFormFields({
   onImageChange,
   colorSeed,
   canEdit = true,
+  currentClient = null,
 }: ProjectFormFieldsProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const form = Form.useFormInstance<ProjectFormFieldValues>();
   const clientField = useProjectClientField();
+  const selectedClientId = Form.useWatch('clientId', form);
+  const [reassigningArchivedClient, setReassigningArchivedClient] = useState(false);
+  const archivedParentSelected = Boolean(
+    currentClient?.archivedAt && selectedClientId === currentClient.id,
+  );
+
+  useEffect(() => {
+    setReassigningArchivedClient(false);
+  }, [currentClient?.id]);
 
   useEffect(() => {
     if (!colorSeed) return;
@@ -227,22 +239,44 @@ export function ProjectFormFields({
       <Divider className={styles.sectionDivider} />
       <Row gutter={16}>
         <Col xs={24} sm={12} md={12}>
-          <Form.Item label={t('projects.form.fields.client')}>
+          <Form.Item
+            label={t('projects.form.fields.client')}
+            required
+            extra={archivedParentSelected ? t('projects.form.clientArchived') : undefined}
+          >
             <Flex gap={8}>
-              <Form.Item name="clientId" noStyle>
+              <Form.Item
+                name="clientId"
+                noStyle
+                rules={[{ required: true, message: t('projects.form.validation.clientRequired') }]}
+              >
                 <Select
-                  allowClear
                   showSearch
                   loading={clientField.clientsPending}
                   optionFilterProp="label"
                   placeholder={t('projects.form.placeholders.client')}
-                  options={clientField.clients.map((client) => ({
-                    value: client.id,
-                    label: client.taxId ? `${client.name} · ${client.taxId}` : client.name,
-                  }))}
+                  disabled={archivedParentSelected && !reassigningArchivedClient}
+                  options={[
+                    ...(archivedParentSelected && currentClient
+                      ? [{
+                          value: currentClient.id,
+                          label: `${currentClient.name} · ${t('projects.form.clientArchived')}`,
+                          disabled: true,
+                        }]
+                      : []),
+                    ...clientField.clients.map((client) => ({
+                      value: client.id,
+                      label: client.taxId ? `${client.name} · ${client.taxId}` : client.name,
+                    })),
+                  ]}
                   className={styles.clientSelect}
                 />
               </Form.Item>
+              {archivedParentSelected && canEdit && (
+                <Button type="link" onClick={() => setReassigningArchivedClient(true)}>
+                  {t('projects.form.reassignClient')}
+                </Button>
+              )}
               <Button
                 type="default"
                 icon={<PlusOutlined />}
