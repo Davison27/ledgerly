@@ -7,6 +7,7 @@ import {
 import { SupplierNotFoundException } from '../../domain/errors/supplier-not-found.exception';
 import { SupplierTaxIdAlreadyExistsException } from '../../domain/errors/supplier-tax-id-already-exists.exception';
 import { UpdateSupplierCommand } from './update-supplier.command';
+import { normalizeTaxId } from '../../../../shared/domain/tax-id';
 
 @Injectable()
 export class UpdateSupplierUseCase {
@@ -22,12 +23,14 @@ export class UpdateSupplierUseCase {
       throw new SupplierNotFoundException(command.id);
     }
 
-    if (command.taxId !== undefined && command.taxId !== supplier.taxId) {
-      if (command.taxId !== null) {
-        const existing = await this.supplierRepository.findByTaxId(command.taxId);
+    const taxId = command.taxId === undefined ? undefined : normalizeTaxId(command.taxId);
+
+    if (taxId !== undefined && taxId !== supplier.taxId) {
+      if (taxId !== null) {
+        const existing = await this.supplierRepository.findByTaxId(taxId);
 
         if (existing !== null) {
-          throw new SupplierTaxIdAlreadyExistsException(command.taxId);
+          throw new SupplierTaxIdAlreadyExistsException(taxId);
         }
       }
     }
@@ -36,8 +39,8 @@ export class UpdateSupplierUseCase {
       supplier.rename(command.name);
     }
 
-    if (command.taxId !== undefined) {
-      supplier.changeTaxId(command.taxId);
+    if (taxId !== undefined) {
+      supplier.changeTaxId(taxId);
     }
 
     if (command.email !== undefined) {

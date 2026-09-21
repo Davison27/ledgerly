@@ -34,7 +34,6 @@ function buildProject(
     endDate: overrides.endDate ?? null,
     budget: overrides.budget ?? null,
     currency: overrides.currency ?? 'EUR',
-    fiscalYear: overrides.fiscalYear ?? null,
     manager: overrides.manager ?? null,
     image: overrides.image ?? null,
     color: overrides.color ?? null,

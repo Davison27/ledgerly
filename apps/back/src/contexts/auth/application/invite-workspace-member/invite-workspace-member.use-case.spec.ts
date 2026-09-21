@@ -2,6 +2,8 @@ import { InviteWorkspaceMemberUseCase } from './invite-workspace-member.use-case
 import { MemberEmailAlreadyExistsException } from '../../domain/errors/member-email-already-exists.exception';
 import { WorkspaceMember } from '../../domain/workspace-member';
 import { WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
+import { MemberEmail } from '../../domain/value-objects/member-email';
+import { PermissionMatrix } from '../../domain/value-objects/permission-matrix';
 import { WORKSPACE_MODULES } from '../../domain/value-objects/permission-matrix';
 import { Clock } from '../../../../shared/domain/clock.port';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
@@ -39,10 +41,6 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   }
 
   insertFounder(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(): Promise<void> {
     return Promise.resolve();
   }
 
@@ -112,5 +110,25 @@ describe('InviteWorkspaceMemberUseCase', () => {
       useCase.execute({ name: 'Jane Again', email: 'jane@ledgerly.dev', permissions: viewerPermissions() }),
     ).rejects.toThrow(MemberEmailAlreadyExistsException);
     expect(repository.members).toHaveLength(1);
+  });
+
+  it('keeps a disabled member email reserved for the retained identity', async () => {
+    const repository = new InMemoryWorkspaceMemberRepository();
+    const disabledMember = WorkspaceMember.create({
+      id: 'retained-member',
+      email: MemberEmail.create('jane@ledgerly.dev'),
+      name: 'Jane Doe',
+      permissions: PermissionMatrix.create(viewerPermissions()),
+      status: 'disabled',
+      invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
+    repository.members.push(disabledMember);
+    const useCase = buildUseCase(repository);
+
+    await expect(
+      useCase.execute({ name: 'Jane Again', email: 'jane@ledgerly.dev', permissions: viewerPermissions() }),
+    ).rejects.toThrow(MemberEmailAlreadyExistsException);
+    expect(repository.members).toHaveLength(1);
+    expect(repository.members[0].getId()).toBe('retained-member');
   });
 });

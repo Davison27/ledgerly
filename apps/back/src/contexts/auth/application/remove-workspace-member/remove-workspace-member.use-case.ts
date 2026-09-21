@@ -34,7 +34,8 @@ export class RemoveWorkspaceMemberUseCase {
       }
     }
 
-    await this.repository.delete(command.id);
+    member.disable();
+    await this.repository.save(member);
 
     try {
       await this.sessionRevoker.revokeAllForEmail(member.getEmail());

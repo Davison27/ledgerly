@@ -27,6 +27,9 @@ describe('database migration discovery', () => {
         '1730000005000-AddReferentialIntegrity.ts',
         '1730000006000-NormalizeDerivedColumns.ts',
         '1730000007000-AdoptEnglishControlledValues.ts',
+        '1730000008000-NormalizeTaxIdsAndEnforceUniqueness.ts',
+        '1730000009000-PreserveWorkspaceMemberAuditIdentity.ts',
+        '1730000010000-RemoveProjectFiscalYear.ts',
       ].toSorted(),
     );
     expect(discoveredFiles).not.toContain('encrypted-stored-files.migration.e2e.spec.ts');

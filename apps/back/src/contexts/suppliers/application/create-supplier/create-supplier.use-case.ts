@@ -10,6 +10,7 @@ import {
   IdGenerator,
 } from '../../../../shared/domain/id-generator.port';
 import { CreateSupplierCommand } from './create-supplier.command';
+import { normalizeTaxId } from '../../../../shared/domain/tax-id';
 
 @Injectable()
 export class CreateSupplierUseCase {
@@ -21,7 +22,7 @@ export class CreateSupplierUseCase {
   ) {}
 
   async execute(command: CreateSupplierCommand): Promise<Supplier> {
-    const taxId = command.taxId ?? null;
+    const taxId = normalizeTaxId(command.taxId);
 
     if (taxId !== null) {
       const existing = await this.supplierRepository.findByTaxId(taxId);

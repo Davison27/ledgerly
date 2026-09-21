@@ -33,6 +33,25 @@ describe('Client', () => {
     })).toThrow(InvalidValueException);
   });
 
+  it('canonicalizes tax IDs at the aggregate boundary', () => {
+    const client = Client.create({
+      id: 'client-1',
+      name: 'Acme SL',
+      taxId: ' es-b.123-456 78 ',
+      contactName: null,
+      contactEmail: null,
+      contactPhone: null,
+    });
+
+    expect(client.taxId).toBe('ESB12345678');
+
+    client.changeTaxId(' b-876.543 21 ');
+    expect(client.taxId).toBe('B87654321');
+
+    client.changeTaxId(' .- ');
+    expect(client.taxId).toBeNull();
+  });
+
   it('archives and unarchives itself', () => {
     const client = Client.create({
       id: 'client-1',

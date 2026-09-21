@@ -15,7 +15,6 @@ export interface CreateProjectCommand {
   endDate?: string | null;
   budget?: number | null;
   currency?: ProjectCurrency;
-  fiscalYear?: string | null;
   manager?: string | null;
   image?: string | null;
   color?: ProjectColor | null;

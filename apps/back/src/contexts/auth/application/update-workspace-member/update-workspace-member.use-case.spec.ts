@@ -47,10 +47,6 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
-  }
-
   touchLastActive(): Promise<void> {
     return Promise.resolve();
   }
@@ -155,5 +151,22 @@ describe('UpdateWorkspaceMemberUseCase', () => {
     });
 
     expect(updated.getRole()).toBe('viewer');
+  });
+
+  it('reactivates a disabled member through status update without changing its ID', async () => {
+    const disabled = adminMember('admin-1');
+    disabled.disable();
+    const memberRepository = new InMemoryWorkspaceMemberRepository([disabled, adminMember('admin-2')]);
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
+
+    const updated = await useCase.execute({
+      id: 'admin-1',
+      actingMemberId: 'admin-2',
+      status: 'active',
+    });
+
+    expect(updated.getId()).toBe('admin-1');
+    expect(updated.getStatus()).toBe('active');
   });
 });

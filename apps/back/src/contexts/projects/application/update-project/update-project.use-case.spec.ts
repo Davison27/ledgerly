@@ -87,7 +87,6 @@ function buildProject(overrides: { id?: string; image?: string | null } = {}): P
     endDate: null,
     budget: null,
     currency: 'EUR',
-    fiscalYear: null,
     manager: null,
     image: overrides.image ?? null,
     color: null,

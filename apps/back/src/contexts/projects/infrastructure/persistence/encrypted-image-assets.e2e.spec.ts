@@ -7,6 +7,10 @@ import { ReconcileEntitySchemaDrift1730000003000 } from '../../../../database/mi
 import { AddMissingUniqueConstraints1730000004000 } from '../../../../database/migrations/1730000004000-AddMissingUniqueConstraints';
 import { AddReferentialIntegrity1730000005000 } from '../../../../database/migrations/1730000005000-AddReferentialIntegrity';
 import { NormalizeDerivedColumns1730000006000 } from '../../../../database/migrations/1730000006000-NormalizeDerivedColumns';
+import { AdoptEnglishControlledValues1730000007000 } from '../../../../database/migrations/1730000007000-AdoptEnglishControlledValues';
+import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from '../../../../database/migrations/1730000008000-NormalizeTaxIdsAndEnforceUniqueness';
+import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from '../../../../database/migrations/1730000009000-PreserveWorkspaceMemberAuditIdentity';
+import { RemoveProjectFiscalYear1730000010000 } from '../../../../database/migrations/1730000010000-RemoveProjectFiscalYear';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { Company } from '../../../company/domain/company';
 import { GetCompanyBrandingUseCase } from '../../../company/application/get-company-branding/get-company-branding.use-case';
@@ -61,6 +65,10 @@ describe('encrypted image assets (PostgreSQL)', () => {
         AddMissingUniqueConstraints1730000004000,
         AddReferentialIntegrity1730000005000,
         NormalizeDerivedColumns1730000006000,
+        AdoptEnglishControlledValues1730000007000,
+        NormalizeTaxIdsAndEnforceUniqueness1730000008000,
+        PreserveWorkspaceMemberAuditIdentity1730000009000,
+        RemoveProjectFiscalYear1730000010000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -196,7 +204,6 @@ function createProject(projectImage: string | null): Project {
     endDate: null,
     budget: null,
     currency: 'EUR',
-    fiscalYear: null,
     manager: null,
     image: projectImage,
     color: null,

@@ -1,6 +1,7 @@
-import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Column, Entity, Index, PrimaryColumn } from 'typeorm';
 
 @Entity('clients')
+@Index('UQ_clients_tax_id', ['taxId'], { unique: true, where: '"tax_id" IS NOT NULL' })
 export class ClientOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

@@ -1,7 +1,7 @@
 import { Supplier } from '../../domain/supplier';
 import { SupplierNotFoundException } from '../../domain/errors/supplier-not-found.exception';
 import { SupplierRepository } from '../../domain/supplier.repository';
-import { SupplierReferenceCounter } from '../../domain/supplier-reference-counter.port';
+import { PhysicalDocumentReferenceCounter } from '../../domain/physical-document-reference-counter.port';
 import { DeleteSupplierUseCase } from './delete-supplier.use-case';
 
 class InMemorySupplierRepository implements SupplierRepository {
@@ -42,10 +42,10 @@ class InMemorySupplierRepository implements SupplierRepository {
   }
 }
 
-class FakeSupplierReferenceCounter implements SupplierReferenceCounter {
+class FakeSupplierPhysicalDocumentReferenceCounter implements PhysicalDocumentReferenceCounter {
   constructor(private readonly references: number) {}
 
-  count(): Promise<number> {
+  countPhysicalDocumentReferences(): Promise<number> {
     return Promise.resolve(this.references);
   }
 }
@@ -53,7 +53,7 @@ class FakeSupplierReferenceCounter implements SupplierReferenceCounter {
 describe('DeleteSupplierUseCase', () => {
   it('rejects an unknown supplier without invoking deletion', async () => {
     const repository = new InMemorySupplierRepository();
-    const useCase = new DeleteSupplierUseCase(repository, new FakeSupplierReferenceCounter(0));
+    const useCase = new DeleteSupplierUseCase(repository, new FakeSupplierPhysicalDocumentReferenceCounter(0));
 
     await expect(useCase.execute('missing-supplier')).rejects.toThrow(SupplierNotFoundException);
 
@@ -72,7 +72,7 @@ describe('DeleteSupplierUseCase', () => {
       notes: null,
     });
     const repository = new InMemorySupplierRepository([supplier]);
-    const useCase = new DeleteSupplierUseCase(repository, new FakeSupplierReferenceCounter(1));
+    const useCase = new DeleteSupplierUseCase(repository, new FakeSupplierPhysicalDocumentReferenceCounter(1));
 
     await expect(useCase.execute('supplier-1')).resolves.toBe('archived');
 
@@ -92,7 +92,7 @@ describe('DeleteSupplierUseCase', () => {
       notes: null,
     });
     const repository = new InMemorySupplierRepository([supplier]);
-    const useCase = new DeleteSupplierUseCase(repository, new FakeSupplierReferenceCounter(0));
+    const useCase = new DeleteSupplierUseCase(repository, new FakeSupplierPhysicalDocumentReferenceCounter(0));
 
     await expect(useCase.execute('supplier-1')).resolves.toBe('deleted');
 

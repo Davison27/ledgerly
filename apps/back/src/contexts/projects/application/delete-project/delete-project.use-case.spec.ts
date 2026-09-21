@@ -1,7 +1,7 @@
 import { Project } from '../../domain/project';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { ProjectRepository } from '../../domain/project.repository';
-import { ProjectDocumentCounter } from '../../domain/project-document-counter.port';
+import { PhysicalDocumentReferenceCounter } from '../../domain/physical-document-reference-counter.port';
 import { DeleteProjectUseCase } from './delete-project.use-case';
 
 class InMemoryProjectRepository implements ProjectRepository {
@@ -50,10 +50,10 @@ class InMemoryProjectRepository implements ProjectRepository {
   }
 }
 
-class FakeProjectDocumentCounter implements ProjectDocumentCounter {
+class FakeProjectPhysicalDocumentReferenceCounter implements PhysicalDocumentReferenceCounter {
   constructor(private readonly references: number) {}
 
-  count(): Promise<number> {
+  countPhysicalDocumentReferences(): Promise<number> {
     return Promise.resolve(this.references);
   }
 }
@@ -72,7 +72,6 @@ function project(): Project {
     endDate: null,
     budget: null,
     currency: 'EUR',
-    fiscalYear: null,
     manager: null,
     image: null,
     color: null,
@@ -82,7 +81,7 @@ function project(): Project {
 describe('DeleteProjectUseCase', () => {
   it('rejects an unknown project before deleting its associations', async () => {
     const projects = new InMemoryProjectRepository();
-    const useCase = new DeleteProjectUseCase(projects, new FakeProjectDocumentCounter(0));
+    const useCase = new DeleteProjectUseCase(projects, new FakeProjectPhysicalDocumentReferenceCounter(0));
 
     await expect(useCase.execute('missing-project')).rejects.toThrow(ProjectNotFoundException);
 
@@ -91,7 +90,7 @@ describe('DeleteProjectUseCase', () => {
 
   it('deletes an unreferenced project', async () => {
     const projects = new InMemoryProjectRepository([project()]);
-    const useCase = new DeleteProjectUseCase(projects, new FakeProjectDocumentCounter(0));
+    const useCase = new DeleteProjectUseCase(projects, new FakeProjectPhysicalDocumentReferenceCounter(0));
 
     await expect(useCase.execute('project-1')).resolves.toBe('deleted');
 
@@ -100,7 +99,7 @@ describe('DeleteProjectUseCase', () => {
 
   it('archives a project with document references', async () => {
     const projects = new InMemoryProjectRepository([project()]);
-    const useCase = new DeleteProjectUseCase(projects, new FakeProjectDocumentCounter(1));
+    const useCase = new DeleteProjectUseCase(projects, new FakeProjectPhysicalDocumentReferenceCounter(1));
 
     await expect(useCase.execute('project-1')).resolves.toBe('archived');
 

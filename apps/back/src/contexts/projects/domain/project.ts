@@ -57,7 +57,6 @@ export interface ProjectPrimitives {
   endDate: string | null;
   budget: number | null;
   currency: ProjectCurrency;
-  fiscalYear: string | null;
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
@@ -76,7 +75,6 @@ interface ProjectProps {
   endDate: string | null;
   budget: number | null;
   currency: ProjectCurrency;
-  fiscalYear: string | null;
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
@@ -95,7 +93,6 @@ export class Project {
   private endDate_: string | null;
   private budget_: number | null;
   private currency_: ProjectCurrency;
-  private fiscalYear_: string | null;
   private manager_: string | null;
   private image_: string | null;
   private color_: ProjectColor | null;
@@ -113,7 +110,6 @@ export class Project {
     this.endDate_ = props.endDate;
     this.budget_ = props.budget;
     this.currency_ = props.currency;
-    this.fiscalYear_ = props.fiscalYear;
     this.manager_ = props.manager;
     this.image_ = props.image;
     this.color_ = props.color;
@@ -141,7 +137,6 @@ export class Project {
       endDate: params.endDate,
       budget: params.budget,
       currency: params.currency,
-      fiscalYear: params.fiscalYear,
       manager: params.manager,
       image: params.image,
       color: params.color,
@@ -196,10 +191,6 @@ export class Project {
   changeCurrency(currency: ProjectCurrency): void {
     assertValidCurrency(currency);
     this.currency_ = currency;
-  }
-
-  changeFiscalYear(fiscalYear: string | null): void {
-    this.fiscalYear_ = fiscalYear;
   }
 
   changeManager(manager: string | null): void {
@@ -263,10 +254,6 @@ export class Project {
     return this.currency_;
   }
 
-  get fiscalYear(): string | null {
-    return this.fiscalYear_;
-  }
-
   get manager(): string | null {
     return this.manager_;
   }
@@ -293,7 +280,6 @@ export class Project {
       endDate: this.endDate_,
       budget: this.budget_,
       currency: this.currency_,
-      fiscalYear: this.fiscalYear_,
       manager: this.manager_,
       image: this.image_,
       color: this.color_,

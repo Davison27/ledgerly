@@ -6,7 +6,7 @@ import { StaffDocumentTypeOrmEntity } from './infrastructure/persistence/staff-d
 import { TypeOrmStaffMemberRepository } from './infrastructure/persistence/typeorm-staff-member.repository';
 import { TypeOrmStaffDocumentRepository } from './infrastructure/persistence/typeorm-staff-document.repository';
 import { TypeOrmStaffDocumentTypeRepository } from './infrastructure/persistence/typeorm-staff-document-type.repository';
-import { TypeOrmStaffPayrollCounter } from './infrastructure/persistence/typeorm-staff-payroll-counter';
+import { TypeOrmStaffPhysicalDocumentReferenceCounter } from './infrastructure/persistence/typeorm-staff-physical-document-reference-counter';
 import { StaffDocumentTypeCatalogInitializer } from './infrastructure/persistence/staff-document-type-catalog.initializer';
 import { StaffController } from './infrastructure/http/staff.controller';
 import { StaffDocumentsController } from './infrastructure/http/staff-documents.controller';
@@ -14,7 +14,7 @@ import { StaffDocumentTypesController } from './infrastructure/http/staff-docume
 import { STAFF_MEMBER_REPOSITORY } from './domain/staff-member.repository';
 import { STAFF_DOCUMENT_REPOSITORY } from './domain/staff-document.repository';
 import { STAFF_DOCUMENT_TYPE_REPOSITORY } from './domain/staff-document-type.repository';
-import { STAFF_MEMBER_REFERENCE_COUNTER } from './domain/staff-member-reference-counter.port';
+import { STAFF_MEMBER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER } from './domain/physical-document-reference-counter.port';
 import { ListStaffMembersUseCase } from './application/list-staff-members/list-staff-members.use-case';
 import { GetStaffMemberUseCase } from './application/get-staff-member/get-staff-member.use-case';
 import { CreateStaffMemberUseCase } from './application/create-staff-member/create-staff-member.use-case';
@@ -50,7 +50,7 @@ import { UnarchiveStaffMemberUseCase } from './application/unarchive-staff-membe
     { provide: STAFF_MEMBER_REPOSITORY, useClass: TypeOrmStaffMemberRepository },
     { provide: STAFF_DOCUMENT_REPOSITORY, useClass: TypeOrmStaffDocumentRepository },
     { provide: STAFF_DOCUMENT_TYPE_REPOSITORY, useClass: TypeOrmStaffDocumentTypeRepository },
-    { provide: STAFF_MEMBER_REFERENCE_COUNTER, useClass: TypeOrmStaffPayrollCounter },
+    { provide: STAFF_MEMBER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER, useClass: TypeOrmStaffPhysicalDocumentReferenceCounter },
   ],
 })
 export class StaffModule {}

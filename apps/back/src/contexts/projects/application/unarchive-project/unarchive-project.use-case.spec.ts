@@ -17,7 +17,6 @@ function buildProject(): Project {
     endDate: null,
     budget: null,
     currency: 'EUR',
-    fiscalYear: null,
     manager: null,
     image: null,
     color: null,

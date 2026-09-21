@@ -66,10 +66,6 @@ export class UpdateProjectDto {
 
   @IsOptional()
   @IsString()
-  fiscalYear?: string | null;
-
-  @IsOptional()
-  @IsString()
   manager?: string | null;
 
   @IsOptional()

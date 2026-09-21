@@ -11,8 +11,8 @@ import { UpdateSupplierUseCase } from './application/update-supplier/update-supp
 import { DeleteSupplierUseCase } from './application/delete-supplier/delete-supplier.use-case';
 import { SUPPLIER_SPEND_PROVIDER } from './domain/supplier-spend-provider.port';
 import { DocumentSupplierSpendProvider } from './infrastructure/documents/document-supplier-spend-provider';
-import { SUPPLIER_REFERENCE_COUNTER } from './domain/supplier-reference-counter.port';
-import { TypeOrmSupplierReferenceCounter } from './infrastructure/persistence/typeorm-supplier-reference-counter';
+import { SUPPLIER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER } from './domain/physical-document-reference-counter.port';
+import { TypeOrmSupplierPhysicalDocumentReferenceCounter } from './infrastructure/persistence/typeorm-supplier-physical-document-reference-counter';
 import { UnarchiveSupplierUseCase } from './application/unarchive-supplier/unarchive-supplier.use-case';
 
 @Module({
@@ -26,7 +26,7 @@ import { UnarchiveSupplierUseCase } from './application/unarchive-supplier/unarc
     DeleteSupplierUseCase,
     UnarchiveSupplierUseCase,
     { provide: SUPPLIER_REPOSITORY, useClass: TypeOrmSupplierRepository },
-    { provide: SUPPLIER_REFERENCE_COUNTER, useClass: TypeOrmSupplierReferenceCounter },
+    { provide: SUPPLIER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER, useClass: TypeOrmSupplierPhysicalDocumentReferenceCounter },
     { provide: SUPPLIER_SPEND_PROVIDER, useClass: DocumentSupplierSpendProvider },
   ],
 })

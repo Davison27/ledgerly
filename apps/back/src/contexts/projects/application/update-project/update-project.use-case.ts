@@ -74,10 +74,6 @@ export class UpdateProjectUseCase {
       project.changeCurrency(command.currency);
     }
 
-    if (command.fiscalYear !== undefined) {
-      project.changeFiscalYear(command.fiscalYear);
-    }
-
     if (command.manager !== undefined) {
       project.changeManager(command.manager);
     }

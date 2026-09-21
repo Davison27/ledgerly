@@ -34,3 +34,21 @@ describe('TypeOrmStaffMemberRepository.findAllSummaryRows', () => {
     expect(query).toHaveBeenCalledWith(expect.any(String), [501]);
   });
 });
+
+describe('TypeOrmStaffMemberRepository archive lifecycle', () => {
+  it('archives and unarchives without changing employment dates', async () => {
+    type LifecycleUpdate = { archivedAt: (() => string) | null; endDate?: string | null };
+    const update = jest.fn<Promise<void>, [string, LifecycleUpdate]>().mockResolvedValue(undefined);
+    const repository = new TypeOrmStaffMemberRepository({ update } as unknown as Repository<StaffMemberOrmEntity>);
+
+    await repository.archive('staff-1');
+    await repository.unarchive('staff-1');
+
+    const firstCall = update.mock.calls[0];
+    expect(firstCall?.[0]).toBe('staff-1');
+    expect(typeof firstCall?.[1]?.archivedAt).toBe('function');
+    expect(update).toHaveBeenNthCalledWith(2, 'staff-1', { archivedAt: null });
+    expect(update.mock.calls[0]?.[1]).not.toHaveProperty('endDate');
+    expect(update.mock.calls[1]?.[1]).not.toHaveProperty('endDate');
+  });
+});

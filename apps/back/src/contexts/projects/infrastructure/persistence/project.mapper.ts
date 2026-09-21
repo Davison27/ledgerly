@@ -20,7 +20,6 @@ export class ProjectMapper {
       endDate: orm.endDate,
       budget: orm.budget !== null ? Number(orm.budget) : null,
       currency: orm.currency as ProjectCurrency,
-      fiscalYear: orm.fiscalYear,
       manager: orm.manager,
       image,
       color: orm.color as ProjectColor | null,
@@ -43,7 +42,6 @@ export class ProjectMapper {
     orm.endDate = primitives.endDate;
     orm.budget = primitives.budget !== null ? primitives.budget.toString() : null;
     orm.currency = primitives.currency;
-    orm.fiscalYear = primitives.fiscalYear;
     orm.manager = primitives.manager;
     orm.color = primitives.color;
 

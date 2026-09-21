@@ -9,6 +9,9 @@ import { AddMissingUniqueConstraints1730000004000 } from './1730000004000-AddMis
 import { AddReferentialIntegrity1730000005000 } from './1730000005000-AddReferentialIntegrity';
 import { NormalizeDerivedColumns1730000006000 } from './1730000006000-NormalizeDerivedColumns';
 import { AdoptEnglishControlledValues1730000007000 } from './1730000007000-AdoptEnglishControlledValues';
+import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from './1730000008000-NormalizeTaxIdsAndEnforceUniqueness';
+import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from './1730000009000-PreserveWorkspaceMemberAuditIdentity';
+import { RemoveProjectFiscalYear1730000010000 } from './1730000010000-RemoveProjectFiscalYear';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
@@ -19,6 +22,9 @@ const migrations: Array<new () => MigrationInterface> = [
   AddReferentialIntegrity1730000005000,
   NormalizeDerivedColumns1730000006000,
   AdoptEnglishControlledValues1730000007000,
+  NormalizeTaxIdsAndEnforceUniqueness1730000008000,
+  PreserveWorkspaceMemberAuditIdentity1730000009000,
+  RemoveProjectFiscalYear1730000010000,
 ];
 
 describe('entity and migration schema parity', () => {
@@ -70,6 +76,8 @@ describe('entity and migration schema parity', () => {
       'UQ_staff_document_types_code',
       'UQ_invoice_extraction_hints_issuer_field',
       'UQ_companies_singleton',
+      'UQ_clients_tax_id',
+      'UQ_suppliers_tax_id',
     ];
     const rows: Array<{ indexname: string }> = await dataSource.query(
       `SELECT indexname FROM pg_indexes WHERE schemaname = current_schema() AND indexname = ANY($1) ORDER BY indexname`,
@@ -77,6 +85,39 @@ describe('entity and migration schema parity', () => {
     );
 
     expect(rows.map((row) => row.indexname)).toEqual([...expectedIndexes].sort());
+  });
+
+  it('applies workspace audit indexes and removes project fiscal year', async () => {
+    const indexRows: Array<{ name: string }> = await dataSource.query(
+      `SELECT indexname AS name
+       FROM pg_indexes
+       WHERE schemaname = current_schema()
+         AND indexname = ANY($1)
+       ORDER BY indexname`,
+      [['IDX_documents_created_by', 'IDX_documents_deleted_by']],
+    );
+    const foreignKeyRows: Array<{ name: string }> = await dataSource.query(
+      `SELECT conname AS name
+       FROM pg_constraint
+       WHERE connamespace = current_schema()::regnamespace
+         AND conname = ANY($1)
+       ORDER BY conname`,
+      [['FK_documents_created_by_workspace_member', 'FK_documents_deleted_by_workspace_member']],
+    );
+    const fiscalYearColumns: Array<{ columnName: string }> = await dataSource.query(
+      `SELECT column_name AS "columnName"
+       FROM information_schema.columns
+       WHERE table_schema = current_schema()
+         AND table_name = 'projects'
+         AND column_name = 'fiscal_year'`,
+    );
+
+    expect(indexRows.map((row) => row.name)).toEqual(['IDX_documents_created_by', 'IDX_documents_deleted_by']);
+    expect(foreignKeyRows.map((row) => row.name)).toEqual([
+      'FK_documents_created_by_workspace_member',
+      'FK_documents_deleted_by_workspace_member',
+    ]);
+    expect(fiscalYearColumns).toHaveLength(0);
   });
 
 });

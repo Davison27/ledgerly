@@ -5,17 +5,17 @@ import {
 } from '../../domain/project.repository';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import {
-  PROJECT_DOCUMENT_COUNTER,
-  ProjectDocumentCounter,
-} from '../../domain/project-document-counter.port';
+  PROJECT_PHYSICAL_DOCUMENT_REFERENCE_COUNTER,
+  PhysicalDocumentReferenceCounter,
+} from '../../domain/physical-document-reference-counter.port';
 
 @Injectable()
 export class DeleteProjectUseCase {
   constructor(
     @Inject(PROJECT_REPOSITORY)
     private readonly projectRepository: ProjectRepository,
-    @Inject(PROJECT_DOCUMENT_COUNTER)
-    private readonly projectDocumentCounter: ProjectDocumentCounter,
+    @Inject(PROJECT_PHYSICAL_DOCUMENT_REFERENCE_COUNTER)
+    private readonly projectPhysicalDocumentReferenceCounter: PhysicalDocumentReferenceCounter,
   ) {}
 
   async execute(id: string): Promise<'deleted' | 'archived'> {
@@ -25,7 +25,7 @@ export class DeleteProjectUseCase {
       throw new ProjectNotFoundException(id);
     }
 
-    const referenceCount = await this.projectDocumentCounter.count(id);
+    const referenceCount = await this.projectPhysicalDocumentReferenceCounter.countPhysicalDocumentReferences(id);
 
     if (referenceCount > 0) {
       await this.projectRepository.archive(id);

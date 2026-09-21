@@ -89,7 +89,6 @@ describe('GetProjectUseCase', () => {
       endDate: null,
       budget: null,
       currency: 'EUR',
-      fiscalYear: null,
       manager: null,
       image,
       color: null,

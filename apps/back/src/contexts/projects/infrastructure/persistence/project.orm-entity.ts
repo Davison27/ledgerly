@@ -53,9 +53,6 @@ export class ProjectOrmEntity {
   @Column({ length: 3, default: 'EUR' })
   currency: string;
 
-  @Column({ name: 'fiscal_year', type: 'varchar', length: 10, nullable: true })
-  fiscalYear: string | null;
-
   @Column({ type: 'varchar', length: 160, nullable: true })
   manager: string | null;
 

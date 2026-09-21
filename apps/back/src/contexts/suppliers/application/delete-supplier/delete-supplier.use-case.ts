@@ -5,17 +5,17 @@ import {
 } from '../../domain/supplier.repository';
 import { SupplierNotFoundException } from '../../domain/errors/supplier-not-found.exception';
 import {
-  SUPPLIER_REFERENCE_COUNTER,
-  SupplierReferenceCounter,
-} from '../../domain/supplier-reference-counter.port';
+  SUPPLIER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER,
+  PhysicalDocumentReferenceCounter,
+} from '../../domain/physical-document-reference-counter.port';
 
 @Injectable()
 export class DeleteSupplierUseCase {
   constructor(
     @Inject(SUPPLIER_REPOSITORY)
     private readonly supplierRepository: SupplierRepository,
-    @Inject(SUPPLIER_REFERENCE_COUNTER)
-    private readonly supplierReferenceCounter: SupplierReferenceCounter,
+    @Inject(SUPPLIER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER)
+    private readonly supplierPhysicalDocumentReferenceCounter: PhysicalDocumentReferenceCounter,
   ) {}
 
   async execute(id: string): Promise<'deleted' | 'archived'> {
@@ -25,7 +25,7 @@ export class DeleteSupplierUseCase {
       throw new SupplierNotFoundException(id);
     }
 
-    const referenceCount = await this.supplierReferenceCounter.count(id);
+    const referenceCount = await this.supplierPhysicalDocumentReferenceCounter.countPhysicalDocumentReferences(id);
 
     if (referenceCount > 0) {
       await this.supplierRepository.archive(id);

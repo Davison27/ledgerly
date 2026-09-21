@@ -40,7 +40,6 @@ export class CreateProjectUseCase {
       endDate: command.endDate ?? null,
       budget: command.budget ?? null,
       currency: command.currency ?? 'EUR',
-      fiscalYear: command.fiscalYear ?? null,
       manager: command.manager ?? null,
       image: command.image ?? null,
       color: command.color ?? null,

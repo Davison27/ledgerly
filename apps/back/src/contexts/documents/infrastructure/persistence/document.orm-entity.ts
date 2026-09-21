@@ -12,6 +12,7 @@ import {
 import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 import { StaffMemberOrmEntity } from '../../../staff/infrastructure/persistence/staff-member.orm-entity';
 import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence/supplier.orm-entity';
+import { WorkspaceMemberOrmEntity } from '../../../auth/infrastructure/persistence/workspace-member.orm-entity';
 
 @Entity('documents')
 @Index('IDX_documents_project_date_id', { synchronize: false })
@@ -19,6 +20,8 @@ import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence
 @Index('IDX_documents_invoice_amount', { synchronize: false })
 @Index(['supplierId'])
 @Index(['staffMemberId'])
+@Index('IDX_documents_created_by', ['createdBy'])
+@Index('IDX_documents_deleted_by', ['deletedBy'])
 @Check('CHK_documents_type', `"type" IN ('invoice', 'payroll', 'tax')`)
 @Check('CHK_documents_direction', `"direction" IN ('income', 'expense')`)
 @Check('CHK_documents_status', `"status" IN ('paid', 'pending', 'overdue')`)
@@ -127,8 +130,10 @@ export class DocumentOrmEntity {
   deletedAt: Date | null;
 
   @Column({ name: 'created_by', type: 'uuid', nullable: true })
+  @ForeignKey(() => WorkspaceMemberOrmEntity, { name: 'FK_documents_created_by_workspace_member', onDelete: 'RESTRICT' })
   createdBy: string | null;
 
   @Column({ name: 'deleted_by', type: 'uuid', nullable: true })
+  @ForeignKey(() => WorkspaceMemberOrmEntity, { name: 'FK_documents_deleted_by_workspace_member', onDelete: 'RESTRICT' })
   deletedBy: string | null;
 }

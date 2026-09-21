@@ -1,6 +1,6 @@
 {
   "rootDir": "../src",
-  "testRegex": ".*(encrypted-stored-files\\.migration|schema-parity\\.migration|referential-integrity\\.migration|normalize-derived-columns\\.migration|english-controlled-values\\.migration|typeorm-document\\.repository|encrypted-image-assets)\\.e2e\\.spec\\.ts$",
+  "testRegex": ".*(encrypted-stored-files\\.migration|schema-parity\\.migration|referential-integrity\\.migration|normalize-derived-columns\\.migration|english-controlled-values\\.migration|tax-id-uniqueness\\.migration|workspace-member-audit-identity\\.migration|remove-project-fiscal-year\\.migration|typeorm-document\\.repository|encrypted-image-assets)\\.e2e\\.spec\\.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },

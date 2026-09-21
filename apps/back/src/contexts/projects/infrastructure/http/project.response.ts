@@ -20,7 +20,6 @@ export class ProjectResponse {
   endDate: string | null;
   budget: number | null;
   currency: ProjectCurrency;
-  fiscalYear: string | null;
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
@@ -42,7 +41,6 @@ export class ProjectResponse {
     response.endDate = primitives.endDate;
     response.budget = primitives.budget;
     response.currency = primitives.currency;
-    response.fiscalYear = primitives.fiscalYear;
     response.manager = primitives.manager;
     response.image = primitives.image;
     response.color = primitives.color;

@@ -4,9 +4,9 @@ import {
   StaffMemberRepository,
 } from '../../domain/staff-member.repository';
 import {
-  STAFF_MEMBER_REFERENCE_COUNTER,
-  StaffMemberReferenceCounter,
-} from '../../domain/staff-member-reference-counter.port';
+  STAFF_MEMBER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER,
+  PhysicalDocumentReferenceCounter,
+} from '../../domain/physical-document-reference-counter.port';
 import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 
 @Injectable()
@@ -14,8 +14,8 @@ export class DeleteStaffMemberUseCase {
   constructor(
     @Inject(STAFF_MEMBER_REPOSITORY)
     private readonly staffMemberRepository: StaffMemberRepository,
-    @Inject(STAFF_MEMBER_REFERENCE_COUNTER)
-    private readonly staffMemberReferenceCounter: StaffMemberReferenceCounter,
+    @Inject(STAFF_MEMBER_PHYSICAL_DOCUMENT_REFERENCE_COUNTER)
+    private readonly staffMemberPhysicalDocumentReferenceCounter: PhysicalDocumentReferenceCounter,
   ) {}
 
   async execute(id: string): Promise<'deleted' | 'archived'> {
@@ -25,7 +25,7 @@ export class DeleteStaffMemberUseCase {
       throw new StaffMemberNotFoundException(id);
     }
 
-    const referenceCount = await this.staffMemberReferenceCounter.count(id);
+    const referenceCount = await this.staffMemberPhysicalDocumentReferenceCounter.countPhysicalDocumentReferences(id);
 
     if (referenceCount > 0) {
       await this.staffMemberRepository.archive(id);

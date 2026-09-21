@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { QueryFailedError, Repository } from 'typeorm';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 import { Client } from '../../domain/client';
 import { ClientRepository } from '../../domain/client.repository';
 import { ClientMapper } from './client.mapper';
 import { ClientOrmEntity } from './client.orm-entity';
+import { ClientTaxIdAlreadyExistsException } from '../../domain/errors/client-tax-id-already-exists.exception';
+import { normalizeTaxId } from '../../../../shared/domain/tax-id';
 
 @Injectable()
 export class TypeOrmClientRepository implements ClientRepository {
@@ -32,13 +34,30 @@ export class TypeOrmClientRepository implements ClientRepository {
   }
 
   async findByTaxId(taxId: string): Promise<Client | null> {
-    const orm = await this.repository.findOne({ where: { taxId } });
+    const normalizedTaxId = normalizeTaxId(taxId);
+    if (normalizedTaxId === null) return null;
+
+    const orm = await this.repository.findOne({ where: { taxId: normalizedTaxId } });
 
     return orm !== null ? this.mapper.toDomain(orm) : null;
   }
 
   async save(client: Client): Promise<void> {
-    await this.repository.save(this.mapper.toOrm(client));
+    try {
+      await this.repository.save(this.mapper.toOrm(client));
+    } catch (error) {
+      if (
+        error instanceof QueryFailedError &&
+        (error as QueryFailedError & { driverError?: { code?: string; constraint?: string } }).driverError?.code ===
+          '23505' &&
+        (error as QueryFailedError & { driverError?: { code?: string; constraint?: string } }).driverError?.constraint ===
+          'UQ_clients_tax_id'
+      ) {
+        throw new ClientTaxIdAlreadyExistsException(client.taxId ?? '');
+      }
+
+      throw error;
+    }
   }
 
   async archive(id: string): Promise<void> {

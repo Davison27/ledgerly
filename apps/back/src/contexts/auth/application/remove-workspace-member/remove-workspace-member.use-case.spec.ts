@@ -22,7 +22,7 @@ class InMemorySessionRevoker implements AuthSessionRevoker {
 }
 
 class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
-  deletedIds: string[] = [];
+  disabledIds: string[] = [];
 
   constructor(private members: WorkspaceMember[], private readonly operations: string[] = []) {}
 
@@ -50,18 +50,13 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
     return Promise.resolve(this.members.filter((member) => member.isAdmin() && member.isActive()).length);
   }
 
-  save(): Promise<void> {
+  save(member: WorkspaceMember): Promise<void> {
+    this.operations.push('save');
+    this.disabledIds.push(member.getId());
     return Promise.resolve();
   }
 
   insertFounder(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(id: string): Promise<void> {
-    this.operations.push('delete');
-    this.deletedIds.push(id);
-    this.members = this.members.filter((member) => member.getId() !== id);
     return Promise.resolve();
   }
 
@@ -123,7 +118,7 @@ describe('RemoveWorkspaceMemberUseCase', () => {
     await expect(useCase.execute({ id: 'admin-1', actingMemberId: 'other-actor' })).rejects.toThrow(
       LastAdminException,
     );
-    expect(repository.deletedIds).toEqual([]);
+    expect(repository.disabledIds).toEqual([]);
   });
 
   it('removes a viewer without touching the admin count', async () => {
@@ -134,9 +129,10 @@ describe('RemoveWorkspaceMemberUseCase', () => {
 
     await useCase.execute({ id: 'viewer-1', actingMemberId: 'admin-1' });
 
-    expect(repository.deletedIds).toEqual(['viewer-1']);
+    expect(repository.disabledIds).toEqual(['viewer-1']);
+    expect((await repository.findById('viewer-1'))?.getStatus()).toBe('disabled');
     expect(sessionRevoker.revokedEmails).toEqual(['viewer-1@ledgerly.dev']);
-    expect(operations).toEqual(['delete', 'revoke']);
+    expect(operations).toEqual(['save', 'revoke']);
   });
 
   it('removes an admin when another active admin remains', async () => {
@@ -145,10 +141,10 @@ describe('RemoveWorkspaceMemberUseCase', () => {
 
     await useCase.execute({ id: 'admin-1', actingMemberId: 'admin-2' });
 
-    expect(repository.deletedIds).toEqual(['admin-1']);
+    expect(repository.disabledIds).toEqual(['admin-1']);
   });
 
-  it('keeps the member deleted when session revocation fails', async () => {
+  it('keeps the member disabled when session revocation fails', async () => {
     const operations: string[] = [];
     const repository = new InMemoryWorkspaceMemberRepository(
       [adminMember('admin-1'), viewerMember('viewer-1')],
@@ -158,8 +154,8 @@ describe('RemoveWorkspaceMemberUseCase', () => {
     const useCase = new RemoveWorkspaceMemberUseCase(repository, sessionRevoker);
 
     await expect(useCase.execute({ id: 'viewer-1', actingMemberId: 'admin-1' })).resolves.toBeUndefined();
-    expect(repository.deletedIds).toEqual(['viewer-1']);
-    await expect(repository.findById('viewer-1')).resolves.toBeNull();
-    expect(operations).toEqual(['delete', 'revoke']);
+    expect(repository.disabledIds).toEqual(['viewer-1']);
+    expect((await repository.findById('viewer-1'))?.getStatus()).toBe('disabled');
+    expect(operations).toEqual(['save', 'revoke']);
   });
 });

@@ -91,10 +91,6 @@ export class TypeOrmWorkspaceMemberRepository implements WorkspaceMemberReposito
     }
   }
 
-  async delete(id: string): Promise<void> {
-    await this.repository.delete({ id });
-  }
-
   async touchLastActive(memberId: string, at: Date): Promise<void> {
     await this.repository.update({ id: memberId }, { lastActiveAt: at });
   }

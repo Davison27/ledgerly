@@ -68,6 +68,31 @@ describe('WorkspaceMember', () => {
     expect(member.getStatus()).toBe('disabled');
   });
 
+  it('disables while preserving the member identity and reactivates through status changes', () => {
+    const member = WorkspaceMember.create({
+      id: 'member-1',
+      email: MemberEmail.create('person@ledgerly.dev'),
+      googleSubject: 'google-subject-1',
+      name: 'Provisional Name',
+      permissions: viewerMatrix(),
+      status: 'active',
+      invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
+    const memberId = member.getId();
+    const email = member.getEmail();
+    const googleSubject = member.getGoogleSubject();
+
+    member.disable();
+
+    expect(member.getId()).toBe(memberId);
+    expect(member.getEmail()).toBe(email);
+    expect(member.getGoogleSubject()).toBe(googleSubject);
+    expect(member.getStatus()).toBe('disabled');
+
+    member.changeStatus('active');
+    expect(member.getStatus()).toBe('active');
+  });
+
   it('derives isAdmin from the permission matrix', () => {
     const admin = WorkspaceMember.create({
       id: 'member-2',

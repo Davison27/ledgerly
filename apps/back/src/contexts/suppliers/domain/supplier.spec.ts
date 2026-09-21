@@ -56,9 +56,18 @@ describe('Supplier', () => {
   it('changes the tax id', () => {
     const supplier = Supplier.create(BASE_PRIMITIVES);
 
-    supplier.changeTaxId('B87654321');
+    supplier.changeTaxId(' b-876.543 21 ');
 
     expect(supplier.taxId).toBe('B87654321');
+  });
+
+  it('canonicalizes tax IDs and clears empty values', () => {
+    const supplier = Supplier.create({ ...BASE_PRIMITIVES, taxId: ' es-b.123-456 78 ' });
+
+    expect(supplier.taxId).toBe('ESB12345678');
+
+    supplier.changeTaxId(' .- ');
+    expect(supplier.taxId).toBeNull();
   });
 
   it('changes and clears the email', () => {

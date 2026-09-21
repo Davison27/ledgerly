@@ -85,4 +85,37 @@ describe('CreateClientUseCase', () => {
 
     await expect(repository.findAll()).resolves.toHaveLength(1);
   });
+
+  it('normalizes equivalent tax-ID input before lookup and persistence', async () => {
+    const repository = new InMemoryClientRepository();
+    const useCase = new CreateClientUseCase(repository, new SequentialIdGenerator());
+
+    const created = await useCase.execute({ name: 'Acme SL', taxId: ' b-123.456 78 ' });
+
+    expect(created.taxId).toBe('B12345678');
+    await expect(
+      useCase.execute({ name: 'Duplicate SL', taxId: 'B12345678' }),
+    ).rejects.toThrow(ClientTaxIdAlreadyExistsException);
+  });
+
+  it('rejects a tax ID reserved by an archived client', async () => {
+    const repository = new InMemoryClientRepository();
+    const useCase = new CreateClientUseCase(repository, new SequentialIdGenerator());
+
+    await useCase.execute({ name: 'Archived SL', taxId: 'B12345678' });
+    const archived = await repository.findById('generated-id-1');
+    archived?.archive('2026-01-01T00:00:00.000Z');
+
+    await expect(
+      useCase.execute({ name: 'Duplicate SL', taxId: ' b-123.456 78 ' }),
+    ).rejects.toThrow(ClientTaxIdAlreadyExistsException);
+  });
+
+  it('treats empty and punctuation-only tax IDs as repeatable null values', async () => {
+    const repository = new InMemoryClientRepository();
+    const useCase = new CreateClientUseCase(repository, new SequentialIdGenerator());
+
+    await expect(useCase.execute({ name: 'Blank One', taxId: ' .- ' })).resolves.toMatchObject({ taxId: null });
+    await expect(useCase.execute({ name: 'Blank Two', taxId: '' })).resolves.toMatchObject({ taxId: null });
+  });
 });

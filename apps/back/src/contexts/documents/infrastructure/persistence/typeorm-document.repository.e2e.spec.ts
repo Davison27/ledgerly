@@ -8,6 +8,9 @@ import { AddMissingUniqueConstraints1730000004000 } from '../../../../database/m
 import { AddReferentialIntegrity1730000005000 } from '../../../../database/migrations/1730000005000-AddReferentialIntegrity';
 import { NormalizeDerivedColumns1730000006000 } from '../../../../database/migrations/1730000006000-NormalizeDerivedColumns';
 import { AdoptEnglishControlledValues1730000007000 } from '../../../../database/migrations/1730000007000-AdoptEnglishControlledValues';
+import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from '../../../../database/migrations/1730000008000-NormalizeTaxIdsAndEnforceUniqueness';
+import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from '../../../../database/migrations/1730000009000-PreserveWorkspaceMemberAuditIdentity';
+import { RemoveProjectFiscalYear1730000010000 } from '../../../../database/migrations/1730000010000-RemoveProjectFiscalYear';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { DeleteProjectUseCase } from '../../../projects/application/delete-project/delete-project.use-case';
 import { DeleteStaffMemberUseCase } from '../../../staff/application/delete-staff-member/delete-staff-member.use-case';
@@ -18,11 +21,12 @@ import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/p
 import { ClientOrmEntity } from '../../../projects/infrastructure/persistence/client.orm-entity';
 import { StaffMemberOrmEntity } from '../../../staff/infrastructure/persistence/staff-member.orm-entity';
 import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence/supplier.orm-entity';
-import { TypeOrmProjectDocumentCounter } from '../../../projects/infrastructure/persistence/typeorm-project-document-counter';
+import { WorkspaceMemberOrmEntity } from '../../../auth/infrastructure/persistence/workspace-member.orm-entity';
+import { TypeOrmProjectPhysicalDocumentReferenceCounter } from '../../../projects/infrastructure/persistence/typeorm-project-physical-document-reference-counter';
 import { TypeOrmProjectRepository } from '../../../projects/infrastructure/persistence/typeorm-project.repository';
 import { TypeOrmStaffMemberRepository } from '../../../staff/infrastructure/persistence/typeorm-staff-member.repository';
-import { TypeOrmStaffPayrollCounter } from '../../../staff/infrastructure/persistence/typeorm-staff-payroll-counter';
-import { TypeOrmSupplierReferenceCounter } from '../../../suppliers/infrastructure/persistence/typeorm-supplier-reference-counter';
+import { TypeOrmStaffPhysicalDocumentReferenceCounter } from '../../../staff/infrastructure/persistence/typeorm-staff-physical-document-reference-counter';
+import { TypeOrmSupplierPhysicalDocumentReferenceCounter } from '../../../suppliers/infrastructure/persistence/typeorm-supplier-physical-document-reference-counter';
 import { TypeOrmSupplierRepository } from '../../../suppliers/infrastructure/persistence/typeorm-supplier.repository';
 import { TypeOrmDocumentRepository } from './typeorm-document.repository';
 
@@ -41,7 +45,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     dataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [DocumentOrmEntity, ProjectOrmEntity, ClientOrmEntity, SupplierOrmEntity, StaffMemberOrmEntity],
+      entities: [DocumentOrmEntity, ProjectOrmEntity, ClientOrmEntity, SupplierOrmEntity, StaffMemberOrmEntity, WorkspaceMemberOrmEntity],
       migrations: [
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
@@ -51,6 +55,9 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
         AddReferentialIntegrity1730000005000,
         NormalizeDerivedColumns1730000006000,
         AdoptEnglishControlledValues1730000007000,
+        NormalizeTaxIdsAndEnforceUniqueness1730000008000,
+        PreserveWorkspaceMemberAuditIdentity1730000009000,
+        RemoveProjectFiscalYear1730000010000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -94,6 +101,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       keys: new Map([['v1', Buffer.alloc(32, 1)]]),
     });
     const repository = new TypeOrmDocumentRepository(entityRepository, storedFileCipher);
+    await insertWorkspaceMember(dataSource, '00000000-0000-0000-0000-000000000102');
 
     await repository.saveContent(document.id, Buffer.from('%PDF'));
     const encryptedBefore = await selectEncryptedDocument(dataSource, document.id);
@@ -157,6 +165,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       { projectId, currency: 'EUR', income: 100, expenses: 0 },
     ]);
 
+    await insertWorkspaceMember(dataSource, '00000000-0000-0000-0000-000000000113');
     await expect(repository.softDelete(documentId, '00000000-0000-0000-0000-000000000113', new Date())).resolves.toBe(true);
 
     await expect(repository.findAllForListing({})).resolves.toEqual([]);
@@ -203,6 +212,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       direction: 'expense',
     });
     await entityRepository.save(document);
+    await insertWorkspaceMember(dataSource, deletedBy);
 
     const cipher = createStoredFileCipher({
       activeVersion: 'v1',
@@ -211,12 +221,12 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     const documentRepository = new TypeOrmDocumentRepository(entityRepository, cipher);
     await expect(documentRepository.softDelete(documentId, deletedBy, new Date())).resolves.toBe(true);
 
-    const supplierCounter = new TypeOrmSupplierReferenceCounter(dataSource);
-    const staffCounter = new TypeOrmStaffPayrollCounter(dataSource);
-    const projectCounter = new TypeOrmProjectDocumentCounter(dataSource);
-    await expect(supplierCounter.count(supplierId)).resolves.toBe(1);
-    await expect(staffCounter.count(staffMemberId)).resolves.toBe(1);
-    await expect(projectCounter.count(projectId)).resolves.toBe(1);
+    const supplierCounter = new TypeOrmSupplierPhysicalDocumentReferenceCounter(dataSource);
+    const staffCounter = new TypeOrmStaffPhysicalDocumentReferenceCounter(dataSource);
+    const projectCounter = new TypeOrmProjectPhysicalDocumentReferenceCounter(dataSource);
+    await expect(supplierCounter.countPhysicalDocumentReferences(supplierId)).resolves.toBe(1);
+    await expect(staffCounter.countPhysicalDocumentReferences(staffMemberId)).resolves.toBe(1);
+    await expect(projectCounter.countPhysicalDocumentReferences(projectId)).resolves.toBe(1);
 
     const supplierRepository = new TypeOrmSupplierRepository(dataSource.getRepository(SupplierOrmEntity));
     const staffRepository = new TypeOrmStaffMemberRepository(dataSource.getRepository(StaffMemberOrmEntity));
@@ -258,6 +268,15 @@ async function selectDeletionMetadata(
   );
 
   return rows[0] ?? null;
+}
+
+async function insertWorkspaceMember(dataSource: DataSource, id: string): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO workspace_members (
+       id, email, name, role, permissions, status, is_founder, invited_at
+     ) VALUES ($1, $2, 'Audit member', 'viewer', '{}'::jsonb, 'active', false, CURRENT_TIMESTAMP)`,
+    [id, `${id}@ledgerly.dev`],
+  );
 }
 
 function parseMigrationTestDatabaseUrl(value: unknown): string {

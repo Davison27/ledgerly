@@ -15,7 +15,6 @@ function buildPrimitives(overrides: Partial<ProjectPrimitives> = {}): ProjectPri
     endDate: null,
     budget: null,
     currency: 'EUR',
-    fiscalYear: null,
     manager: null,
     image: null,
     color: null,

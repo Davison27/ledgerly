@@ -40,10 +40,6 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
     return Promise.resolve();
   }
 
-  delete(): Promise<void> {
-    return Promise.resolve();
-  }
-
   touchLastActive(): Promise<void> {
     return Promise.resolve();
   }

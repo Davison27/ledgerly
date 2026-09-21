@@ -1,4 +1,5 @@
 import { Email } from './value-objects/email';
+import { normalizeTaxId } from '../../../shared/domain/tax-id';
 
 export interface SupplierPrimitives {
   id: string;
@@ -53,7 +54,7 @@ export class Supplier {
     return new Supplier({
       id: params.id,
       name: params.name,
-      taxId: params.taxId,
+      taxId: normalizeTaxId(params.taxId),
       email,
       phone: params.phone,
       address: params.address,
@@ -68,7 +69,7 @@ export class Supplier {
   }
 
   changeTaxId(taxId: string | null): void {
-    this.taxId_ = taxId;
+    this.taxId_ = normalizeTaxId(taxId);
   }
 
   changeEmail(email: string | null): void {

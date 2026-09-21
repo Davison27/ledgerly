@@ -1,4 +1,5 @@
 import { Email } from './value-objects/email';
+import { normalizeTaxId } from '../../../shared/domain/tax-id';
 
 export interface ClientPrimitives {
   id: string;
@@ -43,7 +44,7 @@ export class Client {
     return new Client({
       id: params.id,
       name: params.name,
-      taxId: params.taxId,
+      taxId: normalizeTaxId(params.taxId),
       contactName: params.contactName,
       contactEmail: params.contactEmail !== null ? Email.create(params.contactEmail) : null,
       contactPhone: params.contactPhone,
@@ -56,7 +57,7 @@ export class Client {
   }
 
   changeTaxId(taxId: string | null): void {
-    this.taxId_ = taxId;
+    this.taxId_ = normalizeTaxId(taxId);
   }
 
   changeContactName(contactName: string | null): void {

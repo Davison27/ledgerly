@@ -1,7 +1,7 @@
 import { DeleteStaffMemberUseCase } from './delete-staff-member.use-case';
 import { StaffMemberRepository, StaffMemberSummaryRow } from '../../domain/staff-member.repository';
 import { StaffMember } from '../../domain/staff-member';
-import { StaffMemberReferenceCounter } from '../../domain/staff-member-reference-counter.port';
+import { PhysicalDocumentReferenceCounter } from '../../domain/physical-document-reference-counter.port';
 import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 
 class InMemoryStaffMemberRepository implements StaffMemberRepository {
@@ -40,10 +40,10 @@ class InMemoryStaffMemberRepository implements StaffMemberRepository {
   }
 }
 
-class FakeStaffMemberReferenceCounter implements StaffMemberReferenceCounter {
+class FakeStaffMemberPhysicalDocumentReferenceCounter implements PhysicalDocumentReferenceCounter {
   constructor(private readonly counts: Record<string, number> = {}) {}
 
-  count(staffMemberId: string): Promise<number> {
+  countPhysicalDocumentReferences(staffMemberId: string): Promise<number> {
     return Promise.resolve(this.counts[staffMemberId] ?? 0);
   }
 }
@@ -66,7 +66,7 @@ function buildStaffMember(id: string): StaffMember {
 describe('DeleteStaffMemberUseCase', () => {
   it('deletes the staff member when they have no payrolls', async () => {
     const repository = new InMemoryStaffMemberRepository([buildStaffMember('staff-1')]);
-    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffMemberReferenceCounter());
+    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffMemberPhysicalDocumentReferenceCounter());
 
     await expect(useCase.execute('staff-1')).resolves.toBe('deleted');
 
@@ -77,7 +77,7 @@ describe('DeleteStaffMemberUseCase', () => {
     const repository = new InMemoryStaffMemberRepository([buildStaffMember('staff-1')]);
     const useCase = new DeleteStaffMemberUseCase(
       repository,
-      new FakeStaffMemberReferenceCounter({ 'staff-1': 3 }),
+      new FakeStaffMemberPhysicalDocumentReferenceCounter({ 'staff-1': 3 }),
     );
 
     await expect(useCase.execute('staff-1')).resolves.toBe('archived');
@@ -87,7 +87,7 @@ describe('DeleteStaffMemberUseCase', () => {
 
   it('rejects an unknown staff member without invoking deletion', async () => {
     const repository = new InMemoryStaffMemberRepository();
-    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffMemberReferenceCounter());
+    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffMemberPhysicalDocumentReferenceCounter());
 
     await expect(useCase.execute('missing-staff')).rejects.toThrow(StaffMemberNotFoundException);
 

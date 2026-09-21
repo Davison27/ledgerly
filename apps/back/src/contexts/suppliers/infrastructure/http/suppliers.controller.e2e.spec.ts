@@ -119,12 +119,12 @@ describe('SuppliersController (HTTP, no DB)', () => {
     it('creates a supplier and returns 201', async () => {
       const response = await request(httpServer)
         .post('/suppliers')
-        .send({ name: 'Acme SL', taxId: 'B12345678' });
+        .send({ name: 'Acme SL', taxId: ' b-123.456 78 ' });
 
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({ name: 'Acme SL', taxId: 'B12345678' });
       expect(createExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'Acme SL', taxId: 'B12345678' }),
+        expect.objectContaining({ name: 'Acme SL', taxId: ' b-123.456 78 ' }),
       );
     });
 

@@ -38,7 +38,6 @@ interface ProjectSeed {
   endDate: string | null;
   budget: number | null;
   currency: ProjectCurrency;
-  fiscalYear: string | null;
   manager: string | null;
 }
 
@@ -94,7 +93,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: null,
     budget: 850000,
     currency: 'EUR',
-    fiscalYear: '2024',
     manager: 'Charles Stone',
   },
   {
@@ -109,7 +107,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: null,
     budget: 620000,
     currency: 'EUR',
-    fiscalYear: '2023',
     manager: 'Helen Torres',
   },
   {
@@ -124,7 +121,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: null,
     budget: 95000,
     currency: 'EUR',
-    fiscalYear: '2025',
     manager: 'Charles Stone',
   },
   {
@@ -139,7 +135,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: '2023-11-30',
     budget: 1200000,
     currency: 'EUR',
-    fiscalYear: '2022',
     manager: 'Helen Torres',
   },
   {
@@ -154,7 +149,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: null,
     budget: 48000,
     currency: 'USD',
-    fiscalYear: '2024',
     manager: 'David Perez',
   },
   {
@@ -169,7 +163,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: null,
     budget: 3200000,
     currency: 'EUR',
-    fiscalYear: '2025',
     manager: 'Charles Stone',
   },
   {
@@ -184,7 +177,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: '2024-06-15',
     budget: 15000,
     currency: 'EUR',
-    fiscalYear: '2024',
     manager: 'David Perez',
   },
   {
@@ -199,7 +191,6 @@ const PROJECTS: ProjectSeed[] = [
     endDate: null,
     budget: null,
     currency: 'EUR',
-    fiscalYear: null,
     manager: null,
   },
 ];
@@ -283,9 +274,9 @@ async function run(): Promise<void> {
       await manager.query(
         `INSERT INTO projects (
            id, name, code, type, status, description, client_id, address, start_date, end_date,
-           budget, currency, fiscal_year, manager
+           budget, currency, manager
          ) VALUES (
-           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13
          )`,
         [
           projectId,
@@ -300,7 +291,6 @@ async function run(): Promise<void> {
           project.endDate,
           project.budget,
           project.currency,
-          project.fiscalYear,
           project.manager,
         ],
       );

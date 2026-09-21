@@ -84,4 +84,45 @@ describe('CreateSupplierUseCase', () => {
 
     expect(await repository.findAll()).toHaveLength(1);
   });
+
+  it('normalizes equivalent tax-ID input before lookup and persistence', async () => {
+    const repository = new InMemorySupplierRepository();
+    const useCase = new CreateSupplierUseCase(repository, new SequentialIdGenerator());
+
+    const created = await useCase.execute({ name: 'Acme SL', taxId: ' b-123.456 78 ' });
+
+    expect(created.taxId).toBe('B12345678');
+    await expect(
+      useCase.execute({ name: 'Duplicate SL', taxId: 'B12345678' }),
+    ).rejects.toThrow(SupplierTaxIdAlreadyExistsException);
+  });
+
+  it('rejects a tax ID reserved by an archived supplier', async () => {
+    const repository = new InMemorySupplierRepository();
+    const useCase = new CreateSupplierUseCase(repository, new SequentialIdGenerator());
+
+    await repository.save(Supplier.create({
+      id: 'archived-supplier',
+      name: 'Archived SL',
+      taxId: 'B12345678',
+      email: null,
+      phone: null,
+      address: null,
+      iban: null,
+      notes: null,
+      archivedAt: '2026-01-01T00:00:00.000Z',
+    }));
+
+    await expect(
+      useCase.execute({ name: 'Duplicate SL', taxId: ' b-123.456 78 ' }),
+    ).rejects.toThrow(SupplierTaxIdAlreadyExistsException);
+  });
+
+  it('allows repeatable null tax IDs after empty normalization', async () => {
+    const repository = new InMemorySupplierRepository();
+    const useCase = new CreateSupplierUseCase(repository, new SequentialIdGenerator());
+
+    await expect(useCase.execute({ name: 'Blank One', taxId: ' .- ' })).resolves.toMatchObject({ taxId: null });
+    await expect(useCase.execute({ name: 'Blank Two', taxId: '' })).resolves.toMatchObject({ taxId: null });
+  });
 });

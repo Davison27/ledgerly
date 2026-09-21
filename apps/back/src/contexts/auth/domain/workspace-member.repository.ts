@@ -11,6 +11,5 @@ export interface WorkspaceMemberRepository {
   countActiveAdmins(): Promise<number>;
   save(member: WorkspaceMember): Promise<void>;
   insertFounder(member: WorkspaceMember): Promise<void>;
-  delete(id: string): Promise<void>;
   touchLastActive(memberId: string, at: Date): Promise<void>;
 }

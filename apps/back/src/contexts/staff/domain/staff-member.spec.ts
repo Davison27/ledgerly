@@ -104,4 +104,14 @@ describe('StaffMember', () => {
     expect(staffMember.position).toBe('Encargado');
     expect(staffMember.firstName).toBe(BASE_PRIMITIVES.firstName);
   });
+
+  it('changes employment end dates without changing the archive lifecycle state', () => {
+    const archivedAt = '2026-02-01T00:00:00.000Z';
+    const staffMember = StaffMember.create({ ...BASE_PRIMITIVES, archivedAt });
+
+    staffMember.update({ endDate: '2025-06-01' });
+
+    expect(staffMember.endDate).toBe('2025-06-01');
+    expect(staffMember.archivedAt).toBe(archivedAt);
+  });
 });

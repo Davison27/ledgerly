@@ -81,4 +81,13 @@ describe('UpdateClientUseCase', () => {
 
     await expect(useCase.execute({ id: current.id, taxId: 'B87654321' })).rejects.toThrow(ClientTaxIdAlreadyExistsException);
   });
+
+  it('does not treat a formatted equivalent tax ID as a change', async () => {
+    const current = buildClient();
+    const repository = new InMemoryClientRepository([current]);
+    const useCase = new UpdateClientUseCase(repository);
+
+    await expect(useCase.execute({ id: current.id, taxId: ' b-123.456 78 ' })).resolves.toBe(current);
+    expect(current.taxId).toBe('B12345678');
+  });
 });
