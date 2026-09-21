@@ -35,6 +35,10 @@ class InMemoryEquipmentRepository implements EquipmentRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(id: string): Promise<void> {
     this.equipment = this.equipment.filter((equipment) => equipment.id !== id);
     return Promise.resolve();

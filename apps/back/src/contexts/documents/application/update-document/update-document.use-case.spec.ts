@@ -33,7 +33,7 @@ class InMemoryDocumentRepository implements DocumentRepository {
     return Promise.resolve();
   }
 
-  delete(id: string): Promise<boolean> {
+  softDelete(id: string): Promise<boolean> {
     this.documents = this.documents.filter((document) => document.getId() !== id);
     return Promise.resolve(true);
   }

@@ -118,12 +118,18 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
     return orm ? DocumentMapper.toDomain(orm) : null;
   }
 
-  async save(document: Document): Promise<void> {
-    await this.repository.save(DocumentMapper.toOrm(document));
+  async save(document: Document, createdBy?: string | null): Promise<void> {
+    const orm = DocumentMapper.toOrm(document);
+
+    if (createdBy !== undefined) {
+      orm.createdBy = createdBy;
+    }
+
+    await this.repository.save(orm);
   }
 
-  async delete(id: string, projectId?: string): Promise<boolean> {
-    const result = await this.repository.delete(projectId === undefined ? { id } : { id, projectId });
+  async softDelete(id: string, deletedBy: string, deletedAt: Date): Promise<boolean> {
+    const result = await this.repository.update({ id }, { deletedAt, deletedBy });
 
     return result.affected === 1;
   }

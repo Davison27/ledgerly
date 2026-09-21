@@ -17,6 +17,8 @@ import { DeleteEquipmentDocumentUseCase } from './application/delete-equipment-d
 import { GetEquipmentDocumentFileUseCase } from './application/get-equipment-document-file/get-equipment-document-file.use-case';
 import { ListEquipmentDocumentsUseCase } from './application/list-equipment-documents/list-equipment-documents.use-case';
 import { UpdateEquipmentDocumentUseCase } from './application/update-equipment-document/update-equipment-document.use-case';
+import { EQUIPMENT_REFERENCE_COUNTER } from './domain/equipment-reference-counter.port';
+import { TypeOrmEquipmentReferenceCounter } from './infrastructure/persistence/typeorm-equipment-reference-counter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([EquipmentOrmEntity, EquipmentDocumentOrmEntity])],
@@ -32,6 +34,7 @@ import { UpdateEquipmentDocumentUseCase } from './application/update-equipment-d
     DeleteEquipmentDocumentUseCase,
     GetEquipmentDocumentFileUseCase,
     { provide: EQUIPMENT_REPOSITORY, useClass: TypeOrmEquipmentRepository },
+    { provide: EQUIPMENT_REFERENCE_COUNTER, useClass: TypeOrmEquipmentReferenceCounter },
     { provide: EQUIPMENT_DOCUMENT_REPOSITORY, useClass: TypeOrmEquipmentDocumentRepository },
   ],
   exports: [EQUIPMENT_REPOSITORY],

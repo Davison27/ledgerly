@@ -22,6 +22,10 @@ class InMemorySupplierRepository implements SupplierRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(): Promise<void> {
     return Promise.resolve();
   }

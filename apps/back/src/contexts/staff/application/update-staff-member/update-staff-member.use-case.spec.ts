@@ -35,6 +35,10 @@ class InMemoryStaffMemberRepository implements StaffMemberRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(id: string): Promise<void> {
     this.staffMembers = this.staffMembers.filter((member) => member.id !== id);
     return Promise.resolve();

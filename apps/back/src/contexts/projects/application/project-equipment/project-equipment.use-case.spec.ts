@@ -77,6 +77,10 @@ class ExistingProjectRepository implements ProjectRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(): Promise<void> {
     return Promise.resolve();
   }
@@ -100,6 +104,10 @@ class ExistingEquipmentRepository implements EquipmentRepository {
   }
 
   save(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  archive(): Promise<void> {
     return Promise.resolve();
   }
 

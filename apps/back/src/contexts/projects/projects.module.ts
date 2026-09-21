@@ -17,6 +17,8 @@ import { ProjectEquipmentUseCase } from './application/project-equipment/project
 import { ProjectEquipmentController } from './infrastructure/http/project-equipment.controller';
 import { PROJECT_FINANCIALS_PROVIDER } from './domain/project-financials-provider.port';
 import { TypeOrmProjectFinancialsProvider } from './infrastructure/persistence/typeorm-project-financials-provider';
+import { PROJECT_DOCUMENT_COUNTER } from './domain/project-document-counter.port';
+import { TypeOrmProjectDocumentCounter } from './infrastructure/persistence/typeorm-project-document-counter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectEquipmentOrmEntity]), EquipmentModule],
@@ -29,6 +31,7 @@ import { TypeOrmProjectFinancialsProvider } from './infrastructure/persistence/t
     DeleteProjectUseCase,
     ProjectEquipmentUseCase,
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+    { provide: PROJECT_DOCUMENT_COUNTER, useClass: TypeOrmProjectDocumentCounter },
     { provide: PROJECT_EQUIPMENT_REPOSITORY, useClass: TypeOrmProjectEquipmentRepository },
     { provide: PROJECT_FINANCIALS_PROVIDER, useClass: TypeOrmProjectFinancialsProvider },
   ],

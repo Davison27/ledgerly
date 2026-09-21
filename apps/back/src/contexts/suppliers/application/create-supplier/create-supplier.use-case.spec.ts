@@ -31,6 +31,10 @@ class InMemorySupplierRepository implements SupplierRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(id: string): Promise<void> {
     this.suppliers = this.suppliers.filter((supplier) => supplier.id !== id);
     return Promise.resolve();

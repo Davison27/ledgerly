@@ -1,12 +1,12 @@
 import { DeleteStaffMemberUseCase } from './delete-staff-member.use-case';
 import { StaffMemberRepository, StaffMemberSummaryRow } from '../../domain/staff-member.repository';
 import { StaffMember } from '../../domain/staff-member';
-import { StaffPayrollCounter } from '../../domain/staff-payroll-counter.port';
-import { StaffMemberHasPayrollsException } from '../../domain/errors/staff-member-has-payrolls.exception';
+import { StaffMemberReferenceCounter } from '../../domain/staff-member-reference-counter.port';
 import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 
 class InMemoryStaffMemberRepository implements StaffMemberRepository {
   private staffMembers: StaffMember[] = [];
+  readonly archivedIds: string[] = [];
 
   constructor(initial: StaffMember[] = []) {
     this.staffMembers = initial;
@@ -33,9 +33,14 @@ class InMemoryStaffMemberRepository implements StaffMemberRepository {
     this.staffMembers = this.staffMembers.filter((member) => member.id !== id);
     return Promise.resolve();
   }
+
+  archive(id: string): Promise<void> {
+    this.archivedIds.push(id);
+    return Promise.resolve();
+  }
 }
 
-class FakeStaffPayrollCounter implements StaffPayrollCounter {
+class FakeStaffMemberReferenceCounter implements StaffMemberReferenceCounter {
   constructor(private readonly counts: Record<string, number> = {}) {}
 
   count(staffMemberId: string): Promise<number> {
@@ -61,27 +66,28 @@ function buildStaffMember(id: string): StaffMember {
 describe('DeleteStaffMemberUseCase', () => {
   it('deletes the staff member when they have no payrolls', async () => {
     const repository = new InMemoryStaffMemberRepository([buildStaffMember('staff-1')]);
-    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffPayrollCounter());
+    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffMemberReferenceCounter());
 
-    await useCase.execute('staff-1');
+    await expect(useCase.execute('staff-1')).resolves.toBe('deleted');
 
     expect(await repository.findById('staff-1')).toBeNull();
   });
 
-  it('throws StaffMemberHasPayrollsException and does not delete when they have payrolls', async () => {
+  it('archives the staff member when they have document references', async () => {
     const repository = new InMemoryStaffMemberRepository([buildStaffMember('staff-1')]);
     const useCase = new DeleteStaffMemberUseCase(
       repository,
-      new FakeStaffPayrollCounter({ 'staff-1': 3 }),
+      new FakeStaffMemberReferenceCounter({ 'staff-1': 3 }),
     );
 
-    await expect(useCase.execute('staff-1')).rejects.toThrow(StaffMemberHasPayrollsException);
+    await expect(useCase.execute('staff-1')).resolves.toBe('archived');
+    expect(repository.archivedIds).toEqual(['staff-1']);
     expect(await repository.findById('staff-1')).not.toBeNull();
   });
 
   it('rejects an unknown staff member without invoking deletion', async () => {
     const repository = new InMemoryStaffMemberRepository();
-    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffPayrollCounter());
+    const useCase = new DeleteStaffMemberUseCase(repository, new FakeStaffMemberReferenceCounter());
 
     await expect(useCase.execute('missing-staff')).rejects.toThrow(StaffMemberNotFoundException);
 

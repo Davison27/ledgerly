@@ -129,6 +129,43 @@ describe('AddReferentialIntegrity1730000005000', () => {
     expect(columnRows).toHaveLength(addedColumns.length);
   });
 
+  it('cascades schedule event composition rows when the event is deleted', async () => {
+    await dataSource.query(
+      `INSERT INTO projects (id, name, code, type) VALUES ('00000000-0000-0000-0000-000000000201', 'Project', 'PROJECT-201', 'client')`,
+    );
+    await dataSource.query(
+      `INSERT INTO staff_members (id, first_name, last_name) VALUES ('00000000-0000-0000-0000-000000000202', 'Ada', 'Lovelace')`,
+    );
+    await dataSource.query(
+      `INSERT INTO equipment (id, name, stock) VALUES ('00000000-0000-0000-0000-000000000203', 'Camera', 1)`,
+    );
+    await dataSource.query(
+      `INSERT INTO schedule_events (id, project_id, title) VALUES ('00000000-0000-0000-0000-000000000204', '00000000-0000-0000-0000-000000000201', 'Shoot')`,
+    );
+    await dataSource.query(
+      `INSERT INTO schedule_event_days (id, event_id, date) VALUES ('00000000-0000-0000-0000-000000000205', '00000000-0000-0000-0000-000000000204', '2026-09-21')`,
+    );
+    await dataSource.query(
+      `INSERT INTO schedule_event_staff (event_id, staff_member_id) VALUES ('00000000-0000-0000-0000-000000000204', '00000000-0000-0000-0000-000000000202')`,
+    );
+    await dataSource.query(
+      `INSERT INTO schedule_event_equipment (event_id, equipment_id, quantity) VALUES ('00000000-0000-0000-0000-000000000204', '00000000-0000-0000-0000-000000000203', 1)`,
+    );
+
+    await dataSource.query(
+      `DELETE FROM schedule_events WHERE id = '00000000-0000-0000-0000-000000000204'`,
+    );
+
+    const rows: Array<{ days: string; staff: string; equipment: string }> = await dataSource.query(
+      `SELECT
+         (SELECT count(*) FROM schedule_event_days WHERE event_id = '00000000-0000-0000-0000-000000000204') AS days,
+         (SELECT count(*) FROM schedule_event_staff WHERE event_id = '00000000-0000-0000-0000-000000000204') AS staff,
+         (SELECT count(*) FROM schedule_event_equipment WHERE event_id = '00000000-0000-0000-0000-000000000204') AS equipment`,
+    );
+
+    expect(rows[0]).toEqual({ days: '0', staff: '0', equipment: '0' });
+  });
+
   it('removes and reapplies every object created by U2', async () => {
     await dataSource.undoLastMigration({ transaction: 'each' });
 

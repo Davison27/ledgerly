@@ -22,5 +22,6 @@ export interface StaffMemberRepository {
   findAllSummaryRows(): Promise<StaffMemberSummaryRow[]>;
   findById(id: string): Promise<StaffMember | null>;
   save(staffMember: StaffMember): Promise<void>;
+  archive(id: string): Promise<void>;
   delete(id: string): Promise<void>;
 }

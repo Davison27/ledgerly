@@ -81,6 +81,10 @@ class FakeStaffMemberRepository implements StaffMemberRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(): Promise<void> {
     return Promise.resolve();
   }

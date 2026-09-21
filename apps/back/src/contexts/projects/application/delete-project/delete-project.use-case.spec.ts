@@ -1,16 +1,13 @@
 import { Project } from '../../domain/project';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { ProjectRepository } from '../../domain/project.repository';
-import {
-  ProjectLeaseExpenseRow,
-  ProjectEquipmentRecord,
-  ProjectEquipmentRepository,
-} from '../../domain/project-equipment.repository';
+import { ProjectDocumentCounter } from '../../domain/project-document-counter.port';
 import { DeleteProjectUseCase } from './delete-project.use-case';
 
 class InMemoryProjectRepository implements ProjectRepository {
   private projects: Project[];
   readonly deletedIds: string[] = [];
+  readonly archivedIds: string[] = [];
 
   constructor(projects: Project[] = []) {
     this.projects = projects;
@@ -43,33 +40,21 @@ class InMemoryProjectRepository implements ProjectRepository {
     return Promise.resolve();
   }
 
+  archive(id: string): Promise<void> {
+    this.archivedIds.push(id);
+    return Promise.resolve();
+  }
+
   findAllForDashboard(): Promise<never[]> {
     return Promise.resolve([]);
   }
 }
 
-class InMemoryProjectEquipmentRepository implements ProjectEquipmentRepository {
-  readonly deletedProjectIds: string[] = [];
+class FakeProjectDocumentCounter implements ProjectDocumentCounter {
+  constructor(private readonly references: number) {}
 
-  findByProjectId(): Promise<ProjectEquipmentRecord[]> {
-    return Promise.resolve([]);
-  }
-
-  save(): Promise<void> {
-    return Promise.resolve();
-  }
-
-  delete(): Promise<boolean> {
-    return Promise.resolve(false);
-  }
-
-  deleteByProjectId(projectId: string): Promise<void> {
-    this.deletedProjectIds.push(projectId);
-    return Promise.resolve();
-  }
-
-  findAllLeaseExpenseRows(): Promise<ProjectLeaseExpenseRow[]> {
-    return Promise.resolve([]);
+  count(): Promise<number> {
+    return Promise.resolve(this.references);
   }
 }
 
@@ -101,23 +86,29 @@ function project(): Project {
 describe('DeleteProjectUseCase', () => {
   it('rejects an unknown project before deleting its associations', async () => {
     const projects = new InMemoryProjectRepository();
-    const projectEquipment = new InMemoryProjectEquipmentRepository();
-    const useCase = new DeleteProjectUseCase(projects, projectEquipment);
+    const useCase = new DeleteProjectUseCase(projects, new FakeProjectDocumentCounter(0));
 
     await expect(useCase.execute('missing-project')).rejects.toThrow(ProjectNotFoundException);
 
-    expect(projectEquipment.deletedProjectIds).toEqual([]);
     expect(projects.deletedIds).toEqual([]);
   });
 
-  it('deletes an existing project and its associations', async () => {
+  it('deletes an unreferenced project', async () => {
     const projects = new InMemoryProjectRepository([project()]);
-    const projectEquipment = new InMemoryProjectEquipmentRepository();
-    const useCase = new DeleteProjectUseCase(projects, projectEquipment);
+    const useCase = new DeleteProjectUseCase(projects, new FakeProjectDocumentCounter(0));
 
-    await useCase.execute('project-1');
+    await expect(useCase.execute('project-1')).resolves.toBe('deleted');
 
-    expect(projectEquipment.deletedProjectIds).toEqual(['project-1']);
     expect(projects.deletedIds).toEqual(['project-1']);
+  });
+
+  it('archives a project with document references', async () => {
+    const projects = new InMemoryProjectRepository([project()]);
+    const useCase = new DeleteProjectUseCase(projects, new FakeProjectDocumentCounter(1));
+
+    await expect(useCase.execute('project-1')).resolves.toBe('archived');
+
+    expect(projects.archivedIds).toEqual(['project-1']);
+    expect(projects.deletedIds).toEqual([]);
   });
 });

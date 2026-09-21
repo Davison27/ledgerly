@@ -11,6 +11,8 @@ import { UpdateSupplierUseCase } from './application/update-supplier/update-supp
 import { DeleteSupplierUseCase } from './application/delete-supplier/delete-supplier.use-case';
 import { SUPPLIER_SPEND_PROVIDER } from './domain/supplier-spend-provider.port';
 import { DocumentSupplierSpendProvider } from './infrastructure/documents/document-supplier-spend-provider';
+import { SUPPLIER_REFERENCE_COUNTER } from './domain/supplier-reference-counter.port';
+import { TypeOrmSupplierReferenceCounter } from './infrastructure/persistence/typeorm-supplier-reference-counter';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SupplierOrmEntity])],
@@ -22,6 +24,7 @@ import { DocumentSupplierSpendProvider } from './infrastructure/documents/docume
     UpdateSupplierUseCase,
     DeleteSupplierUseCase,
     { provide: SUPPLIER_REPOSITORY, useClass: TypeOrmSupplierRepository },
+    { provide: SUPPLIER_REFERENCE_COUNTER, useClass: TypeOrmSupplierReferenceCounter },
     { provide: SUPPLIER_SPEND_PROVIDER, useClass: DocumentSupplierSpendProvider },
   ],
 })

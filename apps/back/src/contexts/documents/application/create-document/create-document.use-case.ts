@@ -81,7 +81,7 @@ export class CreateDocumentUseCase {
       direction: command.direction,
     });
 
-    await this.repository.save(document);
+    await this.repository.save(document, command.createdBy);
 
     if (command.file) {
       await this.repository.saveContent(document.getId(), command.file.buffer);

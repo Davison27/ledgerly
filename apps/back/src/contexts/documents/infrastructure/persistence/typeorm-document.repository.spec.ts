@@ -303,7 +303,7 @@ describe('TypeOrmDocumentRepository', () => {
       expect(ormRepository.update).not.toHaveBeenCalled();
     });
 
-    it('deletes only a document belonging to the supplied project', async () => {
+    it('soft deletes a document and preserves its encrypted content', async () => {
       const document = buildStoredDocument();
       const { repository, ormRepository } = createStoredDocumentRepository(document);
       await repository.saveContent(document.id, Buffer.from('%PDF'));
@@ -313,17 +313,17 @@ describe('TypeOrmDocumentRepository', () => {
         tag: Buffer.from(document.contentTag!),
         version: document.contentKeyVersion,
       };
-      ormRepository.delete.mockResolvedValueOnce({ affected: 0 });
+      const deletedAt = new Date('2026-06-15T10:00:00.000Z');
 
-      await expect(repository.delete(document.id, 'project-2')).resolves.toBe(false);
-      expect(ormRepository.delete).toHaveBeenCalledWith({ id: document.id, projectId: 'project-2' });
+      await expect(repository.softDelete(document.id, 'member-1', deletedAt)).resolves.toBe(true);
+      expect(ormRepository.update).toHaveBeenLastCalledWith(
+        { id: document.id },
+        { deletedAt, deletedBy: 'member-1' },
+      );
       expect(document.contentCiphertext).toEqual(encryptedRow.ciphertext);
       expect(document.contentNonce).toEqual(encryptedRow.nonce);
       expect(document.contentTag).toEqual(encryptedRow.tag);
       expect(document.contentKeyVersion).toBe(encryptedRow.version);
-
-      await expect(repository.delete(document.id, 'project-1')).resolves.toBe(true);
-      expect(ormRepository.delete).toHaveBeenLastCalledWith({ id: document.id, projectId: 'project-1' });
     });
   });
 });

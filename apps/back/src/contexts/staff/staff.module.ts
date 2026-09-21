@@ -14,7 +14,7 @@ import { StaffDocumentTypesController } from './infrastructure/http/staff-docume
 import { STAFF_MEMBER_REPOSITORY } from './domain/staff-member.repository';
 import { STAFF_DOCUMENT_REPOSITORY } from './domain/staff-document.repository';
 import { STAFF_DOCUMENT_TYPE_REPOSITORY } from './domain/staff-document-type.repository';
-import { STAFF_PAYROLL_COUNTER } from './domain/staff-payroll-counter.port';
+import { STAFF_MEMBER_REFERENCE_COUNTER } from './domain/staff-member-reference-counter.port';
 import { ListStaffMembersUseCase } from './application/list-staff-members/list-staff-members.use-case';
 import { GetStaffMemberUseCase } from './application/get-staff-member/get-staff-member.use-case';
 import { CreateStaffMemberUseCase } from './application/create-staff-member/create-staff-member.use-case';
@@ -48,7 +48,7 @@ import { GetStaffDocumentFileUseCase } from './application/get-staff-document-fi
     { provide: STAFF_MEMBER_REPOSITORY, useClass: TypeOrmStaffMemberRepository },
     { provide: STAFF_DOCUMENT_REPOSITORY, useClass: TypeOrmStaffDocumentRepository },
     { provide: STAFF_DOCUMENT_TYPE_REPOSITORY, useClass: TypeOrmStaffDocumentTypeRepository },
-    { provide: STAFF_PAYROLL_COUNTER, useClass: TypeOrmStaffPayrollCounter },
+    { provide: STAFF_MEMBER_REFERENCE_COUNTER, useClass: TypeOrmStaffPayrollCounter },
   ],
 })
 export class StaffModule {}

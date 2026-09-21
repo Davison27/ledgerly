@@ -38,6 +38,10 @@ class InMemoryProjectRepository implements ProjectRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(id: string): Promise<void> {
     this.projects = this.projects.filter((project) => project.id !== id);
     return Promise.resolve();

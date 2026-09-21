@@ -25,6 +25,8 @@ import { validate } from 'class-validator';
 import type { Response } from 'express';
 import { memoryStorage } from 'multer';
 import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
+import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
 import { ListDocumentsUseCase } from '../../application/list-documents/list-documents.use-case';
 import { GetDocumentUseCase } from '../../application/get-document/get-document.use-case';
 import { CreateDocumentUseCase } from '../../application/create-document/create-document.use-case';
@@ -107,6 +109,7 @@ export class DocumentsController {
   async create(
     @Param('projectId') projectId: string,
     @Body('payload') payload: string,
+    @CurrentMember() member: WorkspaceMember,
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<DocumentResponse> {
     const dto = await this.parseCreateDocumentPayload(payload);
@@ -119,6 +122,7 @@ export class DocumentsController {
 
     const document = await this.createDocumentUseCase.execute({
       projectId,
+      createdBy: member.getId(),
       name: dto.name,
       type: dto.type,
       month: dto.month,
@@ -352,7 +356,11 @@ export class DocumentsController {
   @RequiresAccess('documents', 'edit')
   @Delete(':id')
   @HttpCode(204)
-  async remove(@Param('projectId') projectId: string, @Param('id') id: string): Promise<void> {
-    await this.deleteDocumentUseCase.execute(id, projectId);
+  async remove(
+    @Param('projectId') projectId: string,
+    @Param('id') id: string,
+    @CurrentMember() member: WorkspaceMember,
+  ): Promise<void> {
+    await this.deleteDocumentUseCase.execute({ id, projectId, deletedBy: member.getId() });
   }
 }

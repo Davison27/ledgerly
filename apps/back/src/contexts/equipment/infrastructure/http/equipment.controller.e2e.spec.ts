@@ -38,7 +38,7 @@ describe('EquipmentController (HTTP, no DB)', () => {
     updateExecute = jest.fn((command: { id: string } & Partial<CreateEquipmentCommand>) =>
       Promise.resolve(buildEquipment(command)),
     );
-    deleteExecute = jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined);
+    deleteExecute = jest.fn<Promise<'deleted' | 'archived'>, [string]>().mockResolvedValue('deleted');
 
     const moduleRef = await Test.createTestingModule({
       controllers: [EquipmentController],
@@ -177,10 +177,11 @@ describe('EquipmentController (HTTP, no DB)', () => {
   });
 
   describe('DELETE /equipment/:id', () => {
-    it('returns 204 and forwards the id', async () => {
+    it('returns the deletion outcome and forwards the id', async () => {
       const response = await request(httpServer).delete('/equipment/equipment-1');
 
-      expect(response.status).toBe(204);
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ outcome: 'deleted' });
       expect(deleteExecute).toHaveBeenCalledWith('equipment-1');
     });
   });

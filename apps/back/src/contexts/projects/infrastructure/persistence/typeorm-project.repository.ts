@@ -38,7 +38,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
-      LEFT JOIN documents d ON d.project_id = p.id
+      LEFT JOIN documents d ON d.project_id = p.id AND d.deleted_at IS NULL
       GROUP BY p.id, p.name, p.code, p.currency, p.image_ciphertext, p.image_nonce, p.image_tag,
         p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
@@ -70,7 +70,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
-      LEFT JOIN documents d ON d.project_id = p.id
+      LEFT JOIN documents d ON d.project_id = p.id AND d.deleted_at IS NULL
       WHERE p.id = $1
       GROUP BY p.id, p.name, p.code, p.currency, p.image_ciphertext, p.image_nonce, p.image_tag,
         p.image_key_version, p.image_mime_type, p.image_size, p.color
@@ -105,6 +105,10 @@ export class TypeOrmProjectRepository implements ProjectRepository {
     orm.imageMimeType = encryptedImage.envelope.mimeType ?? null;
     orm.imageSize = encryptedImage.envelope.size ?? null;
     await this.repository.save(orm);
+  }
+
+  async archive(id: string): Promise<void> {
+    await this.repository.update(id, { status: 'archived' });
   }
 
   async delete(id: string): Promise<void> {

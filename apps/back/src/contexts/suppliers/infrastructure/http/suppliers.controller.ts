@@ -18,6 +18,7 @@ import { SupplierSummaryResponse } from './supplier-summary.response';
 import { CreateSupplierDto } from './dtos/create-supplier.dto';
 import { UpdateSupplierDto } from './dtos/update-supplier.dto';
 import { SupplierResponse } from './supplier.response';
+import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 
 @RequiresAccess('suppliers', 'view')
 @Controller('suppliers')
@@ -83,8 +84,9 @@ export class SuppliersController {
 
   @RequiresAccess('suppliers', 'edit')
   @Delete(':id')
-  @HttpCode(204)
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.deleteSupplierUseCase.execute(id);
+  async remove(@Param('id') id: string): Promise<DeletionOutcomeResponse> {
+    const outcome = await this.deleteSupplierUseCase.execute(id);
+
+    return new DeletionOutcomeResponse(outcome);
   }
 }

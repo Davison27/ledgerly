@@ -18,6 +18,7 @@ import { CreateProjectDto } from './dtos/create-project.dto';
 import { UpdateProjectDto } from './dtos/update-project.dto';
 import { ProjectResponse } from './project.response';
 import { ProjectSummaryResponse } from './project-summary.response';
+import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 
 @RequiresAccess('projects', 'view')
 @Controller('projects')
@@ -107,8 +108,9 @@ export class ProjectsController {
 
   @RequiresAccess('projects', 'edit')
   @Delete(':id')
-  @HttpCode(204)
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.deleteProjectUseCase.execute(id);
+  async remove(@Param('id') id: string): Promise<DeletionOutcomeResponse> {
+    const outcome = await this.deleteProjectUseCase.execute(id);
+
+    return new DeletionOutcomeResponse(outcome);
   }
 }

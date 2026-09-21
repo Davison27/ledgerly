@@ -28,6 +28,10 @@ class InMemoryProjectRepository implements ProjectRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(): Promise<void> {
     return Promise.resolve();
   }

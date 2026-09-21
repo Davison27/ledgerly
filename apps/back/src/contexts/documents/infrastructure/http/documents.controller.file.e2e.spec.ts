@@ -1,6 +1,7 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import type { Server } from 'http';
+import type { NextFunction, Request, Response } from 'express';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -96,6 +97,12 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use(
+      (request: Request, _response: Response, next: NextFunction) => {
+        Object.assign(request, { member: { getId: () => 'member-1' } });
+        next();
+      },
+    );
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();

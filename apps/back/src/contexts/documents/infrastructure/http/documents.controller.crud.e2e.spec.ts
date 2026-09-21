@@ -1,4 +1,5 @@
 import type { Server } from 'http';
+import type { NextFunction, Request, Response } from 'express';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -9,6 +10,7 @@ import { CreateDocumentUseCase } from '../../application/create-document/create-
 import { UpdateDocumentUseCase } from '../../application/update-document/update-document.use-case';
 import { UpdateDocumentCommand } from '../../application/update-document/update-document.command';
 import { DeleteDocumentUseCase } from '../../application/delete-document/delete-document.use-case';
+import { DeleteDocumentCommand } from '../../application/delete-document/delete-document.command';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
 import { GetDocumentFileUseCase } from '../../application/get-document-file/get-document-file.use-case';
 import { RecordExtractionFeedbackUseCase } from '../../application/record-extraction-feedback/record-extraction-feedback.use-case';
@@ -39,7 +41,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   let listPageExecute: jest.Mock;
   let getExecute: jest.Mock<Promise<Document>, [string, string?]>;
   let updateExecute: jest.Mock<Promise<Document>, [UpdateDocumentCommand]>;
-  let deleteExecute: jest.Mock<Promise<void>, [string, string?]>;
+  let deleteExecute: jest.Mock<Promise<void>, [DeleteDocumentCommand]>;
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock;
 
@@ -59,7 +61,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
         }),
       ),
     );
-    deleteExecute = jest.fn<Promise<void>, [string, string?]>().mockResolvedValue(undefined);
+    deleteExecute = jest.fn<Promise<void>, [DeleteDocumentCommand]>().mockResolvedValue(undefined);
     getFileExecute = jest.fn().mockResolvedValue(null);
     recordFeedbackExecute = jest.fn().mockResolvedValue(undefined);
 
@@ -80,6 +82,12 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use(
+      (request: Request, _response: Response, next: NextFunction) => {
+        Object.assign(request, { member: { getId: () => 'member-1' } });
+        next();
+      },
+    );
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
@@ -221,7 +229,11 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
       const response = await request(httpServer).delete('/projects/p1/documents/doc-1');
 
       expect(response.status).toBe(204);
-      expect(deleteExecute).toHaveBeenCalledWith('doc-1', 'p1');
+      expect(deleteExecute).toHaveBeenCalledWith({
+        id: 'doc-1',
+        projectId: 'p1',
+        deletedBy: 'member-1',
+      });
     });
 
     it('returns 404 when the use case reports the document does not exist', async () => {

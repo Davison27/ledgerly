@@ -1,16 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
-import { StaffMemberReferenceCounter } from '../../domain/staff-member-reference-counter.port';
+import { SupplierReferenceCounter } from '../../domain/supplier-reference-counter.port';
 
 @Injectable()
-export class TypeOrmStaffPayrollCounter implements StaffMemberReferenceCounter {
+export class TypeOrmSupplierReferenceCounter implements SupplierReferenceCounter {
   constructor(@InjectDataSource() private readonly dataSource: DataSource) {}
 
-  async count(staffMemberId: string): Promise<number> {
+  async count(supplierId: string): Promise<number> {
     const rows: unknown = await this.dataSource.query(
-      'SELECT count(*)::int AS count FROM documents WHERE staff_member_id = $1',
-      [staffMemberId],
+      'SELECT count(*)::int AS count FROM documents WHERE supplier_id = $1',
+      [supplierId],
     );
 
     return Array.isArray(rows) && rows.length > 0 ? Number((rows[0] as { count: number }).count) : 0;

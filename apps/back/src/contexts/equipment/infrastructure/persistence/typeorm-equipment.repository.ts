@@ -65,6 +65,10 @@ export class TypeOrmEquipmentRepository implements EquipmentRepository {
     await this.repository.save(orm);
   }
 
+  async archive(id: string): Promise<void> {
+    await this.repository.update(id, { archivedAt: () => 'CURRENT_TIMESTAMP' });
+  }
+
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }

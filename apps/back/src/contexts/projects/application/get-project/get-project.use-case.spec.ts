@@ -38,6 +38,10 @@ class InMemoryProjectRepository implements ProjectRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   findAllForDashboard(): Promise<ProjectDashboardRow[]> {
     return Promise.resolve(
       this.projects.map((project) => ({

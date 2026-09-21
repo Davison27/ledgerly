@@ -52,6 +52,10 @@ class FakeEquipmentRepository implements EquipmentRepository {
     return Promise.resolve();
   }
 
+  archive(): Promise<void> {
+    return Promise.resolve();
+  }
+
   delete(): Promise<void> {
     return Promise.resolve();
   }

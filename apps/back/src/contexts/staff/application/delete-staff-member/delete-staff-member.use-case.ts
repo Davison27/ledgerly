@@ -4,10 +4,9 @@ import {
   StaffMemberRepository,
 } from '../../domain/staff-member.repository';
 import {
-  STAFF_PAYROLL_COUNTER,
-  StaffPayrollCounter,
-} from '../../domain/staff-payroll-counter.port';
-import { StaffMemberHasPayrollsException } from '../../domain/errors/staff-member-has-payrolls.exception';
+  STAFF_MEMBER_REFERENCE_COUNTER,
+  StaffMemberReferenceCounter,
+} from '../../domain/staff-member-reference-counter.port';
 import { StaffMemberNotFoundException } from '../../domain/errors/staff-member-not-found.exception';
 
 @Injectable()
@@ -15,23 +14,25 @@ export class DeleteStaffMemberUseCase {
   constructor(
     @Inject(STAFF_MEMBER_REPOSITORY)
     private readonly staffMemberRepository: StaffMemberRepository,
-    @Inject(STAFF_PAYROLL_COUNTER)
-    private readonly staffPayrollCounter: StaffPayrollCounter,
+    @Inject(STAFF_MEMBER_REFERENCE_COUNTER)
+    private readonly staffMemberReferenceCounter: StaffMemberReferenceCounter,
   ) {}
 
-  async execute(id: string): Promise<void> {
+  async execute(id: string): Promise<'deleted' | 'archived'> {
     const staffMember = await this.staffMemberRepository.findById(id);
 
     if (staffMember === null) {
       throw new StaffMemberNotFoundException(id);
     }
 
-    const payrollCount = await this.staffPayrollCounter.count(id);
+    const referenceCount = await this.staffMemberReferenceCounter.count(id);
 
-    if (payrollCount > 0) {
-      throw new StaffMemberHasPayrollsException(id, payrollCount);
+    if (referenceCount > 0) {
+      await this.staffMemberRepository.archive(id);
+      return 'archived';
     }
 
     await this.staffMemberRepository.delete(id);
+    return 'deleted';
   }
 }

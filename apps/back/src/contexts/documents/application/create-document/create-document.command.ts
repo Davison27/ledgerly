@@ -5,6 +5,7 @@ import { DocumentDirection } from '../../domain/document-direction';
 
 export interface CreateDocumentCommand {
   projectId: string;
+  createdBy?: string | null;
   name: string;
   type: CreatableDocumentType;
   month: number;

@@ -14,5 +14,6 @@ describe('TypeOrmProjectFinancialsProvider', () => {
       { projectId: 'project-1', currency: 'EUR', income: 100.5, expenses: 25.25 },
     ]);
     expect(query).toHaveBeenCalledWith(expect.stringContaining('pe.lease_expense_date IS NOT NULL'));
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('WHERE deleted_at IS NULL'));
   });
 });

@@ -16,7 +16,7 @@ export class DocumentSupplierSpendProvider implements SupplierSpendProvider {
              COALESCE(SUM(amount) FILTER (WHERE direction = 'gasto'), 0) AS total,
              COUNT(*)::int AS "documentCount"
       FROM documents
-      WHERE supplier_id IS NOT NULL
+      WHERE supplier_id IS NOT NULL AND deleted_at IS NULL
       GROUP BY supplier_id, currency
     `);
 

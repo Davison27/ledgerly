@@ -18,6 +18,7 @@ export class TypeOrmProjectFinancialsProvider implements ProjectFinancialsProvid
                COALESCE(SUM(amount) FILTER (WHERE direction = 'ingreso'), 0) AS income,
                COALESCE(SUM(amount) FILTER (WHERE direction = 'gasto'), 0) AS expenses
         FROM documents
+        WHERE deleted_at IS NULL
         GROUP BY project_id, currency
         UNION ALL
         SELECT pe.project_id AS "projectId", p.currency, 0,

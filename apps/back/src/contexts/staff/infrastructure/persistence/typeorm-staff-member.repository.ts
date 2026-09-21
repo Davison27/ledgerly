@@ -61,6 +61,10 @@ export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
     await this.repository.save(this.mapper.toOrm(staffMember));
   }
 
+  async archive(id: string): Promise<void> {
+    await this.repository.update(id, { archivedAt: () => 'CURRENT_TIMESTAMP' });
+  }
+
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }

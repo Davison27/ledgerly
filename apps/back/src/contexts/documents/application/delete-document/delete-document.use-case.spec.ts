@@ -5,10 +5,11 @@ import { DocumentDashboardRow } from '../../domain/document-dashboard-row';
 import { DocumentListRow } from '../../domain/document-list-row';
 import { DocumentDuplicateRow } from '../../domain/document-duplicate-row';
 import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
+import { Clock } from '../../../../shared/domain/clock.port';
 
 class InMemoryDocumentRepository implements DocumentRepository {
   private documents: Document[] = [];
-  readonly deleteCalls: Array<{ id: string; projectId?: string }> = [];
+  readonly softDeleteCalls: Array<{ id: string; deletedBy: string; deletedAt: Date }> = [];
 
   findByProject(): Promise<Document[]> {
     return Promise.resolve([...this.documents]);
@@ -23,13 +24,12 @@ class InMemoryDocumentRepository implements DocumentRepository {
     return Promise.resolve();
   }
 
-  delete(id: string, projectId?: string): Promise<boolean> {
-    this.deleteCalls.push({ id, projectId });
+  softDelete(id: string, deletedBy: string, deletedAt: Date): Promise<boolean> {
     const document = this.documents.find((candidate) => candidate.getId() === id);
-    if (!document || (projectId !== undefined && document.getProjectId() !== projectId)) {
+    if (!document) {
       return Promise.resolve(false);
     }
-    this.documents = this.documents.filter((candidate) => candidate.getId() !== id);
+    this.softDeleteCalls.push({ id, deletedBy, deletedAt });
     return Promise.resolve(true);
   }
 
@@ -54,6 +54,18 @@ class InMemoryDocumentRepository implements DocumentRepository {
   }
 }
 
+class FixedClock implements Clock {
+  constructor(private readonly currentTime: Date) {}
+
+  now(): Date {
+    return this.currentTime;
+  }
+
+  todayIso(): string {
+    return '2026-06-15';
+  }
+}
+
 function buildDocument(id = 'doc-1'): Document {
   return Document.create({
     id,
@@ -69,42 +81,50 @@ function buildDocument(id = 'doc-1'): Document {
 }
 
 describe('DeleteDocumentUseCase', () => {
-  it('deletes an existing document', async () => {
+  it('soft deletes an existing document with the member and clock values', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
-    const useCase = new DeleteDocumentUseCase(repository);
+    const deletedAt = new Date('2026-06-15T10:00:00.000Z');
+    const useCase = new DeleteDocumentUseCase(repository, new FixedClock(deletedAt));
 
-    await useCase.execute('doc-1');
+    await useCase.execute({ id: 'doc-1', projectId: 'project-1', deletedBy: 'member-1' });
 
-    expect(await repository.findById('doc-1')).toBeNull();
+    expect(await repository.findById('doc-1')).not.toBeNull();
+    expect(repository.softDeleteCalls).toEqual([
+      { id: 'doc-1', deletedBy: 'member-1', deletedAt },
+    ]);
   });
 
   it('throws DocumentNotFoundException when the document does not exist', async () => {
     const repository = new InMemoryDocumentRepository();
-    const useCase = new DeleteDocumentUseCase(repository);
+    const useCase = new DeleteDocumentUseCase(repository, new FixedClock(new Date()));
 
-    await expect(useCase.execute('missing-id')).rejects.toThrow(DocumentNotFoundException);
+    await expect(
+      useCase.execute({ id: 'missing-id', projectId: 'project-1', deletedBy: 'member-1' }),
+    ).rejects.toThrow(DocumentNotFoundException);
   });
 
   it('throws DocumentNotFoundException when the document belongs to another project', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
-    const useCase = new DeleteDocumentUseCase(repository);
+    const useCase = new DeleteDocumentUseCase(repository, new FixedClock(new Date()));
 
-    await expect(useCase.execute('doc-1', 'project-2')).rejects.toThrow(DocumentNotFoundException);
+    await expect(
+      useCase.execute({ id: 'doc-1', projectId: 'project-2', deletedBy: 'member-1' }),
+    ).rejects.toThrow(DocumentNotFoundException);
 
     expect(await repository.findById('doc-1')).not.toBeNull();
-    expect(repository.deleteCalls).toEqual([{ id: 'doc-1', projectId: 'project-2' }]);
+    expect(repository.softDeleteCalls).toEqual([]);
   });
 
   it('deletes the document when it belongs to the requested project', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
-    const useCase = new DeleteDocumentUseCase(repository);
+    const useCase = new DeleteDocumentUseCase(repository, new FixedClock(new Date()));
 
-    await useCase.execute('doc-1', 'project-1');
+    await useCase.execute({ id: 'doc-1', projectId: 'project-1', deletedBy: 'member-1' });
 
-    expect(await repository.findById('doc-1')).toBeNull();
-    expect(repository.deleteCalls).toEqual([{ id: 'doc-1', projectId: 'project-1' }]);
+    expect(await repository.findById('doc-1')).not.toBeNull();
+    expect(repository.softDeleteCalls).toHaveLength(1);
   });
 });

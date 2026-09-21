@@ -18,6 +18,7 @@ import { CreateStaffMemberDto } from './dtos/create-staff-member.dto';
 import { UpdateStaffMemberDto } from './dtos/update-staff-member.dto';
 import { StaffMemberResponse } from './staff-member.response';
 import { StaffMemberSummaryResponse } from './staff-member-summary.response';
+import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 
 @RequiresAccess('staff', 'view')
 @Controller('staff')
@@ -87,8 +88,9 @@ export class StaffController {
 
   @RequiresAccess('staff', 'edit')
   @Delete(':id')
-  @HttpCode(204)
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.deleteStaffMemberUseCase.execute(id);
+  async remove(@Param('id') id: string): Promise<DeletionOutcomeResponse> {
+    const outcome = await this.deleteStaffMemberUseCase.execute(id);
+
+    return new DeletionOutcomeResponse(outcome);
   }
 }

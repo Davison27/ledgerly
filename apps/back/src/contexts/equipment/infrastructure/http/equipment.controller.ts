@@ -16,6 +16,7 @@ import { DeleteEquipmentUseCase } from '../../application/delete-equipment/delet
 import { CreateEquipmentDto } from './dtos/create-equipment.dto';
 import { UpdateEquipmentDto } from './dtos/update-equipment.dto';
 import { EquipmentResponse } from './equipment.response';
+import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 
 @RequiresAccess('equipment', 'view')
 @Controller('equipment')
@@ -79,8 +80,9 @@ export class EquipmentController {
 
   @RequiresAccess('equipment', 'edit')
   @Delete(':id')
-  @HttpCode(204)
-  async remove(@Param('id') id: string): Promise<void> {
-    await this.deleteEquipmentUseCase.execute(id);
+  async remove(@Param('id') id: string): Promise<DeletionOutcomeResponse> {
+    const outcome = await this.deleteEquipmentUseCase.execute(id);
+
+    return new DeletionOutcomeResponse(outcome);
   }
 }
