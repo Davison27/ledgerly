@@ -45,11 +45,7 @@ export function SettingsSection({ project }: ProjectSectionProps) {
       type: fullProject.type ?? 'other',
       status: fullProject.status ?? 'active',
       description: fullProject.description,
-      clientCompany: fullProject.clientCompany,
-      clientTaxId: fullProject.clientTaxId,
-      contactName: fullProject.contactName,
-      contactEmail: fullProject.contactEmail,
-      contactPhone: fullProject.contactPhone,
+      clientId: fullProject.clientId,
       address: fullProject.address,
       startDate: fullProject.startDate ? dayjs(fullProject.startDate) : undefined,
       endDate: fullProject.endDate ? dayjs(fullProject.endDate) : undefined,
@@ -106,7 +102,12 @@ export function SettingsSection({ project }: ProjectSectionProps) {
         {canEdit && <Button type="primary" loading={saving} onClick={handleSave}>{t('common.save')}</Button>}
       </Flex>
       <Form<ProjectFormFieldValues> form={form} layout="vertical" requiredMark={false} disabled={!canEdit}>
-        <ProjectFormFields image={image} onImageChange={setImage} colorSeed={fullProject.id} />
+        <ProjectFormFields
+          image={image}
+          onImageChange={setImage}
+          colorSeed={fullProject.id}
+          canEdit={canEdit}
+        />
       </Form>
     </PageContainer>
   );

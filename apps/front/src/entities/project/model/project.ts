@@ -12,6 +12,8 @@ import type {
   ProjectSummaryDto,
   UpdateProjectPayload,
 } from '../api/types';
+import { mapClient } from '@/entities/client/@x/project';
+import type { Client } from '@/entities/client/@x/project';
 import type { ProjectColorToken } from '@/shared/config/theme';
 
 export type { ProjectColorToken };
@@ -46,11 +48,8 @@ export interface Project {
   type?: ProjectType;
   status?: ProjectStatus;
   description?: string;
-  clientCompany?: string;
-  clientTaxId?: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  clientId?: string | null;
+  client?: Client | null;
   address?: string;
   startDate?: string;
   endDate?: string;
@@ -62,7 +61,10 @@ export interface Project {
   color?: ProjectColorToken;
 }
 
-export type ProjectFormValues = Omit<Project, 'id' | 'documentCount' | 'pendingCount' | 'financials'>;
+export type ProjectFormValues = Omit<
+  Project,
+  'id' | 'documentCount' | 'pendingCount' | 'financials' | 'client'
+>;
 
 function mapProjectFinancials(dto: ProjectFinancialsDto): ProjectFinancials {
   return {
@@ -99,11 +101,8 @@ function mapProject(dto: ProjectDto): Project {
     type: dto.type,
     status: dto.status,
     description: dto.description ?? undefined,
-    clientCompany: dto.clientCompany ?? undefined,
-    clientTaxId: dto.clientTaxId ?? undefined,
-    contactName: dto.contactName ?? undefined,
-    contactEmail: dto.contactEmail ?? undefined,
-    contactPhone: dto.contactPhone ?? undefined,
+    clientId: dto.clientId,
+    client: dto.client ? mapClient(dto.client) : null,
     address: dto.address ?? undefined,
     startDate: dto.startDate ?? undefined,
     endDate: dto.endDate ?? undefined,
@@ -133,11 +132,7 @@ export async function addProject(values: ProjectFormValues): Promise<Project> {
     type: values.type ?? 'other',
     status: values.status,
     description: values.description,
-    clientCompany: values.clientCompany,
-    clientTaxId: values.clientTaxId,
-    contactName: values.contactName,
-    contactEmail: values.contactEmail,
-    contactPhone: values.contactPhone,
+    clientId: values.clientId,
     address: values.address,
     startDate: values.startDate,
     endDate: values.endDate,
@@ -162,11 +157,7 @@ export async function updateProject(
     type: values.type,
     status: values.status,
     description: values.description,
-    clientCompany: values.clientCompany,
-    clientTaxId: values.clientTaxId,
-    contactName: values.contactName,
-    contactEmail: values.contactEmail,
-    contactPhone: values.contactPhone,
+    clientId: values.clientId,
     address: values.address,
     startDate: values.startDate,
     endDate: values.endDate,

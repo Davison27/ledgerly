@@ -1,4 +1,5 @@
 import type { ProjectColorToken } from '@/shared/config/theme';
+import type { ClientDto } from '@/entities/client/@x/project';
 
 export type ProjectTypeDto =
   | 'client'
@@ -50,11 +51,8 @@ export interface ProjectDto {
   type: ProjectTypeDto;
   status: ProjectStatusDto;
   description?: string | null;
-  clientCompany?: string | null;
-  clientTaxId?: string | null;
-  contactName?: string | null;
-  contactEmail?: string | null;
-  contactPhone?: string | null;
+  clientId: string | null;
+  client: ClientDto | null;
   address?: string | null;
   startDate?: string | null;
   endDate?: string | null;
@@ -72,11 +70,7 @@ export interface CreateProjectPayload {
   type: ProjectTypeDto;
   status?: ProjectStatusDto;
   description?: string;
-  clientCompany?: string;
-  clientTaxId?: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  clientId?: string | null;
   address?: string;
   startDate?: string;
   endDate?: string;
@@ -94,11 +88,7 @@ export interface UpdateProjectPayload {
   type?: ProjectTypeDto;
   status?: ProjectStatusDto;
   description?: string;
-  clientCompany?: string;
-  clientTaxId?: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  clientId?: string | null;
   address?: string;
   startDate?: string;
   endDate?: string;

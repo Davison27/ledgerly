@@ -57,6 +57,11 @@
   min-width: 0;
 }
 
+.clientSelect {
+  flex: 1;
+  min-width: 0;
+}
+
 .colorField {
   margin-top: var(--lg-space-sm);
   margin-bottom: 0;

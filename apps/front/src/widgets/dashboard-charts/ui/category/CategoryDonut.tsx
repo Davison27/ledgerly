@@ -17,7 +17,7 @@ export interface CategoryDonutProps {
   color: string;
 }
 
-const ORDER: DocumentType[] = ['factura', 'nomina', 'impuesto'];
+const ORDER: DocumentType[] = ['invoice', 'payroll', 'tax'];
 const DIMMED_ALPHA = '33';
 
 export function CategoryDonut({
@@ -31,9 +31,9 @@ export function CategoryDonut({
   const [hovered, setHovered] = useState<DocumentType | null>(null);
 
   const palette: Record<DocumentType, string> = {
-    factura: color,
-    nomina: colors.chartVivid[1],
-    impuesto: colors.chartVivid[2],
+    invoice: color,
+    payroll: colors.chartVivid[1],
+    tax: colors.chartVivid[2],
   };
 
   const total = ORDER.reduce((acc, key) => acc + categoryTotals[key], 0);

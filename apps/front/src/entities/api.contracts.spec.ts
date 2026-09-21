@@ -9,6 +9,11 @@ import { createProject, updateProject } from './project/api/projects.api';
 import { getScheduleBoard, listScheduleEvents } from './schedule-event/api/schedule.api';
 import { listNotifications, markNotificationRead } from './notification/api/notifications.api';
 import { getCompanyDashboard } from '@/pages/dashboard/api/dashboard.api';
+import {
+  listTaxDeadlines,
+  listTaxObligations,
+  listTaxSourceStates,
+} from './tax-compliance/api/tax-compliance.api';
 import { del, get, patch, post } from '@/shared/api/httpClient';
 
 vi.mock('@/shared/api/httpClient', () => ({
@@ -96,6 +101,19 @@ describe('frontend API contracts', () => {
 
     expect(get).toHaveBeenNthCalledWith(1, '/dashboard');
     expect(get).toHaveBeenNthCalledWith(2, '/dashboard?year=2025');
+  });
+
+  it('uses the stable tax compliance catalog, calendar and source routes', async () => {
+    await listTaxObligations();
+    await listTaxDeadlines('2026-01-01', '2026-12-31');
+    await listTaxSourceStates();
+
+    expect(get).toHaveBeenNthCalledWith(1, '/tax-compliance/catalog');
+    expect(get).toHaveBeenNthCalledWith(
+      2,
+      '/tax-compliance/calendar?from=2026-01-01&to=2026-12-31',
+    );
+    expect(get).toHaveBeenNthCalledWith(3, '/tax-compliance/sources');
   });
 
   it('uploads invoice extraction with credentials, CSRF, progress and upload completion reporting', async () => {

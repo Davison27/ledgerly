@@ -52,8 +52,8 @@ import styles from './DocumentsPage.module.css';
 const { Text } = Typography;
 const { RangePicker } = DatePicker;
 
-const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
-const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
+const DOCUMENT_STATUSES: DocumentStatusDto[] = ['paid', 'pending', 'overdue'];
+const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['income', 'expense'];
 const SEARCH_DEBOUNCE_MS = 350;
 
 type DateRangeValue = [Dayjs | null, Dayjs | null] | null;
@@ -317,7 +317,7 @@ export function DocumentsPage() {
       width: 120,
       align: 'right',
       render: (amount: number, record) => (
-        <Amount value={amount} tone={record.direction === 'ingreso' ? 'income' : 'expense'} />
+        <Amount value={amount} tone={record.direction === 'income' ? 'income' : 'expense'} />
       ),
     },
     {

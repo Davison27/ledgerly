@@ -1,21 +1,25 @@
 import { useEffect, type CSSProperties } from 'react';
 import {
+  App,
   Button,
   Col,
   DatePicker,
   Divider,
   Form,
+  Flex,
   Input,
   InputNumber,
+  Modal,
   Row,
   Select,
   Typography,
   Upload,
 } from 'antd';
-import { ProjectOutlined } from '@ant-design/icons';
+import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectCurrency, ProjectStatus, ProjectType } from '@/entities/project';
+import { ApiError } from '@/shared/api/httpClient';
 import {
   PROJECT_COLOR_TOKENS,
   PROJECT_PALETTE,
@@ -24,6 +28,7 @@ import {
 import { deriveColorToken } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import typography from '@/shared/ui/typography.module.css';
+import { useProjectClientField } from '../model/useProjectClientField';
 import styles from './ProjectFormFields.module.css';
 
 const { TextArea } = Input;
@@ -35,11 +40,7 @@ export interface ProjectFormFieldValues {
   type: ProjectType;
   status: ProjectStatus;
   description?: string;
-  clientCompany?: string;
-  clientTaxId?: string;
-  contactName?: string;
-  contactEmail?: string;
-  contactPhone?: string;
+  clientId?: string | null;
   address?: string;
   startDate?: Dayjs;
   endDate?: Dayjs;
@@ -99,11 +100,19 @@ interface ProjectFormFieldsProps {
   image?: string | null;
   onImageChange: (image: string | null | undefined) => void;
   colorSeed?: string;
+  canEdit?: boolean;
 }
 
-export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFormFieldsProps) {
+export function ProjectFormFields({
+  image,
+  onImageChange,
+  colorSeed,
+  canEdit = true,
+}: ProjectFormFieldsProps) {
   const { t } = useTranslation();
+  const { message } = App.useApp();
   const form = Form.useFormInstance<ProjectFormFieldValues>();
+  const clientField = useProjectClientField();
 
   useEffect(() => {
     if (!colorSeed) return;
@@ -218,43 +227,94 @@ export function ProjectFormFields({ image, onImageChange, colorSeed }: ProjectFo
       <Text strong>{t('projects.form.sections.client')}</Text>
       <Divider className={styles.sectionDivider} />
       <Row gutter={16}>
-        <Col xs={24} sm={12} md={8}>
-          <Form.Item name="clientCompany" label={t('projects.form.fields.clientCompany')}>
-            <Input placeholder={t('projects.form.placeholders.clientCompany')} />
+        <Col xs={24} sm={12} md={12}>
+          <Form.Item label={t('projects.form.fields.client')}>
+            <Flex gap={8}>
+              <Form.Item name="clientId" noStyle>
+                <Select
+                  allowClear
+                  showSearch
+                  loading={clientField.clientsPending}
+                  optionFilterProp="label"
+                  placeholder={t('projects.form.placeholders.client')}
+                  options={clientField.clients.map((client) => ({
+                    value: client.id,
+                    label: client.taxId ? `${client.name} · ${client.taxId}` : client.name,
+                  }))}
+                  className={styles.clientSelect}
+                />
+              </Form.Item>
+              <Button
+                type="default"
+                icon={<PlusOutlined />}
+                aria-label={t('clients.create')}
+                disabled={!canEdit}
+                onClick={clientField.openCreate}
+              >
+                {t('clients.create')}
+              </Button>
+            </Flex>
           </Form.Item>
         </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Form.Item name="clientTaxId" label={t('projects.form.fields.clientTaxId')}>
-            <Input placeholder={t('projects.form.placeholders.clientTaxId')} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Form.Item name="contactName" label={t('projects.form.fields.contactName')}>
-            <Input placeholder={t('projects.form.placeholders.contactName')} />
-          </Form.Item>
-        </Col>
-      </Row>
-      <Row gutter={16}>
-        <Col xs={24} sm={12} md={8}>
-          <Form.Item
-            name="contactEmail"
-            label={t('projects.form.fields.contactEmail')}
-            rules={[{ type: 'email', message: t('projects.form.validation.emailInvalid') }]}
-          >
-            <Input type="email" placeholder={t('projects.form.placeholders.contactEmail')} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
-          <Form.Item name="contactPhone" label={t('projects.form.fields.contactPhone')}>
-            <Input placeholder={t('projects.form.placeholders.contactPhone')} />
-          </Form.Item>
-        </Col>
-        <Col xs={24} sm={12} md={8}>
+        <Col xs={24} sm={12} md={12}>
           <Form.Item name="address" label={t('projects.form.fields.address')}>
             <Input placeholder={t('projects.form.placeholders.address')} />
           </Form.Item>
         </Col>
       </Row>
+
+      <Modal
+        open={clientField.createOpen}
+        title={t('clients.createTitle')}
+        okText={t('clients.createSubmit')}
+        cancelText={t('common.cancel')}
+        confirmLoading={clientField.creating}
+        onCancel={clientField.closeCreate}
+        onOk={() => {
+          if (!clientField.createValues.name.trim()) {
+            void message.warning(t('clients.nameRequired'));
+            return;
+          }
+          clientField
+            .create()
+            .then((client) => {
+              form.setFieldValue('clientId', client.id);
+              void message.success(t('clients.created'));
+            })
+            .catch((error: unknown) => {
+              if (error instanceof ApiError && error.status === 409) {
+                void message.error(t('clients.duplicateTaxId'));
+                return;
+              }
+              void message.error(t('clients.createError'));
+            });
+        }}
+      >
+        <Flex vertical gap={12}>
+          <Input
+            value={clientField.createValues.name}
+            placeholder={t('clients.namePlaceholder')}
+            aria-label={t('clients.name')}
+            onChange={(event) =>
+              clientField.setCreateValues({
+                ...clientField.createValues,
+                name: event.target.value,
+              })
+            }
+          />
+          <Input
+            value={clientField.createValues.taxId}
+            placeholder={t('clients.taxIdPlaceholder')}
+            aria-label={t('clients.taxId')}
+            onChange={(event) =>
+              clientField.setCreateValues({
+                ...clientField.createValues,
+                taxId: event.target.value,
+              })
+            }
+          />
+        </Flex>
+      </Modal>
 
       <Text strong>{t('projects.form.sections.planning')}</Text>
       <Divider className={styles.sectionDivider} />

@@ -2,9 +2,9 @@ import type { ProjectDocument, DocumentType } from '@/entities/document';
 import { CHART_VIVID_DARK, CHART_VIVID_LIGHT } from '@/shared/config/theme';
 
 export interface AmountByStatus {
-  pagado: number;
-  pendiente: number;
-  vencido: number;
+  paid: number;
+  pending: number;
+  overdue: number;
 }
 
 export interface TopIssuer {
@@ -43,9 +43,9 @@ export function deriveDashboardData(docs: ProjectDocument[], manualExpenses: Man
   const monthlyIncome = Array<number>(12).fill(0);
   const monthlyExpenses = Array<number>(12).fill(0);
   const categoryTotals: Record<DocumentType, number> = {
-    factura: 0,
-    nomina: 0,
-    impuesto: 0,
+    invoice: 0,
+    payroll: 0,
+    tax: 0,
   };
 
   let income = 0;
@@ -55,9 +55,9 @@ export function deriveDashboardData(docs: ProjectDocument[], manualExpenses: Man
   let overdue = 0;
 
   const amountByStatus: AmountByStatus = {
-    pagado: 0,
-    pendiente: 0,
-    vencido: 0,
+    paid: 0,
+    pending: 0,
+    overdue: 0,
   };
 
   const issuerTotals = new Map<string, { name: string | null; total: number }>();
@@ -66,7 +66,7 @@ export function deriveDashboardData(docs: ProjectDocument[], manualExpenses: Man
     const idx = doc.month - 1;
     const inRange = idx >= 0 && idx < 12;
 
-    if (doc.direction === 'ingreso') {
+    if (doc.direction === 'income') {
       income += doc.amount;
       if (inRange) monthlyIncome[idx] += doc.amount;
     } else {
@@ -76,9 +76,9 @@ export function deriveDashboardData(docs: ProjectDocument[], manualExpenses: Man
 
     categoryTotals[doc.type] += doc.amount;
 
-    if (doc.status === 'pagado') paid += 1;
-    else if (doc.status === 'pendiente') pending += 1;
-    else if (doc.status === 'vencido') overdue += 1;
+    if (doc.status === 'paid') paid += 1;
+    else if (doc.status === 'pending') pending += 1;
+    else if (doc.status === 'overdue') overdue += 1;
 
     amountByStatus[doc.status] += doc.amount;
 

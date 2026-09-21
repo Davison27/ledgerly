@@ -11,7 +11,17 @@ export {
   updateTaxComplianceSettings,
 } from './api/tax-compliance.api';
 export { taxComplianceQueries } from './api/tax-compliance.queries';
-export { useTaxComplianceCalendar } from './model/useTaxComplianceCalendar';
+export {
+  useTaxComplianceCalendar,
+  type TaxComplianceCalendarState,
+} from './model/useTaxComplianceCalendar';
+export {
+  formatTaxDeadlineTitle,
+  formatTaxObligationDescription,
+  formatTaxObligationName,
+  formatTaxSourceLabel,
+} from './model/taxCompliancePresentation';
+export type { TaxDeadlinePresentationInput } from './model/taxCompliancePresentation';
 export type {
   SaveTaxClientProfilePayload,
   TaxClientProfileDto,
@@ -20,6 +30,7 @@ export type {
   TaxDeadlineStatusDto,
   TaxEntityTypeDto,
   TaxObligationDto,
+  TaxObligationRule,
   RefreshTaxSourcesResultDto,
   TaxSourceChangeDto,
   TaxSourceEventDto,

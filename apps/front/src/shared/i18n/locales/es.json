@@ -1120,7 +1120,28 @@
         "checkError": "No se han podido comprobar las fuentes oficiales",
         "reviewed": "Cambio marcado como revisado; no se han modificado las reglas automáticamente",
         "reviewError": "No se ha podido marcar el cambio como revisado",
-        "legalNote": "Fuente: Agencia Tributaria. Se conserva la fecha de consulta y el enlace oficial; los cambios requieren revisión del administrador."
+        "legalNote": "Fuente: Agencia Tributaria. Se conserva la fecha de consulta y el enlace oficial; los cambios requieren revisión del administrador.",
+        "es-aeat-iva": { "label": "AEAT · IVA" },
+        "es-aeat-renta": { "label": "AEAT · Renta" },
+        "es-aeat-renta-sociedades": { "label": "AEAT · Renta y Sociedades" }
+      },
+      "obligations": {
+        "es-aeat-model-303-quarterly": {
+          "name": "Modelo 303 · IVA trimestral",
+          "description": "Autoliquidación trimestral del impuesto sobre el valor añadido."
+        },
+        "es-aeat-model-111-quarterly": {
+          "name": "Modelo 111 · Retenciones",
+          "description": "Retenciones e ingresos a cuenta del IRPF trimestrales."
+        },
+        "es-aeat-model-115-quarterly": {
+          "name": "Modelo 115 · Alquileres",
+          "description": "Retenciones e ingresos a cuenta sobre alquileres urbanos."
+        },
+        "es-aeat-model-100-annual": {
+          "name": "Modelo 100 · Renta",
+          "description": "Campaña anual del impuesto sobre la renta de las personas físicas."
+        }
       },
       "toast": {
         "enabled": "Cumplimiento fiscal activado",
@@ -1143,9 +1164,9 @@
         "emptyHint": "Los clientes se gestionan como proyectos: crea uno para empezar a configurar sus obligaciones fiscales."
       },
       "entityTypes": {
-        "autonomo": "Autónomo",
-        "sociedad": "Sociedad",
-        "particular": "Particular"
+        "selfEmployed": "Autónomo",
+        "company": "Sociedad",
+        "individual": "Particular"
       },
       "profile": {
         "title": "Perfil fiscal · {{name}}",
@@ -1222,11 +1243,24 @@
       "saveError": "No se ha podido guardar el equipo en el proyecto.",
       "deleteError": "No se ha podido eliminar el equipo del proyecto.",
       "expenseHelp": "Gasto único de leasing opcional asumido por este proyecto.",
+      "leaseExpenses": {
+        "title": "Gastos de leasing",
+        "add": "Añadir gasto",
+        "addTitle": "Añadir gasto de leasing",
+        "amount": "Importe",
+        "date": "Fecha del gasto",
+        "amountRequired": "Introduce el importe del gasto",
+        "dateRequired": "Selecciona la fecha del gasto",
+        "saved": "Gasto de leasing añadido",
+        "deleted": "Gasto de leasing eliminado",
+        "saveError": "No se ha podido añadir el gasto de leasing.",
+        "deleteError": "No se ha podido eliminar el gasto de leasing.",
+        "delete": "Eliminar gasto de leasing"
+      },
       "columns": {
         "equipment": "Equipo",
         "catalogLease": "Cuota mensual de catálogo",
-        "projectExpense": "Gasto de leasing del proyecto",
-        "date": "Fecha del gasto"
+        "actions": "Acciones"
       },
       "validation": {
         "equipmentRequired": "Selecciona un equipo",
@@ -1273,18 +1307,18 @@
         }
       },
       "types": {
-        "factura": "Factura",
-        "nomina": "Nómina",
-        "impuesto": "Impuesto"
+        "invoice": "Factura",
+        "payroll": "Nómina",
+        "tax": "Impuesto"
       },
       "directions": {
-        "ingreso": "Ingreso",
-        "gasto": "Gasto"
+        "income": "Ingreso",
+        "expense": "Gasto"
       },
       "statuses": {
-        "pagado": "Pagado",
-        "pendiente": "Pendiente",
-        "vencido": "Vencido"
+        "paid": "Pagado",
+        "pending": "Pendiente",
+        "overdue": "Vencido"
       },
       "detail": {
         "goToProject": "Ir al proyecto"
@@ -1355,7 +1389,14 @@
             "low": "Confianza baja"
           },
           "reviewNote": "Revisa los datos extraídos antes de guardar, la confianza es limitada.",
-          "warningsTitle": "Avisos de la extracción"
+          "warningsTitle": "Avisos de la extracción",
+          "warnings": {
+            "missing_issuer_tax_id": "Falta el identificador fiscal del emisor.",
+            "missing_invoice_number": "Falta el número de factura.",
+            "missing_invoice_date": "Falta la fecha de la factura.",
+            "missing_total_amount": "Falta el importe total.",
+            "missing_issuer_name": "Falta el nombre del emisor."
+          }
         },
         "duplicate": {
           "title": "Posible documento duplicado",
@@ -1505,6 +1546,7 @@
         "type": "Tipo",
         "status": "Estado",
         "description": "Descripción",
+        "client": "Cliente",
         "clientCompany": "Empresa / Cliente",
         "clientTaxId": "CIF / NIF",
         "contactName": "Persona de contacto",
@@ -1542,6 +1584,7 @@
         "code": "Ej. GA-ZGZ-24",
         "type": "Selecciona un tipo",
         "description": "Añade una descripción del proyecto...",
+        "client": "Selecciona un cliente",
         "clientCompany": "Ej. Mediaset España",
         "clientTaxId": "Ej. B12345678",
         "contactName": "Ej. María López",
@@ -1624,6 +1667,21 @@
       "topHintsEmpty": "Todavía no hay pistas registradas.",
       "occurrences": "{{count}} repeticiones"
     }
+  },
+  "clients": {
+    "name": "Cliente",
+    "taxId": "CIF / NIF",
+    "create": "Crear cliente",
+    "createTitle": "Crear cliente",
+    "createSubmit": "Crear cliente",
+    "created": "Cliente creado correctamente",
+    "createError": "No se ha podido crear el cliente. Inténtalo de nuevo.",
+    "duplicateTaxId": "Ya existe un cliente con ese CIF/NIF.",
+    "nameRequired": "El nombre del cliente es obligatorio",
+    "namePlaceholder": "Ej. Mediaset España",
+    "taxIdPlaceholder": "Ej. B12345678",
+    "archived": "Cliente archivado",
+    "unarchived": "Cliente desarchivado"
   },
   "suppliers": {
     "navLabel": "Proveedores",

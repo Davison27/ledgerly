@@ -11,27 +11,27 @@ import styles from './CashflowByStatus.module.css';
 const { Text } = Typography;
 
 export interface CashflowByStatusProps {
-  pagado: number;
-  pendiente: number;
-  vencido: number;
+  paid: number;
+  pending: number;
+  overdue: number;
 }
 
 export function CashflowByStatus({
-  pagado,
-  pendiente,
-  vencido,
+  paid,
+  pending,
+  overdue,
 }: CashflowByStatusProps) {
   const { t } = useTranslation();
   const colors = useSemanticColors();
   const [hovered, setHovered] = useState<DocumentStatus | null>(null);
 
   const rows: { key: DocumentStatus; amount: number; color: string }[] = [
-    { key: 'pagado', amount: pagado, color: colors.chartVivid[1] },
-    { key: 'pendiente', amount: pendiente, color: colors.chartVivid[3] },
-    { key: 'vencido', amount: vencido, color: vividOverdue(colors.mode) },
+    { key: 'paid', amount: paid, color: colors.chartVivid[1] },
+    { key: 'pending', amount: pending, color: colors.chartVivid[3] },
+    { key: 'overdue', amount: overdue, color: vividOverdue(colors.mode) },
   ];
 
-  const max = Math.max(1, pagado, pendiente, vencido);
+  const max = Math.max(1, paid, pending, overdue);
 
   return (
     <Card

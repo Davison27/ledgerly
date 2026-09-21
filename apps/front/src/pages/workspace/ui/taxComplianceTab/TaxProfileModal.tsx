@@ -2,6 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { App, Checkbox, Form, Input, Modal, Select, Skeleton, Switch, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import {
+  formatTaxObligationDescription,
+  formatTaxObligationName,
   saveTaxClientProfile,
   type SaveTaxClientProfilePayload,
   type TaxClientProfileDto,
@@ -49,19 +51,19 @@ export function TaxProfileModal({
       obligations.map((obligation) => ({
         label: (
           <span>
-            <Text strong>{obligation.name}</Text>
-            <Text type="secondary"> · {obligation.description}</Text>
+            <Text strong>{formatTaxObligationName(t, obligation.key)}</Text>
+            <Text type="secondary"> · {formatTaxObligationDescription(t, obligation.key)}</Text>
           </span>
         ),
         value: obligation.key,
       })),
-    [obligations],
+    [obligations, t],
   );
 
   useEffect(() => {
     if (!open) return;
     form.setFieldsValue({
-      entityType: profile?.entityType ?? 'autonomo',
+      entityType: profile?.entityType ?? 'self_employed',
       regionCode: profile?.regionCode ?? undefined,
       enabled: profile?.enabled ?? true,
       obligationKeys: profile?.obligationKeys ?? [],
@@ -125,9 +127,15 @@ export function TaxProfileModal({
           >
             <Select
               options={[
-                { value: 'autonomo', label: t('workspace.taxCompliance.entityTypes.autonomo') },
-                { value: 'sociedad', label: t('workspace.taxCompliance.entityTypes.sociedad') },
-                { value: 'particular', label: t('workspace.taxCompliance.entityTypes.particular') },
+                {
+                  value: 'self_employed',
+                  label: t('workspace.taxCompliance.entityTypes.selfEmployed'),
+                },
+                { value: 'company', label: t('workspace.taxCompliance.entityTypes.company') },
+                {
+                  value: 'individual',
+                  label: t('workspace.taxCompliance.entityTypes.individual'),
+                },
               ]}
             />
           </Form.Item>

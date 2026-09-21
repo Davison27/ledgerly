@@ -226,9 +226,9 @@ export function DashboardPage() {
                         color={token.colorPrimary}
                       />
                       <CashflowByStatus
-                        pagado={data.amountByStatus.pagado}
-                        pendiente={data.amountByStatus.pendiente}
-                        vencido={data.amountByStatus.vencido}
+                        paid={data.amountByStatus.paid}
+                        pending={data.amountByStatus.pending}
+                        overdue={data.amountByStatus.overdue}
                       />
                       <MonthlyProfitChart profit={data.monthlyProfit} />
                       <CumulativeProfitChart cumulativeProfit={data.cumulativeProfit} />

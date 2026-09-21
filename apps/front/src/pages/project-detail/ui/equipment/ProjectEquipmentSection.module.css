@@ -1,3 +1,15 @@
 .root {
   width: 100%;
 }
+
+.fullWidth {
+  width: 100%;
+}
+
+.expenseList {
+  min-width: 220px;
+}
+
+.expenseRow {
+  white-space: nowrap;
+}

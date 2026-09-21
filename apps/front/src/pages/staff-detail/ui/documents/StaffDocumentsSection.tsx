@@ -23,7 +23,7 @@ import styles from './StaffDocumentsSection.module.css';
 
 const { Title, Text } = Typography;
 
-const PAYROLL_TYPE_CODE = 'nomina';
+const PAYROLL_TYPE_CODE = 'payroll';
 
 export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();

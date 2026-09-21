@@ -15,7 +15,7 @@ const { Title, Text } = Typography;
 export function PayrollsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const { data: payrolls = [], isPending: loading } = useQuery(
-    documentQueries.list({ staffMemberId: staffMember.id, type: 'nomina' }),
+    documentQueries.list({ staffMemberId: staffMember.id, type: 'payroll' }),
   );
 
   const columns: TableColumnsType<DocumentListItemDto> = [

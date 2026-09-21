@@ -1,8 +1,15 @@
-export type DocumentTypeDto = 'factura' | 'nomina' | 'impuesto';
-export type CreatableDocumentType = Exclude<DocumentTypeDto, 'nomina'>;
-export const CREATABLE_DOCUMENT_TYPES = ['factura', 'impuesto'] as const satisfies readonly CreatableDocumentType[];
-export type DocumentStatusDto = 'pagado' | 'pendiente' | 'vencido';
-export type DocumentDirectionDto = 'ingreso' | 'gasto';
+export type DocumentTypeDto = 'invoice' | 'payroll' | 'tax';
+export type CreatableDocumentType = Exclude<DocumentTypeDto, 'payroll'>;
+export const CREATABLE_DOCUMENT_TYPES = ['invoice', 'tax'] as const satisfies readonly CreatableDocumentType[];
+export type DocumentStatusDto = 'paid' | 'pending' | 'overdue';
+export type DocumentDirectionDto = 'income' | 'expense';
+
+export type ExtractionWarningCode =
+  | 'missing_issuer_tax_id'
+  | 'missing_invoice_number'
+  | 'missing_invoice_date'
+  | 'missing_total_amount'
+  | 'missing_issuer_name';
 
 export interface DocumentDto {
   id: string;
@@ -113,7 +120,6 @@ export interface CreateDocumentPayload {
   name: string;
   type: CreatableDocumentType;
   direction: DocumentDirectionDto;
-  month: number;
   date: string;
   amount: number;
   status: DocumentStatusDto;
@@ -174,5 +180,5 @@ export interface ExtractInvoiceResult {
   source: ExtractInvoiceSource;
   confidence: ExtractInvoiceConfidence;
   fields: ExtractInvoiceFields;
-  warnings: string[];
+  warnings: ExtractionWarningCode[];
 }

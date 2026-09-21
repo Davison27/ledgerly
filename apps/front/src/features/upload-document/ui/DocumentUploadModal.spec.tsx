@@ -63,7 +63,7 @@ const extractionResult: ExtractInvoiceResult = {
   confidence: 'high',
   fields: {
     name: 'Factura septiembre',
-    type: 'factura',
+    type: 'invoice',
     date: '2026-09-01',
     amount: 121,
     currency: 'EUR',
@@ -205,7 +205,7 @@ describe('DocumentUploadModal', () => {
     selectPdf();
     extraction.resolve({
       ...extractionResult,
-      fields: { ...extractionResult.fields, type: 'nomina' },
+      fields: { ...extractionResult.fields, type: 'payroll' },
     });
 
     await waitFor(() => {
@@ -216,10 +216,31 @@ describe('DocumentUploadModal', () => {
     await waitFor(() => {
       expect(mocks.createDocument).toHaveBeenCalledWith(
         'project-1',
-        expect.objectContaining({ type: 'factura' }),
+        expect.objectContaining({ type: 'invoice' }),
         expect.any(File),
       );
     });
+  });
+
+  it('renders extraction warning codes through localized copy', async () => {
+    const user = userEvent.setup();
+    const extraction = deferred<typeof extractionResult>();
+    mocks.extractInvoice.mockReturnValue(extraction.promise);
+    renderModal();
+
+    selectPdf();
+    extraction.resolve({
+      ...extractionResult,
+      warnings: ['missing_invoice_number', 'missing_total_amount'],
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Listo para revisar');
+    });
+
+    await user.hover(screen.getByText('Confianza alta'));
+    expect(await screen.findByText('Falta el número de factura.')).toBeInTheDocument();
+    expect(await screen.findByText('Falta el importe total.')).toBeInTheDocument();
   });
 
   it.each([

@@ -1116,7 +1116,28 @@
         "checkError": "The official sources could not be checked",
         "reviewed": "Change marked as reviewed; rules were not modified automatically",
         "reviewError": "The change could not be marked as reviewed",
-        "legalNote": "Source: Agencia Tributaria. The official link and check date are preserved; changes require administrator review."
+        "legalNote": "Source: Agencia Tributaria. The official link and check date are preserved; changes require administrator review.",
+        "es-aeat-iva": { "label": "AEAT · VAT" },
+        "es-aeat-renta": { "label": "AEAT · Income tax" },
+        "es-aeat-renta-sociedades": { "label": "AEAT · Income and corporate tax" }
+      },
+      "obligations": {
+        "es-aeat-model-303-quarterly": {
+          "name": "Form 303 · Quarterly VAT",
+          "description": "Quarterly self-assessment of value-added tax."
+        },
+        "es-aeat-model-111-quarterly": {
+          "name": "Form 111 · Withholdings",
+          "description": "Quarterly income tax withholdings and payments on account."
+        },
+        "es-aeat-model-115-quarterly": {
+          "name": "Form 115 · Rent",
+          "description": "Withholdings and payments on account for urban rent."
+        },
+        "es-aeat-model-100-annual": {
+          "name": "Form 100 · Income tax",
+          "description": "Annual personal income tax campaign."
+        }
       },
       "toast": {
         "enabled": "Tax compliance enabled",
@@ -1139,9 +1160,9 @@
         "emptyHint": "Clients are managed as projects: create one to start configuring its tax obligations."
       },
       "entityTypes": {
-        "autonomo": "Self-employed",
-        "sociedad": "Company",
-        "particular": "Individual"
+        "selfEmployed": "Self-employed",
+        "company": "Company",
+        "individual": "Individual"
       },
       "profile": {
         "title": "Tax profile · {{name}}",
@@ -1218,11 +1239,24 @@
       "saveError": "The equipment could not be saved in the project.",
       "deleteError": "The equipment could not be removed from the project.",
       "expenseHelp": "Optional one-off leasing expense assumed by this project.",
+      "leaseExpenses": {
+        "title": "Lease expenses",
+        "add": "Add expense",
+        "addTitle": "Add lease expense",
+        "amount": "Amount",
+        "date": "Expense date",
+        "amountRequired": "Enter an expense amount",
+        "dateRequired": "Select an expense date",
+        "saved": "Lease expense added",
+        "deleted": "Lease expense deleted",
+        "saveError": "The lease expense could not be added.",
+        "deleteError": "The lease expense could not be deleted.",
+        "delete": "Delete lease expense"
+      },
       "columns": {
         "equipment": "Equipment",
         "catalogLease": "Catalog monthly lease",
-        "projectExpense": "Project leasing expense",
-        "date": "Expense date"
+        "actions": "Actions"
       },
       "validation": {
         "equipmentRequired": "Select equipment",
@@ -1269,18 +1303,18 @@
         }
       },
       "types": {
-        "factura": "Invoice",
-        "nomina": "Payroll",
-        "impuesto": "Tax"
+        "invoice": "Invoice",
+        "payroll": "Payroll",
+        "tax": "Tax"
       },
       "directions": {
-        "ingreso": "Income",
-        "gasto": "Expense"
+        "income": "Income",
+        "expense": "Expense"
       },
       "statuses": {
-        "pagado": "Paid",
-        "pendiente": "Pending",
-        "vencido": "Overdue"
+        "paid": "Paid",
+        "pending": "Pending",
+        "overdue": "Overdue"
       },
       "detail": {
         "goToProject": "Go to project"
@@ -1351,7 +1385,14 @@
             "low": "Low confidence"
           },
           "reviewNote": "Review the extracted data before saving, confidence is limited.",
-          "warningsTitle": "Extraction warnings"
+          "warningsTitle": "Extraction warnings",
+          "warnings": {
+            "missing_issuer_tax_id": "The issuer tax ID is missing.",
+            "missing_invoice_number": "The invoice number is missing.",
+            "missing_invoice_date": "The invoice date is missing.",
+            "missing_total_amount": "The total amount is missing.",
+            "missing_issuer_name": "The issuer name is missing."
+          }
         },
         "duplicate": {
           "title": "Possible duplicate document",
@@ -1501,6 +1542,7 @@
         "type": "Type",
         "status": "Status",
         "description": "Description",
+        "client": "Client",
         "clientCompany": "Company / Client",
         "clientTaxId": "Tax ID",
         "contactName": "Contact person",
@@ -1538,6 +1580,7 @@
         "code": "E.g. GA-ZGZ-24",
         "type": "Select a type",
         "description": "Add a project description...",
+        "client": "Select a client",
         "clientCompany": "E.g. Mediaset España",
         "clientTaxId": "E.g. B12345678",
         "contactName": "E.g. María López",
@@ -1620,6 +1663,21 @@
       "topHintsEmpty": "No hints have been recorded yet.",
       "occurrences": "{{count}} occurrences"
     }
+  },
+  "clients": {
+    "name": "Client",
+    "taxId": "Tax ID",
+    "create": "Create client",
+    "createTitle": "Create client",
+    "createSubmit": "Create client",
+    "created": "Client created successfully",
+    "createError": "The client could not be created. Please try again.",
+    "duplicateTaxId": "A client with that tax ID already exists.",
+    "nameRequired": "Client name is required",
+    "namePlaceholder": "E.g. Mediaset España",
+    "taxIdPlaceholder": "E.g. B12345678",
+    "archived": "Client archived",
+    "unarchived": "Client unarchived"
   },
   "suppliers": {
     "navLabel": "Suppliers",

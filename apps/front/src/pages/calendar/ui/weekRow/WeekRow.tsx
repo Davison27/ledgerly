@@ -2,7 +2,10 @@ import { useMemo, type ReactNode } from 'react';
 import { Popover, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
-import type { TaxDeadlineDto } from '@/entities/tax-compliance';
+import {
+  formatTaxDeadlineTitle,
+  type TaxDeadlineDto,
+} from '@/entities/tax-compliance';
 import type { ConflictIndex } from '../../model/conflictIndex';
 import { conflictsForEventInRange } from '../../model/conflictIndex';
 import { WEEK_BAR_HEIGHT } from '../../model/eventDensity';
@@ -46,6 +49,7 @@ function barLabel(
   eventsById: Map<string, ScheduleEventDto>,
   deadlinesById: Map<string, TaxDeadlineDto>,
   projectsById: Map<string, SchedulableProjectDto>,
+  formatDeadlineTitle: (deadline: TaxDeadlineDto) => string,
 ): string {
   if (bar.kind === 'event') {
     const event = eventsById.get(bar.eventId ?? '');
@@ -53,7 +57,7 @@ function barLabel(
   }
   if (bar.kind === 'tax') {
     const deadline = deadlinesById.get(bar.taxDeadlineId ?? '');
-    return deadline ? `${deadline.title} · ${deadline.projectName}` : '';
+    return deadline ? `${formatDeadlineTitle(deadline)} · ${deadline.projectName}` : '';
   }
   return projectsById.get(bar.projectId)?.name ?? '';
 }
@@ -74,6 +78,7 @@ export function WeekRow({
   onSelectDerived,
 }: WeekRowProps) {
   const { t } = useTranslation();
+  const formatDeadlineTitle = (deadline: TaxDeadlineDto) => formatTaxDeadlineTitle(t, deadline);
 
   const { bars, laneCount } = useMemo(() => layoutWeek(weekDates, items), [weekDates, items]);
 
@@ -197,7 +202,13 @@ export function WeekRow({
                             }
                           }}
                         >
-                          {barLabel(bar, eventsById, deadlinesById, projectsById)}
+                          {barLabel(
+                            bar,
+                            eventsById,
+                            deadlinesById,
+                            projectsById,
+                            formatDeadlineTitle,
+                          )}
                         </Text>
                       ))}
                     </div>

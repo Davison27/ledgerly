@@ -1,4 +1,18 @@
-export type TaxEntityTypeDto = 'autonomo' | 'sociedad' | 'particular';
+export type TaxEntityTypeDto = 'self_employed' | 'company' | 'individual';
+
+export type TaxObligationRule =
+  | {
+      kind: 'quarterly';
+      dueDay: number;
+      fourthQuarterDueDay: number;
+    }
+  | {
+      kind: 'annual-campaign';
+      campaignStartMonth: number;
+      campaignStartDay: number;
+      campaignEndMonth: number;
+      campaignEndDay: number;
+    };
 
 export interface TaxComplianceSettingsDto {
   enabled: boolean;
@@ -9,11 +23,9 @@ export interface TaxObligationDto {
   key: string;
   countryCode: 'ES';
   code: string;
-  name: string;
-  description: string;
   category: 'vat' | 'withholding' | 'income';
   eligibleEntityTypes: TaxEntityTypeDto[];
-  rule: Record<string, unknown>;
+  rule: TaxObligationRule;
   sourceUrl: string;
   sourceVersion: string;
 }
@@ -49,19 +61,17 @@ export type TaxDeadlineStatusDto = 'pending' | 'in_progress' | 'submitted' | 'pa
 
 export interface TaxDeadlineDto {
   id: string;
-  occurrenceKey: string;
   projectId: string;
   obligationKey: string;
   code: string;
-  title: string;
-  description: string;
-  category: string;
+  category: 'vat' | 'withholding' | 'income';
   periodStart: string;
   periodEnd: string;
   startDate: string;
   endDate: string;
   dueDate: string;
   status: TaxDeadlineStatusDto;
+  rule: TaxObligationRule;
   sourceUrl: string;
   sourceVersion: string;
   projectName: string;
@@ -89,8 +99,7 @@ export interface TaxSourceChangeDto {
 
 export interface TaxSourceStateDto {
   sourceKey: string;
-  countryCode: string;
-  label: string;
+  countryCode: 'ES';
   format: 'ical';
   sourceUrl: string;
   feedUrl: string;

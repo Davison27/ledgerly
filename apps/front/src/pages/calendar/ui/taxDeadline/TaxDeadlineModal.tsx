@@ -1,7 +1,11 @@
 import dayjs from 'dayjs';
 import { Descriptions, Modal, Space, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { TaxDeadlineDto } from '@/entities/tax-compliance';
+import {
+  formatTaxDeadlineTitle,
+  formatTaxObligationDescription,
+  type TaxDeadlineDto,
+} from '@/entities/tax-compliance';
 
 const { Paragraph, Text, Title } = Typography;
 
@@ -20,8 +24,11 @@ export function TaxDeadlineModal({ open, deadline, onClose }: TaxDeadlineModalPr
 
   if (!deadline) return null;
 
+  const title = formatTaxDeadlineTitle(t, deadline);
+  const description = formatTaxObligationDescription(t, deadline.obligationKey);
+
   return (
-    <Modal open={open} title={deadline.title} onCancel={onClose} footer={null} destroyOnHidden>
+    <Modal open={open} title={title} onCancel={onClose} footer={null} destroyOnHidden>
       <Space direction="vertical" size="middle" style={{ width: '100%' }}>
         <div>
           <Title level={5} style={{ marginBlock: 0 }}>
@@ -30,7 +37,7 @@ export function TaxDeadlineModal({ open, deadline, onClose }: TaxDeadlineModalPr
           <Text type="secondary">{deadline.code}</Text>
         </div>
 
-        <Paragraph style={{ marginBlock: 0 }}>{deadline.description}</Paragraph>
+        <Paragraph style={{ marginBlock: 0 }}>{description}</Paragraph>
 
         <Descriptions size="small" column={1} bordered>
           <Descriptions.Item label={t('calendar.tax.modal.dueDate')}>

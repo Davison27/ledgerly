@@ -1,7 +1,10 @@
 import type { CSSProperties } from 'react';
 import { Flex, Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { TaxDeadlineDto } from '@/entities/tax-compliance';
+import {
+  formatTaxDeadlineTitle,
+  type TaxDeadlineDto,
+} from '@/entities/tax-compliance';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import styles from './TaxDeadlineBar.module.css';
 
@@ -27,6 +30,7 @@ export function TaxDeadlineBar({
   const { t } = useTranslation();
   const colors = useSemanticColors();
   const statusLabel = t(`calendar.tax.status.${deadline.status}`);
+  const title = formatTaxDeadlineTitle(t, deadline);
 
   return (
     <div
@@ -50,7 +54,7 @@ export function TaxDeadlineBar({
           {deadline.code}
         </Text>
         <Text ellipsis className={styles.title}>
-          {deadline.title}
+          {title}
         </Text>
         {variant === 'month' && span >= 2 && <Tag className={styles.badge}>{statusLabel}</Tag>}
       </Flex>

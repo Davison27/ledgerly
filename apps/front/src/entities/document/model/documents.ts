@@ -1,8 +1,8 @@
 import type { DocumentDto } from '../api/types';
 
-export type DocumentType = 'factura' | 'nomina' | 'impuesto';
-export type DocumentStatus = 'pagado' | 'pendiente' | 'vencido';
-export type DocumentDirection = 'ingreso' | 'gasto';
+export type DocumentType = 'invoice' | 'payroll' | 'tax';
+export type DocumentStatus = 'paid' | 'pending' | 'overdue';
+export type DocumentDirection = 'income' | 'expense';
 
 export interface ProjectDocument {
   id: string;

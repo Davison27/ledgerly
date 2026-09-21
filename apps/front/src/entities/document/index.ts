@@ -27,6 +27,7 @@ export type {
   UpdateDocumentPayload,
   ExtractInvoiceResult,
   ExtractInvoiceConfidence,
+  ExtractionWarningCode,
   DocumentDuplicatePageDto,
   DocumentPageParams,
 } from './api/types';

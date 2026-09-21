@@ -1,3 +1,9 @@
+export interface ProjectLeaseExpenseDto {
+  id: string;
+  amount: number;
+  date: string;
+}
+
 export interface ProjectEquipmentDto {
   projectId: string;
   equipmentId: string;
@@ -6,8 +12,7 @@ export interface ProjectEquipmentDto {
   category: string | null;
   image: string | null;
   leasingMonthlyFee: number | null;
-  leaseExpense: number | null;
-  leaseExpenseDate: string | null;
+  leaseExpenses: ProjectLeaseExpenseDto[];
 }
 
 export interface SaveProjectEquipmentPayload {

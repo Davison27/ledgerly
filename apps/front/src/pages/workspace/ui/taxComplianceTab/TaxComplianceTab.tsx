@@ -22,6 +22,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { projectQueries, type Project } from '@/entities/project';
 import {
+  formatTaxSourceLabel,
   refreshTaxSources,
   reviewTaxSource,
   taxComplianceQueries,
@@ -203,7 +204,7 @@ export function TaxComplianceTab() {
                   key: 'source',
                   render: (_, source) => (
                     <Flex vertical>
-                      <Text strong>{source.label}</Text>
+                      <Text strong>{formatTaxSourceLabel(t, source.sourceKey)}</Text>
                       <a href={source.sourceUrl} target="_blank" rel="noreferrer">
                         {t('workspace.taxCompliance.sources.officialSource')}
                       </a>

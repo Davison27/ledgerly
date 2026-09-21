@@ -15,3 +15,11 @@ export function saveProjectEquipment(
 export function deleteProjectEquipment(projectId: string, equipmentId: string): Promise<void> {
   return del<void>(`/projects/${projectId}/equipment/${equipmentId}`);
 }
+
+export function deleteProjectLeaseExpense(
+  projectId: string,
+  equipmentId: string,
+  expenseId: string,
+): Promise<void> {
+  return del<void>(`/projects/${projectId}/equipment/${equipmentId}/lease-expenses/${expenseId}`);
+}

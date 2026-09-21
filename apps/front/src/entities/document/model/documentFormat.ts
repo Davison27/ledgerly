@@ -11,14 +11,14 @@ export function formatEUR(n: number): string {
 }
 
 export const STATUS_TONE: Record<DocumentStatus, SemanticTone> = {
-  pagado: 'paid',
-  pendiente: 'pending',
-  vencido: 'overdue',
+  paid: 'paid',
+  pending: 'pending',
+  overdue: 'overdue',
 };
 
 export const DIRECTION_TONE: Record<DocumentDirection, SemanticTone> = {
-  ingreso: 'income',
-  gasto: 'expense',
+  income: 'income',
+  expense: 'expense',
 };
 
 export function useTypeLabel() {

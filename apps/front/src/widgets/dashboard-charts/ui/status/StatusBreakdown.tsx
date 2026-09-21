@@ -18,7 +18,7 @@ export interface StatusBreakdownProps {
   overdue: number;
 }
 
-const ORDER: DocumentStatus[] = ['pagado', 'pendiente', 'vencido'];
+const ORDER: DocumentStatus[] = ['paid', 'pending', 'overdue'];
 const DIMMED_ALPHA = '33';
 
 export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps) {
@@ -28,14 +28,14 @@ export function StatusBreakdown({ paid, pending, overdue }: StatusBreakdownProps
   const [hovered, setHovered] = useState<DocumentStatus | null>(null);
 
   const counts: Record<DocumentStatus, number> = {
-    pagado: paid,
-    pendiente: pending,
-    vencido: overdue,
+    paid,
+    pending,
+    overdue,
   };
   const palette: Record<DocumentStatus, string> = {
-    pagado: colors.chartVivid[1],
-    pendiente: colors.chartVivid[3],
-    vencido: vividOverdue(colors.mode),
+    paid: colors.chartVivid[1],
+    pending: colors.chartVivid[3],
+    overdue: vividOverdue(colors.mode),
   };
 
   const total = paid + pending + overdue;

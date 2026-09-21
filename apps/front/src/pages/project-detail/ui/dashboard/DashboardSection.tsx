@@ -56,9 +56,9 @@ export function DashboardSection({ color, data }: DashboardSectionProps) {
             overdue={data.overdue}
           />
           <CashflowByStatus
-            pagado={data.amountByStatus.pagado}
-            pendiente={data.amountByStatus.pendiente}
-            vencido={data.amountByStatus.vencido}
+            paid={data.amountByStatus.paid}
+            pending={data.amountByStatus.pending}
+            overdue={data.amountByStatus.overdue}
           />
           <TopIssuers topIssuers={data.topIssuers} />
         </div>

@@ -122,15 +122,15 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
 
   const typeOptions = [
     { value: 'all', label: t('projects.documents.filters.allTypes') },
-    { value: 'factura', label: t('projects.documents.types.factura') },
-    { value: 'impuesto', label: t('projects.documents.types.impuesto') },
+    { value: 'invoice', label: t('projects.documents.types.invoice') },
+    { value: 'tax', label: t('projects.documents.types.tax') },
   ];
 
   const statusOptions = [
     { value: 'all', label: t('projects.documents.filters.allStatuses') },
-    { value: 'pagado', label: t('projects.documents.statuses.pagado') },
-    { value: 'pendiente', label: t('projects.documents.statuses.pendiente') },
-    { value: 'vencido', label: t('projects.documents.statuses.vencido') },
+    { value: 'paid', label: t('projects.documents.statuses.paid') },
+    { value: 'pending', label: t('projects.documents.statuses.pending') },
+    { value: 'overdue', label: t('projects.documents.statuses.overdue') },
   ];
 
   return (

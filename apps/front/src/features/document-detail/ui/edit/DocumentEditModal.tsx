@@ -62,8 +62,8 @@ interface DocumentEditFormFields {
   issuerTaxId?: string;
 }
 
-const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
-const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
+const DOCUMENT_STATUSES: DocumentStatusDto[] = ['paid', 'pending', 'overdue'];
+const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['income', 'expense'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 
 const AMOUNT_MISMATCH_TOLERANCE = 0.02;
@@ -90,7 +90,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
 
     form.setFieldsValue({
       name: document.name,
-      type: document.type === 'nomina' ? undefined : document.type,
+      type: document.type === 'payroll' ? undefined : document.type,
       direction: document.direction,
       status: document.rawStatus,
       date: dayjs(document.date),
@@ -145,7 +145,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
       .then((values) => {
         const payload: UpdateDocumentPayload = {
           name: values.name,
-          ...(document.type === 'nomina' ? {} : { type: values.type }),
+          ...(document.type === 'payroll' ? {} : { type: values.type }),
           direction: values.direction,
           status: values.status,
           date: values.date.format('YYYY-MM-DD'),
@@ -232,9 +232,9 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
               </Form.Item>
             </Col>
             <Col xs={24} sm={12} md={8}>
-              {document?.type === 'nomina' ? (
+              {document?.type === 'payroll' ? (
                 <Form.Item label={t('projects.documents.upload.fields.type')}>
-                  <Input value={t('projects.documents.types.nomina')} disabled />
+                  <Input value={t('projects.documents.types.payroll')} disabled />
                 </Form.Item>
               ) : (
                 <Form.Item name="type" label={t('projects.documents.upload.fields.type')}>

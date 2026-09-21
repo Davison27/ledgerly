@@ -57,7 +57,7 @@ export function DocumentsListView({
       width: 120,
       align: 'right',
       render: (amount: number, record) => (
-        <Amount value={amount} tone={record.direction === 'ingreso' ? 'income' : 'expense'} />
+        <Amount value={amount} tone={record.direction === 'income' ? 'income' : 'expense'} />
       ),
     },
     {

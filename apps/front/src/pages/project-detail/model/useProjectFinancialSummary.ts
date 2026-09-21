@@ -24,11 +24,7 @@ export function useProjectFinancialSummary(projectId: string): ProjectFinancialS
     () =>
       deriveDashboardData(
         documentsQuery.data ?? [],
-        (equipmentQuery.data ?? []).flatMap((item) =>
-          item.leaseExpense !== null && item.leaseExpenseDate
-            ? [{ amount: item.leaseExpense, date: item.leaseExpenseDate }]
-            : [],
-        ),
+        (equipmentQuery.data ?? []).flatMap((item) => item.leaseExpenses),
       ),
     [documentsQuery.data, equipmentQuery.data],
   );

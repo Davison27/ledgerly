@@ -29,7 +29,7 @@ const values: ProjectFormValues = {
   type: 'client',
   status: 'active',
   description: 'Description',
-  clientCompany: 'Acme',
+  clientId: 'client-1',
   budget: 1000,
   currency: 'EUR',
 };
@@ -81,6 +81,8 @@ describe('project view model', () => {
       type: 'client',
       status: 'active',
       description: null,
+      clientId: null,
+      client: null,
       budget: null,
       currency: null,
       image: null,
@@ -107,6 +109,8 @@ describe('project view model', () => {
       code: 'P-001',
       type: 'other',
       status: 'active',
+      clientId: null,
+      client: null,
     });
     vi.mocked(updateProjectRequest).mockResolvedValue({
       id: 'project-1',
@@ -114,6 +118,8 @@ describe('project view model', () => {
       code: 'P-001',
       type: 'client',
       status: 'active',
+      clientId: 'client-1',
+      client: null,
     });
     vi.mocked(deleteProject).mockResolvedValue({ outcome: 'deleted' });
 
@@ -122,7 +128,7 @@ describe('project view model', () => {
     await removeProject('project-1');
 
     expect(createProject).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'other', name: 'Project One' }),
+      expect.objectContaining({ type: 'other', name: 'Project One', clientId: 'client-1' }),
     );
     expect(updateProjectRequest).toHaveBeenCalledWith(
       'project-1',

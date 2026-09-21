@@ -1,7 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { taxComplianceQueries } from '../api/tax-compliance.queries';
+import type { TaxDeadlineDto } from '../api/types';
 
-export function useTaxComplianceCalendar(from: string, to: string) {
+export interface TaxComplianceCalendarState {
+  enabled: boolean;
+  settingsLoading: boolean;
+  deadlines: TaxDeadlineDto[];
+  loading: boolean;
+  loadError: boolean;
+}
+
+export function useTaxComplianceCalendar(
+  from: string,
+  to: string,
+): TaxComplianceCalendarState {
   const {
     data: settings,
     isPending: settingsLoading,
@@ -11,11 +23,12 @@ export function useTaxComplianceCalendar(from: string, to: string) {
     ...taxComplianceQueries.calendar(from, to),
     enabled: settings?.enabled === true,
   });
+  const deadlines = deadlinesQuery.data ?? [];
 
   return {
     enabled: settings?.enabled === true,
     settingsLoading,
-    deadlines: deadlinesQuery.data ?? [],
+    deadlines,
     loading: deadlinesQuery.isPending,
     loadError: settingsLoadError || deadlinesQuery.isError,
   };

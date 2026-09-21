@@ -122,8 +122,8 @@ type UploadFailure =
   | 'pdfNoTextLayer'
   | 'pdfPageLimitExceeded';
 
-const DOCUMENT_STATUSES: DocumentStatusDto[] = ['pagado', 'pendiente', 'vencido'];
-const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['ingreso', 'gasto'];
+const DOCUMENT_STATUSES: DocumentStatusDto[] = ['paid', 'pending', 'overdue'];
+const DOCUMENT_DIRECTIONS: DocumentDirectionDto[] = ['income', 'expense'];
 const CURRENCIES = ['EUR', 'USD', 'GBP'];
 
 const CONFIDENCE_TONE: Record<ExtractInvoiceConfidence, SemanticTone> = {
@@ -135,9 +135,9 @@ const CONFIDENCE_TONE: Record<ExtractInvoiceConfidence, SemanticTone> = {
 const AMOUNT_MISMATCH_TOLERANCE = 0.02;
 
 const FORM_INITIAL_VALUES = {
-  type: 'factura' as CreatableDocumentType,
-  direction: 'gasto' as DocumentDirectionDto,
-  status: 'pendiente' as DocumentStatusDto,
+  type: 'invoice' as CreatableDocumentType,
+  direction: 'expense' as DocumentDirectionDto,
+  status: 'pending' as DocumentStatusDto,
   currency: 'EUR',
 };
 
@@ -250,7 +250,7 @@ export function DocumentUploadModal({
         setStep('done');
         form.setFieldsValue({
           name: result.fields.name,
-          type: result.fields.type === 'impuesto' ? 'impuesto' : 'factura',
+          type: result.fields.type === 'tax' ? 'tax' : 'invoice',
           date: result.fields.date ? dayjs(result.fields.date) : undefined,
           dueDate: result.fields.dueDate ? dayjs(result.fields.dueDate) : undefined,
           amount: result.fields.amount,
@@ -491,7 +491,6 @@ export function DocumentUploadModal({
           ...rest,
           date: date.format('YYYY-MM-DD'),
           dueDate: dueDate ? dueDate.format('YYYY-MM-DD') : undefined,
-          month: date.month() + 1,
           supplierId: supplierId ?? undefined,
         };
 
@@ -710,7 +709,9 @@ export function DocumentUploadModal({
                         content={
                           <ul className={styles.warningsList}>
                             {extractResult.warnings.map((warning) => (
-                              <li key={warning}>{warning}</li>
+                              <li key={warning}>
+                                {t(`projects.documents.upload.extraction.warnings.${warning}`)}
+                              </li>
                             ))}
                           </ul>
                         }
