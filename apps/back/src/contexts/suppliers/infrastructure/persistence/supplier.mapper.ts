@@ -12,6 +12,7 @@ export class SupplierMapper {
       address: orm.address,
       iban: orm.iban,
       notes: orm.notes,
+      archivedAt: orm.archivedAt?.toISOString() ?? null,
     });
   }
 
@@ -27,6 +28,9 @@ export class SupplierMapper {
     orm.address = primitives.address;
     orm.iban = primitives.iban;
     orm.notes = primitives.notes;
+    orm.archivedAt = primitives.archivedAt !== undefined && primitives.archivedAt !== null
+      ? new Date(primitives.archivedAt)
+      : null;
 
     return orm;
   }

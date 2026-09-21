@@ -26,6 +26,7 @@ import { CreateStaffDocumentUseCase } from './application/create-staff-document/
 import { UpdateStaffDocumentUseCase } from './application/update-staff-document/update-staff-document.use-case';
 import { DeleteStaffDocumentUseCase } from './application/delete-staff-document/delete-staff-document.use-case';
 import { GetStaffDocumentFileUseCase } from './application/get-staff-document-file/get-staff-document-file.use-case';
+import { UnarchiveStaffMemberUseCase } from './application/unarchive-staff-member/unarchive-staff-member.use-case';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { GetStaffDocumentFileUseCase } from './application/get-staff-document-fi
     CreateStaffMemberUseCase,
     UpdateStaffMemberUseCase,
     DeleteStaffMemberUseCase,
+    UnarchiveStaffMemberUseCase,
     ListStaffDocumentTypesUseCase,
     ListStaffDocumentsUseCase,
     CreateStaffDocumentUseCase,

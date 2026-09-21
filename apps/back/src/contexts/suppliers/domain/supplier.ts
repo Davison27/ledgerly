@@ -9,6 +9,7 @@ export interface SupplierPrimitives {
   address: string | null;
   iban: string | null;
   notes: string | null;
+  archivedAt?: string | null;
 }
 
 interface SupplierProps {
@@ -20,6 +21,7 @@ interface SupplierProps {
   address: string | null;
   iban: string | null;
   notes: string | null;
+  archivedAt: string | null;
 }
 
 export class Supplier {
@@ -31,6 +33,7 @@ export class Supplier {
   private address_: string | null;
   private iban_: string | null;
   private notes_: string | null;
+  private archivedAt_: string | null;
 
   private constructor(props: SupplierProps) {
     this.id_ = props.id;
@@ -41,6 +44,7 @@ export class Supplier {
     this.address_ = props.address;
     this.iban_ = props.iban;
     this.notes_ = props.notes;
+    this.archivedAt_ = props.archivedAt;
   }
 
   static create(params: SupplierPrimitives): Supplier {
@@ -55,6 +59,7 @@ export class Supplier {
       address: params.address,
       iban: params.iban,
       notes: params.notes,
+      archivedAt: params.archivedAt ?? null,
     });
   }
 
@@ -118,8 +123,12 @@ export class Supplier {
     return this.notes_;
   }
 
+  get archivedAt(): string | null {
+    return this.archivedAt_;
+  }
+
   toPrimitives(): SupplierPrimitives {
-    return {
+    const primitives: SupplierPrimitives = {
       id: this.id_,
       name: this.name_,
       taxId: this.taxId_,
@@ -129,5 +138,7 @@ export class Supplier {
       iban: this.iban_,
       notes: this.notes_,
     };
+
+    return this.archivedAt_ === null ? primitives : { ...primitives, archivedAt: this.archivedAt_ };
   }
 }

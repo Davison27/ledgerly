@@ -10,6 +10,7 @@ export class ProjectSummaryResponse {
   pendingCount: number;
   image: string | null;
   color: string | null;
+  status?: ProjectSummary['status'];
 
   static fromSummary(summary: ProjectSummary): ProjectSummaryResponse {
     const response = new ProjectSummaryResponse();
@@ -23,6 +24,9 @@ export class ProjectSummaryResponse {
     response.pendingCount = summary.pendingCount;
     response.image = summary.image;
     response.color = summary.color;
+    if (summary.status !== undefined) {
+      response.status = summary.status;
+    }
 
     return response;
   }

@@ -19,6 +19,8 @@ import { UpdateProjectDto } from './dtos/update-project.dto';
 import { ProjectResponse } from './project.response';
 import { ProjectSummaryResponse } from './project-summary.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
+import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
+import { UnarchiveProjectUseCase } from '../../application/unarchive-project/unarchive-project.use-case';
 
 @RequiresAccess('projects', 'view')
 @Controller('projects')
@@ -29,6 +31,7 @@ export class ProjectsController {
     private readonly createProjectUseCase: CreateProjectUseCase,
     private readonly updateProjectUseCase: UpdateProjectUseCase,
     private readonly deleteProjectUseCase: DeleteProjectUseCase,
+    private readonly unarchiveProjectUseCase: UnarchiveProjectUseCase,
   ) {}
 
   @Get()
@@ -112,5 +115,13 @@ export class ProjectsController {
     const outcome = await this.deleteProjectUseCase.execute(id);
 
     return new DeletionOutcomeResponse(outcome);
+  }
+
+  @RequiresAccess('projects', 'edit')
+  @Post(':id/unarchive')
+  async unarchive(@Param('id') id: string): Promise<UnarchiveOutcomeResponse> {
+    await this.unarchiveProjectUseCase.execute(id);
+
+    return new UnarchiveOutcomeResponse();
   }
 }

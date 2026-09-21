@@ -19,6 +19,7 @@ import { ListEquipmentDocumentsUseCase } from './application/list-equipment-docu
 import { UpdateEquipmentDocumentUseCase } from './application/update-equipment-document/update-equipment-document.use-case';
 import { EQUIPMENT_REFERENCE_COUNTER } from './domain/equipment-reference-counter.port';
 import { TypeOrmEquipmentReferenceCounter } from './infrastructure/persistence/typeorm-equipment-reference-counter';
+import { UnarchiveEquipmentUseCase } from './application/unarchive-equipment/unarchive-equipment.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([EquipmentOrmEntity, EquipmentDocumentOrmEntity])],
@@ -28,6 +29,7 @@ import { TypeOrmEquipmentReferenceCounter } from './infrastructure/persistence/t
     CreateEquipmentUseCase,
     UpdateEquipmentUseCase,
     DeleteEquipmentUseCase,
+    UnarchiveEquipmentUseCase,
     ListEquipmentDocumentsUseCase,
     CreateEquipmentDocumentUseCase,
     UpdateEquipmentDocumentUseCase,

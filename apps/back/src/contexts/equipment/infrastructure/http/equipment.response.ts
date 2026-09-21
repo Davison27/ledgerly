@@ -12,6 +12,7 @@ export class EquipmentResponse {
   image: string | null;
   tags: string[];
   leasingMonthlyFee: number | null;
+  archivedAt?: string;
 
   static fromDomain(equipment: Equipment): EquipmentResponse {
     const response = new EquipmentResponse();
@@ -28,6 +29,9 @@ export class EquipmentResponse {
     response.image = primitives.image ?? null;
     response.tags = primitives.tags ?? [];
     response.leasingMonthlyFee = primitives.leasingMonthlyFee ?? null;
+    if (primitives.archivedAt !== undefined && primitives.archivedAt !== null) {
+      response.archivedAt = primitives.archivedAt;
+    }
 
     return response;
   }

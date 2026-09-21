@@ -12,6 +12,7 @@ export interface EquipmentPrimitives {
   image?: string | null;
   tags?: string[];
   leasingMonthlyFee?: number | null;
+  archivedAt?: string | null;
 }
 
 interface EquipmentProps {
@@ -26,6 +27,7 @@ interface EquipmentProps {
   image: string | null;
   tags: string[];
   leasingMonthlyFee: number | null;
+  archivedAt: string | null;
 }
 
 export class Equipment {
@@ -40,6 +42,7 @@ export class Equipment {
   private image_: string | null;
   private tags_: string[];
   private leasingMonthlyFee_: number | null;
+  private archivedAt_: string | null;
 
   private constructor(props: EquipmentProps) {
     this.id_ = props.id;
@@ -53,6 +56,7 @@ export class Equipment {
     this.image_ = props.image;
     this.tags_ = props.tags;
     this.leasingMonthlyFee_ = props.leasingMonthlyFee;
+    this.archivedAt_ = props.archivedAt;
   }
 
   static create(params: EquipmentPrimitives): Equipment {
@@ -79,6 +83,7 @@ export class Equipment {
       image,
       tags,
       leasingMonthlyFee: params.leasingMonthlyFee ?? null,
+      archivedAt: params.archivedAt ?? null,
     });
   }
 
@@ -222,8 +227,12 @@ export class Equipment {
     return this.leasingMonthlyFee_;
   }
 
+  get archivedAt(): string | null {
+    return this.archivedAt_;
+  }
+
   toPrimitives(): EquipmentPrimitives {
-    return {
+    const primitives: EquipmentPrimitives = {
       id: this.id_,
       name: this.name_,
       price: this.price_,
@@ -236,5 +245,7 @@ export class Equipment {
       tags: this.tags,
       leasingMonthlyFee: this.leasingMonthlyFee_,
     };
+
+    return this.archivedAt_ === null ? primitives : { ...primitives, archivedAt: this.archivedAt_ };
   }
 }

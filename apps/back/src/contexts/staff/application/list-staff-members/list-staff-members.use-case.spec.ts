@@ -55,6 +55,7 @@ function buildRow(overrides: Partial<StaffMemberSummaryRow> = {}): StaffMemberSu
     hireDate: null,
     endDate: null,
     notes: null,
+    archivedAt: null,
     documentCount: 0,
     earliestExpiryDate: null,
     ...overrides,

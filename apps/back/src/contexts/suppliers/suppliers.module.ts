@@ -13,6 +13,7 @@ import { SUPPLIER_SPEND_PROVIDER } from './domain/supplier-spend-provider.port';
 import { DocumentSupplierSpendProvider } from './infrastructure/documents/document-supplier-spend-provider';
 import { SUPPLIER_REFERENCE_COUNTER } from './domain/supplier-reference-counter.port';
 import { TypeOrmSupplierReferenceCounter } from './infrastructure/persistence/typeorm-supplier-reference-counter';
+import { UnarchiveSupplierUseCase } from './application/unarchive-supplier/unarchive-supplier.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([SupplierOrmEntity])],
@@ -23,6 +24,7 @@ import { TypeOrmSupplierReferenceCounter } from './infrastructure/persistence/ty
     CreateSupplierUseCase,
     UpdateSupplierUseCase,
     DeleteSupplierUseCase,
+    UnarchiveSupplierUseCase,
     { provide: SUPPLIER_REPOSITORY, useClass: TypeOrmSupplierRepository },
     { provide: SUPPLIER_REFERENCE_COUNTER, useClass: TypeOrmSupplierReferenceCounter },
     { provide: SUPPLIER_SPEND_PROVIDER, useClass: DocumentSupplierSpendProvider },

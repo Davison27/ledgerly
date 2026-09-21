@@ -11,6 +11,7 @@ export class StaffMemberResponse {
   hireDate: string | null;
   endDate: string | null;
   notes: string | null;
+  archivedAt?: string;
 
   static fromDomain(staffMember: StaffMember): StaffMemberResponse {
     const response = new StaffMemberResponse();
@@ -26,6 +27,9 @@ export class StaffMemberResponse {
     response.hireDate = primitives.hireDate;
     response.endDate = primitives.endDate;
     response.notes = primitives.notes;
+    if (primitives.archivedAt !== undefined && primitives.archivedAt !== null) {
+      response.archivedAt = primitives.archivedAt;
+    }
 
     return response;
   }

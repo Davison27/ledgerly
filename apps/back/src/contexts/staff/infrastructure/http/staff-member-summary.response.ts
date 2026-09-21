@@ -11,6 +11,7 @@ export class StaffMemberSummaryResponse {
   hireDate: string | null;
   endDate: string | null;
   notes: string | null;
+  archivedAt?: string;
   documentCount: number;
   earliestExpiryDate: string | null;
   documentStatus: StaffMemberSummary['documentStatus'];
@@ -28,6 +29,9 @@ export class StaffMemberSummaryResponse {
     response.hireDate = summary.hireDate;
     response.endDate = summary.endDate;
     response.notes = summary.notes;
+    if (summary.archivedAt !== undefined && summary.archivedAt !== null) {
+      response.archivedAt = summary.archivedAt;
+    }
     response.documentCount = summary.documentCount;
     response.earliestExpiryDate = summary.earliestExpiryDate;
     response.documentStatus = summary.documentStatus;

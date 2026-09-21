@@ -11,6 +11,7 @@ export interface StaffMemberSummaryRow {
   hireDate: string | null;
   endDate: string | null;
   notes: string | null;
+  archivedAt: string | null;
   documentCount: number;
   earliestExpiryDate: string | null;
 }
@@ -23,5 +24,6 @@ export interface StaffMemberRepository {
   findById(id: string): Promise<StaffMember | null>;
   save(staffMember: StaffMember): Promise<void>;
   archive(id: string): Promise<void>;
+  unarchive?(id: string): Promise<void>;
   delete(id: string): Promise<void>;
 }

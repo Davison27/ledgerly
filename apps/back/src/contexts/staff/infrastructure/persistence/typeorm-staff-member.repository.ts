@@ -37,6 +37,7 @@ export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
       SELECT s.id, s.first_name AS "firstName", s.last_name AS "lastName",
              s.tax_id AS "taxId", s.email, s.phone, s.position,
              s.hire_date::text AS "hireDate", s.end_date::text AS "endDate", s.notes,
+             s.archived_at::text AS "archivedAt",
              COUNT(sd.id)::int AS "documentCount",
              MIN(sd.expiry_date)::text AS "earliestExpiryDate"
       FROM staff_members s
@@ -63,6 +64,10 @@ export class TypeOrmStaffMemberRepository implements StaffMemberRepository {
 
   async archive(id: string): Promise<void> {
     await this.repository.update(id, { archivedAt: () => 'CURRENT_TIMESTAMP' });
+  }
+
+  async unarchive(id: string): Promise<void> {
+    await this.repository.update(id, { archivedAt: null });
   }
 
   async delete(id: string): Promise<void> {

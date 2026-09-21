@@ -19,6 +19,8 @@ import { CreateSupplierDto } from './dtos/create-supplier.dto';
 import { UpdateSupplierDto } from './dtos/update-supplier.dto';
 import { SupplierResponse } from './supplier.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
+import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
+import { UnarchiveSupplierUseCase } from '../../application/unarchive-supplier/unarchive-supplier.use-case';
 
 @RequiresAccess('suppliers', 'view')
 @Controller('suppliers')
@@ -29,6 +31,7 @@ export class SuppliersController {
     private readonly createSupplierUseCase: CreateSupplierUseCase,
     private readonly updateSupplierUseCase: UpdateSupplierUseCase,
     private readonly deleteSupplierUseCase: DeleteSupplierUseCase,
+    private readonly unarchiveSupplierUseCase: UnarchiveSupplierUseCase,
   ) {}
 
   @Get()
@@ -88,5 +91,13 @@ export class SuppliersController {
     const outcome = await this.deleteSupplierUseCase.execute(id);
 
     return new DeletionOutcomeResponse(outcome);
+  }
+
+  @RequiresAccess('suppliers', 'edit')
+  @Post(':id/unarchive')
+  async unarchive(@Param('id') id: string): Promise<UnarchiveOutcomeResponse> {
+    await this.unarchiveSupplierUseCase.execute(id);
+
+    return new UnarchiveOutcomeResponse();
   }
 }

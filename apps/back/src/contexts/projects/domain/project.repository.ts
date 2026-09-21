@@ -18,6 +18,7 @@ export interface ProjectRepository {
   findByCode(code: string): Promise<Project | null>;
   save(project: Project): Promise<void>;
   archive(id: string): Promise<void>;
+  unarchive?(id: string): Promise<void>;
   delete(id: string): Promise<void>;
   findAllForDashboard(): Promise<ProjectDashboardRow[]>;
 }

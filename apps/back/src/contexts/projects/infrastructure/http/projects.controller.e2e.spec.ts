@@ -8,6 +8,7 @@ import { GetProjectUseCase } from '../../application/get-project/get-project.use
 import { CreateProjectUseCase } from '../../application/create-project/create-project.use-case';
 import { UpdateProjectUseCase } from '../../application/update-project/update-project.use-case';
 import { DeleteProjectUseCase } from '../../application/delete-project/delete-project.use-case';
+import { UnarchiveProjectUseCase } from '../../application/unarchive-project/unarchive-project.use-case';
 import { CreateProjectCommand } from '../../application/create-project/create-project.command';
 import { Project, ProjectPrimitives } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
@@ -67,6 +68,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
   let createExecute: jest.Mock;
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
+  let unarchiveExecute: jest.Mock;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildSummary()]));
@@ -78,6 +80,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
       Promise.resolve(buildProject(command)),
     );
     deleteExecute = jest.fn<Promise<'deleted' | 'archived'>, [string]>().mockResolvedValue('deleted');
+    unarchiveExecute = jest.fn().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ProjectsController],
@@ -87,6 +90,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         { provide: CreateProjectUseCase, useValue: { execute: createExecute } },
         { provide: UpdateProjectUseCase, useValue: { execute: updateExecute } },
         { provide: DeleteProjectUseCase, useValue: { execute: deleteExecute } },
+        { provide: UnarchiveProjectUseCase, useValue: { execute: unarchiveExecute } },
       ],
     }).compile();
 
@@ -103,6 +107,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
     createExecute.mockClear();
     updateExecute.mockClear();
     deleteExecute.mockClear();
+    unarchiveExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -228,6 +233,16 @@ describe('ProjectsController (HTTP, no DB)', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ outcome: 'deleted' });
       expect(deleteExecute).toHaveBeenCalledWith('project-1');
+    });
+  });
+
+  describe('POST /projects/:id/unarchive', () => {
+    it('returns the unarchive outcome and forwards the id', async () => {
+      const response = await request(httpServer).post('/projects/project-1/unarchive');
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({ outcome: 'unarchived' });
+      expect(unarchiveExecute).toHaveBeenCalledWith('project-1');
     });
   });
 });

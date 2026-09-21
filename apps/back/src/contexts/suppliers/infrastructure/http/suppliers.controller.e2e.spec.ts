@@ -8,6 +8,7 @@ import { GetSupplierUseCase } from '../../application/get-supplier/get-supplier.
 import { CreateSupplierUseCase } from '../../application/create-supplier/create-supplier.use-case';
 import { UpdateSupplierUseCase } from '../../application/update-supplier/update-supplier.use-case';
 import { DeleteSupplierUseCase } from '../../application/delete-supplier/delete-supplier.use-case';
+import { UnarchiveSupplierUseCase } from '../../application/unarchive-supplier/unarchive-supplier.use-case';
 import { CreateSupplierCommand } from '../../application/create-supplier/create-supplier.command';
 import { Supplier } from '../../domain/supplier';
 import { SupplierSummary } from '../../domain/supplier-summary';
@@ -45,6 +46,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
   let createExecute: jest.Mock;
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
+  let unarchiveExecute: jest.Mock;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildSupplierSummary()]));
@@ -56,6 +58,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
       Promise.resolve(buildSupplier(command)),
     );
     deleteExecute = jest.fn<Promise<'deleted' | 'archived'>, [string]>().mockResolvedValue('deleted');
+    unarchiveExecute = jest.fn().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [SuppliersController],
@@ -65,6 +68,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
         { provide: CreateSupplierUseCase, useValue: { execute: createExecute } },
         { provide: UpdateSupplierUseCase, useValue: { execute: updateExecute } },
         { provide: DeleteSupplierUseCase, useValue: { execute: deleteExecute } },
+        { provide: UnarchiveSupplierUseCase, useValue: { execute: unarchiveExecute } },
       ],
     }).compile();
 
@@ -81,6 +85,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
     createExecute.mockClear();
     updateExecute.mockClear();
     deleteExecute.mockClear();
+    unarchiveExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -179,6 +184,16 @@ describe('SuppliersController (HTTP, no DB)', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ outcome: 'deleted' });
       expect(deleteExecute).toHaveBeenCalledWith('supplier-1');
+    });
+  });
+
+  describe('POST /suppliers/:id/unarchive', () => {
+    it('returns the unarchive outcome and forwards the id', async () => {
+      const response = await request(httpServer).post('/suppliers/supplier-1/unarchive');
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({ outcome: 'unarchived' });
+      expect(unarchiveExecute).toHaveBeenCalledWith('supplier-1');
     });
   });
 });

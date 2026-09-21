@@ -19,6 +19,8 @@ import { UpdateStaffMemberDto } from './dtos/update-staff-member.dto';
 import { StaffMemberResponse } from './staff-member.response';
 import { StaffMemberSummaryResponse } from './staff-member-summary.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
+import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
+import { UnarchiveStaffMemberUseCase } from '../../application/unarchive-staff-member/unarchive-staff-member.use-case';
 
 @RequiresAccess('staff', 'view')
 @Controller('staff')
@@ -29,6 +31,7 @@ export class StaffController {
     private readonly createStaffMemberUseCase: CreateStaffMemberUseCase,
     private readonly updateStaffMemberUseCase: UpdateStaffMemberUseCase,
     private readonly deleteStaffMemberUseCase: DeleteStaffMemberUseCase,
+    private readonly unarchiveStaffMemberUseCase: UnarchiveStaffMemberUseCase,
   ) {}
 
   @Get()
@@ -92,5 +95,13 @@ export class StaffController {
     const outcome = await this.deleteStaffMemberUseCase.execute(id);
 
     return new DeletionOutcomeResponse(outcome);
+  }
+
+  @RequiresAccess('staff', 'edit')
+  @Post(':id/unarchive')
+  async unarchive(@Param('id') id: string): Promise<UnarchiveOutcomeResponse> {
+    await this.unarchiveStaffMemberUseCase.execute(id);
+
+    return new UnarchiveOutcomeResponse();
   }
 }

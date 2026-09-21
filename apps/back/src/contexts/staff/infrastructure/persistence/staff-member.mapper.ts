@@ -14,6 +14,7 @@ export class StaffMemberMapper {
       hireDate: orm.hireDate,
       endDate: orm.endDate,
       notes: orm.notes,
+      archivedAt: orm.archivedAt?.toISOString() ?? null,
     });
   }
 
@@ -31,6 +32,9 @@ export class StaffMemberMapper {
     orm.hireDate = primitives.hireDate;
     orm.endDate = primitives.endDate;
     orm.notes = primitives.notes;
+    orm.archivedAt = primitives.archivedAt !== undefined && primitives.archivedAt !== null
+      ? new Date(primitives.archivedAt)
+      : null;
 
     return orm;
   }

@@ -1,4 +1,5 @@
 import { ProjectFinancials } from './project-financials';
+import { ProjectStatus } from './project-status';
 
 export interface ProjectSummary {
   id: string;
@@ -10,4 +11,5 @@ export interface ProjectSummary {
   pendingCount: number;
   image: string | null;
   color: string | null;
+  status?: ProjectStatus;
 }

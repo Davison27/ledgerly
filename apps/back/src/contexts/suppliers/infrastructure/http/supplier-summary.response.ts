@@ -9,6 +9,7 @@ export class SupplierSummaryResponse {
   address: string | null;
   iban: string | null;
   notes: string | null;
+  archivedAt?: string;
   documentCount: number;
   spend: SupplierSummary['spend'];
 
@@ -23,6 +24,9 @@ export class SupplierSummaryResponse {
     response.address = summary.address;
     response.iban = summary.iban;
     response.notes = summary.notes;
+    if (summary.archivedAt !== undefined && summary.archivedAt !== null) {
+      response.archivedAt = summary.archivedAt;
+    }
     response.documentCount = summary.documentCount;
     response.spend = summary.spend;
 

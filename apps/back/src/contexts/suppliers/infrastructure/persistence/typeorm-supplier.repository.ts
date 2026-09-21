@@ -45,6 +45,10 @@ export class TypeOrmSupplierRepository implements SupplierRepository {
     await this.repository.update(id, { archivedAt: () => 'CURRENT_TIMESTAMP' });
   }
 
+  async unarchive(id: string): Promise<void> {
+    await this.repository.update(id, { archivedAt: null });
+  }
+
   async delete(id: string): Promise<void> {
     await this.repository.delete(id);
   }

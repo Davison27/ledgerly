@@ -9,6 +9,7 @@ export class SupplierResponse {
   address: string | null;
   iban: string | null;
   notes: string | null;
+  archivedAt?: string;
 
   static fromDomain(supplier: Supplier): SupplierResponse {
     const response = new SupplierResponse();
@@ -22,6 +23,9 @@ export class SupplierResponse {
     response.address = primitives.address;
     response.iban = primitives.iban;
     response.notes = primitives.notes;
+    if (primitives.archivedAt !== undefined && primitives.archivedAt !== null) {
+      response.archivedAt = primitives.archivedAt;
+    }
 
     return response;
   }

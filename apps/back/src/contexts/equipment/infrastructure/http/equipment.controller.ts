@@ -17,6 +17,8 @@ import { CreateEquipmentDto } from './dtos/create-equipment.dto';
 import { UpdateEquipmentDto } from './dtos/update-equipment.dto';
 import { EquipmentResponse } from './equipment.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
+import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
+import { UnarchiveEquipmentUseCase } from '../../application/unarchive-equipment/unarchive-equipment.use-case';
 
 @RequiresAccess('equipment', 'view')
 @Controller('equipment')
@@ -26,6 +28,7 @@ export class EquipmentController {
     private readonly createEquipmentUseCase: CreateEquipmentUseCase,
     private readonly updateEquipmentUseCase: UpdateEquipmentUseCase,
     private readonly deleteEquipmentUseCase: DeleteEquipmentUseCase,
+    private readonly unarchiveEquipmentUseCase: UnarchiveEquipmentUseCase,
   ) {}
 
   @Get()
@@ -84,5 +87,13 @@ export class EquipmentController {
     const outcome = await this.deleteEquipmentUseCase.execute(id);
 
     return new DeletionOutcomeResponse(outcome);
+  }
+
+  @RequiresAccess('equipment', 'edit')
+  @Post(':id/unarchive')
+  async unarchive(@Param('id') id: string): Promise<UnarchiveOutcomeResponse> {
+    await this.unarchiveEquipmentUseCase.execute(id);
+
+    return new UnarchiveOutcomeResponse();
   }
 }

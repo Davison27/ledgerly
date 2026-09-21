@@ -32,14 +32,14 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   async findAllSummaries(): Promise<ProjectSummary[]> {
     const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const rows: ProjectSummaryRow[] = await this.repository.manager.query(`
-      SELECT p.id, p.name, p.code, p.currency, p.image_ciphertext AS "imageCiphertext",
+      SELECT p.id, p.name, p.code, p.currency, p.status, p.image_ciphertext AS "imageCiphertext",
         p.image_nonce AS "imageNonce", p.image_tag AS "imageTag", p.image_key_version AS "imageKeyVersion",
         p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.color,
         COUNT(d.id)::int AS "documentCount",
         COUNT(d.id) FILTER (WHERE d.status = 'pendiente')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id AND d.deleted_at IS NULL
-      GROUP BY p.id, p.name, p.code, p.currency, p.image_ciphertext, p.image_nonce, p.image_tag,
+      GROUP BY p.id, p.name, p.code, p.currency, p.status, p.image_ciphertext, p.image_nonce, p.image_tag,
         p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
       LIMIT $1
@@ -64,7 +64,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   async findSummaryById(id: string): Promise<ProjectSummary | null> {
     const rows: ProjectSummaryRow[] = await this.repository.manager.query(
       `
-      SELECT p.id, p.name, p.code, p.currency, p.image_ciphertext AS "imageCiphertext",
+      SELECT p.id, p.name, p.code, p.currency, p.status, p.image_ciphertext AS "imageCiphertext",
         p.image_nonce AS "imageNonce", p.image_tag AS "imageTag", p.image_key_version AS "imageKeyVersion",
         p.image_mime_type AS "imageMimeType", p.image_size AS "imageSize", p.color,
         COUNT(d.id)::int AS "documentCount",
@@ -72,7 +72,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id AND d.deleted_at IS NULL
       WHERE p.id = $1
-      GROUP BY p.id, p.name, p.code, p.currency, p.image_ciphertext, p.image_nonce, p.image_tag,
+      GROUP BY p.id, p.name, p.code, p.currency, p.status, p.image_ciphertext, p.image_nonce, p.image_tag,
         p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
     `,
@@ -109,6 +109,10 @@ export class TypeOrmProjectRepository implements ProjectRepository {
 
   async archive(id: string): Promise<void> {
     await this.repository.update(id, { status: 'archived' });
+  }
+
+  async unarchive(id: string): Promise<void> {
+    await this.repository.update(id, { status: 'active' });
   }
 
   async delete(id: string): Promise<void> {

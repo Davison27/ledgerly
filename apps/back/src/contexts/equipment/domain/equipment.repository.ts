@@ -8,5 +8,6 @@ export interface EquipmentRepository {
   findByName(name: string): Promise<Equipment | null>;
   save(equipment: Equipment): Promise<void>;
   archive(id: string): Promise<void>;
+  unarchive?(id: string): Promise<void>;
   delete(id: string): Promise<void>;
 }

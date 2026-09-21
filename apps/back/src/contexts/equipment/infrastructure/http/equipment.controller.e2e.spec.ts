@@ -7,6 +7,7 @@ import { ListEquipmentUseCase } from '../../application/list-equipment/list-equi
 import { CreateEquipmentUseCase } from '../../application/create-equipment/create-equipment.use-case';
 import { UpdateEquipmentUseCase } from '../../application/update-equipment/update-equipment.use-case';
 import { DeleteEquipmentUseCase } from '../../application/delete-equipment/delete-equipment.use-case';
+import { UnarchiveEquipmentUseCase } from '../../application/unarchive-equipment/unarchive-equipment.use-case';
 import { CreateEquipmentCommand } from '../../application/create-equipment/create-equipment.command';
 import { Equipment } from '../../domain/equipment';
 import { EquipmentNotFoundException } from '../../domain/errors/equipment-not-found.exception';
@@ -29,6 +30,7 @@ describe('EquipmentController (HTTP, no DB)', () => {
   let createExecute: jest.Mock;
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
+  let unarchiveExecute: jest.Mock;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildEquipment()]));
@@ -39,6 +41,7 @@ describe('EquipmentController (HTTP, no DB)', () => {
       Promise.resolve(buildEquipment(command)),
     );
     deleteExecute = jest.fn<Promise<'deleted' | 'archived'>, [string]>().mockResolvedValue('deleted');
+    unarchiveExecute = jest.fn().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
       controllers: [EquipmentController],
@@ -47,6 +50,7 @@ describe('EquipmentController (HTTP, no DB)', () => {
         { provide: CreateEquipmentUseCase, useValue: { execute: createExecute } },
         { provide: UpdateEquipmentUseCase, useValue: { execute: updateExecute } },
         { provide: DeleteEquipmentUseCase, useValue: { execute: deleteExecute } },
+        { provide: UnarchiveEquipmentUseCase, useValue: { execute: unarchiveExecute } },
       ],
     }).compile();
 
@@ -62,6 +66,7 @@ describe('EquipmentController (HTTP, no DB)', () => {
     createExecute.mockClear();
     updateExecute.mockClear();
     deleteExecute.mockClear();
+    unarchiveExecute.mockClear();
   });
 
   afterAll(async () => {
@@ -183,6 +188,16 @@ describe('EquipmentController (HTTP, no DB)', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ outcome: 'deleted' });
       expect(deleteExecute).toHaveBeenCalledWith('equipment-1');
+    });
+  });
+
+  describe('POST /equipment/:id/unarchive', () => {
+    it('returns the unarchive outcome and forwards the id', async () => {
+      const response = await request(httpServer).post('/equipment/equipment-1/unarchive');
+
+      expect(response.status).toBe(201);
+      expect(response.body).toEqual({ outcome: 'unarchived' });
+      expect(unarchiveExecute).toHaveBeenCalledWith('equipment-1');
     });
   });
 });

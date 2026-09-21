@@ -14,6 +14,7 @@ export interface StaffMemberPrimitives {
   hireDate: string | null;
   endDate: string | null;
   notes: string | null;
+  archivedAt?: string | null;
 }
 
 export class StaffMember {
@@ -27,6 +28,7 @@ export class StaffMember {
   private hireDate_: string | null;
   private endDate_: string | null;
   private notes_: string | null;
+  private archivedAt_: string | null;
 
   private constructor(props: StaffMemberPrimitives) {
     this.id_ = props.id;
@@ -39,6 +41,7 @@ export class StaffMember {
     this.hireDate_ = props.hireDate;
     this.endDate_ = props.endDate;
     this.notes_ = props.notes;
+    this.archivedAt_ = props.archivedAt ?? null;
   }
 
   static create(params: StaffMemberPrimitives): StaffMember {
@@ -133,8 +136,12 @@ export class StaffMember {
     return this.notes_;
   }
 
+  get archivedAt(): string | null {
+    return this.archivedAt_;
+  }
+
   toPrimitives(): StaffMemberPrimitives {
-    return {
+    const primitives: StaffMemberPrimitives = {
       id: this.id_,
       firstName: this.firstName_,
       lastName: this.lastName_,
@@ -146,5 +153,7 @@ export class StaffMember {
       endDate: this.endDate_,
       notes: this.notes_,
     };
+
+    return this.archivedAt_ === null ? primitives : { ...primitives, archivedAt: this.archivedAt_ };
   }
 }

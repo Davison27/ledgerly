@@ -15,6 +15,7 @@ export class EquipmentMapper {
       image,
       tags: orm.tags,
       leasingMonthlyFee: orm.leasingMonthlyFee === null ? null : Number(orm.leasingMonthlyFee),
+      archivedAt: orm.archivedAt?.toISOString() ?? null,
     });
   }
 
@@ -32,6 +33,9 @@ export class EquipmentMapper {
     orm.description = primitives.description ?? null;
     orm.tags = primitives.tags ?? [];
     orm.leasingMonthlyFee = primitives.leasingMonthlyFee?.toString() ?? null;
+    orm.archivedAt = primitives.archivedAt !== undefined && primitives.archivedAt !== null
+      ? new Date(primitives.archivedAt)
+      : null;
 
     return orm;
   }

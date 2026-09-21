@@ -8,5 +8,6 @@ export interface SupplierRepository {
   findByTaxId(taxId: string): Promise<Supplier | null>;
   save(supplier: Supplier): Promise<void>;
   archive(id: string): Promise<void>;
+  unarchive?(id: string): Promise<void>;
   delete(id: string): Promise<void>;
 }

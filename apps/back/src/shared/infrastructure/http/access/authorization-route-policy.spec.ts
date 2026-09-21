@@ -134,7 +134,7 @@ describe('AppModule authorization route policy', () => {
     const discoveredRoutes = discoverAuthorizationRoutes();
 
     expect(discoveredRoutes).toEqual(authorizationRoutePolicies);
-    expect(discoveredRoutes).toHaveLength(88);
+    expect(discoveredRoutes).toHaveLength(92);
     expect(discoveredRoutes.every((route) => route.public || route.access !== null)).toBe(true);
   });
 
@@ -143,7 +143,7 @@ describe('AppModule authorization route policy', () => {
     const reviewedRoutes = authorizationRouteResourceInputPolicies.map(({ method, path }) => ({ method, path }));
 
     expect(reviewedRoutes).toEqual(discoveredRoutes.map(({ method, path }) => ({ method, path })));
-    expect(authorizationRouteResourceInputPolicies).toHaveLength(88);
+    expect(authorizationRouteResourceInputPolicies).toHaveLength(92);
   });
 
   it('keeps the resource-input handoff inventory complete', () => {
@@ -157,8 +157,8 @@ describe('AppModule authorization route policy', () => {
     }));
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
-    expect(authorizationResourceParameterHandoffs).toHaveLength(50);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(73);
+    expect(authorizationResourceParameterHandoffs).toHaveLength(54);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(77);
   });
 
   it('omits the retired staff document upload route from every authorization inventory', () => {

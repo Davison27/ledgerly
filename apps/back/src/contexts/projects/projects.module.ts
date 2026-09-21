@@ -19,6 +19,7 @@ import { PROJECT_FINANCIALS_PROVIDER } from './domain/project-financials-provide
 import { TypeOrmProjectFinancialsProvider } from './infrastructure/persistence/typeorm-project-financials-provider';
 import { PROJECT_DOCUMENT_COUNTER } from './domain/project-document-counter.port';
 import { TypeOrmProjectDocumentCounter } from './infrastructure/persistence/typeorm-project-document-counter';
+import { UnarchiveProjectUseCase } from './application/unarchive-project/unarchive-project.use-case';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectEquipmentOrmEntity]), EquipmentModule],
@@ -29,6 +30,7 @@ import { TypeOrmProjectDocumentCounter } from './infrastructure/persistence/type
     CreateProjectUseCase,
     UpdateProjectUseCase,
     DeleteProjectUseCase,
+    UnarchiveProjectUseCase,
     ProjectEquipmentUseCase,
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
     { provide: PROJECT_DOCUMENT_COUNTER, useClass: TypeOrmProjectDocumentCounter },
