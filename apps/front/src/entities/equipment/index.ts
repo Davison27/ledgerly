@@ -3,6 +3,7 @@ export {
   createEquipment,
   updateEquipment,
   deleteEquipment,
+  unarchiveEquipment,
   EQUIPMENT_DOCUMENT_MAX_FILE_SIZE_BYTES,
 } from './api/equipment.api';
 export type {
@@ -12,6 +13,9 @@ export type {
   EquipmentDto,
   UpdateEquipmentDocumentPayload,
   UpdateEquipmentPayload,
+  EquipmentDeletionOutcome,
+  EquipmentDeletionOutcomeDto,
+  EquipmentUnarchiveOutcomeDto,
 } from './api/types';
 export {
   equipmentDocumentFileUrl,

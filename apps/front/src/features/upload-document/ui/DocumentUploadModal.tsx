@@ -178,7 +178,10 @@ export function DocumentUploadModal({
     ...supplierQueries.list(),
     enabled: open,
   });
-  const suppliers = useMemo(() => suppliersData ?? [], [suppliersData]);
+  const suppliers = useMemo(
+    () => (suppliersData ?? []).filter((supplier) => !supplier.archivedAt),
+    [suppliersData],
+  );
   const suppliersLoaded = !suppliersPending;
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [autoMatchAttempted, setAutoMatchAttempted] = useState(false);

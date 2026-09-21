@@ -6,6 +6,7 @@ import {
   InboxOutlined,
   LoadingOutlined,
   MoreOutlined,
+  RollbackOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { EquipmentDto } from '@/entities/equipment';
@@ -20,21 +21,26 @@ export interface EquipmentCardProps {
   equipment: EquipmentDto;
   canEdit: boolean;
   deleteLoading?: boolean;
+  unarchiveLoading?: boolean;
   onOpen: (equipment: EquipmentDto) => void;
   onEdit: (equipment: EquipmentDto) => void;
   onDelete: (equipment: EquipmentDto) => void;
+  onUnarchive: (equipment: EquipmentDto) => void;
 }
 
 export function EquipmentCard({
   equipment,
   canEdit,
   deleteLoading,
+  unarchiveLoading,
   onOpen,
   onEdit,
   onDelete,
+  onUnarchive,
 }: EquipmentCardProps) {
   const { t } = useTranslation();
   const { modal } = App.useApp();
+  const archived = equipment.archivedAt !== null && equipment.archivedAt !== undefined;
 
   const stopPropagation = (event: MouseEvent<HTMLElement>) => {
     event.stopPropagation();
@@ -43,7 +49,12 @@ export function EquipmentCard({
   const confirmDelete = () => {
     modal.confirm({
       title: t('equipment.deleteConfirm.title'),
-      content: t('equipment.deleteConfirm.content', { name: equipment.name }),
+      content: (
+        <div>
+          <div>{t('equipment.deleteConfirm.content', { name: equipment.name })}</div>
+          <Text type="secondary">{t('equipment.deleteConfirm.archiveHint')}</Text>
+        </div>
+      ),
       okText: t('equipment.deleteConfirm.ok'),
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
@@ -51,33 +62,44 @@ export function EquipmentCard({
     });
   };
 
-  const menuItems: MenuProps['items'] = [
-    {
-      key: 'edit',
-      icon: <EditOutlined />,
-      label: t('common.edit'),
-      onClick: (info) => {
-        info.domEvent.stopPropagation();
-        onEdit(equipment);
-      },
-    },
-    {
-      key: 'delete',
-      danger: true,
-      disabled: deleteLoading,
-      icon: deleteLoading ? <LoadingOutlined /> : <DeleteOutlined />,
-      label: t('common.delete'),
-      onClick: (info) => {
-        info.domEvent.stopPropagation();
-        confirmDelete();
-      },
-    },
-  ];
+  const menuItems: MenuProps['items'] = archived
+    ? [{
+        key: 'unarchive',
+        icon: unarchiveLoading ? <LoadingOutlined /> : <RollbackOutlined />,
+        label: t('common.unarchive'),
+        disabled: unarchiveLoading,
+        onClick: (info) => {
+          info.domEvent.stopPropagation();
+          onUnarchive(equipment);
+        },
+      }]
+    : [
+        {
+          key: 'edit',
+          icon: <EditOutlined />,
+          label: t('common.edit'),
+          onClick: (info) => {
+            info.domEvent.stopPropagation();
+            onEdit(equipment);
+          },
+        },
+        {
+          key: 'delete',
+          danger: true,
+          disabled: deleteLoading,
+          icon: deleteLoading ? <LoadingOutlined /> : <DeleteOutlined />,
+          label: t('common.delete'),
+          onClick: (info) => {
+            info.domEvent.stopPropagation();
+            confirmDelete();
+          },
+        },
+      ];
 
   return (
     <Card
       hoverable
-      className={styles.card}
+      className={`${styles.card} ${archived ? styles.archived : ''}`}
       classNames={{ body: styles.body }}
       onClick={() => onOpen(equipment)}
     >
@@ -114,7 +136,10 @@ export function EquipmentCard({
               {equipment.reference ?? '—'}
             </Text>
           </div>
-          {equipment.category ? <SemanticTag tone="info">{equipment.category}</SemanticTag> : null}
+          <div className={styles.tags}>
+            {archived ? <SemanticTag tone="neutral">{t('common.archivedTag')}</SemanticTag> : null}
+            {equipment.category ? <SemanticTag tone="info">{equipment.category}</SemanticTag> : null}
+          </div>
         </div>
 
         {equipment.brand ? (

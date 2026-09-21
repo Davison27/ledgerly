@@ -99,6 +99,8 @@ export function DocumentsPage() {
 
   const { data: projects = [] } = useQuery(projectQueries.list());
   const { data: suppliers = [] } = useQuery(supplierQueries.list());
+  const activeProjects = projects.filter((project) => project.status !== 'archived');
+  const activeSuppliers = suppliers.filter((supplier) => !supplier.archivedAt);
 
   const filters: DocumentListFiltersDto = useMemo(
     () => ({
@@ -446,7 +448,7 @@ export function DocumentsPage() {
                 onChange={setProjectId}
                 filterOption={filterByLabel}
                 className={styles.advancedField}
-                options={projects.map((project) => ({ value: project.id, label: project.name }))}
+                options={activeProjects.map((project) => ({ value: project.id, label: project.name }))}
               />
               <Select
                 allowClear
@@ -456,7 +458,7 @@ export function DocumentsPage() {
                 onChange={setSupplierId}
                 filterOption={filterByLabel}
                 className={styles.advancedField}
-                options={suppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
+                options={activeSuppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
               />
             </Flex>
           }

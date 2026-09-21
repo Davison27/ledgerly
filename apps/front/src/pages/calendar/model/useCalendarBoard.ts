@@ -51,6 +51,14 @@ export function useCalendarBoard() {
   const { data: projects = [] } = useQuery(scheduleQueries.schedulableProjects());
   const { data: staffMembers = [] } = useQuery(staffQueries.list());
   const { data: equipment = [] } = useQuery(equipmentQueries.list());
+  const availableStaffMembers = useMemo(
+    () => staffMembers.filter((staffMember) => !staffMember.archivedAt),
+    [staffMembers],
+  );
+  const availableEquipment = useMemo(
+    () => equipment.filter((item) => !item.archivedAt),
+    [equipment],
+  );
 
   const goToday = useCallback(() => setCursor(dayjs().format(DATE_FORMAT)), []);
 
@@ -171,8 +179,8 @@ export function useCalendarBoard() {
     loading,
     loadError,
     projects,
-    staffMembers,
-    equipment,
+    staffMembers: availableStaffMembers,
+    equipment: availableEquipment,
     createFromDrop,
     moveEvent,
     resizeEvent,

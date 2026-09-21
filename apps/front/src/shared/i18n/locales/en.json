@@ -16,7 +16,10 @@
     "comingSoon": "This feature will be available soon",
     "loadingPage": "Loading page…",
     "clearFilters": "Clear filters",
-    "noSearchResults": "No results for your search."
+    "noSearchResults": "No results for your search.",
+    "archivedTag": "Archived",
+    "showArchived": "Show archived",
+    "unarchive": "Unarchive"
   },
   "login": {
     "signIn": "Sign in",
@@ -1177,9 +1180,13 @@
       "margin": "Margin",
       "dates": "Planned dates"
     },
+    "deleted": "Project deleted",
+    "archived": "Project archived",
+    "unarchived": "Project unarchived",
     "deleteConfirm": {
       "title": "Delete project",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "archiveHint": "If the project is still referenced, it will be archived instead and can be restored later.",
       "ok": "Delete",
       "error": "The project could not be deleted. Please try again."
     },
@@ -1623,6 +1630,8 @@
     "searchPlaceholder": "Search by name or tax ID",
     "loadError": "Suppliers could not be loaded.",
     "deleted": "Supplier deleted",
+    "archived": "Supplier archived",
+    "unarchived": "Supplier unarchived",
     "fields": {
       "name": "Name",
       "taxId": "Tax ID",
@@ -1668,6 +1677,7 @@
     "deleteConfirm": {
       "title": "Delete supplier",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "archiveHint": "If the supplier is still referenced, it will be archived instead and can be restored later.",
       "ok": "Delete",
       "error": "The supplier could not be deleted. Please try again."
     }
@@ -1728,6 +1738,8 @@
     },
     "loadError": "Equipment could not be loaded.",
     "deleted": "Equipment deleted",
+    "archived": "Equipment archived",
+    "unarchived": "Equipment unarchived",
     "fields": {
       "name": "Name",
       "price": "Price",
@@ -1816,6 +1828,7 @@
     "deleteConfirm": {
       "title": "Delete equipment",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "archiveHint": "If the equipment is still referenced, it will be archived instead and can be restored later.",
       "ok": "Delete",
       "error": "The equipment could not be deleted. Please try again."
     }
@@ -1987,6 +2000,8 @@
     "searchPlaceholder": "Search by name, tax ID or position",
     "loadError": "Staff could not be loaded.",
     "deleted": "Staff member deleted",
+    "archived": "Staff member archived",
+    "unarchived": "Staff member unarchived",
     "columns": {
       "name": "Name",
       "position": "Position",
@@ -2042,12 +2057,9 @@
     "deleteConfirm": {
       "title": "Delete staff member",
       "content": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+      "archiveHint": "If the staff member is still referenced, it will be archived instead and can be restored later.",
       "ok": "Delete",
-      "error": "The staff member could not be deleted. Please try again.",
-      "blockedTitle": "This staff member can't be deleted",
-      "blockedGeneric": "This staff member has historical payroll records and can't be deleted.",
-      "blockedHint": "Keep their historical payroll records and mark them inactive with an end date instead of deleting them.",
-      "goToProfile": "Go to their page"
+      "error": "The staff member could not be deleted. Please try again."
     },
     "detail": {
       "notFound": "Staff member not found",

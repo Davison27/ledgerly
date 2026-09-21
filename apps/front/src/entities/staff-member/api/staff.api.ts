@@ -10,6 +10,8 @@ import type {
   StaffMemberSummaryDto,
   UpdateStaffDocumentPayload,
   UpdateStaffMemberPayload,
+  StaffMemberDeletionOutcomeDto,
+  StaffMemberUnarchiveOutcomeDto,
 } from './types';
 
 export function listStaffMembers(): Promise<StaffMemberSummaryDto[]> {
@@ -31,8 +33,12 @@ export function updateStaffMember(
   return patch<StaffMemberDto>(`/staff/${staffMemberId}`, payload);
 }
 
-export function deleteStaffMember(staffMemberId: string): Promise<void> {
-  return del<void>(`/staff/${staffMemberId}`);
+export function deleteStaffMember(staffMemberId: string): Promise<StaffMemberDeletionOutcomeDto> {
+  return del<StaffMemberDeletionOutcomeDto>(`/staff/${staffMemberId}`);
+}
+
+export function unarchiveStaffMember(staffMemberId: string): Promise<StaffMemberUnarchiveOutcomeDto> {
+  return post<StaffMemberUnarchiveOutcomeDto>(`/staff/${staffMemberId}/unarchive`);
 }
 
 export function listStaffDocumentTypes(): Promise<StaffDocumentTypeDto[]> {

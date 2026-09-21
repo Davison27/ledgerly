@@ -1,5 +1,12 @@
-export { listProjects, getProject } from './api/projects.api';
-export type { ProjectSummaryDto, ProjectCurrencyDto, ProjectFinancialsDto } from './api/types';
+export { listProjects, getProject, unarchiveProject } from './api/projects.api';
+export type {
+  ProjectDeletionOutcome,
+  ProjectDeletionOutcomeDto,
+  ProjectSummaryDto,
+  ProjectCurrencyDto,
+  ProjectFinancialsDto,
+  ProjectUnarchiveOutcomeDto,
+} from './api/types';
 export {
   fetchProjects,
   fetchProject,

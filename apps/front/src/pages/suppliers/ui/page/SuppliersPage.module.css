@@ -2,3 +2,11 @@
   width: min(100%, 420px);
   margin-bottom: var(--lg-space-lg);
 }
+
+.filters {
+  margin-bottom: var(--lg-space-lg);
+}
+
+.archivedRow {
+  opacity: 0.64;
+}

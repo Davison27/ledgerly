@@ -4,6 +4,7 @@ export {
   createStaffMember,
   updateStaffMember,
   deleteStaffMember,
+  unarchiveStaffMember,
   listStaffDocumentTypes,
   listStaffDocuments,
   createStaffDocument,
@@ -13,7 +14,10 @@ export {
 } from './api/staff.api';
 export type {
   StaffMemberDto,
+  StaffMemberDeletionOutcome,
+  StaffMemberDeletionOutcomeDto,
   StaffMemberSummaryDto,
+  StaffMemberUnarchiveOutcomeDto,
   StaffDocumentExpiryStatusDto,
   StaffDocumentTypeDto,
   StaffDocumentDto,

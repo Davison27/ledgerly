@@ -10,6 +10,17 @@ export interface EquipmentDto {
   image: string | null;
   tags: string[];
   leasingMonthlyFee: number | null;
+  archivedAt?: string | null;
+}
+
+export type EquipmentDeletionOutcome = 'deleted' | 'archived';
+
+export interface EquipmentDeletionOutcomeDto {
+  outcome: EquipmentDeletionOutcome;
+}
+
+export interface EquipmentUnarchiveOutcomeDto {
+  outcome: 'unarchived';
 }
 
 export interface CreateEquipmentPayload {

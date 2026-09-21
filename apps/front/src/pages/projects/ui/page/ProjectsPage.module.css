@@ -4,6 +4,10 @@
   gap: var(--lg-space-lg);
 }
 
+.filters {
+  margin-bottom: var(--lg-space-lg);
+}
+
 .skeletonCard {
   min-height: 272px;
 }

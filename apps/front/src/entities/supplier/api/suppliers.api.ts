@@ -5,6 +5,8 @@ import type {
   SupplierDto,
   SupplierSummaryDto,
   UpdateSupplierPayload,
+  SupplierDeletionOutcomeDto,
+  SupplierUnarchiveOutcomeDto,
 } from './types';
 
 export function listSuppliers(): Promise<SupplierSummaryDto[]> {
@@ -26,6 +28,10 @@ export function updateSupplier(
   return patch<SupplierDto>(`/suppliers/${supplierId}`, stripEmpty(payload));
 }
 
-export function deleteSupplier(supplierId: string): Promise<void> {
-  return del<void>(`/suppliers/${supplierId}`);
+export function deleteSupplier(supplierId: string): Promise<SupplierDeletionOutcomeDto> {
+  return del<SupplierDeletionOutcomeDto>(`/suppliers/${supplierId}`);
+}
+
+export function unarchiveSupplier(supplierId: string): Promise<SupplierUnarchiveOutcomeDto> {
+  return post<SupplierUnarchiveOutcomeDto>(`/suppliers/${supplierId}/unarchive`);
 }

@@ -3,6 +3,14 @@
   margin-bottom: var(--lg-space-lg);
 }
 
+.filters {
+  margin-bottom: var(--lg-space-lg);
+}
+
+.archivedRow {
+  opacity: 0.64;
+}
+
 .nameLink {
   color: var(--ant-color-text);
   font-weight: 600;

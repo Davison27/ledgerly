@@ -1,8 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { App } from 'antd';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { removeProject } from '@/entities/project';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectsPage } from './ProjectsPage';
@@ -10,14 +12,35 @@ import { ProjectsPage } from './ProjectsPage';
 vi.mock('@tanstack/react-query', () => ({ useQuery: vi.fn(), useQueryClient: vi.fn() }));
 vi.mock('@tanstack/react-router', () => ({ useNavigate: vi.fn() }));
 vi.mock('@/entities/project', () => ({
-  projectQueries: { list: vi.fn(), all: ['projects'] }, addProject: vi.fn(), updateProject: vi.fn(), removeProject: vi.fn(),
+  projectQueries: { list: vi.fn(), all: ['projects'] },
+  addProject: vi.fn(),
+  updateProject: vi.fn(),
+  removeProject: vi.fn(),
+  unarchiveProject: vi.fn(),
 }));
 vi.mock('@/entities/workspace-member', () => ({ useWorkspaceAccess: vi.fn() }));
 vi.mock('@/shared/lib/theme-mode/ThemeModeProvider', () => ({ useThemeMode: vi.fn() }));
 vi.mock('@/shared/ui/PageContainer', () => ({ PageContainer: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
 vi.mock('@/shared/ui/PageHeader', () => ({ PageHeader: ({ title, actions }: { title: React.ReactNode; actions?: React.ReactNode }) => <header><h1>{title}</h1>{actions}</header> }));
 vi.mock('@/shared/ui/EmptyHint', () => ({ EmptyHint: ({ title, action }: { title: React.ReactNode; action?: React.ReactNode }) => <section><p>{title}</p>{action}</section> }));
-vi.mock('../card/ProjectCard', () => ({ ProjectCard: ({ project, onOpen }: { project: { id: string; name: string }; onOpen: (project: { id: string; name: string }) => void }) => <button onClick={() => onOpen(project)}>{project.name}</button> }));
+vi.mock('../card/ProjectCard', () => ({
+  ProjectCard: ({
+    project,
+    onOpen,
+    onDelete,
+  }: {
+    project: { id: string; name: string };
+    onOpen: (project: { id: string; name: string }) => void;
+    onDelete: (project: { id: string; name: string }) => void;
+  }) => (
+    <div>
+      <button onClick={() => onOpen(project)}>{project.name}</button>
+      <button aria-label="Eliminar proyecto" onClick={() => void onDelete(project)}>
+        eliminar
+      </button>
+    </div>
+  ),
+}));
 vi.mock('../form/ProjectFormModal', () => ({ ProjectFormModal: ({ open }: { open: boolean }) => open ? <div role="dialog">formulario</div> : null }));
 
 describe('ProjectsPage', () => {
@@ -50,5 +73,29 @@ describe('ProjectsPage', () => {
     render(<ProjectsPage />);
     await user.click(screen.getByRole('button', { name: 'Reforma' }));
     expect(navigate).toHaveBeenCalledWith({ to: '/projects/$projectId', params: { projectId: 'p-1' } });
+  });
+
+  it('shows the archived toast when deletion archives a project', async () => {
+    const user = userEvent.setup();
+    const invalidateQueries = vi.fn().mockResolvedValue(undefined);
+    vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries } as never);
+    vi.mocked(useQuery).mockReturnValue({
+      isPending: false,
+      data: [{ id: 'p-1', name: 'Reforma', status: 'active' }],
+    } as never);
+    vi.mocked(removeProject).mockResolvedValue('archived');
+
+    render(
+      <App>
+        <ProjectsPage />
+      </App>,
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Eliminar proyecto' }));
+
+    await waitFor(() => {
+      expect(screen.getByText('Proyecto archivado')).toBeInTheDocument();
+    });
+    expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['projects'] });
   });
 });

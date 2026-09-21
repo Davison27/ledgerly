@@ -16,7 +16,10 @@
     "comingSoon": "Esta función estará disponible próximamente",
     "loadingPage": "Cargando página…",
     "clearFilters": "Limpiar filtros",
-    "noSearchResults": "No hay resultados para tu búsqueda."
+    "noSearchResults": "No hay resultados para tu búsqueda.",
+    "archivedTag": "Archivado",
+    "showArchived": "Mostrar archivados",
+    "unarchive": "Desarchivar"
   },
   "login": {
     "signIn": "Entrar",
@@ -1181,9 +1184,13 @@
       "margin": "Margen",
       "dates": "Fechas previstas"
     },
+    "deleted": "Proyecto eliminado",
+    "archived": "Proyecto archivado",
+    "unarchived": "Proyecto desarchivado",
     "deleteConfirm": {
       "title": "Eliminar proyecto",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "archiveHint": "Si el proyecto todavía tiene referencias, se archivará en su lugar y podrás restaurarlo más adelante.",
       "ok": "Eliminar",
       "error": "No se ha podido eliminar el proyecto. Inténtalo de nuevo."
     },
@@ -1627,6 +1634,8 @@
     "searchPlaceholder": "Buscar por nombre o CIF/NIF",
     "loadError": "No se han podido cargar los proveedores.",
     "deleted": "Proveedor eliminado",
+    "archived": "Proveedor archivado",
+    "unarchived": "Proveedor desarchivado",
     "fields": {
       "name": "Nombre",
       "taxId": "CIF / NIF",
@@ -1672,6 +1681,7 @@
     "deleteConfirm": {
       "title": "Eliminar proveedor",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "archiveHint": "Si el proveedor todavía tiene referencias, se archivará en su lugar y podrás restaurarlo más adelante.",
       "ok": "Eliminar",
       "error": "No se ha podido eliminar el proveedor. Inténtalo de nuevo."
     }
@@ -1732,6 +1742,8 @@
     },
     "loadError": "No se han podido cargar los equipos.",
     "deleted": "Equipo eliminado",
+    "archived": "Equipo archivado",
+    "unarchived": "Equipo desarchivado",
     "fields": {
       "name": "Nombre",
       "price": "Precio",
@@ -1820,6 +1832,7 @@
     "deleteConfirm": {
       "title": "Eliminar equipo",
       "content": "¿Seguro que quieres eliminar \"{{name}}\"? Esta acción no se puede deshacer.",
+      "archiveHint": "Si el equipo todavía tiene referencias, se archivará en su lugar y podrás restaurarlo más adelante.",
       "ok": "Eliminar",
       "error": "No se ha podido eliminar el equipo. Inténtalo de nuevo."
     }
@@ -1991,6 +2004,8 @@
     "searchPlaceholder": "Buscar por nombre, CIF/NIF o puesto",
     "loadError": "No se ha podido cargar el personal.",
     "deleted": "Trabajador eliminado",
+    "archived": "Trabajador archivado",
+    "unarchived": "Trabajador desarchivado",
     "columns": {
       "name": "Nombre",
       "position": "Puesto",
@@ -2046,12 +2061,9 @@
     "deleteConfirm": {
       "title": "Eliminar trabajador",
       "content": "¿Seguro que quieres eliminar a \"{{name}}\"? Esta acción no se puede deshacer.",
+      "archiveHint": "Si el trabajador todavía tiene referencias, se archivará en su lugar y podrás restaurarlo más adelante.",
       "ok": "Eliminar",
-      "error": "No se ha podido eliminar el trabajador. Inténtalo de nuevo.",
-      "blockedTitle": "No se puede eliminar",
-      "blockedGeneric": "Este trabajador tiene registros históricos de nóminas y no se puede eliminar.",
-      "blockedHint": "Conserva sus nóminas históricas y dale de baja indicando una fecha de fin, en lugar de eliminarlo.",
-      "goToProfile": "Ir a su ficha"
+      "error": "No se ha podido eliminar el trabajador. Inténtalo de nuevo."
     },
     "detail": {
       "notFound": "Trabajador no encontrado",

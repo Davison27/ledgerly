@@ -30,6 +30,17 @@ export interface ProjectSummaryDto {
   pendingCount: number;
   image?: string | null;
   color?: ProjectColorToken | null;
+  status?: ProjectStatusDto;
+}
+
+export type ProjectDeletionOutcome = 'deleted' | 'archived';
+
+export interface ProjectDeletionOutcomeDto {
+  outcome: ProjectDeletionOutcome;
+}
+
+export interface ProjectUnarchiveOutcomeDto {
+  outcome: 'unarchived';
 }
 
 export interface ProjectDto {

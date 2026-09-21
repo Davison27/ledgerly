@@ -3,6 +3,10 @@
   overflow: hidden;
 }
 
+.archived {
+  opacity: 0.64;
+}
+
 .body {
   flex: 1;
   display: flex;
@@ -72,6 +76,12 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--lg-space-sm);
+}
+
+.tags {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-xs);
 }
 
 .identity > div {

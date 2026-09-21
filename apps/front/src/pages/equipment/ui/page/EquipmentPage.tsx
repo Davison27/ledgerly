@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Alert, Button, Card, Flex, Input, Select, Skeleton } from 'antd';
+import { App, Alert, Button, Card, Flex, Input, Select, Skeleton, Switch } from 'antd';
 import { PlusOutlined, SearchOutlined, ShoppingOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   createEquipment,
   deleteEquipment,
+  unarchiveEquipment,
   equipmentQueries,
   updateEquipment,
   type EquipmentDto,
@@ -19,6 +20,10 @@ import { EquipmentFormModal, type EquipmentFormValues } from '../form/EquipmentF
 import { EquipmentDetailModal } from '../detail/EquipmentDetailModal';
 import { EquipmentCard } from '../card/EquipmentCard';
 import styles from './EquipmentPage.module.css';
+import {
+  equipmentDeletionMessageKey,
+  visibleEquipment,
+} from '../../model/equipmentPage';
 
 type EquipmentSortOrder = 'nameAsc' | 'priceAsc' | 'priceDesc';
 
@@ -49,6 +54,8 @@ export function EquipmentPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<string | undefined>();
   const [sortOrder, setSortOrder] = useState<EquipmentSortOrder>('nameAsc');
+  const [showArchived, setShowArchived] = useState(false);
+  const [unarchivingId, setUnarchivingId] = useState<string | null>(null);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('equipment', 'edit');
 
@@ -67,17 +74,17 @@ export function EquipmentPage() {
     () =>
       Array.from(
         new Set(
-          equipment
+          visibleEquipment(equipment, showArchived)
             .map((item) => item.category)
             .filter((value): value is string => Boolean(value)),
         ),
       ).sort(),
-    [equipment],
+    [equipment, showArchived],
   );
 
   const filteredEquipment = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
-    const filtered = equipment.filter((item) => {
+    const filtered = visibleEquipment(equipment, showArchived).filter((item) => {
       if (category && item.category !== category) return false;
       if (!query) return true;
       return [
@@ -102,7 +109,7 @@ export function EquipmentPage() {
       });
     }
     return sorted;
-  }, [category, equipment, search, sortOrder]);
+  }, [category, equipment, search, showArchived, sortOrder]);
 
   const handleClearFilters = () => {
     setSearch('');
@@ -143,13 +150,26 @@ export function EquipmentPage() {
   const handleDelete = async (item: EquipmentDto) => {
     setDeletingId(item.id);
     try {
-      await deleteEquipment(item.id);
-      void message.success(t('equipment.deleted'));
+      const { outcome } = await deleteEquipment(item.id);
+      void message.success(t(equipmentDeletionMessageKey(outcome)));
       await queryClient.invalidateQueries({ queryKey: equipmentQueries.all });
     } catch {
       void message.error(t('equipment.deleteConfirm.error'));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUnarchive = async (item: EquipmentDto) => {
+    setUnarchivingId(item.id);
+    try {
+      await unarchiveEquipment(item.id);
+      void message.success(t('equipment.unarchived'));
+      await queryClient.invalidateQueries({ queryKey: equipmentQueries.all });
+    } catch {
+      void message.error(t('equipment.deleteConfirm.error'));
+    } finally {
+      setUnarchivingId(null);
     }
   };
 
@@ -216,6 +236,14 @@ export function EquipmentPage() {
                 { value: 'priceDesc', label: t('equipment.sort.priceDesc') },
               ]}
             />
+            <Flex align="center" gap={8}>
+              <Switch
+                checked={showArchived}
+                onChange={setShowArchived}
+                aria-label={t('common.showArchived')}
+              />
+              <span>{t('common.showArchived')}</span>
+            </Flex>
           </Flex>
           {filteredEquipment.length === 0 ? (
             <EmptyHint
@@ -231,9 +259,11 @@ export function EquipmentPage() {
                   equipment={item}
                   canEdit={canEdit}
                   deleteLoading={deletingId === item.id}
+                  unarchiveLoading={unarchivingId === item.id}
                   onOpen={setViewingEquipment}
                   onEdit={handleEdit}
                   onDelete={handleDelete}
+                  onUnarchive={handleUnarchive}
                 />
               ))}
             </div>

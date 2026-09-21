@@ -7,6 +7,17 @@ export interface SupplierDto {
   address?: string | null;
   iban?: string | null;
   notes?: string | null;
+  archivedAt?: string | null;
+}
+
+export type SupplierDeletionOutcome = 'deleted' | 'archived';
+
+export interface SupplierDeletionOutcomeDto {
+  outcome: SupplierDeletionOutcome;
+}
+
+export interface SupplierUnarchiveOutcomeDto {
+  outcome: 'unarchived';
 }
 
 export interface SupplierSpendDto {

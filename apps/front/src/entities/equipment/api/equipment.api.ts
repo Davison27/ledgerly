@@ -8,6 +8,8 @@ import type {
   EquipmentDto,
   UpdateEquipmentDocumentPayload,
   UpdateEquipmentPayload,
+  EquipmentDeletionOutcomeDto,
+  EquipmentUnarchiveOutcomeDto,
 } from './types';
 
 export const EQUIPMENT_DOCUMENT_MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -27,8 +29,12 @@ export function updateEquipment(
   return patch<EquipmentDto>(`/equipment/${equipmentId}`, payload);
 }
 
-export function deleteEquipment(equipmentId: string): Promise<void> {
-  return del<void>(`/equipment/${equipmentId}`);
+export function deleteEquipment(equipmentId: string): Promise<EquipmentDeletionOutcomeDto> {
+  return del<EquipmentDeletionOutcomeDto>(`/equipment/${equipmentId}`);
+}
+
+export function unarchiveEquipment(equipmentId: string): Promise<EquipmentUnarchiveOutcomeDto> {
+  return post<EquipmentUnarchiveOutcomeDto>(`/equipment/${equipmentId}/unarchive`);
 }
 
 export function listEquipmentDocuments(equipmentId: string): Promise<EquipmentDocumentDto[]> {

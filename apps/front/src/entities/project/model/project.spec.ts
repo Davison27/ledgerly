@@ -115,6 +115,7 @@ describe('project view model', () => {
       type: 'client',
       status: 'active',
     });
+    vi.mocked(deleteProject).mockResolvedValue({ outcome: 'deleted' });
 
     await addProject({ ...values, type: undefined });
     await updateProject('project-1', values);

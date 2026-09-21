@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Card, Skeleton } from 'antd';
+import { App, Button, Card, Flex, Skeleton, Switch } from 'antd';
 import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   addProject,
   projectQueries,
   removeProject,
+  unarchiveProject,
   updateProject,
   type Project,
   type ProjectFormValues,
@@ -22,6 +23,7 @@ import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectCard } from '../card/ProjectCard';
 import { ProjectFormModal } from '../form/ProjectFormModal';
 import styles from './ProjectsPage.module.css';
+import { projectDeletionMessageKey, visibleProjects } from '../../model/projectsPage';
 
 const SKELETON_CARD_COUNT = 6;
 
@@ -50,6 +52,10 @@ export function ProjectsPage() {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [loadingEditId, setLoadingEditId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [unarchivingId, setUnarchivingId] = useState<string | null>(null);
+  const [showArchived, setShowArchived] = useState(false);
+
+  const visibleProjectList = visibleProjects(projects ?? [], showArchived);
 
   const handleOpen = (project: Project) => {
     void navigate({
@@ -79,12 +85,26 @@ export function ProjectsPage() {
   const handleDelete = async (project: Project) => {
     setDeletingId(project.id);
     try {
-      await removeProject(project.id);
+      const outcome = await removeProject(project.id);
+      void message.success(t(projectDeletionMessageKey(outcome)));
       await queryClient.invalidateQueries({ queryKey: projectQueries.all });
     } catch {
       void message.error(t('projects.deleteConfirm.error'));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUnarchive = async (project: Project) => {
+    setUnarchivingId(project.id);
+    try {
+      await unarchiveProject(project.id);
+      void message.success(t('projects.unarchived'));
+      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+    } catch {
+      void message.error(t('projects.deleteConfirm.error'));
+    } finally {
+      setUnarchivingId(null);
     }
   };
 
@@ -149,21 +169,37 @@ export function ProjectsPage() {
           }
         />
       ) : (
-        <div className={styles.grid}>
-          {(projects ?? []).map((project) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              color={resolveProjectColor(project.color ?? null, project.id, isDark)}
-              editLoading={loadingEditId === project.id}
-              deleteLoading={deletingId === project.id}
-              canEdit={canEdit}
-              onOpen={handleOpen}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+        <>
+          <Flex align="center" justify="flex-end" gap={8} className={styles.filters}>
+            <Switch
+              checked={showArchived}
+              onChange={setShowArchived}
+              aria-label={t('common.showArchived')}
             />
-          ))}
-        </div>
+            <span>{t('common.showArchived')}</span>
+          </Flex>
+          {visibleProjectList.length === 0 ? (
+            <EmptyHint icon={<ProjectOutlined />} title={t('common.noSearchResults')} />
+          ) : (
+            <div className={styles.grid}>
+              {visibleProjectList.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  color={resolveProjectColor(project.color ?? null, project.id, isDark)}
+                  editLoading={loadingEditId === project.id}
+                  deleteLoading={deletingId === project.id}
+                  unarchiveLoading={unarchivingId === project.id}
+                  canEdit={canEdit}
+                  onOpen={handleOpen}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onUnarchive={handleUnarchive}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
 
       <ProjectFormModal

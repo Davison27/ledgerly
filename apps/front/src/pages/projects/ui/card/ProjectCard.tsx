@@ -8,6 +8,7 @@ import {
   LoadingOutlined,
   MoreOutlined,
   ProjectOutlined,
+  RollbackOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/entities/project';
@@ -25,10 +26,12 @@ export interface ProjectCardProps {
   color: string;
   editLoading?: boolean;
   deleteLoading?: boolean;
+  unarchiveLoading?: boolean;
   canEdit: boolean;
   onOpen: (project: Project) => void;
   onEdit: (project: Project) => void;
   onDelete: (project: Project) => void;
+  onUnarchive: (project: Project) => void;
 }
 
 export function ProjectCard({
@@ -36,15 +39,18 @@ export function ProjectCard({
   color,
   editLoading,
   deleteLoading,
+  unarchiveLoading,
   canEdit,
   onOpen,
   onEdit,
   onDelete,
+  onUnarchive,
 }: ProjectCardProps) {
   const { t } = useTranslation();
   const { modal } = App.useApp();
   const colors = useSemanticColors();
   const currency = project.currency ?? 'EUR';
+  const archived = project.status === 'archived';
   const financials = project.financials?.find((entry) => entry.currency === currency) ?? {
     currency,
     income: 0,
@@ -74,7 +80,12 @@ export function ProjectCard({
   const confirmDelete = () => {
     modal.confirm({
       title: t('projects.deleteConfirm.title'),
-      content: t('projects.deleteConfirm.content', { name: project.name }),
+      content: (
+        <div>
+          <div>{t('projects.deleteConfirm.content', { name: project.name })}</div>
+          <Text type="secondary">{t('projects.deleteConfirm.archiveHint')}</Text>
+        </div>
+      ),
       okText: t('projects.deleteConfirm.ok'),
       cancelText: t('common.cancel'),
       okButtonProps: { danger: true },
@@ -82,35 +93,46 @@ export function ProjectCard({
     });
   };
 
-  const menuItems: MenuProps['items'] = [
-    {
-      key: 'edit',
-      icon: editLoading ? <LoadingOutlined /> : <EditOutlined />,
-      label: t('common.edit'),
-      disabled: editLoading,
-      onClick: (info) => {
-        info.domEvent.stopPropagation();
-        onEdit(project);
-      },
-    },
-    {
-      key: 'delete',
-      danger: true,
-      icon: deleteLoading ? <LoadingOutlined /> : <DeleteOutlined />,
-      label: t('common.delete'),
-      disabled: deleteLoading,
-      onClick: (info) => {
-        info.domEvent.stopPropagation();
-        confirmDelete();
-      },
-    },
-  ];
+  const menuItems: MenuProps['items'] = archived
+    ? [{
+        key: 'unarchive',
+        icon: unarchiveLoading ? <LoadingOutlined /> : <RollbackOutlined />,
+        label: t('common.unarchive'),
+        disabled: unarchiveLoading,
+        onClick: (info) => {
+          info.domEvent.stopPropagation();
+          onUnarchive(project);
+        },
+      }]
+    : [
+        {
+          key: 'edit',
+          icon: editLoading ? <LoadingOutlined /> : <EditOutlined />,
+          label: t('common.edit'),
+          disabled: editLoading,
+          onClick: (info) => {
+            info.domEvent.stopPropagation();
+            onEdit(project);
+          },
+        },
+        {
+          key: 'delete',
+          danger: true,
+          icon: deleteLoading ? <LoadingOutlined /> : <DeleteOutlined />,
+          label: t('common.delete'),
+          disabled: deleteLoading,
+          onClick: (info) => {
+            info.domEvent.stopPropagation();
+            confirmDelete();
+          },
+        },
+      ];
 
   return (
     <Card
       hoverable
       onClick={handleOpen}
-      className={styles.card}
+      className={`${styles.card} ${archived ? styles.archived : ''}`}
       classNames={{ body: styles.body }}
       style={cardStyle}
     >
@@ -139,6 +161,7 @@ export function ProjectCard({
           <Text type="secondary" className={`${styles.code} ${typography.numeric}`}>
             {project.code}
           </Text>
+          {archived ? <SemanticTag tone="neutral">{t('projects.form.statuses.archived')}</SemanticTag> : null}
         </div>
         {canEdit ? (
           <Dropdown menu={{ items: menuItems }} trigger={['click']} placement="bottomRight">

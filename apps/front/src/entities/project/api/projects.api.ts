@@ -5,6 +5,8 @@ import type {
   ProjectDto,
   ProjectSummaryDto,
   UpdateProjectPayload,
+  ProjectDeletionOutcomeDto,
+  ProjectUnarchiveOutcomeDto,
 } from './types';
 
 export function listProjects(): Promise<ProjectSummaryDto[]> {
@@ -23,6 +25,10 @@ export function updateProject(id: string, payload: UpdateProjectPayload): Promis
   return patch<ProjectDto>(`/projects/${id}`, stripEmpty(payload, { preserveNull: true }));
 }
 
-export function deleteProject(projectId: string): Promise<void> {
-  return del<void>(`/projects/${projectId}`);
+export function deleteProject(projectId: string): Promise<ProjectDeletionOutcomeDto> {
+  return del<ProjectDeletionOutcomeDto>(`/projects/${projectId}`);
+}
+
+export function unarchiveProject(projectId: string): Promise<ProjectUnarchiveOutcomeDto> {
+  return post<ProjectUnarchiveOutcomeDto>(`/projects/${projectId}/unarchive`);
 }

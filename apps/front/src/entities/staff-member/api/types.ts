@@ -9,6 +9,17 @@ export interface StaffMemberDto {
   hireDate?: string | null;
   endDate?: string | null;
   notes?: string | null;
+  archivedAt?: string | null;
+}
+
+export type StaffMemberDeletionOutcome = 'deleted' | 'archived';
+
+export interface StaffMemberDeletionOutcomeDto {
+  outcome: StaffMemberDeletionOutcome;
+}
+
+export interface StaffMemberUnarchiveOutcomeDto {
+  outcome: 'unarchived';
 }
 
 export type StaffDocumentExpiryStatusDto = 'valid' | 'expiring' | 'expired' | 'none';

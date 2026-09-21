@@ -85,6 +85,7 @@ function mapProjectSummary(dto: ProjectSummaryDto): Project {
     pendingCount: dto.pendingCount,
     image: dto.image ?? undefined,
     color: dto.color ?? undefined,
+    status: dto.status,
   };
 }
 
@@ -180,6 +181,7 @@ export async function updateProject(
   return mapProject(dto);
 }
 
-export async function removeProject(projectId: string): Promise<void> {
-  await deleteProject(projectId);
+export async function removeProject(projectId: string): Promise<'deleted' | 'archived'> {
+  const { outcome } = await deleteProject(projectId);
+  return outcome;
 }

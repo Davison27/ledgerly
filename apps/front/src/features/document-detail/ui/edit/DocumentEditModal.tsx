@@ -79,7 +79,8 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
   const [form] = Form.useForm<DocumentEditFormFields>();
   const [submitting, setSubmitting] = useState(false);
 
-  const { data: suppliers = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
+  const { data: suppliersData = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
+  const suppliers = suppliersData.filter((supplier) => !supplier.archivedAt);
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
   useEffect(() => {

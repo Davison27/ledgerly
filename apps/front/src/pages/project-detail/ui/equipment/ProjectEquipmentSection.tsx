@@ -30,7 +30,8 @@ export function ProjectEquipmentSection({ project }: ProjectSectionProps) {
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('projects', 'edit');
   const { data: assigned = [], isPending } = useQuery(projectEquipmentQueries.list(project.id));
-  const { data: equipment = [] } = useQuery(equipmentQueries.list());
+  const { data: equipmentData = [] } = useQuery(equipmentQueries.list());
+  const equipment = equipmentData.filter((item) => !item.archivedAt);
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [form] = Form.useForm<FormValues>();

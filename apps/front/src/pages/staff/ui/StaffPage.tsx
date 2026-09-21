@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Link, useNavigate } from '@tanstack/react-router';
+import { Link } from '@tanstack/react-router';
 import {
   App,
   Alert,
@@ -9,6 +9,7 @@ import {
   Input,
   Popconfirm,
   Skeleton,
+  Switch,
   Table,
   Typography,
   type TableColumnsType,
@@ -18,13 +19,13 @@ import { useTranslation } from 'react-i18next';
 import {
   createStaffMember,
   deleteStaffMember,
+  unarchiveStaffMember,
   staffQueries,
   updateStaffMember,
   type StaffMemberDto,
   type StaffDocumentExpiryStatusDto,
   type StaffMemberSummaryDto,
 } from '@/entities/staff-member';
-import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -34,6 +35,11 @@ import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag } from '@/shared/ui/SemanticTag';
 import { StaffMemberFormModal, type StaffMemberFormValues } from '@/features/staff-member-form';
 import styles from './StaffPage.module.css';
+import {
+  isStaffMemberArchived,
+  staffDeletionMessageKey,
+  visibleStaffMembers,
+} from '../model/staffPage';
 
 const { Text } = Typography;
 
@@ -56,8 +62,7 @@ const DOCUMENT_STATUS_RANK: Record<StaffDocumentExpiryStatusDto, number> = {
 
 export function StaffPage() {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const { message, modal } = App.useApp();
+  const { message } = App.useApp();
   const queryClient = useQueryClient();
   const {
     data: staffMembers = [],
@@ -69,18 +74,21 @@ export function StaffPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingStaffMember, setEditingStaffMember] = useState<StaffMemberDto | null>(null);
   const [search, setSearch] = useState('');
+  const [showArchived, setShowArchived] = useState(false);
+  const [unarchivingId, setUnarchivingId] = useState<string | null>(null);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('staff', 'edit');
 
   const filteredStaffMembers = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
-    if (!query) return staffMembers;
-    return staffMembers.filter((staffMember) =>
+    const visible = visibleStaffMembers(staffMembers, showArchived);
+    if (!query) return visible;
+    return visible.filter((staffMember) =>
       [`${staffMember.firstName} ${staffMember.lastName}`, staffMember.taxId, staffMember.position]
         .filter((value): value is string => Boolean(value))
         .some((value) => value.toLocaleLowerCase().includes(query)),
     );
-  }, [search, staffMembers]);
+  }, [search, showArchived, staffMembers]);
 
   const handleAdd = () => {
     setEditingStaffMember(null);
@@ -90,10 +98,6 @@ export function StaffPage() {
   const handleEdit = (staffMember: StaffMemberDto) => {
     setEditingStaffMember(staffMember);
     setIsFormOpen(true);
-  };
-
-  const handleOpen = (staffMember: StaffMemberDto) => {
-    void navigate({ to: '/staff/$staffMemberId', params: { staffMemberId: staffMember.id } });
   };
 
   const handleCancelForm = () => {
@@ -126,29 +130,26 @@ export function StaffPage() {
   const handleDelete = async (staffMember: StaffMemberDto) => {
     setDeletingId(staffMember.id);
     try {
-      await deleteStaffMember(staffMember.id);
-      void message.success(t('staff.deleted'));
+      const { outcome } = await deleteStaffMember(staffMember.id);
+      void message.success(t(staffDeletionMessageKey(outcome)));
       await queryClient.invalidateQueries({ queryKey: staffQueries.all });
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 409) {
-        modal.confirm({
-          title: t('staff.deleteConfirm.blockedTitle'),
-          width: 480,
-          content: (
-            <Flex vertical gap={8}>
-              <Text>{error.message || t('staff.deleteConfirm.blockedGeneric')}</Text>
-              <Text type="secondary">{t('staff.deleteConfirm.blockedHint')}</Text>
-            </Flex>
-          ),
-          okText: t('staff.deleteConfirm.goToProfile'),
-          cancelText: t('common.close'),
-          onOk: () => handleOpen(staffMember),
-        });
-      } else {
-        void message.error(t('staff.deleteConfirm.error'));
-      }
+    } catch {
+      void message.error(t('staff.deleteConfirm.error'));
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleUnarchive = async (staffMember: StaffMemberSummaryDto) => {
+    setUnarchivingId(staffMember.id);
+    try {
+      await unarchiveStaffMember(staffMember.id);
+      void message.success(t('staff.unarchived'));
+      await queryClient.invalidateQueries({ queryKey: staffQueries.all });
+    } catch {
+      void message.error(t('staff.deleteConfirm.error'));
+    } finally {
+      setUnarchivingId(null);
     }
   };
 
@@ -167,6 +168,7 @@ export function StaffPage() {
           >
             {record.firstName} {record.lastName}
           </Link>
+          {isStaffMemberArchived(record) ? <SemanticTag tone="neutral">{t('common.archivedTag')}</SemanticTag> : null}
           {record.endDate && <SemanticTag tone="neutral">{t('staff.columns.inactive')}</SemanticTag>}
         </Flex>
       ),
@@ -224,34 +226,54 @@ export function StaffPage() {
       key: 'actions',
       width: 120,
       align: 'center' as const,
-      render: (_: unknown, record: StaffMemberDto) => (
-        <Flex gap={4} justify="center">
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            aria-label={t('common.edit')}
-            onClick={() => handleEdit(record)}
-          />
-          <Popconfirm
-            title={t('staff.deleteConfirm.title')}
-            description={t('staff.deleteConfirm.content', {
-              name: `${record.firstName} ${record.lastName}`,
-            })}
-            okText={t('staff.deleteConfirm.ok')}
-            cancelText={t('common.cancel')}
-            okButtonProps={{ danger: true }}
-            onConfirm={() => handleDelete(record)}
-          >
+      render: (_: unknown, record: StaffMemberSummaryDto) => {
+        if (isStaffMemberArchived(record)) {
+          return (
             <Button
-              danger
               type="text"
-              icon={<DeleteOutlined />}
-              aria-label={t('common.delete')}
-              loading={deletingId === record.id}
+              aria-label={t('common.unarchive')}
+              loading={unarchivingId === record.id}
+              onClick={() => void handleUnarchive(record)}
+            >
+              {t('common.unarchive')}
+            </Button>
+          );
+        }
+
+        return (
+          <Flex gap={4} justify="center">
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              aria-label={t('common.edit')}
+              onClick={() => handleEdit(record)}
             />
-          </Popconfirm>
-        </Flex>
-      ),
+            <Popconfirm
+              title={t('staff.deleteConfirm.title')}
+              description={
+                <Flex vertical gap={4}>
+                  <span>{t('staff.deleteConfirm.content', {
+                    name: `${record.firstName} ${record.lastName}`,
+                  })}</span>
+                  <Text type="secondary">{t('staff.deleteConfirm.archiveHint')}</Text>
+                </Flex>
+              }
+              okText={t('staff.deleteConfirm.ok')}
+              cancelText={t('common.cancel')}
+              okButtonProps={{ danger: true }}
+              onConfirm={() => handleDelete(record)}
+            >
+              <Button
+                danger
+                type="text"
+                icon={<DeleteOutlined />}
+                aria-label={t('common.delete')}
+                loading={deletingId === record.id}
+              />
+            </Popconfirm>
+          </Flex>
+        );
+      },
     }] : []),
   ];
 
@@ -275,19 +297,30 @@ export function StaffPage() {
         />
       ) : (
         <>
-          <Input
-            allowClear
-            prefix={<SearchOutlined />}
-            placeholder={t('staff.searchPlaceholder')}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            className={styles.search}
-          />
+          <Flex align="center" justify="space-between" gap={12} wrap className={styles.filters}>
+            <Input
+              allowClear
+              prefix={<SearchOutlined />}
+              placeholder={t('staff.searchPlaceholder')}
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              className={styles.search}
+            />
+            <Flex align="center" gap={8}>
+              <Switch
+                checked={showArchived}
+                onChange={setShowArchived}
+                aria-label={t('common.showArchived')}
+              />
+              <span>{t('common.showArchived')}</span>
+            </Flex>
+          </Flex>
           <TableSurface>
             <Table<StaffMemberSummaryDto>
               columns={columns}
               dataSource={filteredStaffMembers}
               rowKey="id"
+              rowClassName={(record) => isStaffMemberArchived(record) ? styles.archivedRow : ''}
               sticky
               pagination={{ pageSize: 20, showSizeChanger: true }}
               locale={{ emptyText: <EmptyHint icon={<IdcardOutlined />} title={t('common.noSearchResults')} /> }}
