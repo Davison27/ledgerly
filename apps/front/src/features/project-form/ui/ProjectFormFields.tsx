@@ -46,7 +46,6 @@ export interface ProjectFormFieldValues {
   endDate?: Dayjs;
   budget?: number;
   currency?: ProjectCurrency;
-  fiscalYear?: string;
   manager?: string;
   color?: ProjectColorToken;
 }
@@ -350,15 +349,6 @@ export function ProjectFormFields({
         </Col>
       </Row>
       <Row gutter={16}>
-        <Col xs={24} sm={12} md={6}>
-          <Form.Item
-            name="fiscalYear"
-            label={t('projects.form.fields.fiscalYear')}
-            className={styles.tightItem}
-          >
-            <Input placeholder={t('projects.form.placeholders.fiscalYear')} />
-          </Form.Item>
-        </Col>
         <Col xs={24} sm={12} md={6}>
           <Form.Item
             name="manager"

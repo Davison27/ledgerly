@@ -35,7 +35,6 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
         endDate: project.endDate ? dayjs(project.endDate) : undefined,
         budget: project.budget,
         currency: project.currency,
-        fiscalYear: project.fiscalYear,
         manager: project.manager,
       });
       setImage(project.image);

@@ -51,7 +51,6 @@ export function SettingsSection({ project }: ProjectSectionProps) {
       endDate: fullProject.endDate ? dayjs(fullProject.endDate) : undefined,
       budget: fullProject.budget,
       currency: fullProject.currency,
-      fiscalYear: fullProject.fiscalYear,
       manager: fullProject.manager,
     });
   }, [fullProject, form]);

@@ -55,7 +55,6 @@ export interface Project {
   endDate?: string;
   budget?: number;
   currency?: ProjectCurrency;
-  fiscalYear?: string;
   manager?: string;
   image?: string | null;
   color?: ProjectColorToken;
@@ -108,7 +107,6 @@ function mapProject(dto: ProjectDto): Project {
     endDate: dto.endDate ?? undefined,
     budget: dto.budget ?? undefined,
     currency: dto.currency ?? undefined,
-    fiscalYear: dto.fiscalYear ?? undefined,
     manager: dto.manager ?? undefined,
     image: dto.image ?? undefined,
     color: dto.color ?? undefined,
@@ -138,7 +136,6 @@ export async function addProject(values: ProjectFormValues): Promise<Project> {
     endDate: values.endDate,
     budget: values.budget,
     currency: values.currency,
-    fiscalYear: values.fiscalYear,
     manager: values.manager,
     image: values.image,
     color: values.color,
@@ -163,7 +160,6 @@ export async function updateProject(
     endDate: values.endDate,
     budget: values.budget,
     currency: values.currency,
-    fiscalYear: values.fiscalYear,
     manager: values.manager,
     image: values.image,
     color: values.color,

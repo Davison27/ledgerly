@@ -58,7 +58,6 @@ export interface ProjectDto {
   endDate?: string | null;
   budget?: number | null;
   currency?: ProjectCurrencyDto | null;
-  fiscalYear?: string | null;
   manager?: string | null;
   image?: string | null;
   color?: ProjectColorToken | null;
@@ -76,7 +75,6 @@ export interface CreateProjectPayload {
   endDate?: string;
   budget?: number;
   currency?: ProjectCurrencyDto;
-  fiscalYear?: string;
   manager?: string;
   image?: string | null;
   color?: ProjectColorToken;
@@ -94,7 +92,6 @@ export interface UpdateProjectPayload {
   endDate?: string;
   budget?: number;
   currency?: ProjectCurrencyDto;
-  fiscalYear?: string;
   manager?: string;
   image?: string | null;
   color?: ProjectColorToken;

@@ -1519,7 +1519,6 @@
       "details": "Detalles del proyecto",
       "fieldName": "Nombre",
       "fieldCode": "Código de proyecto",
-      "fieldFiscalYear": "Ejercicio fiscal",
       "saved": "Proyecto actualizado correctamente",
       "saveError": "No se ha podido actualizar el proyecto. Inténtalo de nuevo.",
       "loadError": "No se ha podido cargar el proyecto."
@@ -1557,7 +1556,6 @@
         "endDate": "Fecha de fin",
         "budget": "Presupuesto",
         "currency": "Moneda",
-        "fiscalYear": "Ejercicio fiscal",
         "manager": "Responsable",
         "image": "Imagen del proyecto",
         "color": "Color"
@@ -1592,7 +1590,6 @@
         "contactPhone": "Ej. +34 600 123 456",
         "address": "Calle, número, ciudad",
         "budget": "0,00",
-        "fiscalYear": "Ej. 2025",
         "manager": "Ej. Juan Pérez"
       },
       "types": {
@@ -2100,7 +2097,7 @@
       "updated": "Trabajador actualizado correctamente",
       "createError": "No se ha podido crear el trabajador. Inténtalo de nuevo.",
       "updateError": "No se ha podido actualizar el trabajador. Inténtalo de nuevo.",
-      "endDateHelp": "Déjalo vacío mientras siga en activo. Rellénalo para darlo de baja sin eliminarlo.",
+      "endDateHelp": "Establece una fecha de fin para marcar el empleo como finalizado o inactivo. Esto no archiva al trabajador; el archivado controla por separado la visibilidad y el ciclo de vida de eliminación.",
       "placeholders": {
         "firstName": "Ej. María",
         "lastName": "Ej. López García",

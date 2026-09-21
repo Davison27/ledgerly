@@ -1515,7 +1515,6 @@
       "details": "Project details",
       "fieldName": "Name",
       "fieldCode": "Project code",
-      "fieldFiscalYear": "Fiscal year",
       "saved": "Project updated successfully",
       "saveError": "The project could not be updated. Please try again.",
       "loadError": "The project could not be loaded."
@@ -1553,7 +1552,6 @@
         "endDate": "End date",
         "budget": "Budget",
         "currency": "Currency",
-        "fiscalYear": "Fiscal year",
         "manager": "Manager",
         "image": "Project image",
         "color": "Color"
@@ -1588,7 +1586,6 @@
         "contactPhone": "E.g. +34 600 123 456",
         "address": "Street, number, city",
         "budget": "0.00",
-        "fiscalYear": "E.g. 2025",
         "manager": "E.g. Juan Pérez"
       },
       "types": {
@@ -2096,7 +2093,7 @@
       "updated": "Staff member updated successfully",
       "createError": "The staff member could not be created. Please try again.",
       "updateError": "The staff member could not be updated. Please try again.",
-      "endDateHelp": "Leave it empty while they're still active. Fill it in to mark them inactive without deleting them.",
+      "endDateHelp": "Set an end date to mark employment as ended or inactive. This does not archive the staff member; archiving separately controls visibility and the deletion lifecycle.",
       "placeholders": {
         "firstName": "E.g. María",
         "lastName": "E.g. López García",

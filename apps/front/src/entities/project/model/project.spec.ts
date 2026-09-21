@@ -89,14 +89,25 @@ describe('project view model', () => {
       color: null,
     });
 
-    await expect(fetchProject('project-1')).resolves.toMatchObject({
+    const project = await fetchProject('project-1');
+
+    expect(project).toEqual({
       id: 'project-1',
-      type: 'client',
-      status: 'active',
+      name: 'Project One',
+      code: 'P-001',
       documentCount: 0,
       pendingCount: 0,
+      type: 'client',
+      status: 'active',
       description: undefined,
+      clientId: null,
+      client: null,
+      address: undefined,
+      startDate: undefined,
+      endDate: undefined,
       budget: undefined,
+      currency: undefined,
+      manager: undefined,
       image: undefined,
       color: undefined,
     });
@@ -127,13 +138,38 @@ describe('project view model', () => {
     await updateProject('project-1', values);
     await removeProject('project-1');
 
-    expect(createProject).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'other', name: 'Project One', clientId: 'client-1' }),
-    );
-    expect(updateProjectRequest).toHaveBeenCalledWith(
-      'project-1',
-      expect.objectContaining({ type: 'client' }),
-    );
+    expect(createProject).toHaveBeenCalledWith({
+      name: 'Project One',
+      code: 'P-001',
+      type: 'other',
+      status: 'active',
+      description: 'Description',
+      clientId: 'client-1',
+      address: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      budget: 1000,
+      currency: 'EUR',
+      manager: undefined,
+      image: undefined,
+      color: undefined,
+    });
+    expect(updateProjectRequest).toHaveBeenCalledWith('project-1', {
+      name: 'Project One',
+      code: 'P-001',
+      type: 'client',
+      status: 'active',
+      description: 'Description',
+      clientId: 'client-1',
+      address: undefined,
+      startDate: undefined,
+      endDate: undefined,
+      budget: 1000,
+      currency: 'EUR',
+      manager: undefined,
+      image: undefined,
+      color: undefined,
+    });
     expect(deleteProject).toHaveBeenCalledWith('project-1');
   });
 });

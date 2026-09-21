@@ -95,7 +95,7 @@ describe('frontend API contracts', () => {
     expect(post).toHaveBeenCalledWith('/notifications/notification-1/read');
   });
 
-  it('uses the dashboard route and optional year query parameter', async () => {
+  it('uses the date-derived dashboard year query independently of project payloads', async () => {
     await getCompanyDashboard();
     await getCompanyDashboard(2025);
 
