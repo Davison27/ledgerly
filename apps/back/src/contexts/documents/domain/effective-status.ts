@@ -5,8 +5,8 @@ export function deriveEffectiveStatus(
   dueDate: string | null,
   today: string,
 ): DocumentStatus {
-  if (status === 'pendiente' && dueDate !== null && dueDate < today) {
-    return 'vencido';
+  if (status === 'pending' && dueDate !== null && dueDate < today) {
+    return 'overdue';
   }
 
   return status;

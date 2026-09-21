@@ -1,7 +1,7 @@
 export const TAX_COUNTRY_CODES = ['ES'] as const;
 export type TaxCountryCode = (typeof TAX_COUNTRY_CODES)[number];
 
-export const TAX_ENTITY_TYPES = ['autonomo', 'sociedad', 'particular'] as const;
+export const TAX_ENTITY_TYPES = ['self_employed', 'company', 'individual'] as const;
 export type TaxEntityType = (typeof TAX_ENTITY_TYPES)[number];
 
 export interface TaxClientProfilePrimitives {

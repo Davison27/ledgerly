@@ -70,9 +70,17 @@ export class ListTaxDeadlinesUseCase {
       }
     }
 
-    const unique = new Map(results.map((deadline) => [deadline.occurrenceKey, deadline]));
+    const unique = new Map(
+      results.map((deadline) => [
+        `${deadline.projectId}:${deadline.obligationKey}:${deadline.periodStart}:${deadline.periodEnd}`,
+        deadline,
+      ]),
+    );
     return [...unique.values()].sort(
-      (a, b) => a.startDate.localeCompare(b.startDate) || a.title.localeCompare(b.title),
+      (a, b) =>
+        a.startDate.localeCompare(b.startDate) ||
+        a.obligationKey.localeCompare(b.obligationKey) ||
+        a.id.localeCompare(b.id),
     );
   }
 }

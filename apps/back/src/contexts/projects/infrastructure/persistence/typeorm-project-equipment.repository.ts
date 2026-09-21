@@ -10,6 +10,8 @@ import { ProjectEquipmentOrmEntity } from './project-equipment.orm-entity';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 import { STORED_FILE_CIPHER, StoredFileCipher } from '../../../../shared/domain/stored-file-cipher.port';
 import { decryptStoredImage } from '../../../../shared/infrastructure/crypto/stored-image-envelope';
+import { ProjectEquipmentLeaseExpenseOrmEntity } from './project-equipment-lease-expense.orm-entity';
+import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
 
 type ProjectEquipmentQueryRow = Record<string, unknown>;
 
@@ -19,6 +21,9 @@ export class TypeOrmProjectEquipmentRepository implements ProjectEquipmentReposi
     @InjectRepository(ProjectEquipmentOrmEntity)
     private readonly repository: Repository<ProjectEquipmentOrmEntity>,
     @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
+    @InjectRepository(ProjectEquipmentLeaseExpenseOrmEntity)
+    private readonly leaseExpenseRepository: Repository<ProjectEquipmentLeaseExpenseOrmEntity>,
+    @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
   ) {}
 
   async findByProjectId(projectId: string): Promise<ProjectEquipmentRecord[]> {
@@ -27,8 +32,7 @@ export class TypeOrmProjectEquipmentRepository implements ProjectEquipmentReposi
       `SELECT pe.project_id AS "projectId", pe.equipment_id AS "equipmentId", e.name, e.reference,
         e.category, e.image_ciphertext AS "imageCiphertext", e.image_nonce AS "imageNonce",
         e.image_tag AS "imageTag", e.image_key_version AS "imageKeyVersion",
-        e.image_mime_type AS "imageMimeType", e.image_size AS "imageSize", e.leasing_monthly_fee AS "leasingMonthlyFee",
-        pe.lease_expense AS "leaseExpense", pe.lease_expense_date AS "leaseExpenseDate"
+        e.image_mime_type AS "imageMimeType", e.image_size AS "imageSize", e.leasing_monthly_fee AS "leasingMonthlyFee"
        FROM project_equipment pe
        INNER JOIN equipment e ON e.id = pe.equipment_id
        WHERE pe.project_id = $1
@@ -38,6 +42,18 @@ export class TypeOrmProjectEquipmentRepository implements ProjectEquipmentReposi
     );
 
     if (rows.length > limit) throw new ListLimitExceededException(limit, 'Project equipment');
+
+    const expenses = await this.findLeaseExpensesByProject(projectId);
+    const expensesByEquipment = new Map<string, Array<{ id: string; amount: number; date: string }>>();
+    for (const expense of expenses) {
+      const current = expensesByEquipment.get(expense.equipmentId) ?? [];
+      current.push({
+        id: expense.id,
+        amount: expense.amount,
+        date: expense.date,
+      });
+      expensesByEquipment.set(expense.equipmentId, current);
+    }
 
     return rows.map((row) => {
       const { imageCiphertext, imageKeyVersion, imageMimeType, imageNonce, imageSize, imageTag, ...equipment } = row;
@@ -59,18 +75,46 @@ export class TypeOrmProjectEquipmentRepository implements ProjectEquipmentReposi
         ...equipment,
         image,
         leasingMonthlyFee: row.leasingMonthlyFee === null ? null : Number(row.leasingMonthlyFee),
-        leaseExpense: row.leaseExpense === null ? null : Number(row.leaseExpense),
+        leaseExpenses: expensesByEquipment.get(String(row.equipmentId)) ?? [],
       };
     }) as ProjectEquipmentRecord[];
   }
 
-  async save(input: Pick<ProjectEquipmentRecord, 'projectId' | 'equipmentId' | 'leaseExpense' | 'leaseExpenseDate'>): Promise<void> {
+  async save(input: Pick<ProjectEquipmentRecord, 'projectId' | 'equipmentId'>): Promise<void> {
     await this.repository.save({
       projectId: input.projectId,
       equipmentId: input.equipmentId,
-      leaseExpense: input.leaseExpense?.toString() ?? null,
-      leaseExpenseDate: input.leaseExpenseDate,
     });
+  }
+
+  async addLeaseExpense(input: { projectId: string; equipmentId: string; amount: number; date: string }): Promise<void> {
+    await this.leaseExpenseRepository.save({
+      id: this.idGenerator.generate(),
+      projectId: input.projectId,
+      equipmentId: input.equipmentId,
+      amount: input.amount.toString(),
+      expenseDate: input.date,
+    });
+  }
+
+  async findLeaseExpensesByProject(projectId: string): Promise<Array<{ id: string; equipmentId: string; amount: number; date: string }>> {
+    const rows = await this.leaseExpenseRepository.find({
+      where: { projectId },
+      order: { expenseDate: 'ASC', id: 'ASC' },
+    });
+
+    return rows.map((row) => ({
+      id: row.id,
+      equipmentId: row.equipmentId,
+      amount: Number(row.amount),
+      date: row.expenseDate,
+    }));
+  }
+
+  async deleteLeaseExpense(id: string): Promise<boolean> {
+    const result = await this.leaseExpenseRepository.delete(id);
+
+    return result.affected === 1;
   }
 
   async delete(projectId: string, equipmentId: string): Promise<boolean> {
@@ -84,14 +128,12 @@ export class TypeOrmProjectEquipmentRepository implements ProjectEquipmentReposi
   }
 
   async findAllLeaseExpenseRows(): Promise<ProjectLeaseExpenseRow[]> {
-    const rows: Array<{ projectId: string; amount: string | number; date: string }> = await this.repository.createQueryBuilder('projectEquipment')
-      .select('projectEquipment.project_id', 'projectId')
-      .addSelect('projectEquipment.lease_expense', 'amount')
-      .addSelect('CAST(projectEquipment.lease_expense_date AS text)', 'date')
-      .where('projectEquipment.lease_expense IS NOT NULL')
-      .andWhere('projectEquipment.lease_expense_date IS NOT NULL')
-      .getRawMany();
+    const rows = await this.leaseExpenseRepository.find({ order: { id: 'ASC' } });
 
-    return rows.map((row) => ({ projectId: row.projectId, amount: Number(row.amount), date: row.date }));
+    return rows.map((row) => ({
+      projectId: row.projectId,
+      amount: Number(row.amount),
+      date: row.expenseDate,
+    }));
   }
 }

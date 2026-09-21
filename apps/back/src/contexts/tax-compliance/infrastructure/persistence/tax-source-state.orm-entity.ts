@@ -9,9 +9,6 @@ export class TaxSourceStateOrmEntity {
   @Column({ name: 'country_code', type: 'varchar', length: 2 })
   countryCode: string;
 
-  @Column({ type: 'varchar', length: 160 })
-  label: string;
-
   @Column({ type: 'varchar', length: 16 })
   format: string;
 

@@ -9,11 +9,7 @@ export interface CreateProjectCommand {
   type: ProjectType;
   status?: ProjectStatus;
   description?: string | null;
-  clientCompany?: string | null;
-  clientTaxId?: string | null;
-  contactName?: string | null;
-  contactEmail?: string | null;
-  contactPhone?: string | null;
+  clientId?: string | null;
   address?: string | null;
   startDate?: string | null;
   endDate?: string | null;

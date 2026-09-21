@@ -12,7 +12,6 @@ export class DocumentMapper {
       projectId: orm.projectId,
       name: orm.name,
       type: orm.type as DocumentType,
-      month: orm.month,
       date: orm.date,
       amount: Number(orm.amount),
       status: orm.status as DocumentStatus,
@@ -43,7 +42,6 @@ export class DocumentMapper {
     orm.projectId = primitives.projectId;
     orm.name = primitives.name;
     orm.type = primitives.type;
-    orm.month = primitives.month;
     orm.date = primitives.date;
     orm.amount = primitives.amount.toString();
     orm.status = primitives.status;

@@ -14,6 +14,7 @@ import {
 import { InvoiceExtractionFailedEvent } from '../../domain/events/invoice-extraction-failed.event';
 import { ExtractedInvoiceResult, ExtractionConfidence, ExtractionSource } from './extracted-invoice';
 import { ExtractInvoiceCommand } from './extract-invoice.command';
+import type { ExtractionWarningCode } from '../../domain/extraction/extraction-warning-code';
 
 function buildSuggestedName(fields: InvoiceFields): string | undefined {
   const parts = [fields.issuerName, fields.invoiceNumber].filter(
@@ -33,7 +34,7 @@ function buildResult(
   source: ExtractionSource,
   confidence: ExtractionConfidence,
   fields: InvoiceFields,
-  warnings: string[],
+  warnings: ExtractionWarningCode[],
 ): ExtractedInvoiceResult {
   const name = buildSuggestedName(fields);
 
@@ -42,7 +43,7 @@ function buildResult(
     confidence,
     fields: {
       ...fields,
-      type: 'factura',
+      type: 'invoice',
       ...(name ? { name } : {}),
     },
     warnings,

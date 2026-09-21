@@ -8,7 +8,6 @@ export interface CreateDocumentCommand {
   createdBy?: string | null;
   name: string;
   type: CreatableDocumentType;
-  month: number;
   date: string;
   amount: number;
   status: DocumentStatus;

@@ -18,8 +18,6 @@ export interface TaxObligationDefinition {
   key: string;
   countryCode: 'ES';
   code: string;
-  name: string;
-  description: string;
   category: 'vat' | 'withholding' | 'income';
   eligibleEntityTypes: readonly TaxEntityType[];
   rule: TaxObligationRule;
@@ -35,10 +33,8 @@ export const TAX_OBLIGATION_CATALOG: readonly TaxObligationDefinition[] = [
     key: 'es-aeat-model-303-quarterly',
     countryCode: 'ES',
     code: '303',
-    name: 'Modelo 303 · IVA trimestral',
-    description: 'Autoliquidación trimestral del impuesto sobre el valor añadido.',
     category: 'vat',
-    eligibleEntityTypes: ['autonomo', 'sociedad'],
+    eligibleEntityTypes: ['self_employed', 'company'],
     rule: { kind: 'quarterly', dueDay: 20, fourthQuarterDueDay: 30 },
     sourceUrl: AEAT_CALENDAR_2026,
     sourceVersion: 'AEAT-2026',
@@ -47,10 +43,8 @@ export const TAX_OBLIGATION_CATALOG: readonly TaxObligationDefinition[] = [
     key: 'es-aeat-model-111-quarterly',
     countryCode: 'ES',
     code: '111',
-    name: 'Modelo 111 · Retenciones',
-    description: 'Retenciones e ingresos a cuenta del IRPF trimestrales.',
     category: 'withholding',
-    eligibleEntityTypes: ['autonomo', 'sociedad'],
+    eligibleEntityTypes: ['self_employed', 'company'],
     rule: { kind: 'quarterly', dueDay: 20, fourthQuarterDueDay: 20 },
     sourceUrl: AEAT_CALENDAR_2026,
     sourceVersion: 'AEAT-2026',
@@ -59,10 +53,8 @@ export const TAX_OBLIGATION_CATALOG: readonly TaxObligationDefinition[] = [
     key: 'es-aeat-model-115-quarterly',
     countryCode: 'ES',
     code: '115',
-    name: 'Modelo 115 · Alquileres',
-    description: 'Retenciones e ingresos a cuenta sobre alquileres urbanos.',
     category: 'withholding',
-    eligibleEntityTypes: ['autonomo', 'sociedad'],
+    eligibleEntityTypes: ['self_employed', 'company'],
     rule: { kind: 'quarterly', dueDay: 20, fourthQuarterDueDay: 20 },
     sourceUrl: AEAT_CALENDAR_2026,
     sourceVersion: 'AEAT-2026',
@@ -71,10 +63,8 @@ export const TAX_OBLIGATION_CATALOG: readonly TaxObligationDefinition[] = [
     key: 'es-aeat-model-100-annual',
     countryCode: 'ES',
     code: '100',
-    name: 'Modelo 100 · Renta',
-    description: 'Campaña anual del impuesto sobre la renta de las personas físicas.',
     category: 'income',
-    eligibleEntityTypes: ['autonomo', 'particular'],
+    eligibleEntityTypes: ['self_employed', 'individual'],
     rule: {
       kind: 'annual-campaign',
       campaignStartMonth: 4,

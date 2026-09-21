@@ -85,12 +85,11 @@ class FakeDomainEventPublisher implements DomainEventPublisher {
 const BASE_COMMAND = {
   projectId: 'project-1',
   name: 'Invoice',
-  type: 'factura' as const,
-  month: 6,
+  type: 'invoice' as const,
   date: '2026-06-01',
   amount: 100,
-  status: 'pendiente' as const,
-  direction: 'gasto' as const,
+  status: 'pending' as const,
+  direction: 'expense' as const,
 };
 
 describe('CreateDocumentUseCase', () => {
@@ -199,12 +198,12 @@ describe('CreateDocumentUseCase', () => {
 
     const document = await useCase.execute({
       ...BASE_COMMAND,
-      direction: 'ingreso',
+      direction: 'income',
       irpfRate: 15,
       irpfAmount: 150,
     });
 
-    expect(document.getDirection()).toBe('ingreso');
+    expect(document.getDirection()).toBe('income');
     expect(document.getIrpfRate()).toBe(15);
     expect(document.getIrpfAmount()).toBe(150);
   });
@@ -226,7 +225,7 @@ describe('CreateDocumentUseCase', () => {
     ).rejects.toThrow(InvalidValueException);
   });
 
-  it('rejects nomina creation before checking the project', async () => {
+  it('rejects payroll creation before checking the project', async () => {
     const repository = new InMemoryDocumentRepository();
     const projectChecker = new FakeExistenceChecker(new Set());
     const supplierChecker = new FakeExistenceChecker(new Set());
@@ -239,7 +238,7 @@ describe('CreateDocumentUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ ...BASE_COMMAND, type: 'nomina' } as unknown as typeof BASE_COMMAND),
+      useCase.execute({ ...BASE_COMMAND, type: 'payroll' } as unknown as typeof BASE_COMMAND),
     ).rejects.toThrow(InvalidValueException);
   });
 
@@ -273,7 +272,7 @@ describe('CreateDocumentUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ ...BASE_COMMAND, direction: 'otro' as unknown as 'ingreso' | 'gasto' }),
+      useCase.execute({ ...BASE_COMMAND, direction: 'otro' as unknown as 'income' | 'expense' }),
     ).rejects.toThrow(InvalidValueException);
   });
 });

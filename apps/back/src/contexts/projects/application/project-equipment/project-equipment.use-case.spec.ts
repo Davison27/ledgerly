@@ -19,7 +19,7 @@ class InMemoryProjectEquipmentRepository implements ProjectEquipmentRepository {
     return Promise.resolve(this.records.filter((record) => record.projectId === projectId));
   }
 
-  save(input: Pick<ProjectEquipmentRecord, 'projectId' | 'equipmentId' | 'leaseExpense' | 'leaseExpenseDate'>): Promise<void> {
+  save(input: Pick<ProjectEquipmentRecord, 'projectId' | 'equipmentId'>): Promise<void> {
     this.records.push({
       ...input,
       name: 'Equipment',
@@ -27,8 +27,21 @@ class InMemoryProjectEquipmentRepository implements ProjectEquipmentRepository {
       category: null,
       image: null,
       leasingMonthlyFee: null,
+      leaseExpenses: [],
     });
     return Promise.resolve();
+  }
+
+  addLeaseExpense(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  findLeaseExpensesByProject(): Promise<never[]> {
+    return Promise.resolve([]);
+  }
+
+  deleteLeaseExpense(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   delete(projectId: string, equipmentId: string): Promise<boolean> {
@@ -124,8 +137,7 @@ const ASSOCIATION: ProjectEquipmentRecord = {
   category: null,
   image: null,
   leasingMonthlyFee: null,
-  leaseExpense: null,
-  leaseExpenseDate: null,
+  leaseExpenses: [],
 };
 
 describe('ProjectEquipmentUseCase', () => {

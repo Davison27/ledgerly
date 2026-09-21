@@ -1,6 +1,11 @@
 {
   "rootDir": "../src",
   "testRegex": ".*\\.e2e\\.spec\\.ts$",
+  "testPathIgnorePatterns": [
+    "/database/migrations/",
+    "/typeorm-document\\.repository\\.e2e\\.spec\\.ts$",
+    "/encrypted-image-assets\\.e2e\\.spec\\.ts$"
+  ],
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },

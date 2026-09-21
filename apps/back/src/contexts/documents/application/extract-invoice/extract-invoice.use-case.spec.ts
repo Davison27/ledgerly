@@ -58,7 +58,7 @@ describe('ExtractInvoiceUseCase', () => {
     expect(result.fields.issuerName).toBe('Consultoria Iberica de Sistemas SA');
     expect(result.fields.invoiceNumber).toBe('2026-045');
     expect(result.fields.amount).toBe(605);
-    expect(result.fields.type).toBe('factura');
+    expect(result.fields.type).toBe('invoice');
     expect(result.fields.name).toBe('Consultoria Iberica de Sistemas SA - 2026-045');
   });
 
@@ -95,7 +95,7 @@ describe('ExtractInvoiceUseCase', () => {
     expect(result.source).toBe('heuristic');
     expect(result.confidence).toBe('partial');
     expect(result.fields.amount).toBe(100);
-    expect(result.fields.type).toBe('factura');
+    expect(result.fields.type).toBe('invoice');
   });
 
   it('reports "low" confidence when heuristics found no supporting fields', async () => {

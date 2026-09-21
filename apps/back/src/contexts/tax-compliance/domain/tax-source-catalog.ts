@@ -3,7 +3,6 @@ export type TaxSourceFormat = 'ical';
 export interface TaxSourceDefinition {
   key: string;
   countryCode: 'ES';
-  label: string;
   format: TaxSourceFormat;
   sourceUrl: string;
   feedUrl: string;
@@ -16,7 +15,6 @@ export const TAX_SOURCE_CATALOG: readonly TaxSourceDefinition[] = [
   {
     key: 'es-aeat-iva',
     countryCode: 'ES',
-    label: 'AEAT · IVA',
     format: 'ical',
     sourceUrl: AEAT_CALENDAR_URL,
     feedUrl:
@@ -25,7 +23,6 @@ export const TAX_SOURCE_CATALOG: readonly TaxSourceDefinition[] = [
   {
     key: 'es-aeat-renta',
     countryCode: 'ES',
-    label: 'AEAT · Renta',
     format: 'ical',
     sourceUrl: AEAT_CALENDAR_URL,
     feedUrl: 'https://www.google.com/calendar/ical/invitado2aeat%40gmail.com/public/basic.ics',
@@ -33,7 +30,6 @@ export const TAX_SOURCE_CATALOG: readonly TaxSourceDefinition[] = [
   {
     key: 'es-aeat-renta-sociedades',
     countryCode: 'ES',
-    label: 'AEAT · Renta y Sociedades',
     format: 'ical',
     sourceUrl: AEAT_CALENDAR_URL,
     feedUrl:

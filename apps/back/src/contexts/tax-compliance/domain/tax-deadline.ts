@@ -1,12 +1,11 @@
+import type { TaxObligationRule } from './tax-obligation-catalog';
+
 export type TaxDeadlineStatus = 'pending' | 'in_progress' | 'submitted' | 'paid' | 'dismissed';
 
 export interface GeneratedTaxDeadline {
-  occurrenceKey: string;
   projectId: string;
   obligationKey: string;
   code: string;
-  title: string;
-  description: string;
   category: string;
   periodStart: string;
   periodEnd: string;
@@ -20,6 +19,7 @@ export interface GeneratedTaxDeadline {
 
 export interface TaxDeadlineView extends GeneratedTaxDeadline {
   id: string;
+  rule: TaxObligationRule;
   projectName: string;
   projectCode: string;
   projectColor: string | null;

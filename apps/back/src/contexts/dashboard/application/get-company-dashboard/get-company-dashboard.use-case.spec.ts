@@ -35,16 +35,16 @@ class FakeDashboardDataProvider implements DashboardDataProvider {
 
 function buildRow(overrides: Partial<DashboardDocumentRow> = {}): DashboardDocumentRow {
   return {
-    type: 'factura',
+    type: 'invoice',
     amount: 100,
     month: 1,
-    status: 'pagado',
+    status: 'paid',
     issuerName: 'Acme SL',
     projectId: 'project-1',
     date: '2026-01-15',
     dueDate: null,
     taxAmount: null,
-    direction: 'ingreso',
+    direction: 'income',
     ...overrides,
   };
 }
@@ -99,13 +99,13 @@ describe('GetCompanyDashboardUseCase', () => {
       paidCount: 0,
       pendingCount: 0,
       overdueCount: 0,
-      amountByStatus: { pagado: 0, pendiente: 0, vencido: 0 },
+      amountByStatus: { paid: 0, pending: 0, overdue: 0 },
       monthlyIncome: Array(12).fill(0),
       monthlyExpenses: Array(12).fill(0),
       monthlyProfit: Array(12).fill(0),
       cumulativeProfit: Array(12).fill(0),
       monthlyMargin: Array(12).fill(0),
-      categoryTotals: { factura: 0, nomina: 0, impuesto: 0 },
+      categoryTotals: { invoice: 0, payroll: 0, tax: 0 },
       topIssuers: [],
       topProjects: [],
       previousYear: {
@@ -140,9 +140,9 @@ describe('GetCompanyDashboardUseCase', () => {
   it('aggregates income, expenses, profit and margin across projects for the selected year', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const rows: DashboardDocumentRow[] = [
-      buildRow({ type: 'factura', amount: 1000, month: 1, status: 'pagado', projectId: 'p1', issuerName: 'Client A', date: '2026-01-05' }),
-      buildRow({ type: 'nomina', direction: 'gasto', amount: 300, month: 1, status: 'pendiente', projectId: 'p1', issuerName: 'Employee', date: '2026-01-20' }),
-      buildRow({ type: 'impuesto', direction: 'gasto', amount: 100, month: 2, status: 'vencido', projectId: 'p2', issuerName: null, date: '2026-02-01' }),
+      buildRow({ type: 'invoice', amount: 1000, month: 1, status: 'paid', projectId: 'p1', issuerName: 'Client A', date: '2026-01-05' }),
+      buildRow({ type: 'payroll', direction: 'expense', amount: 300, month: 1, status: 'pending', projectId: 'p1', issuerName: 'Employee', date: '2026-01-20' }),
+      buildRow({ type: 'tax', direction: 'expense', amount: 100, month: 2, status: 'overdue', projectId: 'p2', issuerName: null, date: '2026-02-01' }),
     ];
     const summaries = [buildSummary({ id: 'p1', name: 'Project One' }), buildSummary({ id: 'p2', name: 'Project Two' })];
     const useCase = new GetCompanyDashboardUseCase(
@@ -162,8 +162,8 @@ describe('GetCompanyDashboardUseCase', () => {
     expect(result.paidCount).toBe(1);
     expect(result.pendingCount).toBe(1);
     expect(result.overdueCount).toBe(1);
-    expect(result.amountByStatus).toEqual({ pagado: 1000, pendiente: 300, vencido: 100 });
-    expect(result.categoryTotals).toEqual({ factura: 1000, nomina: 300, impuesto: 100 });
+    expect(result.amountByStatus).toEqual({ paid: 1000, pending: 300, overdue: 100 });
+    expect(result.categoryTotals).toEqual({ invoice: 1000, payroll: 300, tax: 100 });
 
     expect(result.monthlyIncome[0]).toBe(1000);
     expect(result.monthlyExpenses[0]).toBe(300);
@@ -190,7 +190,7 @@ describe('GetCompanyDashboardUseCase', () => {
   it('counts a document that already arrives with an overdue effective status', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const rows: DashboardDocumentRow[] = [
-      buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
+      buildRow({ type: 'invoice', amount: 500, status: 'overdue', dueDate: '2026-07-01', date: '2026-06-01' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
       new FakeDashboardDataProvider(rows, []),
@@ -202,7 +202,7 @@ describe('GetCompanyDashboardUseCase', () => {
     expect(result.overdueCount).toBe(1);
     expect(result.pendingCount).toBe(0);
     expect(result.paidCount).toBe(0);
-    expect(result.amountByStatus).toEqual({ pagado: 0, pendiente: 0, vencido: 500 });
+    expect(result.amountByStatus).toEqual({ paid: 0, pending: 0, overdue: 500 });
   });
 
   it('excludes documents from other years and buckets by month within the selected year only', async () => {
@@ -256,10 +256,10 @@ describe('GetCompanyDashboardUseCase', () => {
   it('computes previousYear headline totals from the prior calendar year documents only', async () => {
     mockToday('2026-07-18T12:00:00.000Z');
     const rows: DashboardDocumentRow[] = [
-      buildRow({ type: 'factura', amount: 1000, date: '2026-03-01' }),
-      buildRow({ type: 'factura', amount: 400, date: '2025-03-01' }),
-      buildRow({ type: 'nomina', direction: 'gasto', amount: 100, date: '2025-04-01' }),
-      buildRow({ type: 'factura', amount: 999, date: '2024-01-01' }),
+      buildRow({ type: 'invoice', amount: 1000, date: '2026-03-01' }),
+      buildRow({ type: 'invoice', amount: 400, date: '2025-03-01' }),
+      buildRow({ type: 'payroll', direction: 'expense', amount: 100, date: '2025-04-01' }),
+      buildRow({ type: 'invoice', amount: 999, date: '2024-01-01' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
       new FakeDashboardDataProvider(rows, []),
@@ -359,10 +359,10 @@ describe('GetCompanyDashboardUseCase', () => {
     it('includes projects with a budget or activity in the selected year, sorted by expenses desc', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DashboardDocumentRow[] = [
-        buildRow({ projectId: 'p1', type: 'factura', amount: 500, date: '2026-02-01' }),
-        buildRow({ projectId: 'p1', type: 'nomina', direction: 'gasto', amount: 200, date: '2026-03-01' }),
-        buildRow({ projectId: 'p2', type: 'impuesto', direction: 'gasto', amount: 900, date: '2026-04-01' }),
-        buildRow({ projectId: 'p3', type: 'factura', amount: 50, date: '2025-04-01' }),
+        buildRow({ projectId: 'p1', type: 'invoice', amount: 500, date: '2026-02-01' }),
+        buildRow({ projectId: 'p1', type: 'payroll', direction: 'expense', amount: 200, date: '2026-03-01' }),
+        buildRow({ projectId: 'p2', type: 'tax', direction: 'expense', amount: 900, date: '2026-04-01' }),
+        buildRow({ projectId: 'p3', type: 'invoice', amount: 50, date: '2025-04-01' }),
       ];
       const summaries = [
         buildSummary({ id: 'p1', name: 'Project One' }),
@@ -406,11 +406,11 @@ describe('GetCompanyDashboardUseCase', () => {
     it('always returns 4 quarters and sums output/input VAT, treating null taxAmount as 0', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DashboardDocumentRow[] = [
-        buildRow({ type: 'factura', month: 1, taxAmount: 210, date: '2026-01-05' }),
-        buildRow({ type: 'nomina', direction: 'gasto', month: 2, taxAmount: 50, date: '2026-02-05' }),
-        buildRow({ type: 'impuesto', direction: 'gasto', month: 5, taxAmount: 30, date: '2026-05-05' }),
-        buildRow({ type: 'factura', month: 8, taxAmount: null, date: '2026-08-05' }),
-        buildRow({ type: 'nomina', direction: 'gasto', month: 11, taxAmount: 20, date: '2026-11-05' }),
+        buildRow({ type: 'invoice', month: 1, taxAmount: 210, date: '2026-01-05' }),
+        buildRow({ type: 'payroll', direction: 'expense', month: 2, taxAmount: 50, date: '2026-02-05' }),
+        buildRow({ type: 'tax', direction: 'expense', month: 5, taxAmount: 30, date: '2026-05-05' }),
+        buildRow({ type: 'invoice', month: 8, taxAmount: null, date: '2026-08-05' }),
+        buildRow({ type: 'payroll', direction: 'expense', month: 11, taxAmount: 20, date: '2026-11-05' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
         new FakeDashboardDataProvider(rows, []),
@@ -432,14 +432,14 @@ describe('GetCompanyDashboardUseCase', () => {
     it('buckets overdue vs upcoming documents, excludes paid documents, and computes inflow/outflow by type', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DashboardDocumentRow[] = [
-        buildRow({ type: 'factura', amount: 500, status: 'vencido', dueDate: '2026-06-01', date: '2026-05-01' }),
-        buildRow({ type: 'nomina', direction: 'gasto', amount: 150, status: 'vencido', dueDate: '2026-07-01', date: '2026-06-01' }),
-        buildRow({ type: 'factura', amount: 9999, status: 'pagado', dueDate: '2026-06-01', date: '2026-05-01' }),
-        buildRow({ type: 'factura', amount: 9999, status: 'pendiente', dueDate: null, date: '2026-05-01' }),
-        buildRow({ type: 'factura', amount: 300, status: 'pendiente', dueDate: '2026-08-10', date: '2026-07-01' }),
-        buildRow({ type: 'impuesto', direction: 'gasto', amount: 80, status: 'pendiente', dueDate: '2026-08-20', date: '2026-07-01' }),
-        buildRow({ type: 'factura', amount: 60, status: 'pendiente', dueDate: '2027-01-15', date: '2026-07-01' }),
-        buildRow({ type: 'factura', amount: 70, status: 'pendiente', dueDate: '2027-02-01', date: '2026-07-01' }),
+        buildRow({ type: 'invoice', amount: 500, status: 'overdue', dueDate: '2026-06-01', date: '2026-05-01' }),
+        buildRow({ type: 'payroll', direction: 'expense', amount: 150, status: 'overdue', dueDate: '2026-07-01', date: '2026-06-01' }),
+        buildRow({ type: 'invoice', amount: 9999, status: 'paid', dueDate: '2026-06-01', date: '2026-05-01' }),
+        buildRow({ type: 'invoice', amount: 9999, status: 'pending', dueDate: null, date: '2026-05-01' }),
+        buildRow({ type: 'invoice', amount: 300, status: 'pending', dueDate: '2026-08-10', date: '2026-07-01' }),
+        buildRow({ type: 'tax', direction: 'expense', amount: 80, status: 'pending', dueDate: '2026-08-20', date: '2026-07-01' }),
+        buildRow({ type: 'invoice', amount: 60, status: 'pending', dueDate: '2027-01-15', date: '2026-07-01' }),
+        buildRow({ type: 'invoice', amount: 70, status: 'pending', dueDate: '2027-02-01', date: '2026-07-01' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
         new FakeDashboardDataProvider(rows, []),
@@ -462,7 +462,7 @@ describe('GetCompanyDashboardUseCase', () => {
     it('is not scoped to the selected year', async () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DashboardDocumentRow[] = [
-        buildRow({ type: 'factura', amount: 40, status: 'pendiente', dueDate: '2026-08-01', date: '2025-01-01' }),
+        buildRow({ type: 'invoice', amount: 40, status: 'pending', dueDate: '2026-08-01', date: '2025-01-01' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
         new FakeDashboardDataProvider(rows, []),
@@ -480,22 +480,22 @@ describe('GetCompanyDashboardUseCase', () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const rows: DashboardDocumentRow[] = [
         buildRow({
-          type: 'factura',
-          direction: 'ingreso',
+          type: 'invoice',
+          direction: 'income',
           amount: 1000,
           month: 1,
           taxAmount: 210,
-          status: 'pendiente',
+          status: 'pending',
           dueDate: '2026-08-10',
           date: '2026-01-05',
         }),
         buildRow({
-          type: 'factura',
-          direction: 'gasto',
+          type: 'invoice',
+          direction: 'expense',
           amount: 400,
           month: 1,
           taxAmount: 80,
-          status: 'pendiente',
+          status: 'pending',
           dueDate: '2026-08-15',
           date: '2026-01-10',
         }),

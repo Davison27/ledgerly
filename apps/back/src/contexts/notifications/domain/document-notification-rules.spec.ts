@@ -8,7 +8,7 @@ function buildRow(overrides: Partial<NotificationDocumentRow> = {}): Notificatio
     name: 'Invoice 1',
     amount: 100,
     dueDate: '2026-07-01',
-    type: 'factura',
+    type: 'invoice',
     ...overrides,
   };
 }

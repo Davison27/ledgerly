@@ -88,12 +88,9 @@ function makeQuarterlyDeadline(
   );
 
   return {
-    occurrenceKey: `${profile.projectId}:${definition.key}:${period.start}`,
     projectId: profile.projectId,
     obligationKey: definition.key,
     code: definition.code,
-    title: `${definition.name} · T${quarter} ${periodYear}`,
-    description: definition.description,
     category: definition.category,
     periodStart: period.start,
     periodEnd: period.end,
@@ -129,12 +126,9 @@ function makeAnnualCampaignDeadline(
   );
 
   return {
-    occurrenceKey: `${profile.projectId}:${definition.key}:${taxYear}`,
     projectId: profile.projectId,
     obligationKey: definition.key,
     code: definition.code,
-    title: `${definition.name} · ${taxYear}`,
-    description: definition.description,
     category: definition.category,
     periodStart: `${taxYear}-01-01`,
     periodEnd: `${taxYear}-12-31`,

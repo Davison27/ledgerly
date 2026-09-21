@@ -138,7 +138,7 @@ function buildPendingDueRow(overrides: Partial<NotificationDocumentRow> = {}): N
     name: 'Invoice 1',
     amount: 100,
     dueDate: '2026-07-01',
-    type: 'factura',
+    type: 'invoice',
     ...overrides,
   };
 }

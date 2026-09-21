@@ -125,7 +125,6 @@ export class DocumentsController {
       createdBy: member.getId(),
       name: dto.name,
       type: dto.type,
-      month: dto.month,
       date: dto.date,
       amount: dto.amount,
       status: dto.status,

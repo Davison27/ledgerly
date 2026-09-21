@@ -1,5 +1,4 @@
 import { InvalidValueException } from '../../../shared/domain/invalid-value.exception';
-import { Email } from './value-objects/email';
 import { PROJECT_TYPES, ProjectType } from './project-type';
 import { PROJECT_STATUSES, ProjectStatus } from './project-status';
 import { PROJECT_CURRENCIES, ProjectCurrency } from './project-currency';
@@ -52,11 +51,7 @@ export interface ProjectPrimitives {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientCompany: string | null;
-  clientTaxId: string | null;
-  contactName: string | null;
-  contactEmail: string | null;
-  contactPhone: string | null;
+  clientId: string | null;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -75,11 +70,7 @@ interface ProjectProps {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientCompany: string | null;
-  clientTaxId: string | null;
-  contactName: string | null;
-  contactEmail: Email | null;
-  contactPhone: string | null;
+  clientId: string | null;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -98,11 +89,7 @@ export class Project {
   private type_: ProjectType;
   private status_: ProjectStatus;
   private description_: string | null;
-  private clientCompany_: string | null;
-  private clientTaxId_: string | null;
-  private contactName_: string | null;
-  private contactEmail_: Email | null;
-  private contactPhone_: string | null;
+  private clientId_: string | null;
   private address_: string | null;
   private startDate_: string | null;
   private endDate_: string | null;
@@ -120,11 +107,7 @@ export class Project {
     this.type_ = props.type;
     this.status_ = props.status;
     this.description_ = props.description;
-    this.clientCompany_ = props.clientCompany;
-    this.clientTaxId_ = props.clientTaxId;
-    this.contactName_ = props.contactName;
-    this.contactEmail_ = props.contactEmail;
-    this.contactPhone_ = props.contactPhone;
+    this.clientId_ = props.clientId;
     this.address_ = props.address;
     this.startDate_ = props.startDate;
     this.endDate_ = props.endDate;
@@ -145,9 +128,6 @@ export class Project {
     assertValidBudget(params.budget);
     assertValidColor(params.color);
 
-    const contactEmail =
-      params.contactEmail !== null ? Email.create(params.contactEmail) : null;
-
     return new Project({
       id: params.id,
       name: params.name,
@@ -155,11 +135,7 @@ export class Project {
       type: params.type,
       status: params.status,
       description: params.description,
-      clientCompany: params.clientCompany,
-      clientTaxId: params.clientTaxId,
-      contactName: params.contactName,
-      contactEmail,
-      contactPhone: params.contactPhone,
+      clientId: params.clientId,
       address: params.address,
       startDate: params.startDate,
       endDate: params.endDate,
@@ -194,24 +170,8 @@ export class Project {
     this.description_ = description;
   }
 
-  changeClientCompany(clientCompany: string | null): void {
-    this.clientCompany_ = clientCompany;
-  }
-
-  changeClientTaxId(clientTaxId: string | null): void {
-    this.clientTaxId_ = clientTaxId;
-  }
-
-  changeContactName(contactName: string | null): void {
-    this.contactName_ = contactName;
-  }
-
-  changeContactEmail(contactEmail: string | null): void {
-    this.contactEmail_ = contactEmail !== null ? Email.create(contactEmail) : null;
-  }
-
-  changeContactPhone(contactPhone: string | null): void {
-    this.contactPhone_ = contactPhone;
+  changeClientId(clientId: string | null): void {
+    this.clientId_ = clientId;
   }
 
   changeAddress(address: string | null): void {
@@ -279,24 +239,8 @@ export class Project {
     return this.description_;
   }
 
-  get clientCompany(): string | null {
-    return this.clientCompany_;
-  }
-
-  get clientTaxId(): string | null {
-    return this.clientTaxId_;
-  }
-
-  get contactName(): string | null {
-    return this.contactName_;
-  }
-
-  get contactEmail(): string | null {
-    return this.contactEmail_ !== null ? this.contactEmail_.toValue() : null;
-  }
-
-  get contactPhone(): string | null {
-    return this.contactPhone_;
+  get clientId(): string | null {
+    return this.clientId_;
   }
 
   get address(): string | null {
@@ -343,11 +287,7 @@ export class Project {
       type: this.type_,
       status: this.status_,
       description: this.description_,
-      clientCompany: this.clientCompany_,
-      clientTaxId: this.clientTaxId_,
-      contactName: this.contactName_,
-      contactEmail: this.contactEmail,
-      contactPhone: this.contactPhone_,
+      clientId: this.clientId_,
       address: this.address_,
       startDate: this.startDate_,
       endDate: this.endDate_,

@@ -59,7 +59,7 @@ function computeHeadlineTotals(rows: DashboardDocumentRow[], leaseExpenses: Dash
   let expenses = 0;
 
   for (const row of rows) {
-    if (row.direction === 'ingreso') income += row.amount;
+    if (row.direction === 'income') income += row.amount;
     else expenses += row.amount;
   }
   for (const leaseExpense of leaseExpenses) expenses += leaseExpense.amount;
@@ -91,7 +91,7 @@ function computeVatByQuarter(rows: DashboardDocumentRow[]): VatByQuarter[] {
     if (quarterIdx < 0 || quarterIdx >= QUARTERS_IN_YEAR) continue;
 
     const tax = row.taxAmount ?? 0;
-    if (row.direction === 'ingreso') quarters[quarterIdx].outputVat += tax;
+    if (row.direction === 'income') quarters[quarterIdx].outputVat += tax;
     else quarters[quarterIdx].inputVat += tax;
   }
 
@@ -111,7 +111,7 @@ function computeBudgetVsActual(
 
   for (const row of yearRows) {
     const activity = activityByProject.get(row.projectId) ?? { income: 0, expenses: 0 };
-    if (row.direction === 'ingreso') activity.income += row.amount;
+    if (row.direction === 'income') activity.income += row.amount;
     else activity.expenses += row.amount;
     activityByProject.set(row.projectId, activity);
   }
@@ -161,9 +161,9 @@ function computeCashflowForecast(allRows: DashboardDocumentRow[], today: Date): 
   let overdueOutflow = 0;
 
   for (const row of allRows) {
-    if (row.status === 'pagado' || row.dueDate === null) continue;
+    if (row.status === 'paid' || row.dueDate === null) continue;
 
-    const isInflow = row.direction === 'ingreso';
+    const isInflow = row.direction === 'income';
 
     if (row.dueDate < todayIso) {
       if (isInflow) overdueInflow += row.amount;
@@ -214,8 +214,8 @@ export class GetCompanyDashboardUseCase {
 
     const monthlyIncome = Array<number>(MONTHS_IN_YEAR).fill(0);
     const monthlyExpenses = Array<number>(MONTHS_IN_YEAR).fill(0);
-    const categoryTotals: CategoryTotals = { factura: 0, nomina: 0, impuesto: 0 };
-    const amountByStatus: AmountByStatus = { pagado: 0, pendiente: 0, vencido: 0 };
+    const categoryTotals: CategoryTotals = { invoice: 0, payroll: 0, tax: 0 };
+    const amountByStatus: AmountByStatus = { paid: 0, pending: 0, overdue: 0 };
 
     let paidCount = 0;
     let pendingCount = 0;
@@ -228,7 +228,7 @@ export class GetCompanyDashboardUseCase {
       const idx = row.month - 1;
       const inRange = idx >= 0 && idx < MONTHS_IN_YEAR;
 
-      if (row.direction === 'ingreso') {
+      if (row.direction === 'income') {
         if (inRange) monthlyIncome[idx] += row.amount;
       } else {
         if (inRange) monthlyExpenses[idx] += row.amount;
@@ -236,9 +236,9 @@ export class GetCompanyDashboardUseCase {
 
       categoryTotals[row.type] += row.amount;
 
-      if (row.status === 'pagado') paidCount += 1;
-      else if (row.status === 'pendiente') pendingCount += 1;
-      else if (row.status === 'vencido') overdueCount += 1;
+      if (row.status === 'paid') paidCount += 1;
+      else if (row.status === 'pending') pendingCount += 1;
+      else if (row.status === 'overdue') overdueCount += 1;
 
       amountByStatus[row.status] += row.amount;
 

@@ -6,6 +6,7 @@ import { AddEncryptedStoredFileEnvelopes1730000002000 } from '../../../../databa
 import { ReconcileEntitySchemaDrift1730000003000 } from '../../../../database/migrations/1730000003000-ReconcileEntitySchemaDrift';
 import { AddMissingUniqueConstraints1730000004000 } from '../../../../database/migrations/1730000004000-AddMissingUniqueConstraints';
 import { AddReferentialIntegrity1730000005000 } from '../../../../database/migrations/1730000005000-AddReferentialIntegrity';
+import { NormalizeDerivedColumns1730000006000 } from '../../../../database/migrations/1730000006000-NormalizeDerivedColumns';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { Company } from '../../../company/domain/company';
 import { GetCompanyBrandingUseCase } from '../../../company/application/get-company-branding/get-company-branding.use-case';
@@ -19,8 +20,11 @@ import { UpdateProjectUseCase } from '../../application/update-project/update-pr
 import { Project } from '../../domain/project';
 import { ProjectOrmEntity } from './project.orm-entity';
 import { ProjectEquipmentOrmEntity } from './project-equipment.orm-entity';
+import { ProjectEquipmentLeaseExpenseOrmEntity } from './project-equipment-lease-expense.orm-entity';
+import { ClientOrmEntity } from './client.orm-entity';
 import { TypeOrmProjectEquipmentRepository } from './typeorm-project-equipment.repository';
 import { TypeOrmProjectRepository } from './typeorm-project.repository';
+import { UuidGenerator } from '../../../../shared/infrastructure/uuid-generator';
 
 const pngBytes = Buffer.from('89504e470d0a1a0a00000000', 'hex');
 const image = `data:image/png;base64,${pngBytes.toString('base64')}`;
@@ -48,7 +52,7 @@ describe('encrypted image assets (PostgreSQL)', () => {
     dataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [CompanyOrmEntity, EquipmentOrmEntity, ProjectOrmEntity, ProjectEquipmentOrmEntity],
+      entities: [CompanyOrmEntity, EquipmentOrmEntity, ProjectOrmEntity, ProjectEquipmentOrmEntity, ProjectEquipmentLeaseExpenseOrmEntity, ClientOrmEntity],
       migrations: [
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
@@ -56,6 +60,7 @@ describe('encrypted image assets (PostgreSQL)', () => {
         ReconcileEntitySchemaDrift1730000003000,
         AddMissingUniqueConstraints1730000004000,
         AddReferentialIntegrity1730000005000,
+        NormalizeDerivedColumns1730000006000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -70,7 +75,12 @@ describe('encrypted image assets (PostgreSQL)', () => {
     companyRepository = new TypeOrmCompanyRepository(dataSource.getRepository(CompanyOrmEntity), cipher);
     equipmentRepository = new TypeOrmEquipmentRepository(dataSource.getRepository(EquipmentOrmEntity), cipher);
     projectRepository = new TypeOrmProjectRepository(dataSource.getRepository(ProjectOrmEntity), cipher);
-    projectEquipmentRepository = new TypeOrmProjectEquipmentRepository(dataSource.getRepository(ProjectEquipmentOrmEntity), cipher);
+    projectEquipmentRepository = new TypeOrmProjectEquipmentRepository(
+      dataSource.getRepository(ProjectEquipmentOrmEntity),
+      cipher,
+      dataSource.getRepository(ProjectEquipmentLeaseExpenseOrmEntity),
+      new UuidGenerator(),
+    );
     scheduleProjectReader = new TypeOrmScheduleProjectReader(dataSource, cipher);
   });
 
@@ -92,7 +102,7 @@ describe('encrypted image assets (PostgreSQL)', () => {
     await projectRepository.save(project);
     await equipmentRepository.save(equipment);
     await companyRepository.save(company);
-    await projectEquipmentRepository.save({ projectId, equipmentId, leaseExpense: null, leaseExpenseDate: null });
+    await projectEquipmentRepository.save({ projectId, equipmentId });
 
     const encryptedProject = requireSingleRow(await dataSource.query(
       'SELECT image_ciphertext AS "ciphertext", image_nonce AS "nonce", image_tag AS "tag", image_key_version AS "keyVersion", image_mime_type AS "mimeType", image_size AS "size" FROM projects WHERE id = $1',
@@ -180,11 +190,7 @@ function createProject(projectImage: string | null): Project {
     type: 'client',
     status: 'active',
     description: null,
-    clientCompany: null,
-    clientTaxId: null,
-    contactName: null,
-    contactEmail: null,
-    contactPhone: null,
+    clientId: null,
     address: null,
     startDate: null,
     endDate: null,

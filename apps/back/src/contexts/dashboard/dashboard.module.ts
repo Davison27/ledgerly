@@ -7,6 +7,7 @@ import { ProjectOrmEntity } from '../projects/infrastructure/persistence/project
 import { TypeOrmProjectRepository } from '../projects/infrastructure/persistence/typeorm-project.repository';
 import { PROJECT_REPOSITORY } from '../projects/domain/project.repository';
 import { ProjectEquipmentOrmEntity } from '../projects/infrastructure/persistence/project-equipment.orm-entity';
+import { ProjectEquipmentLeaseExpenseOrmEntity } from '../projects/infrastructure/persistence/project-equipment-lease-expense.orm-entity';
 import { TypeOrmProjectEquipmentRepository } from '../projects/infrastructure/persistence/typeorm-project-equipment.repository';
 import { PROJECT_EQUIPMENT_REPOSITORY } from '../projects/domain/project-equipment.repository';
 import { DASHBOARD_DATA_PROVIDER } from './domain/dashboard-data-provider.port';
@@ -15,7 +16,7 @@ import { DashboardController } from './infrastructure/http/dashboard.controller'
 import { GetCompanyDashboardUseCase } from './application/get-company-dashboard/get-company-dashboard.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([DocumentOrmEntity, ProjectOrmEntity, ProjectEquipmentOrmEntity])],
+  imports: [TypeOrmModule.forFeature([DocumentOrmEntity, ProjectOrmEntity, ProjectEquipmentOrmEntity, ProjectEquipmentLeaseExpenseOrmEntity])],
   controllers: [DashboardController],
   providers: [
     GetCompanyDashboardUseCase,

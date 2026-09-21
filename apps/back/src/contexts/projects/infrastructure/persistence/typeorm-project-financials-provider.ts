@@ -15,19 +15,17 @@ export class TypeOrmProjectFinancialsProvider implements ProjectFinancialsProvid
       SELECT "projectId", currency, SUM(income) AS income, SUM(expenses) AS expenses
       FROM (
         SELECT project_id AS "projectId", currency,
-               COALESCE(SUM(amount) FILTER (WHERE direction = 'ingreso'), 0) AS income,
-               COALESCE(SUM(amount) FILTER (WHERE direction = 'gasto'), 0) AS expenses
+               COALESCE(SUM(amount) FILTER (WHERE direction = 'income'), 0) AS income,
+               COALESCE(SUM(amount) FILTER (WHERE direction = 'expense'), 0) AS expenses
         FROM documents
         WHERE deleted_at IS NULL
         GROUP BY project_id, currency
         UNION ALL
-        SELECT pe.project_id AS "projectId", p.currency, 0,
-               COALESCE(SUM(pe.lease_expense), 0)
-        FROM project_equipment pe
-        JOIN projects p ON p.id = pe.project_id
-        WHERE pe.lease_expense IS NOT NULL
-          AND pe.lease_expense_date IS NOT NULL
-        GROUP BY pe.project_id, p.currency
+        SELECT le.project_id AS "projectId", p.currency, 0,
+               COALESCE(SUM(le.amount), 0)
+        FROM project_equipment_lease_expenses le
+        JOIN projects p ON p.id = le.project_id
+        GROUP BY le.project_id, p.currency
       ) totals
       GROUP BY "projectId", currency
     `);

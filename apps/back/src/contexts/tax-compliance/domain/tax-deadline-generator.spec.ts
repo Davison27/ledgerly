@@ -7,7 +7,7 @@ const PROFILE: TaxClientProfilePrimitives = {
   projectId: 'project-1',
   countryCode: 'ES',
   regionCode: 'MD',
-  entityType: 'autonomo',
+  entityType: 'self_employed',
   fiscalYearStartMonth: 1,
   timezone: 'Europe/Madrid',
   enabled: true,
@@ -23,7 +23,6 @@ describe('generateTaxDeadlines', () => {
 
     expect(deadlines).toContainEqual(
       expect.objectContaining({
-        occurrenceKey: 'project-1:es-aeat-model-303-quarterly:2026-01-01',
         periodStart: '2026-01-01',
         periodEnd: '2026-03-31',
         startDate: '2026-04-20',

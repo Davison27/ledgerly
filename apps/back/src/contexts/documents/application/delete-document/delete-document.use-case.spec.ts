@@ -71,12 +71,11 @@ function buildDocument(id = 'doc-1'): Document {
     id,
     projectId: 'project-1',
     name: 'Invoice',
-    type: 'factura',
-    month: 6,
+    type: 'invoice',
     date: '2026-06-01',
     amount: 100,
-    status: 'pendiente',
-    direction: 'gasto',
+    status: 'pending',
+    direction: 'expense',
   });
 }
 

@@ -11,7 +11,6 @@ function toPrimitives(orm: TaxSourceStateOrmEntity): TaxSourceStatePrimitives {
   return {
     sourceKey: orm.sourceKey,
     countryCode: orm.countryCode as TaxSourceStatePrimitives['countryCode'],
-    label: orm.label,
     format: orm.format as TaxSourceStatePrimitives['format'],
     sourceUrl: orm.sourceUrl,
     feedUrl: orm.feedUrl,
@@ -55,7 +54,6 @@ export class TypeOrmTaxSourceRepository implements TaxSourceRepository {
     const orm = new TaxSourceStateOrmEntity();
     orm.sourceKey = state.sourceKey;
     orm.countryCode = state.countryCode;
-    orm.label = state.label;
     orm.format = state.format;
     orm.sourceUrl = state.sourceUrl;
     orm.feedUrl = state.feedUrl;

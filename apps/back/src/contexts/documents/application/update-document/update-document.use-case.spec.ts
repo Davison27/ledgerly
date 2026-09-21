@@ -72,11 +72,10 @@ function buildDocument(overrides: Partial<Parameters<typeof Document.create>[0]>
     id: 'doc-1',
     projectId: 'project-1',
     name: 'Invoice',
-    type: 'factura',
-    month: 6,
+    type: 'invoice',
     date: '2026-06-01',
     amount: 100,
-    status: 'pendiente',
+    status: 'pending',
     issuerName: 'Acme SL',
     issuerTaxId: 'B12345678',
     invoiceNumber: 'INV-1',
@@ -91,7 +90,7 @@ function buildDocument(overrides: Partial<Parameters<typeof Document.create>[0]>
     mimeType: null,
     fileSize: null,
     supplierId: null,
-    direction: 'gasto',
+    direction: 'expense',
     ...overrides,
   });
 }
@@ -104,16 +103,16 @@ describe('UpdateDocumentUseCase', () => {
     const before = document.toPrimitives();
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
-    const updated = await useCase.execute({ id: 'doc-1', direction: 'ingreso' });
+    const updated = await useCase.execute({ id: 'doc-1', direction: 'income' });
 
-    expect(updated.toPrimitives()).toEqual({ ...before, direction: 'ingreso' });
+    expect(updated.toPrimitives()).toEqual({ ...before, direction: 'income' });
     const stored = await repository.findById('doc-1');
-    expect(stored?.toPrimitives()).toEqual({ ...before, direction: 'ingreso' });
+    expect(stored?.toPrimitives()).toEqual({ ...before, direction: 'income' });
   });
 
-  it('recomputes month when date changes', async () => {
+  it('computes month from the date when the date changes', async () => {
     const repository = new InMemoryDocumentRepository();
-    await repository.save(buildDocument({ date: '2026-06-01', month: 6 }));
+    await repository.save(buildDocument({ date: '2026-06-01' }));
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     const updated = await useCase.execute({ id: 'doc-1', date: '2026-11-15' });
@@ -124,10 +123,10 @@ describe('UpdateDocumentUseCase', () => {
 
   it('does not accept month directly: it is always derived from date', async () => {
     const repository = new InMemoryDocumentRepository();
-    await repository.save(buildDocument({ date: '2026-06-01', month: 6 }));
+    await repository.save(buildDocument({ date: '2026-06-01' }));
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
-    const updated = await useCase.execute({ id: 'doc-1', direction: 'ingreso' });
+    const updated = await useCase.execute({ id: 'doc-1', direction: 'income' });
 
     expect(updated.getMonth()).toBe(6);
   });
@@ -147,7 +146,7 @@ describe('UpdateDocumentUseCase', () => {
     await repository.save(buildDocument({ invoiceNumber: 'INV-1' }));
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
-    const updated = await useCase.execute({ id: 'doc-1', direction: 'ingreso' });
+    const updated = await useCase.execute({ id: 'doc-1', direction: 'income' });
 
     expect(updated.getInvoiceNumber()).toBe('INV-1');
   });
@@ -157,7 +156,7 @@ describe('UpdateDocumentUseCase', () => {
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     await expect(
-      useCase.execute({ id: 'missing-id', direction: 'ingreso' }),
+      useCase.execute({ id: 'missing-id', direction: 'income' }),
     ).rejects.toThrow(DocumentNotFoundException);
   });
 
@@ -167,10 +166,10 @@ describe('UpdateDocumentUseCase', () => {
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
     await expect(
-      useCase.execute({ id: 'doc-1', projectId: 'project-2', direction: 'ingreso' }),
+      useCase.execute({ id: 'doc-1', projectId: 'project-2', direction: 'income' }),
     ).rejects.toThrow(DocumentNotFoundException);
 
-    expect((await repository.findById('doc-1'))?.getDirection()).toBe('gasto');
+    expect((await repository.findById('doc-1'))?.getDirection()).toBe('expense');
   });
 
   it('updates the document when it belongs to the requested project', async () => {
@@ -178,9 +177,9 @@ describe('UpdateDocumentUseCase', () => {
     await repository.save(buildDocument({ projectId: 'project-1' }));
     const useCase = new UpdateDocumentUseCase(repository, new FakeSupplierExistenceChecker(new Set()));
 
-    const updated = await useCase.execute({ id: 'doc-1', projectId: 'project-1', direction: 'ingreso' });
+    const updated = await useCase.execute({ id: 'doc-1', projectId: 'project-1', direction: 'income' });
 
-    expect(updated.getDirection()).toBe('ingreso');
+    expect(updated.getDirection()).toBe('income');
   });
 
   it('throws DocumentSupplierNotFoundException when supplierId does not exist', async () => {
@@ -229,10 +228,10 @@ describe('UpdateDocumentUseCase', () => {
     ).rejects.toThrow(InvalidValueException);
   });
 
-  it('keeps the existing staffMemberId of a nomina when the command omits it', async () => {
+  it('keeps the existing staffMemberId of payroll when the command omits it', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(
-      buildDocument({ type: 'nomina', direction: 'gasto', staffMemberId: 'staff-1' }),
+      buildDocument({ type: 'payroll', direction: 'expense', staffMemberId: 'staff-1' }),
     );
     const useCase = new UpdateDocumentUseCase(
       repository,
@@ -245,22 +244,22 @@ describe('UpdateDocumentUseCase', () => {
     expect(updated.getAmount()).toBe(2200);
   });
 
-  it('rejects a type change for a historic nomina', async () => {
+  it('rejects a type change for a historic payroll document', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(
-      buildDocument({ type: 'nomina', direction: 'gasto', staffMemberId: 'staff-1' }),
+      buildDocument({ type: 'payroll', direction: 'expense', staffMemberId: 'staff-1' }),
     );
     const useCase = new UpdateDocumentUseCase(
       repository,
       new FakeSupplierExistenceChecker(new Set()),
     );
 
-    await expect(useCase.execute({ id: 'doc-1', type: 'factura' })).rejects.toThrow(
+    await expect(useCase.execute({ id: 'doc-1', type: 'invoice' })).rejects.toThrow(
       InvalidValueException,
     );
   });
 
-  it('rejects an explicit nomina type for an existing invoice', async () => {
+  it('rejects an explicit payroll type for an existing invoice', async () => {
     const repository = new InMemoryDocumentRepository();
     await repository.save(buildDocument());
     const useCase = new UpdateDocumentUseCase(
@@ -269,7 +268,7 @@ describe('UpdateDocumentUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ id: 'doc-1', type: 'nomina' } as unknown as UpdateDocumentCommand),
+      useCase.execute({ id: 'doc-1', type: 'payroll' } as unknown as UpdateDocumentCommand),
     ).rejects.toThrow(InvalidValueException);
   });
 

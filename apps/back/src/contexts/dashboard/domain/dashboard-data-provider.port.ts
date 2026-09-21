@@ -1,16 +1,16 @@
 export const DASHBOARD_DATA_PROVIDER = Symbol('DashboardDataProvider');
 
 export interface DashboardDocumentRow {
-  type: 'factura' | 'nomina' | 'impuesto';
+  type: 'invoice' | 'payroll' | 'tax';
   amount: number;
   month: number;
-  status: 'pagado' | 'pendiente' | 'vencido';
+  status: 'paid' | 'pending' | 'overdue';
   issuerName: string | null;
   projectId: string;
   date: string;
   dueDate: string | null;
   taxAmount: number | null;
-  direction: 'ingreso' | 'gasto';
+  direction: 'income' | 'expense';
 }
 
 export interface DashboardProjectSummary {

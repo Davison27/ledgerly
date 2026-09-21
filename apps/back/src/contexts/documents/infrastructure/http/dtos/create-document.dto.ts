@@ -1,13 +1,11 @@
 import {
   IsIn,
-  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
   Matches,
-  Max,
   Min,
 } from 'class-validator';
 import { CREATABLE_DOCUMENT_TYPES, CreatableDocumentType } from '../../../domain/document-type';
@@ -22,11 +20,6 @@ export class CreateDocumentDto {
 
   @IsIn(CREATABLE_DOCUMENT_TYPES)
   type: CreatableDocumentType;
-
-  @IsInt()
-  @Min(1)
-  @Max(12)
-  month: number;
 
   @Matches(/^\d{4}-\d{2}-\d{2}$/)
   date: string;

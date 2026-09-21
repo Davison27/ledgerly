@@ -11,6 +11,7 @@ import { UpdateProjectUseCase } from './application/update-project/update-projec
 import { DeleteProjectUseCase } from './application/delete-project/delete-project.use-case';
 import { EquipmentModule } from '../equipment/equipment.module';
 import { ProjectEquipmentOrmEntity } from './infrastructure/persistence/project-equipment.orm-entity';
+import { ProjectEquipmentLeaseExpenseOrmEntity } from './infrastructure/persistence/project-equipment-lease-expense.orm-entity';
 import { TypeOrmProjectEquipmentRepository } from './infrastructure/persistence/typeorm-project-equipment.repository';
 import { PROJECT_EQUIPMENT_REPOSITORY } from './domain/project-equipment.repository';
 import { ProjectEquipmentUseCase } from './application/project-equipment/project-equipment.use-case';
@@ -20,10 +21,22 @@ import { TypeOrmProjectFinancialsProvider } from './infrastructure/persistence/t
 import { PROJECT_DOCUMENT_COUNTER } from './domain/project-document-counter.port';
 import { TypeOrmProjectDocumentCounter } from './infrastructure/persistence/typeorm-project-document-counter';
 import { UnarchiveProjectUseCase } from './application/unarchive-project/unarchive-project.use-case';
+import { ClientOrmEntity } from './infrastructure/persistence/client.orm-entity';
+import { TypeOrmClientRepository } from './infrastructure/persistence/typeorm-client.repository';
+import { CLIENT_REPOSITORY } from './domain/client.repository';
+import { CLIENT_REFERENCE_COUNTER } from './domain/client-reference-counter.port';
+import { TypeOrmClientReferenceCounter } from './infrastructure/persistence/typeorm-client-reference-counter';
+import { ClientsController } from './infrastructure/http/clients.controller';
+import { ListClientsUseCase } from './application/list-clients/list-clients.use-case';
+import { GetClientUseCase } from './application/get-client/get-client.use-case';
+import { CreateClientUseCase } from './application/create-client/create-client.use-case';
+import { UpdateClientUseCase } from './application/update-client/update-client.use-case';
+import { DeleteClientUseCase } from './application/delete-client/delete-client.use-case';
+import { UnarchiveClientUseCase } from './application/unarchive-client/unarchive-client.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectEquipmentOrmEntity]), EquipmentModule],
-  controllers: [ProjectsController, ProjectEquipmentController],
+  imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectEquipmentOrmEntity, ProjectEquipmentLeaseExpenseOrmEntity, ClientOrmEntity]), EquipmentModule],
+  controllers: [ProjectsController, ProjectEquipmentController, ClientsController],
   providers: [
     ListProjectsUseCase,
     GetProjectUseCase,
@@ -31,11 +44,19 @@ import { UnarchiveProjectUseCase } from './application/unarchive-project/unarchi
     UpdateProjectUseCase,
     DeleteProjectUseCase,
     UnarchiveProjectUseCase,
+    ListClientsUseCase,
+    GetClientUseCase,
+    CreateClientUseCase,
+    UpdateClientUseCase,
+    DeleteClientUseCase,
+    UnarchiveClientUseCase,
     ProjectEquipmentUseCase,
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
     { provide: PROJECT_DOCUMENT_COUNTER, useClass: TypeOrmProjectDocumentCounter },
     { provide: PROJECT_EQUIPMENT_REPOSITORY, useClass: TypeOrmProjectEquipmentRepository },
     { provide: PROJECT_FINANCIALS_PROVIDER, useClass: TypeOrmProjectFinancialsProvider },
+    { provide: CLIENT_REPOSITORY, useClass: TypeOrmClientRepository },
+    { provide: CLIENT_REFERENCE_COUNTER, useClass: TypeOrmClientReferenceCounter },
   ],
 })
 export class ProjectsModule {}

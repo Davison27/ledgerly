@@ -1,7 +1,12 @@
-import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { ClientOrmEntity } from './client.orm-entity';
 
 @Entity('projects')
 @Index('UQ_projects_code', ['code'], { unique: true })
+@Index('IDX_projects_client_id', ['clientId'])
+@Check('CHK_projects_status', `"status" IN ('active', 'on_hold', 'completed', 'archived')`)
+@Check('CHK_projects_type', `"type" IN ('client', 'internal', 'audiovisual', 'construction', 'consulting', 'other')`)
+@Check('CHK_projects_currency', `"currency" IN ('EUR', 'USD', 'GBP')`)
 @Check(
   'CHK_projects_image_envelope',
   '("image_ciphertext" IS NULL AND "image_nonce" IS NULL AND "image_tag" IS NULL AND "image_key_version" IS NULL AND "image_mime_type" IS NULL AND "image_size" IS NULL) OR ("image_ciphertext" IS NOT NULL AND "image_nonce" IS NOT NULL AND "image_tag" IS NOT NULL AND "image_key_version" IS NOT NULL AND "image_mime_type" IS NOT NULL AND "image_size" IS NOT NULL)',
@@ -29,20 +34,9 @@ export class ProjectOrmEntity {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ name: 'client_company', type: 'varchar', length: 160, nullable: true })
-  clientCompany: string | null;
-
-  @Column({ name: 'client_tax_id', type: 'varchar', length: 40, nullable: true })
-  clientTaxId: string | null;
-
-  @Column({ name: 'contact_name', type: 'varchar', length: 160, nullable: true })
-  contactName: string | null;
-
-  @Column({ name: 'contact_email', type: 'varchar', length: 160, nullable: true })
-  contactEmail: string | null;
-
-  @Column({ name: 'contact_phone', type: 'varchar', length: 40, nullable: true })
-  contactPhone: string | null;
+  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  @ForeignKey(() => ClientOrmEntity, { name: 'FK_projects_client', onDelete: 'RESTRICT' })
+  clientId: string | null;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   address: string | null;

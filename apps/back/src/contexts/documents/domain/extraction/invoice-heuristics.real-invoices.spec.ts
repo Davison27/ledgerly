@@ -48,8 +48,8 @@ describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () =>
     expect(fields.amount).toBeCloseTo(605);
     expect(fields.issuerTaxId).toBe('F00000002');
 
-    expect(warnings).not.toContain('No se pudo determinar el importe total');
-    expect(warnings).not.toContain('No se pudo determinar la fecha de la factura');
+    expect(warnings).not.toContain('missing_total_amount');
+    expect(warnings).not.toContain('missing_invoice_date');
   });
 
   it('extracts fields from a table-column layout with month-name date, IRPF and a DNI issuer at the bottom', () => {
@@ -94,6 +94,6 @@ describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () =>
     expect(fields.irpfRate).toBe(15);
     expect(fields.irpfAmount).toBeUndefined();
 
-    expect(warnings).not.toContain('No se pudo determinar el importe total');
+    expect(warnings).not.toContain('missing_total_amount');
   });
 });

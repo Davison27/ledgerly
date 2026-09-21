@@ -1,8 +1,8 @@
-export type DocumentType = 'factura' | 'nomina' | 'impuesto';
+export type DocumentType = 'invoice' | 'payroll' | 'tax';
 
-export const DOCUMENT_TYPES: DocumentType[] = ['factura', 'nomina', 'impuesto'];
+export const DOCUMENT_TYPES: DocumentType[] = ['invoice', 'payroll', 'tax'];
 
-export const CREATABLE_DOCUMENT_TYPES = ['factura', 'impuesto'] as const;
+export const CREATABLE_DOCUMENT_TYPES = ['invoice', 'tax'] as const;
 
 export type CreatableDocumentType = (typeof CREATABLE_DOCUMENT_TYPES)[number];
 

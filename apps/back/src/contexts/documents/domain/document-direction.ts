@@ -1,3 +1,3 @@
-export type DocumentDirection = 'ingreso' | 'gasto';
+export type DocumentDirection = 'income' | 'expense';
 
-export const DOCUMENT_DIRECTIONS: DocumentDirection[] = ['ingreso', 'gasto'];
+export const DOCUMENT_DIRECTIONS: DocumentDirection[] = ['income', 'expense'];

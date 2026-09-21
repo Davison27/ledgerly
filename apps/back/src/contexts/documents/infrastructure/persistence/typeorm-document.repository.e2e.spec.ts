@@ -6,6 +6,8 @@ import { AddEncryptedStoredFileEnvelopes1730000002000 } from '../../../../databa
 import { ReconcileEntitySchemaDrift1730000003000 } from '../../../../database/migrations/1730000003000-ReconcileEntitySchemaDrift';
 import { AddMissingUniqueConstraints1730000004000 } from '../../../../database/migrations/1730000004000-AddMissingUniqueConstraints';
 import { AddReferentialIntegrity1730000005000 } from '../../../../database/migrations/1730000005000-AddReferentialIntegrity';
+import { NormalizeDerivedColumns1730000006000 } from '../../../../database/migrations/1730000006000-NormalizeDerivedColumns';
+import { AdoptEnglishControlledValues1730000007000 } from '../../../../database/migrations/1730000007000-AdoptEnglishControlledValues';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { DeleteProjectUseCase } from '../../../projects/application/delete-project/delete-project.use-case';
 import { DeleteStaffMemberUseCase } from '../../../staff/application/delete-staff-member/delete-staff-member.use-case';
@@ -13,6 +15,7 @@ import { DeleteSupplierUseCase } from '../../../suppliers/application/delete-sup
 import { TypeOrmProjectFinancialsProvider } from '../../../projects/infrastructure/persistence/typeorm-project-financials-provider';
 import { DocumentOrmEntity } from './document.orm-entity';
 import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
+import { ClientOrmEntity } from '../../../projects/infrastructure/persistence/client.orm-entity';
 import { StaffMemberOrmEntity } from '../../../staff/infrastructure/persistence/staff-member.orm-entity';
 import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence/supplier.orm-entity';
 import { TypeOrmProjectDocumentCounter } from '../../../projects/infrastructure/persistence/typeorm-project-document-counter';
@@ -38,7 +41,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     dataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [DocumentOrmEntity, ProjectOrmEntity, SupplierOrmEntity, StaffMemberOrmEntity],
+      entities: [DocumentOrmEntity, ProjectOrmEntity, ClientOrmEntity, SupplierOrmEntity, StaffMemberOrmEntity],
       migrations: [
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
@@ -46,6 +49,8 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
         ReconcileEntitySchemaDrift1730000003000,
         AddMissingUniqueConstraints1730000004000,
         AddReferentialIntegrity1730000005000,
+        NormalizeDerivedColumns1730000006000,
+        AdoptEnglishControlledValues1730000007000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -66,7 +71,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
 
   it('preserves the encrypted row while hiding it from normal ORM reads', async () => {
     await dataSource.query(
-      `INSERT INTO projects (id, name, code, type) VALUES ('00000000-0000-0000-0000-000000000101', 'Project', 'PROJECT-001', 'obra')`,
+      `INSERT INTO projects (id, name, code, type) VALUES ('00000000-0000-0000-0000-000000000101', 'Project', 'PROJECT-001', 'construction')`,
     );
     const entityRepository = dataSource.getRepository(DocumentOrmEntity);
     const document = entityRepository.create({
@@ -74,7 +79,6 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       projectId: '00000000-0000-0000-0000-000000000101',
       name: 'Document',
       type: 'invoice',
-      month: 1,
       date: '2026-01-01',
       amount: '0',
       status: 'pending',
@@ -82,7 +86,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       fileName: 'document.pdf',
       mimeType: 'application/pdf',
       fileSize: 4,
-      direction: 'incoming',
+      direction: 'income',
     });
     await entityRepository.save(document);
     const storedFileCipher = createStoredFileCipher({
@@ -115,7 +119,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     const projectId = '00000000-0000-0000-0000-000000000111';
     const documentId = '00000000-0000-0000-0000-000000000112';
     await dataSource.query(
-      `INSERT INTO projects (id, name, code, type, currency) VALUES ($1, 'Summary project', 'PROJECT-111', 'obra', 'EUR')`,
+      `INSERT INTO projects (id, name, code, type, currency) VALUES ($1, 'Summary project', 'PROJECT-111', 'construction', 'EUR')`,
       [projectId],
     );
     const entityRepository = dataSource.getRepository(DocumentOrmEntity);
@@ -124,15 +128,14 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       projectId,
       name: 'Invoice',
       type: 'invoice',
-      month: 1,
       date: '2026-01-01',
       amount: '100',
-      status: 'pendiente',
+      status: 'pending',
       currency: 'EUR',
       fileName: null,
       mimeType: null,
       fileSize: null,
-      direction: 'ingreso',
+      direction: 'income',
     });
     await entityRepository.save(document);
     const cipher = createStoredFileCipher({
@@ -187,18 +190,17 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       id: documentId,
       projectId,
       name: 'Payroll invoice',
-      type: 'nomina',
-      month: 1,
+      type: 'payroll',
       date: '2026-01-01',
       amount: '100',
-      status: 'pendiente',
+      status: 'pending',
       currency: 'EUR',
       fileName: null,
       mimeType: null,
       fileSize: null,
       supplierId,
       staffMemberId,
-      direction: 'gasto',
+      direction: 'expense',
     });
     await entityRepository.save(document);
 

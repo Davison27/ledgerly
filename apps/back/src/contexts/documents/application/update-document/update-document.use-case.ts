@@ -36,7 +36,7 @@ export class UpdateDocumentUseCase {
     }
 
     if (
-      (document.getType() === 'nomina' && command.type !== undefined) ||
+      (document.getType() === 'payroll' && command.type !== undefined) ||
       (command.type !== undefined && !isCreatableDocumentType(command.type))
     ) {
       throw new InvalidValueException('Payroll document type cannot be changed');
@@ -69,10 +69,6 @@ export class UpdateDocumentUseCase {
     if (command.issuerTaxId !== undefined) changes.issuerTaxId = command.issuerTaxId;
     if (command.invoiceNumber !== undefined) changes.invoiceNumber = command.invoiceNumber;
     if (command.supplierId !== undefined) changes.supplierId = command.supplierId;
-
-    if (command.date !== undefined) {
-      changes.month = Number(command.date.slice(5, 7));
-    }
 
     const updated = document.withChanges(changes);
     await this.repository.save(updated);

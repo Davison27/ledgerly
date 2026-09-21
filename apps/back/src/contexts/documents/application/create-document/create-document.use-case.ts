@@ -60,7 +60,6 @@ export class CreateDocumentUseCase {
       projectId: command.projectId,
       name: command.name,
       type: command.type,
-      month: command.month,
       date: command.date,
       amount: command.amount,
       status: command.status,

@@ -35,7 +35,15 @@ export class ProjectEquipmentUseCase {
     if (amount !== null && amount < 0) throw new BadRequestException('Project lease expense must not be negative');
     if (amount !== null && date === null) throw new BadRequestException('Project lease expense date is required');
     if (date !== null && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new BadRequestException('Project lease expense date must be a valid ISO date');
-    await this.projectEquipment.save({ projectId: command.projectId, equipmentId: command.equipmentId, leaseExpense: amount, leaseExpenseDate: amount === null ? null : date });
+    await this.projectEquipment.save({ projectId: command.projectId, equipmentId: command.equipmentId });
+    if (amount !== null && date !== null) {
+      await this.projectEquipment.addLeaseExpense({
+        projectId: command.projectId,
+        equipmentId: command.equipmentId,
+        amount,
+        date,
+      });
+    }
     return this.projectEquipment.findByProjectId(command.projectId);
   }
 
@@ -45,6 +53,20 @@ export class ProjectEquipmentUseCase {
 
     if (!deleted) {
       throw new EntityNotFoundException('Project equipment', equipmentId);
+    }
+  }
+
+  async removeLeaseExpense(projectId: string, equipmentId: string, expenseId: string): Promise<void> {
+    await this.ensureProject(projectId);
+    const expenses = await this.projectEquipment.findLeaseExpensesByProject(projectId);
+    if (!expenses.some((expense) => expense.id === expenseId && expense.equipmentId === equipmentId)) {
+      throw new EntityNotFoundException('Project lease expense', expenseId);
+    }
+
+    const deleted = await this.projectEquipment.deleteLeaseExpense(expenseId);
+
+    if (!deleted) {
+      throw new EntityNotFoundException('Project lease expense', expenseId);
     }
   }
 

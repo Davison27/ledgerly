@@ -19,6 +19,10 @@ import { SupplierOrmEntity } from '../../../suppliers/infrastructure/persistence
 @Index('IDX_documents_invoice_amount', { synchronize: false })
 @Index(['supplierId'])
 @Index(['staffMemberId'])
+@Check('CHK_documents_type', `"type" IN ('invoice', 'payroll', 'tax')`)
+@Check('CHK_documents_direction', `"direction" IN ('income', 'expense')`)
+@Check('CHK_documents_status', `"status" IN ('paid', 'pending', 'overdue')`)
+@Check('CHK_documents_currency', `"currency" IN ('EUR', 'USD', 'GBP')`)
 @Check(
   'CHK_documents_content_envelope',
   '("content_ciphertext" IS NULL AND "content_nonce" IS NULL AND "content_tag" IS NULL AND "content_key_version" IS NULL) OR ("content_ciphertext" IS NOT NULL AND "content_nonce" IS NOT NULL AND "content_tag" IS NOT NULL AND "content_key_version" IS NOT NULL)',
@@ -41,9 +45,6 @@ export class DocumentOrmEntity {
 
   @Column({ length: 16 })
   type: string;
-
-  @Column({ type: 'smallint' })
-  month: number;
 
   @Column({ type: 'date' })
   date: string;

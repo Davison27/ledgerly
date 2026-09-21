@@ -18,7 +18,6 @@ function initialState(
   return {
     sourceKey: source.key,
     countryCode: source.countryCode,
-    label: source.label,
     format: source.format,
     sourceUrl: source.sourceUrl,
     feedUrl: source.feedUrl,

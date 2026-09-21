@@ -4,16 +4,16 @@ import { generateDocuments } from './document-seed-data';
 
 const COMPANY = {
   name: 'Ledgerly',
-  legalName: 'Ledgerly Gestión S.L.',
+  legalName: 'Ledgerly Management LLC',
   taxId: 'B99887766',
-  sector: 'Gestión y administración',
-  email: 'info@ledgerly.es',
+  sector: 'Management and administration',
+  email: 'info@ledgerly.com',
   phone: '+34 976 000 111',
-  website: 'https://www.ledgerly.es',
-  address: 'Calle Coso 45',
+  website: 'https://www.ledgerly.com',
+  address: 'Coso Street 45',
   city: 'Zaragoza',
   postalCode: '50001',
-  country: 'España',
+  country: 'Spain',
 };
 
 type ProjectType =
@@ -32,11 +32,7 @@ interface ProjectSeed {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientCompany: string | null;
-  clientTaxId: string | null;
-  contactName: string | null;
-  contactEmail: string | null;
-  contactPhone: string | null;
+  clientKey: string | null;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -46,151 +42,158 @@ interface ProjectSeed {
   manager: string | null;
 }
 
+interface ClientSeed {
+  name: string;
+  taxId: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
+}
+
+const CLIENTS: ClientSeed[] = [
+  {
+    name: 'Ebro Real Estate LLC',
+    taxId: 'B12345678',
+    contactName: 'Martha Stone',
+    contactEmail: 'martha.stone@ebrorealestate.com',
+    contactPhone: '+34 976 123 456',
+  },
+  {
+    name: 'Southern Group Inc.',
+    taxId: 'A87654321',
+    contactName: 'James Ortiz',
+    contactEmail: 'james.ortiz@southerngroup.com',
+    contactPhone: '+34 954 887 112',
+  },
+  {
+    name: 'Nervion Workshops LLC',
+    taxId: 'B45612378',
+    contactName: 'Ethan Reed',
+    contactEmail: 'ethan.reed@nervionworkshops.com',
+    contactPhone: '+34 944 556 778',
+  },
+  {
+    name: 'Aurora Construction Inc.',
+    taxId: 'A11223344',
+    contactName: 'Lucy Fernandez',
+    contactEmail: 'lucy.fernandez@auroraconstruction.com',
+    contactPhone: '+34 913 445 221',
+  },
+];
+
 const PROJECTS: ProjectSeed[] = [
   {
-    name: 'Planta Zaragoza',
+    name: 'Zaragoza Plant',
     code: 'GA-ZGZ-24',
     type: 'construction',
     status: 'active',
-    description: 'Construcción de nave industrial y oficinas anexas en el polígono de Malpica.',
-    clientCompany: 'Inmobiliaria Ebro SL',
-    clientTaxId: 'B12345678',
-    contactName: 'Marta Solís',
-    contactEmail: 'marta.solis@inmobiliariaebro.es',
-    contactPhone: '+34 976 123 456',
-    address: 'Polígono Malpica, Zaragoza',
+    description: 'Construction of an industrial warehouse and adjoining offices in Malpica Park.',
+    clientKey: 'B12345678',
+    address: 'Malpica Park, Zaragoza',
     startDate: '2024-01-15',
     endDate: null,
     budget: 850000,
     currency: 'EUR',
     fiscalYear: '2024',
-    manager: 'Carlos Ruiz',
+    manager: 'Charles Stone',
   },
   {
-    name: 'Central Logística',
+    name: 'Logistics Hub',
     code: 'GA-LOG-23',
     type: 'internal',
     status: 'active',
-    description: 'Modernización del centro logístico propio.',
-    clientCompany: null,
-    clientTaxId: null,
-    contactName: null,
-    contactEmail: null,
-    contactPhone: null,
+    description: 'Modernization of the company logistics hub.',
+    clientKey: null,
     address: null,
     startDate: '2023-09-01',
     endDate: null,
     budget: 620000,
     currency: 'EUR',
     fiscalYear: '2023',
-    manager: 'Elena Torres',
+    manager: 'Helen Torres',
   },
   {
-    name: 'Expansión Sur',
+    name: 'Southern Expansion',
     code: 'GA-SUR-25',
     type: 'consulting',
     status: 'on_hold',
-    description: 'Estudio de viabilidad para la expansión a Andalucía.',
-    clientCompany: 'Grupo Meridional SA',
-    clientTaxId: 'A87654321',
-    contactName: 'Javier Ortega',
-    contactEmail: 'javier.ortega@grupomeridional.es',
-    contactPhone: '+34 954 887 112',
-    address: 'Calle Sierpes 22, Sevilla',
+    description: 'Feasibility study for expansion into southern Spain.',
+    clientKey: 'A87654321',
+    address: 'Sierpes Street 22, Seville',
     startDate: '2025-02-01',
     endDate: null,
     budget: 95000,
     currency: 'EUR',
     fiscalYear: '2025',
-    manager: 'Carlos Ruiz',
+    manager: 'Charles Stone',
   },
   {
-    name: 'Fábrica Bilbao',
+    name: 'Bilbao Factory',
     code: 'TN-BIO-22',
     type: 'construction',
     status: 'completed',
-    description: 'Ampliación de la planta productiva de Bilbao.',
-    clientCompany: 'Talleres Nervión SL',
-    clientTaxId: 'B45612378',
-    contactName: 'Iker Zabala',
-    contactEmail: 'iker.zabala@talleresnervion.es',
-    contactPhone: '+34 944 556 778',
-    address: 'Polígono Asua, Erandio',
+    description: 'Expansion of the Bilbao production facility.',
+    clientKey: 'B45612378',
+    address: 'Asua Park, Erandio',
     startDate: '2022-03-10',
     endDate: '2023-11-30',
     budget: 1200000,
     currency: 'EUR',
     fiscalYear: '2022',
-    manager: 'Elena Torres',
+    manager: 'Helen Torres',
   },
   {
-    name: 'Tienda Online',
+    name: 'Online Store',
     code: 'TN-ECM-24',
     type: 'client',
     status: 'active',
-    description: 'Desarrollo y puesta en marcha de la tienda e-commerce.',
-    clientCompany: 'Talleres Nervión SL',
-    clientTaxId: 'B45612378',
-    contactName: 'Ainhoa Larrea',
-    contactEmail: 'ainhoa.larrea@talleresnervion.es',
-    contactPhone: '+34 944 556 900',
+    description: 'Development and launch of the e-commerce store.',
+    clientKey: 'B45612378',
     address: null,
     startDate: '2024-04-01',
     endDate: null,
     budget: 48000,
     currency: 'USD',
     fiscalYear: '2024',
-    manager: 'David Pérez',
+    manager: 'David Perez',
   },
   {
-    name: 'Residencial Aurora',
+    name: 'Aurora Residential',
     code: 'CD-AUR-25',
     type: 'construction',
     status: 'active',
-    description: 'Promoción residencial de 40 viviendas.',
-    clientCompany: 'Constructora Aurora SA',
-    clientTaxId: 'A11223344',
-    contactName: 'Lucía Fernández',
-    contactEmail: 'lucia.fernandez@constructoraaurora.es',
-    contactPhone: '+34 913 445 221',
-    address: 'Avenida de la Aurora 5, Madrid',
+    description: 'Residential development with 40 homes.',
+    clientKey: 'A11223344',
+    address: 'Aurora Avenue 5, Madrid',
     startDate: '2025-01-20',
     endDate: null,
     budget: 3200000,
     currency: 'EUR',
     fiscalYear: '2025',
-    manager: 'Carlos Ruiz',
+    manager: 'Charles Stone',
   },
   {
-    name: 'Nave Industrial B7',
+    name: 'Industrial Building B7',
     code: 'CD-NB7-24',
     type: 'audiovisual',
     status: 'archived',
-    description: 'Producción audiovisual corporativa para la inauguración de la nave B7.',
-    clientCompany: null,
-    clientTaxId: null,
-    contactName: null,
-    contactEmail: null,
-    contactPhone: null,
+    description: 'Corporate audiovisual production for the opening of Building B7.',
+    clientKey: null,
     address: null,
     startDate: '2024-05-05',
     endDate: '2024-06-15',
     budget: 15000,
     currency: 'EUR',
     fiscalYear: '2024',
-    manager: 'David Pérez',
+    manager: 'David Perez',
   },
   {
-    name: 'Reforma Oficinas',
+    name: 'Office Renovation',
     code: 'CD-OFC-23',
     type: 'other',
     status: 'on_hold',
     description: null,
-    clientCompany: null,
-    clientTaxId: null,
-    contactName: null,
-    contactEmail: null,
-    contactPhone: null,
+    clientKey: null,
     address: null,
     startDate: null,
     endDate: null,
@@ -208,9 +211,9 @@ interface StaffMemberSeed {
 }
 
 const STAFF_MEMBERS: StaffMemberSeed[] = [
-  { firstName: 'Carlos', lastName: 'Ruiz', position: 'Jefe de obra' },
-  { firstName: 'Elena', lastName: 'Torres', position: 'Encargada' },
-  { firstName: 'David', lastName: 'Pérez', position: 'Administrativo' },
+  { firstName: 'Charles', lastName: 'Stone', position: 'Site Manager' },
+  { firstName: 'Helen', lastName: 'Torres', position: 'Supervisor' },
+  { firstName: 'David', lastName: 'Perez', position: 'Administrator' },
 ];
 
 async function run(): Promise<void> {
@@ -224,7 +227,7 @@ async function run(): Promise<void> {
     existing.length > 0 &&
     Number((existing[0] as { count: number }).count) > 0;
   if (alreadySeeded) {
-    console.log('Seed omitido: la base de datos ya contiene datos.');
+    console.log('Seed skipped: the database already contains data.');
     await dataSource.destroy();
     return;
   }
@@ -263,16 +266,26 @@ async function run(): Promise<void> {
       );
     }
 
+    const clientIds = new Map<string, string>();
+    for (const client of CLIENTS) {
+      const clientId = randomUUID();
+      clientIds.set(client.taxId, clientId);
+      await manager.query(
+        `INSERT INTO clients (id, name, tax_id, contact_name, contact_email, contact_phone)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        [clientId, client.name, client.taxId, client.contactName, client.contactEmail, client.contactPhone],
+      );
+    }
+
     for (let p = 0; p < PROJECTS.length; p++) {
       const project = PROJECTS[p];
       const projectId = randomUUID();
       await manager.query(
         `INSERT INTO projects (
-           id, name, code, type, status, description, client_company, client_tax_id,
-           contact_name, contact_email, contact_phone, address, start_date, end_date,
+           id, name, code, type, status, description, client_id, address, start_date, end_date,
            budget, currency, fiscal_year, manager
          ) VALUES (
-           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18
+           $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14
          )`,
         [
           projectId,
@@ -281,11 +294,7 @@ async function run(): Promise<void> {
           project.type,
           project.status,
           project.description,
-          project.clientCompany,
-          project.clientTaxId,
-          project.contactName,
-          project.contactEmail,
-          project.contactPhone,
+          project.clientKey === null ? null : clientIds.get(project.clientKey),
           project.address,
           project.startDate,
           project.endDate,
@@ -300,18 +309,17 @@ async function run(): Promise<void> {
       for (const document of documents) {
         await manager.query(
           `INSERT INTO documents (
-             id, project_id, name, type, month, date, amount, status,
+             id, project_id, name, type, date, amount, status,
              issuer_name, issuer_tax_id, invoice_number, due_date,
              tax_base, tax_rate, tax_amount, irpf_rate, irpf_amount, currency, direction,
              staff_member_id
            )
-           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)`,
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)`,
           [
             randomUUID(),
             projectId,
             document.name,
             document.type,
-            document.month,
             document.date,
             document.amount,
             document.status,
@@ -333,7 +341,7 @@ async function run(): Promise<void> {
     }
   });
 
-  console.log('Seed completado: empresa Ledgerly, proyectos y documentos.');
+  console.log('Seed completed: Ledgerly company, projects, and documents.');
   await dataSource.destroy();
 }
 

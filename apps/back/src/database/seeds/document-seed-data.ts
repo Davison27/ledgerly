@@ -6,39 +6,38 @@ import { DocumentDirection } from '../../contexts/documents/domain/document-dire
 import { DocumentStatus } from '../../contexts/documents/domain/document-status';
 
 const NAMES: Record<CreatableDocumentType, string[]> = {
-  factura: [
-    'Suministros Norte',
-    'Transporte Rápido SL',
-    'Materiales García',
-    'Servicios Cloud SA',
-    'Oficina Total',
-    'Distribuciones Ebro',
+  invoice: [
+    'North Supplies',
+    'Rapid Transport LLC',
+    'Garcia Materials LLC',
+    'Cloud Services Inc.',
+    'Total Office',
+    'Ebro Distributors',
   ],
-  impuesto: [
-    'IVA Trimestre 1',
-    'IRPF Enero',
-    'IVA Trimestre 2',
-    'Retenciones Q1',
-    'Impuesto Sociedades',
-    'IVA Trimestre 3',
+  tax: [
+    'VAT Q1',
+    'Income Tax January',
+    'VAT Q2',
+    'Withholding Q1',
+    'Corporate Tax',
+    'VAT Q3',
   ],
 };
 
 const TYPES = [...CREATABLE_DOCUMENT_TYPES];
-const STATUSES: DocumentStatus[] = ['pagado', 'pendiente', 'vencido'];
+const STATUSES: DocumentStatus[] = ['paid', 'pending', 'overdue'];
 const ISSUER_TAX_IDS: Record<string, string> = {
-  'Suministros Norte': 'B10203040',
-  'Transporte Rápido SL': 'B20304050',
-  'Materiales García': 'B30405060',
-  'Servicios Cloud SA': 'B40506070',
-  'Oficina Total': 'B50607080',
-  'Distribuciones Ebro': 'B60708090',
+  'North Supplies': 'B10203040',
+  'Rapid Transport LLC': 'B20304050',
+  'Garcia Materials LLC': 'B30405060',
+  'Cloud Services Inc.': 'B40506070',
+  'Total Office': 'B50607080',
+  'Ebro Distributors': 'B60708090',
 };
 
 export interface DocumentSeed {
   name: string;
   type: CreatableDocumentType;
-  month: number;
   date: string;
   amount: number;
   status: DocumentStatus;
@@ -75,24 +74,23 @@ export function generateDocuments(seed: number): DocumentSeed[] {
     const amount = 180 + ((index * 137 + seed * 53) % 9600);
     const status = STATUSES[(index + seed * 2) % STATUSES.length];
 
-    if (type === 'factura') {
+    if (type === 'invoice') {
       const taxRate = 21;
       const taxBase = Math.round((amount / (1 + taxRate / 100)) * 100) / 100;
       const taxAmount = Math.round((amount - taxBase) * 100) / 100;
-      const direction: DocumentDirection = (index + seed) % 2 === 0 ? 'ingreso' : 'gasto';
-      const hasIrpf = direction === 'ingreso' && (index + seed) % 3 === 0;
+      const direction: DocumentDirection = (index + seed) % 2 === 0 ? 'income' : 'expense';
+      const hasIrpf = direction === 'income' && (index + seed) % 3 === 0;
       const irpfRate = hasIrpf ? 15 : null;
       const irpfAmount = hasIrpf ? Math.round(taxBase * 0.15 * 100) / 100 : null;
       documents.push({
         name,
         type,
-        month,
         date,
         amount,
         status,
         issuerName: name,
         issuerTaxId: ISSUER_TAX_IDS[name] ?? 'B00000000',
-        invoiceNumber: `FRA-${date.slice(0, 4)}-${String(index + seed * 20).padStart(4, '0')}`,
+        invoiceNumber: `INV-${date.slice(0, 4)}-${String(index + seed * 20).padStart(4, '0')}`,
         dueDate: addDays(date, 30),
         taxBase,
         taxRate,
@@ -109,7 +107,6 @@ export function generateDocuments(seed: number): DocumentSeed[] {
     documents.push({
       name,
       type,
-      month,
       date,
       amount,
       status,
@@ -123,7 +120,7 @@ export function generateDocuments(seed: number): DocumentSeed[] {
       irpfRate: null,
       irpfAmount: null,
       currency: 'EUR',
-      direction: 'gasto',
+      direction: 'expense',
       staffMemberId: null,
     });
   }

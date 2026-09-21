@@ -24,6 +24,17 @@ export class ProjectEquipmentController {
   }
 
   @RequiresAccess('projects', 'edit')
+  @Delete(':equipmentId/lease-expenses/:expenseId')
+  @HttpCode(204)
+  async removeLeaseExpense(
+    @Param('projectId') projectId: string,
+    @Param('equipmentId') equipmentId: string,
+    @Param('expenseId') expenseId: string,
+  ): Promise<void> {
+    await this.projectEquipmentUseCase.removeLeaseExpense(projectId, equipmentId, expenseId);
+  }
+
+  @RequiresAccess('projects', 'edit')
   @Delete(':equipmentId')
   @HttpCode(204)
   async remove(@Param('projectId') projectId: string, @Param('equipmentId') equipmentId: string): Promise<void> {

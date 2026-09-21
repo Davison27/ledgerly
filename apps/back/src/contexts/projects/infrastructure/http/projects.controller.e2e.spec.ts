@@ -14,6 +14,7 @@ import { Project, ProjectPrimitives } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+import { CLIENT_REPOSITORY } from '../../domain/client.repository';
 
 const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
@@ -27,11 +28,7 @@ function buildProject(
     type: overrides.type ?? 'construction',
     status: overrides.status ?? 'active',
     description: overrides.description ?? null,
-    clientCompany: overrides.clientCompany ?? null,
-    clientTaxId: overrides.clientTaxId ?? null,
-    contactName: overrides.contactName ?? null,
-    contactEmail: overrides.contactEmail ?? null,
-    contactPhone: overrides.contactPhone ?? null,
+    clientId: overrides.clientId ?? null,
     address: overrides.address ?? null,
     startDate: overrides.startDate ?? null,
     endDate: overrides.endDate ?? null,
@@ -91,6 +88,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         { provide: UpdateProjectUseCase, useValue: { execute: updateExecute } },
         { provide: DeleteProjectUseCase, useValue: { execute: deleteExecute } },
         { provide: UnarchiveProjectUseCase, useValue: { execute: unarchiveExecute } },
+        { provide: CLIENT_REPOSITORY, useValue: { findById: jest.fn().mockResolvedValue(null) } },
       ],
     }).compile();
 

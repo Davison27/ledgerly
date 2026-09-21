@@ -25,12 +25,11 @@ function buildDocument(overrides: Partial<Parameters<typeof Document.create>[0]>
     id: 'doc-1',
     projectId: 'project-1',
     name: 'Invoice',
-    type: 'factura',
-    month: 6,
+    type: 'invoice',
     date: '2026-06-01',
     amount: 100,
-    status: 'pendiente',
-    direction: 'gasto',
+    status: 'pending',
+    direction: 'expense',
     ...overrides,
   });
 }
@@ -57,7 +56,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
       Promise.resolve(
         buildDocument({
           id: command.id,
-          direction: command.direction ?? 'gasto',
+          direction: command.direction ?? 'expense',
         }),
       ),
     );
@@ -111,7 +110,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     it('returns the paginated response and forwards filters', async () => {
       const response = await request(httpServer)
         .get('/projects/p1/documents')
-        .query({ page: 2, size: 10, search: 'invoice', direction: 'ingreso' });
+        .query({ page: 2, size: 10, search: 'invoice', direction: 'income' });
 
       expect(response.status).toBe(200);
       const body = response.body as { items: unknown[]; total: number; page: number; size: number };
@@ -124,7 +123,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
             search: 'invoice',
             type: undefined,
             status: undefined,
-            direction: 'ingreso',
+            direction: 'income',
             dateFrom: undefined,
             dateTo: undefined,
             amountMin: undefined,
@@ -154,18 +153,18 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     it('returns 200 with the updated document when the payload is valid', async () => {
       const response = await request(httpServer)
         .patch('/projects/p1/documents/doc-1')
-        .send({ direction: 'ingreso' });
+        .send({ direction: 'income' });
 
       expect(response.status).toBe(200);
       const body = response.body as { id: string; direction: string; projectId: string };
       expect(body.id).toBe('doc-1');
-      expect(body.direction).toBe('ingreso');
+      expect(body.direction).toBe('income');
       expect(body.projectId).toBe('project-1');
       expect(updateExecute).toHaveBeenCalledTimes(1);
       const command = updateExecute.mock.calls[0][0];
       expect(command.id).toBe('doc-1');
       expect(command.projectId).toBe('p1');
-      expect(command.direction).toBe('ingreso');
+      expect(command.direction).toBe('income');
     });
 
     it('returns 400 and does not call the use case when the body carries month (D4 trap door)', async () => {
@@ -200,7 +199,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
 
       const response = await request(httpServer)
         .patch('/projects/p1/documents/missing-id')
-        .send({ direction: 'ingreso' });
+        .send({ direction: 'income' });
 
       expect(response.status).toBe(404);
     });
@@ -247,15 +246,15 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
 
   it('GET :id devuelve el status derivado y el status crudo por separado', async () => {
     getExecute.mockResolvedValueOnce(
-      buildDocument({ status: 'pendiente', dueDate: '2020-01-01' }),
+      buildDocument({ status: 'pending', dueDate: '2020-01-01' }),
     );
 
     const response = await request(httpServer).get('/projects/p1/documents/doc-1');
 
     expect(response.status).toBe(200);
     const body = response.body as { status: string; rawStatus: string };
-    expect(body.status).toBe('vencido');
-    expect(body.rawStatus).toBe('pendiente');
+    expect(body.status).toBe('overdue');
+    expect(body.rawStatus).toBe('pending');
     expect(getExecute).toHaveBeenCalledWith('doc-1', 'p1');
   });
 });

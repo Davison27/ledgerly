@@ -7,6 +7,8 @@ import { AddEncryptedStoredFileEnvelopes1730000002000 } from './1730000002000-Ad
 import { ReconcileEntitySchemaDrift1730000003000 } from './1730000003000-ReconcileEntitySchemaDrift';
 import { AddMissingUniqueConstraints1730000004000 } from './1730000004000-AddMissingUniqueConstraints';
 import { AddReferentialIntegrity1730000005000 } from './1730000005000-AddReferentialIntegrity';
+import { NormalizeDerivedColumns1730000006000 } from './1730000006000-NormalizeDerivedColumns';
+import { AdoptEnglishControlledValues1730000007000 } from './1730000007000-AdoptEnglishControlledValues';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
@@ -15,6 +17,8 @@ const migrations: Array<new () => MigrationInterface> = [
   ReconcileEntitySchemaDrift1730000003000,
   AddMissingUniqueConstraints1730000004000,
   AddReferentialIntegrity1730000005000,
+  NormalizeDerivedColumns1730000006000,
+  AdoptEnglishControlledValues1730000007000,
 ];
 
 describe('entity and migration schema parity', () => {

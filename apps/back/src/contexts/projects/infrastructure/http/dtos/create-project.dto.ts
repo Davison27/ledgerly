@@ -1,10 +1,10 @@
 import {
-  IsEmail,
   IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
   Matches,
   Min,
 } from 'class-validator';
@@ -37,24 +37,8 @@ export class CreateProjectDto {
   description?: string | null;
 
   @IsOptional()
-  @IsString()
-  clientCompany?: string | null;
-
-  @IsOptional()
-  @IsString()
-  clientTaxId?: string | null;
-
-  @IsOptional()
-  @IsString()
-  contactName?: string | null;
-
-  @IsOptional()
-  @IsEmail()
-  contactEmail?: string | null;
-
-  @IsOptional()
-  @IsString()
-  contactPhone?: string | null;
+  @IsUUID()
+  clientId?: string | null;
 
   @IsOptional()
   @IsString()

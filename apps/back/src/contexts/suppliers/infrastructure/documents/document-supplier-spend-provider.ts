@@ -13,7 +13,7 @@ export class DocumentSupplierSpendProvider implements SupplierSpendProvider {
   async findAll(): Promise<SupplierSpendRow[]> {
     const rows: Record<string, unknown>[] = await this.dataSource.query(`
       SELECT supplier_id AS "supplierId", currency,
-             COALESCE(SUM(amount) FILTER (WHERE direction = 'gasto'), 0) AS total,
+             COALESCE(SUM(amount) FILTER (WHERE direction = 'expense'), 0) AS total,
              COUNT(*)::int AS "documentCount"
       FROM documents
       WHERE supplier_id IS NOT NULL AND deleted_at IS NULL

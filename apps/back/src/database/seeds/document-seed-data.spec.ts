@@ -11,8 +11,20 @@ describe('generateDocuments', () => {
     expect(documents).not.toHaveLength(0);
     expect(documents.every((document) => isCreatableDocumentType(document.type))).toBe(true);
     expect(documents.every((document) => document.staffMemberId === null)).toBe(true);
+    expect(documents.every((document) => !Object.hasOwn(document, 'month'))).toBe(true);
     expect(new Set(documents.map((document) => document.type))).toEqual(
       new Set(CREATABLE_DOCUMENT_TYPES),
     );
+  });
+
+  it('generates deterministic English business data', () => {
+    const documents = generateDocuments(1);
+
+    expect(documents.map((document) => document.name)).toContain('Rapid Transport LLC');
+    expect(
+      documents
+        .filter((document) => document.type === 'invoice')
+        .every((document) => document.invoiceNumber?.startsWith('INV-')),
+    ).toBe(true);
   });
 });

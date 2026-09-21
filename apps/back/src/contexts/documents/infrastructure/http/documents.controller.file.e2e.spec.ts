@@ -29,12 +29,11 @@ function loadFixture(name: string): Buffer {
 
 const BASE_PAYLOAD = {
   name: 'Invoice',
-  type: 'factura',
-  month: 6,
+  type: 'invoice',
   date: '2026-06-01',
   amount: 100,
-  status: 'pendiente',
-  direction: 'gasto',
+  status: 'pending',
+  direction: 'expense',
 };
 
 describe('DocumentsController file upload/download (HTTP, no DB)', () => {
@@ -53,7 +52,6 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
           projectId: command.projectId,
           name: command.name,
           type: command.type,
-          month: command.month,
           date: command.date,
           amount: command.amount,
           status: command.status,
@@ -267,10 +265,10 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       expect(response.status).toBe(400);
     });
 
-    it('returns 400 when the payload requests a nomina', async () => {
+    it('returns 400 when the payload requests a payroll document', async () => {
       const response = await request(httpServer)
         .post('/projects/p1/documents')
-        .field('payload', JSON.stringify({ ...BASE_PAYLOAD, type: 'nomina' }));
+        .field('payload', JSON.stringify({ ...BASE_PAYLOAD, type: 'payroll' }));
 
       expect(response.status).toBe(400);
       expect(createExecute).not.toHaveBeenCalled();

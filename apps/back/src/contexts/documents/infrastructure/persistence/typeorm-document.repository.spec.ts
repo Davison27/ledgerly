@@ -119,7 +119,7 @@ describe('TypeOrmDocumentRepository', () => {
       const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
       const repository = createRepository(queryBuilder);
 
-      await repository.findAllForListing({ status: 'vencido' });
+      await repository.findAllForListing({ status: 'overdue' });
 
       expect(
         andWhereCalls.some((call) => call.sql.trim() === 'document.status = :status'),
@@ -127,11 +127,11 @@ describe('TypeOrmDocumentRepository', () => {
 
       const statusCondition = andWhereCalls.find((call) => call.sql.includes('CASE WHEN'));
       expect(statusCondition).toBeDefined();
-      expect(statusCondition!.sql).toContain("document.status = 'pendiente'");
+      expect(statusCondition!.sql).toContain("document.status = 'pending'");
       expect(statusCondition!.sql).toContain('document.due_date IS NOT NULL');
       expect(statusCondition!.sql).toContain('document.due_date < :today');
       expect(statusCondition!.sql).not.toContain('<=');
-      expect(statusCondition!.params).toEqual({ status: 'vencido', today: todayIso() });
+      expect(statusCondition!.params).toEqual({ status: 'overdue', today: todayIso() });
     });
 
     it('findByProject filters by the derived status in SQL, not by the raw stored column', async () => {
@@ -139,7 +139,7 @@ describe('TypeOrmDocumentRepository', () => {
       const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
       const repository = createRepository(queryBuilder);
 
-      await repository.findByProject('project-1', { status: 'pendiente' });
+      await repository.findByProject('project-1', { status: 'pending' });
 
       expect(
         andWhereCalls.some((call) => call.sql.trim() === 'document.status = :status'),
@@ -147,11 +147,11 @@ describe('TypeOrmDocumentRepository', () => {
 
       const statusCondition = andWhereCalls.find((call) => call.sql.includes('CASE WHEN'));
       expect(statusCondition).toBeDefined();
-      expect(statusCondition!.sql).toContain("document.status = 'pendiente'");
+      expect(statusCondition!.sql).toContain("document.status = 'pending'");
       expect(statusCondition!.sql).toContain('document.due_date IS NOT NULL');
       expect(statusCondition!.sql).toContain('document.due_date < :today');
       expect(statusCondition!.sql).not.toContain('<=');
-      expect(statusCondition!.params).toEqual({ status: 'pendiente', today: todayIso() });
+      expect(statusCondition!.params).toEqual({ status: 'pending', today: todayIso() });
     });
 
     it('does not add a status condition when no status filter is given', async () => {
@@ -170,28 +170,28 @@ describe('TypeOrmDocumentRepository', () => {
       const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
       const repository = createRepository(queryBuilder);
 
-      await repository.findAllForListing({ direction: 'ingreso' });
+      await repository.findAllForListing({ direction: 'income' });
 
       const directionCondition = andWhereCalls.find((call) =>
         call.sql.includes('document.direction'),
       );
       expect(directionCondition).toBeDefined();
       expect(directionCondition!.sql.trim()).toBe('document.direction = :direction');
-      expect(directionCondition!.params).toEqual({ direction: 'ingreso' });
+      expect(directionCondition!.params).toEqual({ direction: 'income' });
     });
 
     it('findByProject filters by direction in SQL', async () => {
       const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
       const repository = createRepository(queryBuilder);
 
-      await repository.findByProject('project-1', { direction: 'gasto' });
+      await repository.findByProject('project-1', { direction: 'expense' });
 
       const directionCondition = andWhereCalls.find((call) =>
         call.sql.includes('document.direction'),
       );
       expect(directionCondition).toBeDefined();
       expect(directionCondition!.sql.trim()).toBe('document.direction = :direction');
-      expect(directionCondition!.params).toEqual({ direction: 'gasto' });
+      expect(directionCondition!.params).toEqual({ direction: 'expense' });
     });
 
     it('does not add a direction condition when no direction filter is given', async () => {

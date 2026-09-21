@@ -5,7 +5,6 @@ export type TaxSourceStateStatus = 'never_checked' | 'current' | 'changed' | 'er
 export interface TaxSourceStatePrimitives {
   sourceKey: string;
   countryCode: 'ES';
-  label: string;
   format: 'ical';
   sourceUrl: string;
   feedUrl: string;

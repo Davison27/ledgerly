@@ -26,8 +26,8 @@ import {
 import { StoredFileCryptographyException } from '../../../../shared/domain/errors/stored-file-cryptography.exception';
 
 const EFFECTIVE_STATUS_FILTER_SQL = `
-  CASE WHEN document.status = 'pendiente' AND document.due_date IS NOT NULL AND document.due_date < :today
-       THEN 'vencido' ELSE document.status END = :status
+  CASE WHEN document.status = 'pending' AND document.due_date IS NOT NULL AND document.due_date < :today
+       THEN 'overdue' ELSE document.status END = :status
 `;
 
 @Injectable()
@@ -201,7 +201,6 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       select: {
         type: true,
         amount: true,
-        month: true,
         status: true,
         issuerName: true,
         projectId: true,
@@ -215,7 +214,7 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
     return orms.map((orm) => ({
       type: orm.type as DocumentType,
       amount: Number(orm.amount),
-      month: orm.month,
+      month: Number(orm.date.slice(5, 7)),
       status: orm.status as DocumentStatus,
       issuerName: orm.issuerName,
       projectId: orm.projectId,

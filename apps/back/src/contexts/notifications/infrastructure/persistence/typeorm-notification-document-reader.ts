@@ -35,7 +35,7 @@ export class TypeOrmNotificationDocumentReader implements NotificationDocumentRe
         'document.dueDate',
         'document.type',
       ])
-      .where('document.status = :status', { status: 'pendiente' })
+      .where('document.status = :status', { status: 'pending' })
       .andWhere('document.due_date IS NOT NULL')
       .andWhere('document.due_date <= :limitDate', { limitDate })
       .getMany();
@@ -54,7 +54,7 @@ export class TypeOrmNotificationDocumentReader implements NotificationDocumentRe
         'document.dueDate',
         'document.type',
       ])
-      .where('document.type = :type', { type: 'factura' })
+      .where('document.type = :type', { type: 'invoice' })
       .andWhere('document.invoice_number IS NULL')
       .getMany();
 

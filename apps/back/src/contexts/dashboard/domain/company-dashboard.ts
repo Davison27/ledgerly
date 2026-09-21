@@ -1,13 +1,13 @@
 export interface AmountByStatus {
-  pagado: number;
-  pendiente: number;
-  vencido: number;
+  paid: number;
+  pending: number;
+  overdue: number;
 }
 
 export interface CategoryTotals {
-  factura: number;
-  nomina: number;
-  impuesto: number;
+  invoice: number;
+  payroll: number;
+  tax: number;
 }
 
 export interface TopIssuer {

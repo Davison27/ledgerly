@@ -1,9 +1,14 @@
-import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
 import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 
 @Entity('notifications')
 @Index('UQ_notifications_dedupe_key_open', { synchronize: false })
 @Index(['resourceProjectId'])
+@Check('CHK_notifications_severity', `"severity" IN ('error', 'warning', 'info')`)
+@Check(
+  'CHK_notifications_resource_kind',
+  `"resource_kind" IN ('document', 'staff_member', 'schedule_event', 'none')`,
+)
 export class NotificationOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

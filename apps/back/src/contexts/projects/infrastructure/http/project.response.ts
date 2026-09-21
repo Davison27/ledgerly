@@ -3,6 +3,8 @@ import { ProjectType } from '../../domain/project-type';
 import { ProjectStatus } from '../../domain/project-status';
 import { ProjectCurrency } from '../../domain/project-currency';
 import { ProjectColor } from '../../domain/project-color';
+import { Client } from '../../domain/client';
+import { ClientResponse } from './client.response';
 
 export class ProjectResponse {
   id: string;
@@ -11,11 +13,8 @@ export class ProjectResponse {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientCompany: string | null;
-  clientTaxId: string | null;
-  contactName: string | null;
-  contactEmail: string | null;
-  contactPhone: string | null;
+  clientId: string | null;
+  client: ClientResponse | null;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -26,7 +25,7 @@ export class ProjectResponse {
   image: string | null;
   color: ProjectColor | null;
 
-  static fromDomain(project: Project): ProjectResponse {
+  static fromDomain(project: Project, client: Client | null = null): ProjectResponse {
     const response = new ProjectResponse();
     const primitives = project.toPrimitives();
 
@@ -36,11 +35,8 @@ export class ProjectResponse {
     response.type = primitives.type;
     response.status = primitives.status;
     response.description = primitives.description;
-    response.clientCompany = primitives.clientCompany;
-    response.clientTaxId = primitives.clientTaxId;
-    response.contactName = primitives.contactName;
-    response.contactEmail = primitives.contactEmail;
-    response.contactPhone = primitives.contactPhone;
+    response.clientId = primitives.clientId;
+    response.client = client === null ? null : ClientResponse.fromDomain(client);
     response.address = primitives.address;
     response.startDate = primitives.startDate;
     response.endDate = primitives.endDate;

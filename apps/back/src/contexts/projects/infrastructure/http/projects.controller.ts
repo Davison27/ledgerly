@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   HttpCode,
+  Inject,
   Param,
   Patch,
   Post,
@@ -21,6 +22,7 @@ import { ProjectSummaryResponse } from './project-summary.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
 import { UnarchiveProjectUseCase } from '../../application/unarchive-project/unarchive-project.use-case';
+import { CLIENT_REPOSITORY, ClientRepository } from '../../domain/client.repository';
 
 @RequiresAccess('projects', 'view')
 @Controller('projects')
@@ -32,6 +34,7 @@ export class ProjectsController {
     private readonly updateProjectUseCase: UpdateProjectUseCase,
     private readonly deleteProjectUseCase: DeleteProjectUseCase,
     private readonly unarchiveProjectUseCase: UnarchiveProjectUseCase,
+    @Inject(CLIENT_REPOSITORY) private readonly clientRepository: ClientRepository,
   ) {}
 
   @Get()
@@ -51,11 +54,7 @@ export class ProjectsController {
       type: dto.type,
       status: dto.status,
       description: dto.description,
-      clientCompany: dto.clientCompany,
-      clientTaxId: dto.clientTaxId,
-      contactName: dto.contactName,
-      contactEmail: dto.contactEmail,
-      contactPhone: dto.contactPhone,
+      clientId: dto.clientId,
       address: dto.address,
       startDate: dto.startDate,
       endDate: dto.endDate,
@@ -67,14 +66,14 @@ export class ProjectsController {
       color: dto.color,
     });
 
-    return ProjectResponse.fromDomain(project);
+    return ProjectResponse.fromDomain(project, await this.resolveClient(project.clientId));
   }
 
   @Get(':id')
   async get(@Param('id') id: string): Promise<ProjectResponse> {
     const project = await this.getProjectUseCase.execute(id);
 
-    return ProjectResponse.fromDomain(project);
+    return ProjectResponse.fromDomain(project, await this.resolveClient(project.clientId));
   }
 
   @RequiresAccess('projects', 'edit')
@@ -90,11 +89,7 @@ export class ProjectsController {
       type: dto.type,
       status: dto.status,
       description: dto.description,
-      clientCompany: dto.clientCompany,
-      clientTaxId: dto.clientTaxId,
-      contactName: dto.contactName,
-      contactEmail: dto.contactEmail,
-      contactPhone: dto.contactPhone,
+      clientId: dto.clientId,
       address: dto.address,
       startDate: dto.startDate,
       endDate: dto.endDate,
@@ -106,7 +101,7 @@ export class ProjectsController {
       color: dto.color,
     });
 
-    return ProjectResponse.fromDomain(project);
+    return ProjectResponse.fromDomain(project, await this.resolveClient(project.clientId));
   }
 
   @RequiresAccess('projects', 'edit')
@@ -123,5 +118,9 @@ export class ProjectsController {
     await this.unarchiveProjectUseCase.execute(id);
 
     return new UnarchiveOutcomeResponse();
+  }
+
+  private resolveClient(clientId: string | null) {
+    return clientId === null ? Promise.resolve(null) : this.clientRepository.findById(clientId);
   }
 }

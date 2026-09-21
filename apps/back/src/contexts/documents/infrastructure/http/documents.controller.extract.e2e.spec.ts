@@ -179,7 +179,34 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
     expect(body.confidence).toBe('high');
     expect(body.fields.invoiceNumber).toBe('FX-2026-000123');
     expect(body.fields.amount).toBe(1210);
-    expect(body.fields.type).toBe('factura');
+    expect(body.fields.type).toBe('invoice');
+  });
+
+  it('returns stable warning codes for incomplete extraction', async () => {
+    const warnings = [
+      'missing_issuer_tax_id',
+      'missing_invoice_number',
+      'missing_invoice_date',
+      'missing_total_amount',
+      'missing_issuer_name',
+    ] as const;
+    extractExecute.mockResolvedValueOnce({
+      source: 'heuristic',
+      confidence: 'low',
+      fields: { type: 'invoice' },
+      warnings: [...warnings],
+    });
+
+    const response = await request(httpServer)
+      .post('/projects/p1/documents/extract')
+      .attach('file', loadFixture('facturx-invoice.pdf'), {
+        filename: 'invoice.pdf',
+        contentType: 'application/pdf',
+      });
+
+    expect(response.status).toBe(201);
+    const body = response.body as ExtractedInvoiceResult;
+    expect(body.warnings).toEqual(warnings);
   });
 
   it('returns 422 with PDF_NO_TEXT_LAYER for an image-only PDF', async () => {

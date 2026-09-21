@@ -50,24 +50,8 @@ export class UpdateProjectUseCase {
       project.changeDescription(command.description);
     }
 
-    if (command.clientCompany !== undefined) {
-      project.changeClientCompany(command.clientCompany);
-    }
-
-    if (command.clientTaxId !== undefined) {
-      project.changeClientTaxId(command.clientTaxId);
-    }
-
-    if (command.contactName !== undefined) {
-      project.changeContactName(command.contactName);
-    }
-
-    if (command.contactEmail !== undefined) {
-      project.changeContactEmail(command.contactEmail);
-    }
-
-    if (command.contactPhone !== undefined) {
-      project.changeContactPhone(command.contactPhone);
+    if (command.clientId !== undefined) {
+      project.changeClientId(command.clientId);
     }
 
     if (command.address !== undefined) {

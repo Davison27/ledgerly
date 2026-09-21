@@ -6,39 +6,44 @@ const BASE_PROPS = {
   id: 'doc-1',
   projectId: 'project-1',
   name: 'Nómina mensual',
-  month: 6,
   date: '2026-06-01',
   amount: 2100,
-  status: 'pagado' as const,
-  direction: 'gasto' as const,
+  status: 'paid' as const,
+  direction: 'expense' as const,
 };
 
 describe('Document', () => {
-  it('recognizes only factura and impuesto as creatable document types', () => {
-    expect(isCreatableDocumentType('factura')).toBe(true);
-    expect(isCreatableDocumentType('impuesto')).toBe(true);
-    expect(isCreatableDocumentType('nomina')).toBe(false);
+  it('recognizes only invoice and tax as creatable document types', () => {
+    expect(isCreatableDocumentType('invoice')).toBe(true);
+    expect(isCreatableDocumentType('tax')).toBe(true);
+    expect(isCreatableDocumentType('payroll')).toBe(false);
   });
 
-  it('throws when creating a nomina without a staffMemberId', () => {
-    expect(() => Document.create({ ...BASE_PROPS, type: 'nomina' })).toThrow(InvalidValueException);
+  it('throws when creating a payroll document without a staffMemberId', () => {
+    expect(() => Document.create({ ...BASE_PROPS, type: 'payroll' })).toThrow(InvalidValueException);
   });
 
-  it('creates a nomina with a staffMemberId', () => {
-    const document = Document.create({ ...BASE_PROPS, type: 'nomina', staffMemberId: 'staff-1' });
+  it('creates a payroll document with a staffMemberId', () => {
+    const document = Document.create({ ...BASE_PROPS, type: 'payroll', staffMemberId: 'staff-1' });
 
     expect(document.getStaffMemberId()).toBe('staff-1');
   });
 
-  it('creates a factura without a staffMemberId', () => {
-    const document = Document.create({ ...BASE_PROPS, type: 'factura' });
+  it('creates an invoice without a staffMemberId', () => {
+    const document = Document.create({ ...BASE_PROPS, type: 'invoice' });
 
     expect(document.getStaffMemberId()).toBeNull();
   });
 
-  it('throws when withChanges turns a document into a nomina without a staffMemberId', () => {
-    const document = Document.create({ ...BASE_PROPS, type: 'factura' });
+  it('computes the month from the document date', () => {
+    const document = Document.create({ ...BASE_PROPS, type: 'invoice' });
 
-    expect(() => document.withChanges({ type: 'nomina' })).toThrow(InvalidValueException);
+    expect(document.getMonth()).toBe(6);
+  });
+
+  it('throws when withChanges turns a document into payroll without a staffMemberId', () => {
+    const document = Document.create({ ...BASE_PROPS, type: 'invoice' });
+
+    expect(() => document.withChanges({ type: 'payroll' })).toThrow(InvalidValueException);
   });
 });

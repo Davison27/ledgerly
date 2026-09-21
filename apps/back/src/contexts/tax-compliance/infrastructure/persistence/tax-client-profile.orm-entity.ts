@@ -1,8 +1,9 @@
-import { Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryColumn } from 'typeorm';
 import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 
 @Entity('tax_client_profiles')
 @Index(['projectId'], { unique: true })
+@Check('CHK_tax_client_profiles_entity_type', `"entity_type" IN ('self_employed', 'company', 'individual')`)
 export class TaxClientProfileOrmEntity {
   @PrimaryColumn('uuid')
   id: string;

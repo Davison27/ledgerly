@@ -2,10 +2,11 @@ import { DocumentCurrency } from '../document-currency';
 import { InvoiceFields } from './invoice-fields';
 import { extractSpanishMonthNameDate, normaliseDate } from './invoice-date';
 import { extractSpanishMoneyAmounts, parseSpanishNumber } from './spanish-number';
+import type { ExtractionWarningCode } from './extraction-warning-code';
 
 export interface HeuristicExtraction {
   fields: InvoiceFields;
-  warnings: string[];
+  warnings: ExtractionWarningCode[];
 }
 
 const CIF_NIF_TOKEN = /\b([A-Z]-?\d{7}[0-9A-J]|\d{8}-?[A-Z])\b/i;
@@ -333,24 +334,24 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
     .map((line) => line.trim())
     .filter((line) => line.length > 0);
 
-  const warnings: string[] = [];
+  const warnings: ExtractionWarningCode[] = [];
 
   const clienteLineIndexes = findClienteLineIndexes(lines);
 
   const issuer = extractIssuerTaxId(lines, clienteLineIndexes);
   const issuerTaxId = issuer?.value;
-  if (!issuerTaxId) warnings.push('No se pudo determinar el NIF/CIF del emisor');
+  if (!issuerTaxId) warnings.push('missing_issuer_tax_id');
 
   const invoiceNumber = extractInvoiceNumber(lines);
-  if (!invoiceNumber) warnings.push('No se pudo determinar el número de factura');
+  if (!invoiceNumber) warnings.push('missing_invoice_number');
 
   const date = extractDate(lines);
-  if (!date) warnings.push('No se pudo determinar la fecha de la factura');
+  if (!date) warnings.push('missing_invoice_date');
 
   const dueDate = extractDueDate(lines);
 
   const amount = extractTotal(lines, text);
-  if (amount == null) warnings.push('No se pudo determinar el importe total');
+  if (amount == null) warnings.push('missing_total_amount');
 
   let taxBase = extractLabelledTaxBase(lines);
   const labelledTax = extractLabelledTax(lines);
@@ -374,7 +375,7 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
 
   const hasOtherEvidence = issuerTaxId != null || invoiceNumber != null || date != null || amount != null;
   const issuerName = hasOtherEvidence ? extractIssuerName(lines, issuer?.lineIndex, clienteLineIndexes) : undefined;
-  if (!issuerName) warnings.push('No se pudo determinar el nombre del emisor');
+  if (!issuerName) warnings.push('missing_issuer_name');
 
   const fields: InvoiceFields = {};
   if (issuerName) fields.issuerName = issuerName;

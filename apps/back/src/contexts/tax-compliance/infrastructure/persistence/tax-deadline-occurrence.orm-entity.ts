@@ -1,16 +1,17 @@
-import { Column, Entity, ForeignKey, Index, PrimaryGeneratedColumn } from 'typeorm';
+import { Check, Column, Entity, ForeignKey, Index, PrimaryGeneratedColumn } from 'typeorm';
 import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
 
 @Entity('tax_deadline_occurrences')
-@Index(['occurrenceKey'], { unique: true })
+@Index('UQ_tax_deadline_occurrences_natural', ['projectId', 'obligationKey', 'periodStart', 'periodEnd'], { unique: true })
 @Index('IDX_tax_deadline_due_project', { synchronize: false })
 @Index(['projectId'])
+@Check(
+  'CHK_tax_deadline_occurrences_status',
+  `"status" IN ('pending', 'in_progress', 'submitted', 'paid', 'dismissed')`,
+)
 export class TaxDeadlineOccurrenceOrmEntity {
   @PrimaryGeneratedColumn('uuid')
   id: string;
-
-  @Column({ name: 'occurrence_key', type: 'varchar', length: 240 })
-  occurrenceKey: string;
 
   @Column({ name: 'project_id', type: 'uuid' })
   @ForeignKey(() => ProjectOrmEntity, { name: 'FK_tax_deadline_occurrences_project', onDelete: 'CASCADE' })
@@ -18,18 +19,6 @@ export class TaxDeadlineOccurrenceOrmEntity {
 
   @Column({ name: 'obligation_key', type: 'varchar', length: 80 })
   obligationKey: string;
-
-  @Column({ type: 'varchar', length: 20 })
-  code: string;
-
-  @Column({ type: 'varchar', length: 180 })
-  title: string;
-
-  @Column({ type: 'text' })
-  description: string;
-
-  @Column({ type: 'varchar', length: 30 })
-  category: string;
 
   @Column({ name: 'period_start', type: 'date' })
   periodStart: string;
@@ -48,10 +37,4 @@ export class TaxDeadlineOccurrenceOrmEntity {
 
   @Column({ type: 'varchar', length: 20, default: 'pending' })
   status: string;
-
-  @Column({ name: 'source_url', type: 'varchar', length: 500 })
-  sourceUrl: string;
-
-  @Column({ name: 'source_version', type: 'varchar', length: 40 })
-  sourceVersion: string;
 }

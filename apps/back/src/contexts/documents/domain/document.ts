@@ -11,7 +11,6 @@ export interface DocumentProps {
   projectId: string;
   name: string;
   type: DocumentType;
-  month: number;
   date: string;
   amount: number;
   status: DocumentStatus;
@@ -38,7 +37,6 @@ export class Document {
   private projectId: string;
   private name: string;
   private type: DocumentType;
-  private month: number;
   private date: string;
   private amount: number;
   private status: DocumentStatus;
@@ -64,7 +62,6 @@ export class Document {
     this.projectId = props.projectId;
     this.name = props.name;
     this.type = props.type;
-    this.month = props.month;
     this.date = props.date;
     this.amount = props.amount;
     this.status = props.status;
@@ -87,10 +84,6 @@ export class Document {
   }
 
   static create(props: DocumentProps): Document {
-    if (!Number.isInteger(props.month) || props.month < 1 || props.month > 12) {
-      throw new InvalidValueException('month must be an integer between 1 and 12');
-    }
-
     if (props.amount < 0) {
       throw new InvalidValueException('amount must be greater than or equal to 0');
     }
@@ -124,7 +117,7 @@ export class Document {
     }
 
     if (!DOCUMENT_DIRECTIONS.includes(props.direction)) {
-      throw new InvalidValueException('direction must be one of ingreso, gasto');
+      throw new InvalidValueException('direction must be one of income, expense');
     }
 
     if (props.currency != null && !DOCUMENT_CURRENCIES.includes(props.currency)) {
@@ -135,8 +128,8 @@ export class Document {
       throw new InvalidValueException('fileSize must be greater than or equal to 0');
     }
 
-    if (props.type === 'nomina' && (props.staffMemberId ?? null) === null) {
-      throw new InvalidValueException('staffMemberId is required when type is nomina');
+    if (props.type === 'payroll' && (props.staffMemberId ?? null) === null) {
+      throw new InvalidValueException('staffMemberId is required when type is payroll');
     }
 
     return new Document(props);
@@ -163,7 +156,7 @@ export class Document {
   }
 
   getMonth(): number {
-    return this.month;
+    return Number(this.date.slice(5, 7));
   }
 
   getDate(): string {
@@ -256,7 +249,6 @@ export class Document {
       projectId: this.projectId,
       name: this.name,
       type: this.type,
-      month: this.month,
       date: this.date,
       amount: this.amount,
       status: this.status,
