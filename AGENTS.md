@@ -44,9 +44,10 @@ Use `$arquitectura-hexagonal` before work in `apps/back` and
   comments, commit messages, and operational output must be written in English.
 - Localized product copy is the only exception. Every visible frontend string
   must use i18n and keep both `en.json` and `es.json` complete.
-- Existing persisted domain literals and Spanish invoice-parsing fixtures are
-  contracts or test data, not repository prose. Do not translate them without
-  a dedicated migration.
+- Application-controlled persisted values and API machine values must be in
+  English. Visible product copy belongs in i18n. Preserve customer-authored
+  content, external source text, parser patterns, and opaque external keys in
+  their source language or canonical format.
 - Do not preserve Spanish prose for historical consistency. Translate it when a
   touched document is still useful; delete it when it is obsolete.
 
