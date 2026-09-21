@@ -217,8 +217,8 @@ For normal lifecycle operations, use `make MODE=production up`,
 | `back`     | `ledgerly-back:local`                   | None                   | None                         |
 | `front`    | `ledgerly-front:local`                  | None                   | None                         |
 | `caddy`    | `caddy:2.11-alpine`                     | `80`, `443`, `443/udp` | `caddy_data`, `caddy_config` |
-| `clamav`   | `clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c` | None | `clamav_data` |
-| `clamav-updater` | same pinned ClamAV image (`maintenance` profile) | None | `clamav_data` |
+| `clamav`   | `clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c` (`antivirus` profile) | None | `clamav_data` |
+| `clamav-updater` | same pinned ClamAV image (`maintenance` and `antivirus` profiles) | None | `clamav_data` |
 | `migrator` | `ledgerly-back:local` (`tools` profile) | None                   | None                         |
 
 `migrator` runs only on demand through `make MODE=production migrate` and
@@ -336,6 +336,40 @@ access to the `scanner` network or the Docker socket. Do not remove the
 definitions are missing, malformed, or stale, or the scanner's configured
 resource limits are not effective. A fresh deployment must run the updater
 before accepting document uploads.
+
+## Making ClamAV optional
+
+ClamAV is a genuine memory cost: `clamd` holds the whole signature database in
+RAM, so the daemon and its updater together reserve roughly 2 GB (1280 MB plus
+768 MB), against 768 MB for `back` and 128 MB for `front`. On a small VPS where
+the operator uploads their own invoices, David can choose to run without it.
+
+Two switches control this, and they are set together:
+
+- `COMPOSE_PROFILES=antivirus` starts the `clamav` and `clamav-updater`
+  containers. Both services declare `profiles: [antivirus]` (`clamav-updater`
+  also keeps its existing `maintenance` profile in the standalone Compose file
+  for the signature-refresh workflow above). Leaving `COMPOSE_PROFILES` unset
+  starts neither container and recovers the ~2 GB.
+- `CLAMAV_ENABLED` (default `true`) controls whether the backend actually uses
+  them. When `false`, `SharedModule` wires a disabled `MalwareScanner` whose
+  `scan()` resolves immediately instead of the ClamAV client, and logs a
+  startup warning that uploaded files are stored without malware scanning.
+
+Setting one without the other is not dangerous, only wasted or refused: if
+`CLAMAV_ENABLED=true` but the containers are not running, or the opposite, an
+unreachable scanner throws `MalwareScannerUnavailableException`, which
+`domain-exception.filter.ts` maps to HTTP `503`. Uploads are refused rather
+than accepted unscanned — the app fails closed either way.
+
+The `back` service's `depends_on` no longer waits on `clamav`. Removing that
+entry was required: Compose refuses the whole project with `service "back"
+depends on undefined service "clamav": invalid compose project` once `clamav`
+only exists behind a profile that is not always enabled. The accepted
+consequence is that, even with the antivirus enabled, `back` starts as soon as
+`migrator` completes and no longer blocks on ClamD finishing signature load.
+Uploads attempted during that warm-up window — minutes, not seconds — receive
+`503` instead of waiting for the scanner to become ready.
 
 ## Encrypted file persistence
 

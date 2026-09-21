@@ -52,9 +52,8 @@ services:
       PDF_MAX_ATTACHMENTS: ${PDF_MAX_ATTACHMENTS:-20}
       PDF_MAX_ATTACHMENT_BYTES: ${PDF_MAX_ATTACHMENT_BYTES:-5242880}
       PDF_MAX_TOTAL_ATTACHMENT_BYTES: ${PDF_MAX_TOTAL_ATTACHMENT_BYTES:-20971520}
+      CLAMAV_ENABLED: ${CLAMAV_ENABLED:-true}
     depends_on:
-      clamav:
-        condition: service_healthy
       migrator:
         condition: service_completed_successfully
     restart: unless-stopped
@@ -119,6 +118,7 @@ services:
 
   clamav-updater:
     image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
+    profiles: [antivirus]
     restart: unless-stopped
     init: true
     user: clamav
@@ -144,7 +144,7 @@ services:
       resources:
         limits:
           cpus: ${DEPLOY_CLAMAV_CPUS:-1.0}
-          memory: ${DEPLOY_CLAMAV_MEMORY:-768m}
+          memory: ${DEPLOY_CLAMAV_UPDATER_MEMORY:-768m}
           pids: ${DEPLOY_CLAMAV_PIDS_LIMIT:-256}
     logging:
       driver: local
@@ -164,6 +164,7 @@ services:
 
   clamav:
     image: clamav/clamav:1.5.3-debian@sha256:741e6c447241220e0792a901befcaec1d55a755c5097fc9cd88d7fd8be251a5c
+    profiles: [antivirus]
     depends_on:
       clamav-updater:
         condition: service_healthy

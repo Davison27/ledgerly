@@ -12,6 +12,7 @@ import { createStoredFileCipher } from './infrastructure/crypto/stored-file-ciph
 import { parseStoredFileKeyring } from './infrastructure/crypto/stored-file-keyring';
 import { MALWARE_SCANNER } from './domain/malware-scanner.port';
 import { createClamAvMalwareScanner } from './infrastructure/malware/clamav-malware-scanner';
+import { createDisabledMalwareScanner } from './infrastructure/malware/disabled-malware-scanner';
 
 @Global()
 @Module({
@@ -25,11 +26,13 @@ import { createClamAvMalwareScanner } from './infrastructure/malware/clamav-malw
     {
       provide: MALWARE_SCANNER,
       useFactory: (configService: ConfigService) =>
-        createClamAvMalwareScanner({
-          host: configService.get<string>('CLAMAV_HOST', 'clamav'),
-          port: configService.get<number>('CLAMAV_PORT', 3310),
-          timeoutMs: configService.get<number>('CLAMAV_TIMEOUT_MS', 30000),
-        }),
+        configService.get<boolean>('CLAMAV_ENABLED', true)
+          ? createClamAvMalwareScanner({
+              host: configService.get<string>('CLAMAV_HOST', 'clamav'),
+              port: configService.get<number>('CLAMAV_PORT', 3310),
+              timeoutMs: configService.get<number>('CLAMAV_TIMEOUT_MS', 30000),
+            })
+          : createDisabledMalwareScanner(),
       inject: [ConfigService],
     },
     {

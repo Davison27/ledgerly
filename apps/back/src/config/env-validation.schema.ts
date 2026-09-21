@@ -79,6 +79,7 @@ export const envValidationSchema = Joi.object({
   PDF_MAX_PAGES: Joi.number().integer().min(1).max(500).default(100),
   PDF_OCR_MAX_PAGES: Joi.any().optional().strip(),
   PDF_OCR_TIMEOUT_SECONDS: Joi.any().optional().strip(),
+  CLAMAV_ENABLED: Joi.boolean().default(true),
   CLAMAV_HOST: Joi.string().hostname().default('clamav'),
   CLAMAV_PORT: Joi.number().integer().min(1).max(65535).default(3310),
   CLAMAV_TIMEOUT_MS: Joi.number().integer().min(1000).max(120000).default(30000),
