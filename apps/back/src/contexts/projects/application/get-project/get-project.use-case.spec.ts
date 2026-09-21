@@ -83,7 +83,7 @@ describe('GetProjectUseCase', () => {
       type: 'construction',
       status: 'active',
       description: null,
-      clientId: null,
+      clientId: 'client-1',
       address: null,
       startDate: null,
       endDate: null,

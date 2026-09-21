@@ -9,7 +9,7 @@ function buildPrimitives(overrides: Partial<ProjectPrimitives> = {}): ProjectPri
     type: 'construction',
     status: 'active',
     description: null,
-    clientId: null,
+    clientId: 'client-1',
     address: null,
     startDate: null,
     endDate: null,
@@ -38,6 +38,12 @@ describe('Project', () => {
   it('throws InvalidValueException for an invalid color', () => {
     expect(() =>
       Project.create(buildPrimitives({ color: 'chartreuse' as ProjectPrimitives['color'] })),
+    ).toThrow(InvalidValueException);
+  });
+
+  it('throws InvalidValueException when the client is missing', () => {
+    expect(() =>
+      Project.create({ ...buildPrimitives(), clientId: null } as unknown as ProjectPrimitives),
     ).toThrow(InvalidValueException);
   });
 

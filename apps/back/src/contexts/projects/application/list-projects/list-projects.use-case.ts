@@ -19,9 +19,9 @@ export class ListProjectsUseCase {
     private readonly projectFinancialsProvider: ProjectFinancialsProvider,
   ) {}
 
-  async execute(): Promise<ProjectSummary[]> {
+  async execute(clientId?: string): Promise<ProjectSummary[]> {
     const [summaries, financialRows] = await Promise.all([
-      this.projectRepository.findAllSummaries(),
+      this.projectRepository.findAllSummaries(clientId),
       this.projectFinancialsProvider.findAll(),
     ]);
     const rowsByProject = new Map<string, ProjectFinancialsRow[]>();

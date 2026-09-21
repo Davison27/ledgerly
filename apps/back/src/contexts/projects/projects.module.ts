@@ -24,8 +24,8 @@ import { UnarchiveProjectUseCase } from './application/unarchive-project/unarchi
 import { ClientOrmEntity } from './infrastructure/persistence/client.orm-entity';
 import { TypeOrmClientRepository } from './infrastructure/persistence/typeorm-client.repository';
 import { CLIENT_REPOSITORY } from './domain/client.repository';
-import { CLIENT_REFERENCE_COUNTER } from './domain/client-reference-counter.port';
-import { TypeOrmClientReferenceCounter } from './infrastructure/persistence/typeorm-client-reference-counter';
+import { PROJECT_CLIENT_LIFECYCLE_COORDINATOR } from './domain/project-client-lifecycle-coordinator.port';
+import { TypeOrmProjectClientLifecycleCoordinator } from './infrastructure/persistence/typeorm-project-client-lifecycle-coordinator';
 import { ClientsController } from './infrastructure/http/clients.controller';
 import { ListClientsUseCase } from './application/list-clients/list-clients.use-case';
 import { GetClientUseCase } from './application/get-client/get-client.use-case';
@@ -56,7 +56,7 @@ import { UnarchiveClientUseCase } from './application/unarchive-client/unarchive
     { provide: PROJECT_EQUIPMENT_REPOSITORY, useClass: TypeOrmProjectEquipmentRepository },
     { provide: PROJECT_FINANCIALS_PROVIDER, useClass: TypeOrmProjectFinancialsProvider },
     { provide: CLIENT_REPOSITORY, useClass: TypeOrmClientRepository },
-    { provide: CLIENT_REFERENCE_COUNTER, useClass: TypeOrmClientReferenceCounter },
+    { provide: PROJECT_CLIENT_LIFECYCLE_COORDINATOR, useClass: TypeOrmProjectClientLifecycleCoordinator },
   ],
 })
 export class ProjectsModule {}

@@ -7,6 +7,7 @@ import {
   IsUUID,
   Matches,
   Min,
+  ValidateIf,
 } from 'class-validator';
 import { PROJECT_TYPES, ProjectType } from '../../../domain/project-type';
 import { PROJECT_STATUSES, ProjectStatus } from '../../../domain/project-status';
@@ -39,7 +40,7 @@ export class UpdateProjectDto {
   @IsString()
   description?: string | null;
 
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined && value !== null)
   @IsUUID()
   clientId?: string | null;
 

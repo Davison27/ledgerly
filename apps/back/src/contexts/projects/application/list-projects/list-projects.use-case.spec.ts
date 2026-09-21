@@ -6,9 +6,12 @@ import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 
 class InMemoryProjectRepository implements ProjectRepository {
+  lastClientId: string | undefined;
+
   constructor(private readonly summaries: ProjectSummary[]) {}
 
-  findAllSummaries(): Promise<ProjectSummary[]> {
+  findAllSummaries(clientId?: string): Promise<ProjectSummary[]> {
+    this.lastClientId = clientId;
     return Promise.resolve(this.summaries);
   }
 
@@ -98,5 +101,16 @@ describe('ListProjectsUseCase', () => {
     expect(result[0].financials).toEqual([
       { currency: 'GBP', income: 0, expenses: 0, profit: 0, margin: null },
     ]);
+  });
+
+  it('forwards an optional client scope without changing summary composition', async () => {
+    const projectRepository = new InMemoryProjectRepository([buildSummary()]);
+    const useCase = new ListProjectsUseCase(
+      projectRepository,
+      new InMemoryProjectFinancialsProvider([]),
+    );
+
+    await expect(useCase.execute('client-1')).resolves.toHaveLength(1);
+    expect(projectRepository.lastClientId).toBe('client-1');
   });
 });

@@ -11,7 +11,7 @@ function buildProject(): Project {
     type: 'client',
     status: 'archived',
     description: null,
-    clientId: null,
+    clientId: 'client-1',
     address: null,
     startDate: null,
     endDate: null,

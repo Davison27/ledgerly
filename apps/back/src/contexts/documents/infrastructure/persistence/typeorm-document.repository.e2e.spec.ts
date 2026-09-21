@@ -11,6 +11,7 @@ import { AdoptEnglishControlledValues1730000007000 } from '../../../../database/
 import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from '../../../../database/migrations/1730000008000-NormalizeTaxIdsAndEnforceUniqueness';
 import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from '../../../../database/migrations/1730000009000-PreserveWorkspaceMemberAuditIdentity';
 import { RemoveProjectFiscalYear1730000010000 } from '../../../../database/migrations/1730000010000-RemoveProjectFiscalYear';
+import { RequireProjectClient1730000011000 } from '../../../../database/migrations/1730000011000-RequireProjectClient';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { DeleteProjectUseCase } from '../../../projects/application/delete-project/delete-project.use-case';
 import { DeleteStaffMemberUseCase } from '../../../staff/application/delete-staff-member/delete-staff-member.use-case';
@@ -58,6 +59,7 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
         NormalizeTaxIdsAndEnforceUniqueness1730000008000,
         PreserveWorkspaceMemberAuditIdentity1730000009000,
         RemoveProjectFiscalYear1730000010000,
+        RequireProjectClient1730000011000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -77,8 +79,9 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
   });
 
   it('preserves the encrypted row while hiding it from normal ORM reads', async () => {
+    await insertClient(dataSource, '00000000-0000-0000-0000-000000000201', 'B20100001');
     await dataSource.query(
-      `INSERT INTO projects (id, name, code, type) VALUES ('00000000-0000-0000-0000-000000000101', 'Project', 'PROJECT-001', 'construction')`,
+      `INSERT INTO projects (id, name, code, type, client_id) VALUES ('00000000-0000-0000-0000-000000000101', 'Project', 'PROJECT-001', 'construction', '00000000-0000-0000-0000-000000000201')`,
     );
     const entityRepository = dataSource.getRepository(DocumentOrmEntity);
     const document = entityRepository.create({
@@ -126,9 +129,10 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
   it('excludes soft-deleted documents from listings, project summaries, and financials', async () => {
     const projectId = '00000000-0000-0000-0000-000000000111';
     const documentId = '00000000-0000-0000-0000-000000000112';
+    await insertClient(dataSource, '00000000-0000-0000-0000-000000000211', 'B21100001');
     await dataSource.query(
-      `INSERT INTO projects (id, name, code, type, currency) VALUES ($1, 'Summary project', 'PROJECT-111', 'construction', 'EUR')`,
-      [projectId],
+      `INSERT INTO projects (id, name, code, type, currency, client_id) VALUES ($1, 'Summary project', 'PROJECT-111', 'construction', 'EUR', $2)`,
+      [projectId, '00000000-0000-0000-0000-000000000211'],
     );
     const entityRepository = dataSource.getRepository(DocumentOrmEntity);
     const document = entityRepository.create({
@@ -182,9 +186,10 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     const staffMemberId = '00000000-0000-0000-0000-000000000123';
     const documentId = '00000000-0000-0000-0000-000000000124';
     const deletedBy = '00000000-0000-0000-0000-000000000125';
+    await insertClient(dataSource, '00000000-0000-0000-0000-000000000221', 'B22100001');
     await dataSource.query(
-      `INSERT INTO projects (id, name, code, type, currency) VALUES ($1, 'Referenced project', 'PROJECT-121', 'client', 'EUR')`,
-      [projectId],
+      `INSERT INTO projects (id, name, code, type, currency, client_id) VALUES ($1, 'Referenced project', 'PROJECT-121', 'client', 'EUR', $2)`,
+      [projectId, '00000000-0000-0000-0000-000000000221'],
     );
     await dataSource.query(
       `INSERT INTO suppliers (id, name) VALUES ($1, 'Referenced supplier')`,
@@ -276,6 +281,13 @@ async function insertWorkspaceMember(dataSource: DataSource, id: string): Promis
        id, email, name, role, permissions, status, is_founder, invited_at
      ) VALUES ($1, $2, 'Audit member', 'viewer', '{}'::jsonb, 'active', false, CURRENT_TIMESTAMP)`,
     [id, `${id}@ledgerly.dev`],
+  );
+}
+
+async function insertClient(dataSource: DataSource, id: string, taxId: string): Promise<void> {
+  await dataSource.query(
+    `INSERT INTO clients (id, name, tax_id) VALUES ($1, $2, $3)`,
+    [id, `Client ${id}`, taxId],
   );
 }
 

@@ -3,6 +3,7 @@ import 'dotenv/config';
 import { getMigrations } from 'better-auth/db/migration';
 import dataSource from './data-source';
 import { auth, authDatabase } from '../lib/auth';
+import { runMigrationCli } from './migration-cli';
 
 export const INITIAL_MIGRATION_TIMESTAMP = 1730000000000;
 export const INITIAL_MIGRATION_NAME = 'InitialLedgerlySchema1730000000000';
@@ -251,8 +252,5 @@ export async function main(argv = process.argv.slice(2)): Promise<void> {
 }
 
 if (require.main === module) {
-  void main().catch(() => {
-    process.stderr.write('Migration failed\n');
-    process.exitCode = 1;
-  });
+  void runMigrationCli(() => main());
 }

@@ -15,8 +15,10 @@ import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 import { CLIENT_REPOSITORY } from '../../domain/client.repository';
+import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+const clientId = '00000000-0000-4000-8000-000000000001';
 
 function buildProject(
   overrides: Partial<CreateProjectCommand> & { id?: string } = {},
@@ -28,7 +30,7 @@ function buildProject(
     type: overrides.type ?? 'construction',
     status: overrides.status ?? 'active',
     description: overrides.description ?? null,
-    clientId: overrides.clientId ?? null,
+    clientId: overrides.clientId ?? clientId,
     address: overrides.address ?? null,
     startDate: overrides.startDate ?? null,
     endDate: overrides.endDate ?? null,
@@ -141,6 +143,20 @@ describe('ProjectsController (HTTP, no DB)', () => {
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject([{ color: 'terracotta' }]);
     });
+
+    it('passes the optional client filter to the list use case', async () => {
+      const response = await request(httpServer).get(`/projects?clientId=${clientId}`);
+
+      expect(response.status).toBe(200);
+      expect(listExecute).toHaveBeenCalledWith(clientId);
+    });
+
+    it('rejects malformed client filters', async () => {
+      const response = await request(httpServer).get('/projects?clientId=not-a-uuid');
+
+      expect(response.status).toBe(400);
+      expect(listExecute).not.toHaveBeenCalled();
+    });
   });
 
   describe('POST /projects', () => {
@@ -151,6 +167,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
           name: 'Acme Project',
           code: 'ACME-001',
           type: 'construction',
+          clientId,
           image,
         });
 
@@ -161,8 +178,26 @@ describe('ProjectsController (HTTP, no DB)', () => {
         image,
       });
       expect(createExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ image }),
+        expect.objectContaining({ image, clientId }),
       );
+    });
+
+    it('rejects project creation without a client', async () => {
+      const response = await request(httpServer)
+        .post('/projects')
+        .send({ name: 'Acme Project', code: 'ACME-002', type: 'construction' });
+
+      expect(response.status).toBe(400);
+      expect(createExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects malformed project client identifiers', async () => {
+      const response = await request(httpServer)
+        .post('/projects')
+        .send({ name: 'Acme Project', code: 'ACME-003', type: 'construction', clientId: 'client-1' });
+
+      expect(response.status).toBe(400);
+      expect(createExecute).not.toHaveBeenCalled();
     });
   });
 
@@ -181,6 +216,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         code: 'ACME-001',
         type: 'construction',
         status: 'active',
+        clientId,
         image,
       });
       expect(response.body).not.toHaveProperty('documentCount');
@@ -220,6 +256,17 @@ describe('ProjectsController (HTTP, no DB)', () => {
         expect.objectContaining({ id: 'project-1', image: null }),
       );
       expect(response.body).toMatchObject({ image: null });
+    });
+
+    it('rejects an explicit null client identifier', async () => {
+      updateExecute.mockRejectedValueOnce(new InvalidValueException('clientId cannot be null'));
+      const response = await request(httpServer)
+        .patch('/projects/project-1')
+        .send({ clientId: null });
+
+      expect(response.status).toBe(400);
+      expect(response.body).toMatchObject({ code: 'INVALID_VALUE' });
+      expect(updateExecute).toHaveBeenCalledWith(expect.objectContaining({ clientId: null }));
     });
   });
 

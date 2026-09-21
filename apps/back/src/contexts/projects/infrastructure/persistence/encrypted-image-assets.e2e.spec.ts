@@ -11,6 +11,7 @@ import { AdoptEnglishControlledValues1730000007000 } from '../../../../database/
 import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from '../../../../database/migrations/1730000008000-NormalizeTaxIdsAndEnforceUniqueness';
 import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from '../../../../database/migrations/1730000009000-PreserveWorkspaceMemberAuditIdentity';
 import { RemoveProjectFiscalYear1730000010000 } from '../../../../database/migrations/1730000010000-RemoveProjectFiscalYear';
+import { RequireProjectClient1730000011000 } from '../../../../database/migrations/1730000011000-RequireProjectClient';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { Company } from '../../../company/domain/company';
 import { GetCompanyBrandingUseCase } from '../../../company/application/get-company-branding/get-company-branding.use-case';
@@ -35,6 +36,7 @@ const image = `data:image/png;base64,${pngBytes.toString('base64')}`;
 const projectId = '00000000-0000-0000-0000-000000000005';
 const equipmentId = '00000000-0000-0000-0000-000000000006';
 const companyId = '00000000-0000-0000-0000-000000000004';
+const clientId = '00000000-0000-0000-0000-000000000007';
 
 describe('encrypted image assets (PostgreSQL)', () => {
   let administrator: DataSource;
@@ -69,6 +71,7 @@ describe('encrypted image assets (PostgreSQL)', () => {
         NormalizeTaxIdsAndEnforceUniqueness1730000008000,
         PreserveWorkspaceMemberAuditIdentity1730000009000,
         RemoveProjectFiscalYear1730000010000,
+        RequireProjectClient1730000011000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },
@@ -103,6 +106,10 @@ describe('encrypted image assets (PostgreSQL)', () => {
   });
 
   it('encrypts every image path and clears project, company, and equipment envelopes without stale reads', async () => {
+    await dataSource.query(
+      'INSERT INTO clients (id, name, tax_id) VALUES ($1, $2, $3)',
+      [clientId, 'Client', 'B11223344'],
+    );
     const project = createProject(image);
     const equipment = Equipment.create({ id: equipmentId, name: 'Equipment', price: null, stock: 0, image });
     const company = Company.create({ id: companyId, name: 'Company', logo: image });
@@ -124,6 +131,10 @@ describe('encrypted image assets (PostgreSQL)', () => {
     await expect(projectRepository.findById(projectId)).resolves.toMatchObject({ image });
     await expect(projectRepository.findByCode('PROJECT-001')).resolves.toMatchObject({ image });
     await expect(projectRepository.findAllSummaries()).resolves.toEqual([expect.objectContaining({ id: projectId, image })]);
+    await expect(projectRepository.findAllSummaries(clientId)).resolves.toEqual([
+      expect.objectContaining({ id: projectId, image }),
+    ]);
+    await expect(projectRepository.findAllSummaries('00000000-0000-0000-0000-000000000008')).resolves.toEqual([]);
     await expect(projectRepository.findSummaryById(projectId)).resolves.toMatchObject({ image });
     await expect(scheduleProjectReader.findActive()).resolves.toEqual([expect.objectContaining({ id: projectId, image })]);
     await expect(scheduleProjectReader.findByIds([projectId])).resolves.toEqual([expect.objectContaining({ id: projectId, image })]);
@@ -139,7 +150,10 @@ describe('encrypted image assets (PostgreSQL)', () => {
     await expect(equipmentRepository.findById(equipmentId)).resolves.toMatchObject({ image });
     await expect(equipmentRepository.findByName('Equipment')).resolves.toMatchObject({ image });
 
-    await new UpdateProjectUseCase(projectRepository).execute({ id: projectId, image: null });
+    await new UpdateProjectUseCase(projectRepository, {
+      saveProjectForActiveClient: () => Promise.resolve(),
+      deleteOrArchiveClient: () => Promise.resolve('deleted'),
+    }).execute({ id: projectId, image: null });
 
     const clearedProject = requireSingleRow(await dataSource.query(
       'SELECT image_ciphertext AS "ciphertext", image_nonce AS "nonce", image_tag AS "tag", image_key_version AS "keyVersion", image_mime_type AS "mimeType", image_size AS "size" FROM projects WHERE id = $1',
@@ -198,7 +212,7 @@ function createProject(projectImage: string | null): Project {
     type: 'client',
     status: 'active',
     description: null,
-    clientId: null,
+    clientId,
     address: null,
     startDate: null,
     endDate: null,

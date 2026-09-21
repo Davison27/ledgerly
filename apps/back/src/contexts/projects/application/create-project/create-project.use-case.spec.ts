@@ -3,6 +3,8 @@ import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.rep
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { IdGenerator } from '../../../../shared/domain/id-generator.port';
+import { ProjectClientLifecycleCoordinator } from '../../domain/project-client-lifecycle-coordinator.port';
+import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
@@ -81,18 +83,32 @@ class SequentialIdGenerator implements IdGenerator {
   }
 }
 
+class InMemoryProjectClientLifecycleCoordinator implements ProjectClientLifecycleCoordinator {
+  constructor(private readonly repository: InMemoryProjectRepository) {}
+
+  saveProjectForActiveClient(project: Project): Promise<void> {
+    return this.repository.save(project);
+  }
+
+  deleteOrArchiveClient(): Promise<'deleted' | 'archived'> {
+    return Promise.resolve('deleted');
+  }
+}
+
 describe('CreateProjectUseCase', () => {
   it('creates a project with an image and persists it', async () => {
     const repository = new InMemoryProjectRepository();
     const useCase = new CreateProjectUseCase(
       repository,
       new SequentialIdGenerator(),
+      new InMemoryProjectClientLifecycleCoordinator(repository),
     );
 
     const project = await useCase.execute({
       name: 'Acme Project',
       code: 'ACME-001',
       type: 'construction',
+      clientId: 'client-1',
       image,
     });
 
@@ -107,15 +123,36 @@ describe('CreateProjectUseCase', () => {
     const useCase = new CreateProjectUseCase(
       repository,
       new SequentialIdGenerator(),
+      new InMemoryProjectClientLifecycleCoordinator(repository),
     );
 
     const project = await useCase.execute({
       name: 'Acme Project',
       code: 'ACME-002',
       type: 'construction',
+      clientId: 'client-1',
     });
 
     expect(project.image).toBeNull();
+  });
+
+  it('rejects a missing client before checking project persistence', async () => {
+    const repository = new InMemoryProjectRepository();
+    const useCase = new CreateProjectUseCase(
+      repository,
+      new SequentialIdGenerator(),
+      new InMemoryProjectClientLifecycleCoordinator(repository),
+    );
+
+    await expect(
+      useCase.execute({
+        name: 'Acme Project',
+        code: 'ACME-003',
+        type: 'internal',
+        clientId: '',
+      }),
+    ).rejects.toBeInstanceOf(InvalidValueException);
+    await expect(repository.findByCode('ACME-003')).resolves.toBeNull();
   });
 
 });

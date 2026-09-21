@@ -13,7 +13,7 @@ export class ProjectResponse {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientId: string | null;
+  clientId: string;
   client: ClientResponse | null;
   address: string | null;
   startDate: string | null;

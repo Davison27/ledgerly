@@ -7,12 +7,19 @@ import {
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { ProjectCodeAlreadyExistsException } from '../../domain/errors/project-code-already-exists.exception';
 import { UpdateProjectCommand } from './update-project.command';
+import {
+  PROJECT_CLIENT_LIFECYCLE_COORDINATOR,
+  ProjectClientLifecycleCoordinator,
+} from '../../domain/project-client-lifecycle-coordinator.port';
+import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 @Injectable()
 export class UpdateProjectUseCase {
   constructor(
     @Inject(PROJECT_REPOSITORY)
     private readonly projectRepository: ProjectRepository,
+    @Inject(PROJECT_CLIENT_LIFECYCLE_COORDINATOR)
+    private readonly projectClientLifecycleCoordinator: ProjectClientLifecycleCoordinator,
   ) {}
 
   async execute(command: UpdateProjectCommand): Promise<Project> {
@@ -21,6 +28,12 @@ export class UpdateProjectUseCase {
     if (project === null) {
       throw new ProjectNotFoundException(command.id);
     }
+
+    if (command.clientId === null) {
+      throw new InvalidValueException('clientId cannot be null');
+    }
+
+    const parentChanged = command.clientId !== undefined && command.clientId !== project.clientId;
 
     if (command.code !== undefined && command.code !== project.code) {
       const existing = await this.projectRepository.findByCode(command.code);
@@ -86,7 +99,11 @@ export class UpdateProjectUseCase {
       project.changeColor(command.color);
     }
 
-    await this.projectRepository.save(project);
+    if (parentChanged) {
+      await this.projectClientLifecycleCoordinator.saveProjectForActiveClient(project);
+    } else {
+      await this.projectRepository.save(project);
+    }
 
     return project;
   }

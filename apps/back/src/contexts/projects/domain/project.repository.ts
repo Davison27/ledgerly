@@ -11,7 +11,7 @@ export interface ProjectDashboardRow {
 }
 
 export interface ProjectRepository {
-  findAllSummaries(): Promise<ProjectSummary[]>;
+  findAllSummaries(clientId?: string): Promise<ProjectSummary[]>;
   findNamesByIds?(ids: string[]): Promise<Array<{ id: string; name: string }>>;
   findSummaryById(id: string): Promise<ProjectSummary | null>;
   findById(id: string): Promise<Project | null>;

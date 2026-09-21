@@ -29,7 +29,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
     @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
   ) {}
 
-  async findAllSummaries(): Promise<ProjectSummary[]> {
+  async findAllSummaries(clientId?: string): Promise<ProjectSummary[]> {
     const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const rows: ProjectSummaryRow[] = await this.repository.manager.query(`
       SELECT p.id, p.name, p.code, p.currency, p.status, p.image_ciphertext AS "imageCiphertext",
@@ -39,11 +39,12 @@ export class TypeOrmProjectRepository implements ProjectRepository {
         COUNT(d.id) FILTER (WHERE d.status = 'pending')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id AND d.deleted_at IS NULL
+      WHERE ($1::uuid IS NULL OR p.client_id = $1::uuid)
       GROUP BY p.id, p.name, p.code, p.currency, p.status, p.image_ciphertext, p.image_nonce, p.image_tag,
         p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
-      LIMIT $1
-    `, [limit + 1]);
+      LIMIT $2
+    `, [clientId ?? null, limit + 1]);
 
     if (rows.length > limit) throw new ListLimitExceededException(limit, 'Projects');
 

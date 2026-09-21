@@ -44,6 +44,12 @@ function assertValidBudget(budget: number | null): void {
   }
 }
 
+function assertValidClientId(clientId: string): void {
+  if (typeof clientId !== 'string' || clientId.length === 0) {
+    throw new InvalidValueException('clientId is required');
+  }
+}
+
 export interface ProjectPrimitives {
   id: string;
   name: string;
@@ -51,7 +57,7 @@ export interface ProjectPrimitives {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientId: string | null;
+  clientId: string;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -69,7 +75,7 @@ interface ProjectProps {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientId: string | null;
+  clientId: string;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -87,7 +93,7 @@ export class Project {
   private type_: ProjectType;
   private status_: ProjectStatus;
   private description_: string | null;
-  private clientId_: string | null;
+  private clientId_: string;
   private address_: string | null;
   private startDate_: string | null;
   private endDate_: string | null;
@@ -119,6 +125,7 @@ export class Project {
     assertValidType(params.type);
     assertValidStatus(params.status);
     assertValidCurrency(params.currency);
+    assertValidClientId(params.clientId);
     assertValidDate(params.startDate, 'startDate');
     assertValidDate(params.endDate, 'endDate');
     assertValidBudget(params.budget);
@@ -165,7 +172,8 @@ export class Project {
     this.description_ = description;
   }
 
-  changeClientId(clientId: string | null): void {
+  changeClientId(clientId: string): void {
+    assertValidClientId(clientId);
     this.clientId_ = clientId;
   }
 
@@ -230,7 +238,7 @@ export class Project {
     return this.description_;
   }
 
-  get clientId(): string | null {
+  get clientId(): string {
     return this.clientId_;
   }
 

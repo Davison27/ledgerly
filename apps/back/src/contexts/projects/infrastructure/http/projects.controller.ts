@@ -8,6 +8,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { ListProjectsUseCase } from '../../application/list-projects/list-projects.use-case';
@@ -23,6 +24,7 @@ import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/
 import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
 import { UnarchiveProjectUseCase } from '../../application/unarchive-project/unarchive-project.use-case';
 import { CLIENT_REPOSITORY, ClientRepository } from '../../domain/client.repository';
+import { ListProjectsQueryDto } from './dtos/list-projects.query.dto';
 
 @RequiresAccess('projects', 'view')
 @Controller('projects')
@@ -38,8 +40,8 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  async list(): Promise<ProjectSummaryResponse[]> {
-    const summaries = await this.listProjectsUseCase.execute();
+  async list(@Query() query: ListProjectsQueryDto = {}): Promise<ProjectSummaryResponse[]> {
+    const summaries = await this.listProjectsUseCase.execute(query.clientId);
 
     return summaries.map((summary) => ProjectSummaryResponse.fromSummary(summary));
   }
@@ -118,7 +120,7 @@ export class ProjectsController {
     return new UnarchiveOutcomeResponse();
   }
 
-  private resolveClient(clientId: string | null) {
-    return clientId === null ? Promise.resolve(null) : this.clientRepository.findById(clientId);
+  private resolveClient(clientId: string) {
+    return this.clientRepository.findById(clientId);
   }
 }

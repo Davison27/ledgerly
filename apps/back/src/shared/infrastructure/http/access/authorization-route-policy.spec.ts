@@ -157,8 +157,8 @@ describe('AppModule authorization route policy', () => {
     }));
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
-    expect(authorizationResourceParameterHandoffs).toHaveLength(59);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(84);
+    expect(authorizationResourceParameterHandoffs).toHaveLength(60);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(87);
   });
 
   it('omits the retired staff document upload route from every authorization inventory', () => {
@@ -185,6 +185,32 @@ describe('AppModule authorization route policy', () => {
       resourceInputs: [
         { location: 'path', key: 'projectId' },
         { location: 'body', key: 'payload.supplierId' },
+      ],
+    });
+  });
+
+  it('keeps project client ownership inputs in the reviewed authorization inventory', () => {
+    expect(authorizationRouteResourceInputPolicies).toContainEqual({
+      method: 'POST',
+      path: '/projects',
+      resourceInputs: [{ location: 'body', key: 'clientId' }],
+    });
+    expect(authorizationRouteResourceInputPolicies).toContainEqual({
+      method: 'PATCH',
+      path: '/projects/:id',
+      resourceInputs: [
+        { location: 'path', key: 'id' },
+        { location: 'body', key: 'clientId' },
+      ],
+    });
+    expect(authorizationRouteResourceInputPolicies).toContainEqual({
+      method: 'GET',
+      path: '/documents',
+      resourceInputs: [
+        { location: 'query', key: 'projectId' },
+        { location: 'query', key: 'clientId' },
+        { location: 'query', key: 'supplierId' },
+        { location: 'query', key: 'staffMemberId' },
       ],
     });
   });

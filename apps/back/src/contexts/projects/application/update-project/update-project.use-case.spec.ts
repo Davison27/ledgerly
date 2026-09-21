@@ -3,6 +3,8 @@ import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.rep
 import { Project } from '../../domain/project';
 import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
+import { ProjectClientLifecycleCoordinator } from '../../domain/project-client-lifecycle-coordinator.port';
+import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
@@ -73,6 +75,21 @@ class InMemoryProjectRepository implements ProjectRepository {
   }
 }
 
+class InMemoryProjectClientLifecycleCoordinator implements ProjectClientLifecycleCoordinator {
+  saveCalls = 0;
+
+  constructor(private readonly repository: InMemoryProjectRepository) {}
+
+  saveProjectForActiveClient(project: Project): Promise<void> {
+    this.saveCalls += 1;
+    return this.repository.save(project);
+  }
+
+  deleteOrArchiveClient(): Promise<'deleted' | 'archived'> {
+    return Promise.resolve('deleted');
+  }
+}
+
 function buildProject(overrides: { id?: string; image?: string | null } = {}): Project {
   return Project.create({
     id: overrides.id ?? 'project-1',
@@ -81,7 +98,7 @@ function buildProject(overrides: { id?: string; image?: string | null } = {}): P
     type: 'construction',
     status: 'active',
     description: null,
-    clientId: null,
+    clientId: 'client-1',
     address: null,
     startDate: null,
     endDate: null,
@@ -97,7 +114,10 @@ describe('UpdateProjectUseCase', () => {
   it('updates the project image', async () => {
     const repository = new InMemoryProjectRepository();
     await repository.save(buildProject());
-    const useCase = new UpdateProjectUseCase(repository);
+    const useCase = new UpdateProjectUseCase(
+      repository,
+      new InMemoryProjectClientLifecycleCoordinator(repository),
+    );
 
     const updated = await useCase.execute({
       id: 'project-1',
@@ -112,7 +132,10 @@ describe('UpdateProjectUseCase', () => {
   it('clears the image when explicitly set to null', async () => {
     const repository = new InMemoryProjectRepository();
     await repository.save(buildProject({ image }));
-    const useCase = new UpdateProjectUseCase(repository);
+    const useCase = new UpdateProjectUseCase(
+      repository,
+      new InMemoryProjectClientLifecycleCoordinator(repository),
+    );
 
     const updated = await useCase.execute({ id: 'project-1', image: null });
 
@@ -122,7 +145,10 @@ describe('UpdateProjectUseCase', () => {
   it('leaves the image untouched when not provided', async () => {
     const repository = new InMemoryProjectRepository();
     await repository.save(buildProject({ image }));
-    const useCase = new UpdateProjectUseCase(repository);
+    const useCase = new UpdateProjectUseCase(
+      repository,
+      new InMemoryProjectClientLifecycleCoordinator(repository),
+    );
 
     const updated = await useCase.execute({ id: 'project-1', name: 'Renamed' });
 
@@ -131,7 +157,10 @@ describe('UpdateProjectUseCase', () => {
 
   it('throws ProjectNotFoundException when the project does not exist', async () => {
     const repository = new InMemoryProjectRepository();
-    const useCase = new UpdateProjectUseCase(repository);
+    const useCase = new UpdateProjectUseCase(
+      repository,
+      new InMemoryProjectClientLifecycleCoordinator(repository),
+    );
 
     await expect(useCase.execute({ id: 'missing-id', image: null })).rejects.toThrow(
       ProjectNotFoundException,
@@ -141,12 +170,53 @@ describe('UpdateProjectUseCase', () => {
   it('changes the project color', async () => {
     const repository = new InMemoryProjectRepository();
     await repository.save(buildProject());
-    const useCase = new UpdateProjectUseCase(repository);
+    const useCase = new UpdateProjectUseCase(
+      repository,
+      new InMemoryProjectClientLifecycleCoordinator(repository),
+    );
 
     const updated = await useCase.execute({ id: 'project-1', color: 'terracotta' });
 
     expect(updated.color).toBe('terracotta');
     const stored = await repository.findById('project-1');
     expect(stored?.color).toBe('terracotta');
+  });
+
+  it('preserves the current parent when reassignment is omitted or unchanged', async () => {
+    const repository = new InMemoryProjectRepository();
+    await repository.save(buildProject());
+    const coordinator = new InMemoryProjectClientLifecycleCoordinator(repository);
+    const useCase = new UpdateProjectUseCase(repository, coordinator);
+
+    await useCase.execute({ id: 'project-1', name: 'Renamed' });
+    await useCase.execute({ id: 'project-1', clientId: 'client-1' });
+
+    expect(coordinator.saveCalls).toBe(0);
+    expect((await repository.findById('project-1'))?.clientId).toBe('client-1');
+  });
+
+  it('uses the lifecycle coordinator for an actual reassignment', async () => {
+    const repository = new InMemoryProjectRepository();
+    await repository.save(buildProject());
+    const coordinator = new InMemoryProjectClientLifecycleCoordinator(repository);
+    const useCase = new UpdateProjectUseCase(repository, coordinator);
+
+    await useCase.execute({ id: 'project-1', clientId: 'client-2' });
+
+    expect(coordinator.saveCalls).toBe(1);
+    expect((await repository.findById('project-1'))?.clientId).toBe('client-2');
+  });
+
+  it('rejects an explicit null parent before changing the project', async () => {
+    const repository = new InMemoryProjectRepository();
+    await repository.save(buildProject());
+    const coordinator = new InMemoryProjectClientLifecycleCoordinator(repository);
+    const useCase = new UpdateProjectUseCase(repository, coordinator);
+
+    await expect(useCase.execute({ id: 'project-1', clientId: null })).rejects.toBeInstanceOf(
+      InvalidValueException,
+    );
+    expect((await repository.findById('project-1'))?.clientId).toBe('client-1');
+    expect(coordinator.saveCalls).toBe(0);
   });
 });

@@ -36,9 +36,8 @@ export class CreateProjectDto {
   @IsString()
   description?: string | null;
 
-  @IsOptional()
   @IsUUID()
-  clientId?: string | null;
+  clientId: string;
 
   @IsOptional()
   @IsString()

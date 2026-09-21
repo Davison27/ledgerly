@@ -21,6 +21,7 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
   'GET /company/documents': [{ location: 'query', key: 'typeId' }],
   'GET /documents': [
     { location: 'query', key: 'projectId' },
+    { location: 'query', key: 'clientId' },
     { location: 'query', key: 'supplierId' },
     { location: 'query', key: 'staffMemberId' },
   ],
@@ -31,6 +32,7 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
   'GET /staff/:staffMemberId/documents': [{ location: 'query', key: 'typeId' }],
   'GET /tax-compliance/calendar': [{ location: 'query', key: 'projectId' }],
   'PATCH /projects/:projectId/documents/:id': [{ location: 'body', key: 'supplierId' }],
+  'PATCH /projects/:id': [{ location: 'body', key: 'clientId' }],
   'PATCH /schedule/events/:id': [
     { location: 'body', key: 'projectId' },
     { location: 'body', key: 'staffMemberIds[]' },
@@ -39,6 +41,7 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
   'POST /projects/:projectId/documents': [{ location: 'body', key: 'payload.supplierId' }],
   'POST /company/documents': [{ location: 'body', key: 'payload.typeId' }],
   'POST /projects/:projectId/equipment': [{ location: 'body', key: 'equipmentId' }],
+  'POST /projects': [{ location: 'body', key: 'clientId' }],
   'POST /schedule/events': [
     { location: 'body', key: 'projectId' },
     { location: 'body', key: 'staffMemberIds[]' },

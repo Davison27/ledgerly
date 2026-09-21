@@ -1,6 +1,7 @@
 import { ArgumentsHost, HttpStatus } from '@nestjs/common';
 import { CapacityExceededException } from '../../domain/errors/capacity-exceeded.exception';
 import { EntityNotFoundException } from '../../domain/entity-not-found.exception';
+import { ClientArchivedException } from '../../../contexts/projects/domain/errors/client-archived.exception';
 import { DomainExceptionFilter } from './domain-exception.filter';
 
 function responseDouble() {
@@ -42,6 +43,18 @@ describe('DomainExceptionFilter', () => {
     expect(response.json).toHaveBeenCalledWith({
       code: 'ENTITY_NOT_FOUND',
       message: 'Document with id missing was not found',
+    });
+  });
+
+  it('maps archived clients to a conflict response', () => {
+    const { host, response } = responseDouble();
+
+    new DomainExceptionFilter().catch(new ClientArchivedException('client-1'), host);
+
+    expect(response.status).toHaveBeenCalledWith(HttpStatus.CONFLICT);
+    expect(response.json).toHaveBeenCalledWith({
+      code: 'CLIENT_ARCHIVED',
+      message: 'Client with id client-1 is archived',
     });
   });
 });

@@ -12,6 +12,7 @@ import { AdoptEnglishControlledValues1730000007000 } from './1730000007000-Adopt
 import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from './1730000008000-NormalizeTaxIdsAndEnforceUniqueness';
 import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from './1730000009000-PreserveWorkspaceMemberAuditIdentity';
 import { RemoveProjectFiscalYear1730000010000 } from './1730000010000-RemoveProjectFiscalYear';
+import { RequireProjectClient1730000011000 } from './1730000011000-RequireProjectClient';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
@@ -25,7 +26,29 @@ const migrations: Array<new () => MigrationInterface> = [
   NormalizeTaxIdsAndEnforceUniqueness1730000008000,
   PreserveWorkspaceMemberAuditIdentity1730000009000,
   RemoveProjectFiscalYear1730000010000,
+  RequireProjectClient1730000011000,
 ];
+
+const encryptedChecks = [
+  'CHK_companies_logo_envelope',
+  'CHK_companies_logo_bounds',
+  'CHK_documents_content_envelope',
+  'CHK_documents_content_bounds',
+  'CHK_documents_content_metadata_size',
+  'CHK_equipment_image_envelope',
+  'CHK_equipment_image_bounds',
+  'CHK_equipment_documents_content_envelope',
+  'CHK_equipment_documents_content_bounds',
+  'CHK_equipment_documents_content_metadata_size',
+  'CHK_projects_image_envelope',
+  'CHK_projects_image_bounds',
+  'CHK_staff_documents_content_envelope',
+  'CHK_staff_documents_content_bounds',
+  'CHK_staff_documents_content_metadata_size',
+  'CHK_company_documents_content_envelope',
+  'CHK_company_documents_content_bounds',
+  'CHK_company_documents_content_metadata_size',
+] as const;
 
 describe('entity and migration schema parity', () => {
   let dataSource: DataSource;
@@ -118,6 +141,39 @@ describe('entity and migration schema parity', () => {
       'FK_documents_deleted_by_workspace_member',
     ]);
     expect(fiscalYearColumns).toHaveLength(0);
+  });
+
+  it('keeps project client ownership mandatory with the named relationship and index', async () => {
+    const columns: Array<{ isNullable: string }> = await dataSource.query(
+      `SELECT is_nullable AS "isNullable"
+       FROM information_schema.columns
+       WHERE table_schema = current_schema() AND table_name = 'projects' AND column_name = 'client_id'`,
+    );
+    const indexes: Array<{ name: string }> = await dataSource.query(
+      `SELECT indexname AS name FROM pg_indexes
+       WHERE schemaname = current_schema() AND indexname = 'IDX_projects_client_id'`,
+    );
+    const foreignKeys: Array<{ name: string; deleteAction: string }> = await dataSource.query(
+      `SELECT conname AS name, confdeltype AS "deleteAction"
+       FROM pg_constraint
+       WHERE connamespace = current_schema()::regnamespace AND conname = 'FK_projects_client'`,
+    );
+
+    expect(columns).toEqual([{ isNullable: 'NO' }]);
+    expect(indexes).toEqual([{ name: 'IDX_projects_client_id' }]);
+    expect(foreignKeys).toEqual([{ name: 'FK_projects_client', deleteAction: 'r' }]);
+  });
+
+  it('preserves all encrypted-envelope checks', async () => {
+    const rows: Array<{ name: string }> = await dataSource.query(
+      `SELECT conname AS name
+       FROM pg_constraint
+       WHERE connamespace = current_schema()::regnamespace AND conname = ANY($1)
+       ORDER BY conname`,
+      [encryptedChecks],
+    );
+
+    expect(rows.map((row) => row.name)).toEqual([...encryptedChecks].sort());
   });
 
 });

@@ -34,9 +34,9 @@ export class ProjectOrmEntity {
   @Column({ type: 'text', nullable: true })
   description: string | null;
 
-  @Column({ name: 'client_id', type: 'uuid', nullable: true })
+  @Column({ name: 'client_id', type: 'uuid', nullable: false })
   @ForeignKey(() => ClientOrmEntity, { name: 'FK_projects_client', onDelete: 'RESTRICT' })
-  clientId: string | null;
+  clientId: string;
 
   @Column({ type: 'varchar', length: 255, nullable: true })
   address: string | null;

@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import dataSource from '../data-source';
 import { generateDocuments } from './document-seed-data';
+import { resolveSeedProjectClientId, type SeedClientReference } from './seed-project-client';
 
 const COMPANY = {
   name: 'Ledgerly',
@@ -32,7 +33,7 @@ interface ProjectSeed {
   type: ProjectType;
   status: ProjectStatus;
   description: string | null;
-  clientKey: string | null;
+  clientKey: string;
   address: string | null;
   startDate: string | null;
   endDate: string | null;
@@ -47,6 +48,7 @@ interface ClientSeed {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  archivedAt?: string;
 }
 
 const CLIENTS: ClientSeed[] = [
@@ -78,6 +80,14 @@ const CLIENTS: ClientSeed[] = [
     contactEmail: 'lucy.fernandez@auroraconstruction.com',
     contactPhone: '+34 913 445 221',
   },
+  {
+    name: 'Archived Legacy Client LLC',
+    taxId: 'B66778899',
+    contactName: 'Oliver Grant',
+    contactEmail: 'oliver.grant@legacyclient.com',
+    contactPhone: '+34 915 000 111',
+    archivedAt: '2024-01-01T00:00:00.000Z',
+  },
 ];
 
 const PROJECTS: ProjectSeed[] = [
@@ -101,7 +111,7 @@ const PROJECTS: ProjectSeed[] = [
     type: 'internal',
     status: 'active',
     description: 'Modernization of the company logistics hub.',
-    clientKey: null,
+    clientKey: 'B12345678',
     address: null,
     startDate: '2023-09-01',
     endDate: null,
@@ -171,7 +181,7 @@ const PROJECTS: ProjectSeed[] = [
     type: 'audiovisual',
     status: 'archived',
     description: 'Corporate audiovisual production for the opening of Building B7.',
-    clientKey: null,
+    clientKey: 'B12345678',
     address: null,
     startDate: '2024-05-05',
     endDate: '2024-06-15',
@@ -185,7 +195,7 @@ const PROJECTS: ProjectSeed[] = [
     type: 'other',
     status: 'on_hold',
     description: null,
-    clientKey: null,
+    clientKey: 'A87654321',
     address: null,
     startDate: null,
     endDate: null,
@@ -257,20 +267,22 @@ async function run(): Promise<void> {
       );
     }
 
-    const clientIds = new Map<string, string>();
+    const clientIds = new Map<string, SeedClientReference>();
     for (const client of CLIENTS) {
       const clientId = randomUUID();
-      clientIds.set(client.taxId, clientId);
+      clientIds.set(client.taxId, { id: clientId, archivedAt: client.archivedAt });
       await manager.query(
-        `INSERT INTO clients (id, name, tax_id, contact_name, contact_email, contact_phone)
-         VALUES ($1, $2, $3, $4, $5, $6)`,
-        [clientId, client.name, client.taxId, client.contactName, client.contactEmail, client.contactPhone],
+        `INSERT INTO clients (id, name, tax_id, contact_name, contact_email, contact_phone, archived_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        [clientId, client.name, client.taxId, client.contactName, client.contactEmail, client.contactPhone, client.archivedAt ?? null],
       );
     }
 
     for (let p = 0; p < PROJECTS.length; p++) {
       const project = PROJECTS[p];
       const projectId = randomUUID();
+      const projectClientId = resolveSeedProjectClientId(project, clientIds);
+
       await manager.query(
         `INSERT INTO projects (
            id, name, code, type, status, description, client_id, address, start_date, end_date,
@@ -285,7 +297,7 @@ async function run(): Promise<void> {
           project.type,
           project.status,
           project.description,
-          project.clientKey === null ? null : clientIds.get(project.clientKey),
+          projectClientId,
           project.address,
           project.startDate,
           project.endDate,
