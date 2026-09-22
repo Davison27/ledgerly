@@ -137,7 +137,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
       expect(listExecute).toHaveBeenCalledTimes(1);
     });
 
-    it('forwards all filters, including projectId, supplierId and staffMemberId, to the use case', async () => {
+    it('forwards all filters, including clientId, projectId, supplierId and staffMemberId, to the use case', async () => {
       await request(httpServer)
         .get('/documents')
         .query({
@@ -149,6 +149,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
           dateTo: '2026-12-31',
           amountMin: '10',
           amountMax: '1000',
+          clientId: '00000000-0000-4000-8000-000000000010',
           projectId: 'project-1',
           supplierId: 'supplier-1',
           staffMemberId: 'staff-1',
@@ -163,6 +164,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
         dateTo: '2026-12-31',
         amountMin: 10,
         amountMax: 1000,
+        clientId: '00000000-0000-4000-8000-000000000010',
         projectId: 'project-1',
         supplierId: 'supplier-1',
         staffMemberId: 'staff-1',
@@ -187,6 +189,13 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
 
     it('rejects an invalid direction filter', async () => {
       const response = await request(httpServer).get('/documents').query({ direction: 'not-a-direction' });
+
+      expect(response.status).toBe(400);
+      expect(listExecute).not.toHaveBeenCalled();
+    });
+
+    it('rejects an invalid client filter', async () => {
+      const response = await request(httpServer).get('/documents').query({ clientId: 'not-a-uuid' });
 
       expect(response.status).toBe(400);
       expect(listExecute).not.toHaveBeenCalled();

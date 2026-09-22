@@ -180,6 +180,75 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     await expect(financialsProvider.findAll()).resolves.toEqual([]);
   });
 
+  it('filters documents through active and archived project clients with deterministic conjunction semantics', async () => {
+    const clientOneId = '00000000-0000-0000-0000-000000000301';
+    const clientTwoId = '00000000-0000-0000-0000-000000000302';
+    const projectOneId = '00000000-0000-0000-0000-000000000303';
+    const projectTwoId = '00000000-0000-0000-0000-000000000304';
+    const projectOtherId = '00000000-0000-0000-0000-000000000305';
+    const documentOneId = '00000000-0000-0000-0000-000000000306';
+    const documentTwoId = '00000000-0000-0000-0000-000000000307';
+    const otherDocumentId = '00000000-0000-0000-0000-000000000308';
+    const deletedDocumentId = '00000000-0000-0000-0000-000000000309';
+    const deletedBy = '00000000-0000-0000-0000-000000000310';
+
+    await insertClient(dataSource, clientOneId, 'B30100001');
+    await insertClient(dataSource, clientTwoId, 'B30200001');
+    await dataSource.query(
+      `INSERT INTO projects (id, name, code, type, currency, client_id)
+       VALUES
+         ($1, 'Client one project one', 'PROJECT-301', 'construction', 'EUR', $4),
+         ($2, 'Client one project two', 'PROJECT-302', 'construction', 'EUR', $4),
+         ($3, 'Client two project', 'PROJECT-303', 'construction', 'EUR', $5)`,
+      [projectOneId, projectTwoId, projectOtherId, clientOneId, clientTwoId],
+    );
+
+    const entityRepository = dataSource.getRepository(DocumentOrmEntity);
+    await entityRepository.save(
+      entityRepository.create([
+        buildListingDocument(documentOneId, projectOneId, 'Client one document one'),
+        buildListingDocument(documentTwoId, projectTwoId, 'Client one document two'),
+        buildListingDocument(otherDocumentId, projectOtherId, 'Client two document'),
+        buildListingDocument(deletedDocumentId, projectOneId, 'Deleted client one document'),
+      ]),
+    );
+    await insertWorkspaceMember(dataSource, deletedBy);
+
+    const repository = new TypeOrmDocumentRepository(
+      entityRepository,
+      createStoredFileCipher({
+        activeVersion: 'v1',
+        keys: new Map([['v1', Buffer.alloc(32, 1)]]),
+      }),
+    );
+
+    await expect(repository.findAllForListing({ clientId: clientOneId })).resolves.toEqual([
+      expect.objectContaining({ id: deletedDocumentId }),
+      expect.objectContaining({ id: documentTwoId }),
+      expect.objectContaining({ id: documentOneId }),
+    ]);
+    await expect(
+      repository.findPageForListing({ clientId: clientOneId }, { page: 2, size: 1 }),
+    ).resolves.toEqual({
+      items: [expect.objectContaining({ id: documentTwoId })],
+      total: 3,
+      page: 2,
+      size: 1,
+    });
+    await expect(
+      repository.findAllForListing({ clientId: clientOneId, projectId: projectOtherId }),
+    ).resolves.toEqual([]);
+
+    await dataSource.query(`UPDATE clients SET archived_at = CURRENT_TIMESTAMP WHERE id = $1`, [clientOneId]);
+    await expect(repository.findAllForListing({ clientId: clientOneId })).resolves.toHaveLength(3);
+
+    await expect(repository.softDelete(deletedDocumentId, deletedBy, new Date())).resolves.toBe(true);
+    await expect(repository.findAllForListing({ clientId: clientOneId })).resolves.toEqual([
+      expect.objectContaining({ id: documentTwoId }),
+      expect.objectContaining({ id: documentOneId }),
+    ]);
+  });
+
   it('archives parents that only have soft-deleted document references', async () => {
     const projectId = '00000000-0000-0000-0000-000000000121';
     const supplierId = '00000000-0000-0000-0000-000000000122';
@@ -261,6 +330,23 @@ async function selectEncryptedDocument(
   );
 
   return rows[0] ?? null;
+}
+
+function buildListingDocument(id: string, projectId: string, name: string): Partial<DocumentOrmEntity> {
+  return {
+    id,
+    projectId,
+    name,
+    type: 'invoice',
+    date: '2026-01-01',
+    amount: '100',
+    status: 'pending',
+    currency: 'EUR',
+    fileName: null,
+    mimeType: null,
+    fileSize: null,
+    direction: 'income',
+  };
 }
 
 async function selectDeletionMetadata(

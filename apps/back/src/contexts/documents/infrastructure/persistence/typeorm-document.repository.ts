@@ -361,6 +361,18 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
   ): void {
     const listFilters = filters as DocumentListFilters;
 
+    if (listFilters.clientId) {
+      queryBuilder.andWhere(
+        `EXISTS (
+          SELECT 1
+          FROM projects project_filter
+          WHERE project_filter.id = document.project_id
+            AND project_filter.client_id = :clientId
+        )`,
+        { clientId: listFilters.clientId },
+      );
+    }
+
     if (listFilters.projectId) {
       queryBuilder.andWhere('document.project_id = :projectId', { projectId: listFilters.projectId });
     }

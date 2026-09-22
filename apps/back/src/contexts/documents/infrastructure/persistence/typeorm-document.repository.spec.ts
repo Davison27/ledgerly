@@ -204,6 +204,33 @@ describe('TypeOrmDocumentRepository', () => {
     });
   });
 
+  describe('client filtering', () => {
+    it('filters documents through their project client without changing document ownership', async () => {
+      const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
+      const repository = createRepository(queryBuilder);
+
+      await repository.findAllForListing({ clientId: 'client-1' });
+
+      const clientCondition = andWhereCalls.find((call) => call.sql.includes('project_filter.client_id'));
+      expect(clientCondition).toBeDefined();
+      expect(clientCondition!.sql).toContain('project_filter.id = document.project_id');
+      expect(clientCondition!.params).toEqual({ clientId: 'client-1' });
+      expect(clientCondition!.sql).not.toContain('document.client_id');
+    });
+
+    it('keeps client and project filters as a conjunction', async () => {
+      const { queryBuilder, andWhereCalls } = createQueryBuilderStub();
+      const repository = createRepository(queryBuilder);
+
+      await repository.findAllForListing({ clientId: 'client-1', projectId: 'project-1' });
+
+      const clientCondition = andWhereCalls.find((call) => call.sql.includes('project_filter.client_id'));
+      const projectCondition = andWhereCalls.find((call) => call.sql === 'document.project_id = :projectId');
+      expect(clientCondition?.params).toEqual({ clientId: 'client-1' });
+      expect(projectCondition?.params).toEqual({ projectId: 'project-1' });
+    });
+  });
+
   describe('stored content', () => {
     it('encrypts persisted document bytes and decrypts the complete explicitly selected envelope', async () => {
       const document = buildStoredDocument();

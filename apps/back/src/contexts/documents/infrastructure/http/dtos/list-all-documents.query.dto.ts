@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsIn, IsNumber, IsOptional, IsString, Matches, Min } from 'class-validator';
+import { IsIn, IsNumber, IsOptional, IsString, IsUUID, Matches, Min } from 'class-validator';
 import { DOCUMENT_TYPES, DocumentType } from '../../../domain/document-type';
 import { DOCUMENT_STATUSES, DocumentStatus } from '../../../domain/document-status';
 import { DOCUMENT_DIRECTIONS, DocumentDirection } from '../../../domain/document-direction';
@@ -45,6 +45,10 @@ export class ListAllDocumentsQueryDto extends PageQueryDto {
   @IsOptional()
   @IsString()
   projectId?: string;
+
+  @IsOptional()
+  @IsUUID()
+  clientId?: string;
 
   @IsOptional()
   @IsString()

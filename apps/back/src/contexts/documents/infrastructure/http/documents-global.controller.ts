@@ -72,6 +72,7 @@ export class DocumentsGlobalController {
       dateTo: query.dateTo,
       amountMin: query.amountMin,
       amountMax: query.amountMax,
+      clientId: query.clientId,
       projectId: query.projectId,
       supplierId: query.supplierId,
       staffMemberId: query.staffMemberId,

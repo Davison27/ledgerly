@@ -114,7 +114,7 @@ describe('ListAllDocumentsUseCase', () => {
     expect(result[0].projectName).toBe('');
   });
 
-  it('forwards filters, including projectId and supplierId, to the repository', async () => {
+  it('forwards filters, including clientId, projectId and supplierId, to the repository', async () => {
     const documentRepository = new FakeDocumentRepository([]);
     const projectNameProvider = new FakeProjectNameProvider([]);
     const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
@@ -128,6 +128,7 @@ describe('ListAllDocumentsUseCase', () => {
       dateTo: '2026-12-31',
       amountMin: 10,
       amountMax: 1000,
+      clientId: 'client-1',
       projectId: 'project-1',
       supplierId: 'supplier-1',
     };
