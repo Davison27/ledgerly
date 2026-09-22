@@ -50,10 +50,10 @@ for prefix invalidation and a function per query that returns
 ```ts
 export const projectQueries = {
   all: ['projects'] as const,
-  list: () =>
+  list: (clientId?: string) =>
     queryOptions({
-      queryKey: ['projects', 'list'] as const,
-      queryFn: fetchProjects,
+      queryKey: ['projects', 'list', clientId ?? null] as const,
+      queryFn: () => fetchProjects(clientId),
     }),
   detail: (id: string) =>
     queryOptions({
@@ -73,7 +73,8 @@ identities on every render.
 | ----------------------------------------------------- | ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | `companyQueries`                                      | `['company']`, `['company', 'branding']`                                           | Both use a five-minute stale time. Branding is public; the singleton requires a session.       |
 | `sessionQueries`                                      | `['session', 'status']`                                                            | `staleTime: 0`; bootstrap and authenticated state must be current.                             |
-| `projectQueries`                                      | `['projects', 'list']`, `['projects', 'detail', id]`                               |                                                                                                |
+| `clientQueries`                                       | `['clients', 'list']`, `['clients', 'detail', clientId]`                            | The list includes archived clients for history and filter choices; active selectors filter them locally. |
+| `projectQueries`                                      | `['projects', 'list', clientId ?? null]`, `['projects', 'detail', id]`              | The null variant is the global list; a client ID is a scoped list.                             |
 | `supplierQueries`, `equipmentQueries`               | `['suppliers', 'list']`, `['equipment', 'list']`                                 |                                                                                                |
 | `equipmentDocumentQueries`                          | `['equipment-documents', equipmentId]`                                           | Nested encrypted PDF metadata and file actions.                                                 |
 | `extractionHintQueries`                               | `['extraction-hints', 'list']`, `['extraction-hints', 'quality']`                  |                                                                                                |
@@ -88,6 +89,26 @@ identities on every render.
 
 The `all` key is always the root for its domain and is the standard target for
 invalidations that must refresh every variation of that domain.
+
+The project hierarchy is represented by routes rather than duplicated data:
+`/companies` is the client directory, `/companies/$clientId/projects` is a
+client-scoped project list, `/projects` redirects to `/companies` for legacy
+links, and `/projects/$projectId` remains a stable project deep link. Project
+detail reads its persisted client and returns to that client's scoped list; an
+unavailable historical parent returns to the directory. Scope changes only the
+project list. Project documents, equipment, financials, and schedule sections
+remain project-based.
+
+The unscoped project query remains global. Calendar and schedule queries,
+equipment inventory and project-equipment queries, dashboard aggregates, and
+command-palette project search must continue to consume global data and must
+not inherit the current Companies directory selection.
+
+Global document list and page keys include the complete `DocumentListFiltersDto`,
+including `clientId` and `projectId`, so filtered and unfiltered results cannot
+collide. The backend applies a client filter through the owning project rather
+than a document client column. Client and project selections therefore retain
+project-based document navigation while allowing archived-client history.
 
 ## Mutations and invalidation
 
@@ -106,7 +127,10 @@ when the mutation changes their visible state:
 
 | Change                                              | Invalidate                                                   |
 | --------------------------------------------------- | ------------------------------------------------------------ |
-| Project create, update, delete, or settings change  | `projectQueries.all`                                         |
+| Client create or update                              | `clientQueries.all` and `projectQueries.all`                 |
+| Client archive, unarchive, or archive-result delete  | `clientQueries.all`, `projectQueries.all`, and `documentQueries.all` |
+| Physical client delete                               | `clientQueries.all` and `projectQueries.all`                 |
+| Project create, update, delete, unarchive, or reassignment | `projectQueries.all`, `clientQueries.all`, `documentQueries.all`, the project detail key, and the old/new scoped list keys |
 | Project-document change                             | `documentQueries.all` and `projectQueries.all`               |
 | Supplier, equipment, staff, or extraction-hint change | Its respective `all` key                                   |
 | Staff document change                               | `staffQueries.all` and `documentQueries.all` when applicable |

@@ -19,8 +19,13 @@ Foreign-key delete actions express lifecycle policy:
 
 - Composition rows cascade when their owning aggregate is deleted.
 - Historical and financial references restrict physical deletion.
-- Referenced projects, suppliers, staff members, equipment, and clients are
-  archived instead of being physically deleted.
+- Referenced projects, suppliers, staff members, and equipment are archived
+  instead of being physically deleted.
+- `projects.client_id` is mandatory and uses `FK_projects_client` with
+  `ON DELETE RESTRICT`, backed by `IDX_projects_client_id`. A client with
+  projects is archived; an unreferenced client may be physically deleted by
+  the client lifecycle operation. Client deletion never cascades or reassigns
+  projects.
 - Document audit actors are nullable, indexed `ON DELETE RESTRICT` foreign keys
   from `documents.created_by` and `documents.deleted_by` to
   `workspace_members.id`. A legacy audit UUID with no matching member is
@@ -36,6 +41,15 @@ rows, including soft-deleted rows. Operational lists, summaries, and financial
 readers apply `deleted_at IS NULL` and must not use this boundary as their
 visibility query.
 
+Project creation and an actual client reassignment lock the target client row
+in a transaction and require that client to be active. Client deletion or
+archival takes the same lock before counting project references. The lock
+serializes both operation orders: a winning assignment can be followed by
+archival, while a winning delete/archive causes a waiting assignment to return
+not-found or archived-client conflict. An update that preserves the current
+parent does not revalidate an archived client, so historical projects remain
+editable for unrelated fields.
+
 ## Derived and normalized data
 
 Do not persist values that can be derived reliably from canonical data. A
@@ -43,8 +57,16 @@ document month comes from its date. Tax occurrence identity comes from its
 stable obligation and period fields. Project equipment lease expenses are
 individual rows rather than a mutable aggregate amount.
 
-Clients are first-class records referenced by projects. Archived clients are
-kept for historical references and excluded from active selection.
+Clients are first-class records referenced by projects. Project summaries derive
+client project counts from `projects.client_id`; no counter is stored. Archived
+clients are kept for historical references, excluded from active assignment
+selectors, and remain available to historical scoped views.
+
+Documents keep `documents.project_id` as their sole ownership reference. A
+global document client filter resolves through the related project's
+`projects.client_id` using a join or `EXISTS` predicate. Combining client and
+project filters is conjunctive, and no denormalized `documents.client_id` is
+stored.
 
 Client and supplier tax IDs use one canonical representation: trim, uppercase,
 remove spaces, hyphens, and periods, and convert an empty result to `NULL`.
@@ -86,6 +108,8 @@ Database changes must prove all of the following:
 
 - Migrations apply from an empty PostgreSQL database.
 - Reversible migrations restore the preceding schema and data contract.
+- The mandatory project-client migration fails safely when an existing local
+  database still contains null parents; it does not invent a fallback client.
 - `db:verify` reports zero schema changes.
 - The dedicated database E2E suite passes, including entity parity.
 - All encrypted-envelope checks and expected foreign keys remain present.

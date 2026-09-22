@@ -1,9 +1,9 @@
 # Tenancy and company lifecycle
 
 Ledgerly currently has real authenticated workspace members but one shared
-company profile. Authentication and tenancy are deliberately separate:
-membership determines who may access the installation, while business data is
-not yet partitioned by tenant.
+installation company profile. Authentication and tenancy are deliberately
+separate: membership determines who may access the installation, while
+business data is not yet partitioned by tenant.
 
 ## Company singleton
 
@@ -20,6 +20,27 @@ colour through `buildThemeConfig()`.
 Do not add `companyId` to routes, repository signatures, entities, or domain
 commands while this model remains in place. The singleton is an architectural
 invariant, not an omitted parameter.
+
+## External clients and project ownership
+
+The projects context's `Client` aggregate and `clients` table represent an
+external organisation that contracts Ledgerly. This is a different concept
+from the installation singleton in the company context. The frontend presents
+clients in the Companies / Empresas directory, but code, API fields, and
+persistence use `client`, `clientId`, and `client_id`. A client is not a tenant,
+does not own workspace membership, and does not replace the company singleton.
+
+Every project, including projects classified as `internal`, has a non-null
+`client_id`. New projects and actual parent changes may target only active
+clients. An archived client remains the historical parent of its projects and
+is available for history and filtering, but cannot receive a new or reassigned
+project. This hierarchy must not introduce `companyId`.
+
+The client lifecycle is separate from the singleton company lifecycle. Project
+assignment and client deletion/archive use the same transactional client-row
+lock, so concurrent operations have deterministic outcomes: an unreferenced
+client may be deleted, a referenced client is archived, and no project is
+cascaded or silently reassigned.
 
 ## Startup and routing gates
 

@@ -15,7 +15,10 @@ The page has four tabs, represented by the `tab` search parameter:
 
 - **Company** edits the singleton company profile, including logo and brand
   colour. It is the canonical settings form; onboarding deliberately reuses
-  the same company concepts and translation keys.
+  the same company concepts and translation keys. It is separate from the
+  external `Client` records shown in the Companies / Empresas directory at
+  `/companies`; those records are project parents, not workspace settings or
+  tenants.
 - **Members** manages real workspace members through `/workspace/members` and
   obtains the active member from `/auth/me`.
 - **Integrations** is a frontend prototype. It has no backend context,
