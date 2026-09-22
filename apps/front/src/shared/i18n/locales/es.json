@@ -1825,6 +1825,7 @@
       "dateRange": "Fechas",
       "amountMin": "Importe mín.",
       "amountMax": "Importe máx.",
+      "allCompanies": "Todas las empresas",
       "allProjects": "Todos los proyectos",
       "allSuppliers": "Todos los proveedores",
       "more": "Más filtros",

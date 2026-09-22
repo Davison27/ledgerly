@@ -37,6 +37,7 @@ import {
   type DocumentTypeDto,
   type ProjectDocument,
 } from '@/entities/document';
+import { clientQueries } from '@/entities/client';
 import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -47,6 +48,7 @@ import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { DocumentDetail, DocumentEditModal } from '@/features/document-detail';
 import { useInitialSupplierFilter } from '../model/useInitialSupplierFilter';
+import { shouldClearProjectFilter } from '../model/documentsPage';
 import styles from './DocumentsPage.module.css';
 
 const { Text } = Typography;
@@ -83,6 +85,7 @@ export function DocumentsPage() {
   const [dateRange, setDateRange] = useState<DateRangeValue>(null);
   const [amountMin, setAmountMin] = useState<number | undefined>();
   const [amountMax, setAmountMax] = useState<number | undefined>();
+  const [clientId, setClientId] = useState<string | undefined>();
   const [projectId, setProjectId] = useState<string | undefined>();
   const [supplierId, setSupplierId] = useState<string | undefined>(useInitialSupplierFilter());
   const [page, setPage] = useState(1);
@@ -97,10 +100,21 @@ export function DocumentsPage() {
     return () => clearTimeout(handle);
   }, [searchInput]);
 
-  const { data: projects = [] } = useQuery(projectQueries.list());
+  const { data: clients = [] } = useQuery(clientQueries.list());
+  const {
+    data: projects = [],
+    isPending: projectsPending,
+    isError: projectsError,
+  } = useQuery(clientId ? projectQueries.list(clientId) : projectQueries.list());
   const { data: suppliers = [] } = useQuery(supplierQueries.list());
   const activeProjects = projects.filter((project) => project.status !== 'archived');
   const activeSuppliers = suppliers.filter((supplier) => !supplier.archivedAt);
+
+  useEffect(() => {
+    if (shouldClearProjectFilter(clientId, projectId, projects, projectsPending, projectsError)) {
+      setProjectId(undefined);
+    }
+  }, [clientId, projectId, projects, projectsError, projectsPending]);
 
   const filters: DocumentListFiltersDto = useMemo(
     () => ({
@@ -112,10 +126,11 @@ export function DocumentsPage() {
       dateTo: dateRange?.[1] ? dateRange[1].format('YYYY-MM-DD') : undefined,
       amountMin,
       amountMax,
+      clientId,
       projectId,
       supplierId,
     }),
-    [search, type, status, direction, dateRange, amountMin, amountMax, projectId, supplierId],
+    [search, type, status, direction, dateRange, amountMin, amountMax, clientId, projectId, supplierId],
   );
 
   useEffect(() => {
@@ -151,6 +166,7 @@ export function DocumentsPage() {
     Boolean(dateRange?.[0] || dateRange?.[1]),
     amountMin !== undefined,
     amountMax !== undefined,
+    clientId !== undefined,
     projectId !== undefined,
     supplierId !== undefined,
   ].filter(Boolean).length;
@@ -210,6 +226,13 @@ export function DocumentsPage() {
       onClose: () => setProjectId(undefined),
     });
   }
+  if (clientId) {
+    chips.push({
+      key: 'client',
+      label: clients.find((client) => client.id === clientId)?.name ?? clientId,
+      onClose: () => setClientId(undefined),
+    });
+  }
   if (supplierId) {
     chips.push({
       key: 'supplier',
@@ -228,6 +251,7 @@ export function DocumentsPage() {
     setDateRange(null);
     setAmountMin(undefined);
     setAmountMax(undefined);
+    setClientId(undefined);
     setProjectId(undefined);
     setSupplierId(undefined);
   };
@@ -443,7 +467,24 @@ export function DocumentsPage() {
               <Select
                 allowClear
                 showSearch
+                placeholder={t('documents.filters.allCompanies')}
+                aria-label={t('documents.filters.allCompanies')}
+                value={clientId}
+                onChange={setClientId}
+                filterOption={filterByLabel}
+                className={styles.advancedField}
+                options={clients.map((client) => ({
+                  value: client.id,
+                  label: client.archivedAt
+                    ? `${client.name} (${t('common.archivedTag')})`
+                    : client.name,
+                }))}
+              />
+              <Select
+                allowClear
+                showSearch
                 placeholder={t('documents.filters.allProjects')}
+                aria-label={t('documents.filters.allProjects')}
                 value={projectId}
                 onChange={setProjectId}
                 filterOption={filterByLabel}

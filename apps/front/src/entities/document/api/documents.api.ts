@@ -45,6 +45,7 @@ export function listAllDocuments(
     amountMin: filters.amountMin,
     amountMax: filters.amountMax,
     projectId: filters.projectId,
+    clientId: filters.clientId,
     supplierId: filters.supplierId,
     staffMemberId: filters.staffMemberId,
   });
@@ -87,6 +88,7 @@ export function listAllDocumentsPage(
     amountMin: filters.amountMin,
     amountMax: filters.amountMax,
     projectId: filters.projectId,
+    clientId: filters.clientId,
     supplierId: filters.supplierId,
     staffMemberId: filters.staffMemberId,
     page,

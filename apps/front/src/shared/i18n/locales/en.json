@@ -1821,6 +1821,7 @@
       "dateRange": "Dates",
       "amountMin": "Min amount",
       "amountMax": "Max amount",
+      "allCompanies": "All companies",
       "allProjects": "All projects",
       "allSuppliers": "All suppliers",
       "more": "More filters",

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   checkDuplicatePage,
   documentFileUrl,
+  listAllDocumentsPage,
   extractInvoice,
   listDocumentsPage,
 } from './document/api/documents.api';
@@ -53,6 +54,11 @@ describe('frontend API contracts', () => {
 
   it('serializes document filters, pagination and duplicate checks into backend routes', async () => {
     await listDocumentsPage('project-1', { search: 'Acme', amountMin: 0 }, 2, 50);
+    await listAllDocumentsPage(
+      { clientId: 'client-1', projectId: 'project-1', supplierId: 'supplier-1' },
+      2,
+      50,
+    );
     await checkDuplicatePage({ invoiceNumber: 'INV-42', amount: 123.45 }, 3, 10);
 
     expect(get).toHaveBeenNthCalledWith(
@@ -61,6 +67,10 @@ describe('frontend API contracts', () => {
     );
     expect(get).toHaveBeenNthCalledWith(
       2,
+      '/documents?projectId=project-1&clientId=client-1&supplierId=supplier-1&page=2&size=50',
+    );
+    expect(get).toHaveBeenNthCalledWith(
+      3,
       '/documents/duplicate-check?invoiceNumber=INV-42&amount=123.45&page=3&size=10',
     );
     expect(documentFileUrl('project-1', 'document-1')).toBe(

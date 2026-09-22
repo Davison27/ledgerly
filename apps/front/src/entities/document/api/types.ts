@@ -80,6 +80,7 @@ export interface DocumentListFiltersDto {
   amountMin?: number;
   amountMax?: number;
   projectId?: string;
+  clientId?: string;
   supplierId?: string;
   staffMemberId?: string;
 }
