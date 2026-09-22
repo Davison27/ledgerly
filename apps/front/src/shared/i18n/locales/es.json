@@ -1535,6 +1535,8 @@
       "duplicateCode": "Ya existe un proyecto con ese código.",
       "loadError": "No se ha podido cargar el proyecto.",
       "clientArchived": "El cliente actual está archivado",
+      "clientUnavailable": "El cliente seleccionado ya no está disponible. Actualiza la lista de clientes e inténtalo de nuevo.",
+      "clientArchivedConflict": "El cliente seleccionado está archivado. Elige un cliente activo.",
       "reassignClient": "Reasignar cliente",
       "sections": {
         "general": "General",
@@ -1682,6 +1684,64 @@
     "taxIdPlaceholder": "Ej. B12345678",
     "archived": "Cliente archivado",
     "unarchived": "Cliente desarchivado"
+  },
+  "companies": {
+    "title": "Empresas",
+    "subtitle": "Gestiona los clientes de tus proyectos.",
+    "add": "Añadir empresa",
+    "empty": "Todavía no hay empresas.",
+    "emptyHint": "Crea una empresa para organizar sus proyectos e historial.",
+    "loadError": "No se han podido cargar las empresas. Inténtalo de nuevo.",
+    "showArchived": "Mostrar archivadas",
+    "openProjects": "Abrir proyectos",
+    "projectCount_one": "{{count}} proyecto",
+    "projectCount_other": "{{count}} proyectos",
+    "noProjects": "Todavía no hay proyectos",
+    "taxId": "CIF / NIF",
+    "contact": "Contacto",
+    "noContact": "Sin datos de contacto",
+    "archivedTag": "Archivada",
+    "deleted": "Empresa eliminada",
+    "archived": "Empresa archivada",
+    "unarchived": "Empresa desarchivada",
+    "unavailable": "Esta empresa ya no está disponible.",
+    "archiveConflict": "La empresa está archivada y no puede recibir proyectos nuevos.",
+    "deleteConfirm": {
+      "title": "Eliminar empresa",
+      "content": "¿Seguro que quieres eliminar {{name}}?",
+      "archiveHint": "Las empresas con historial de proyectos se archivan en lugar de eliminarse.",
+      "ok": "Eliminar",
+      "error": "No se ha podido eliminar la empresa. Inténtalo de nuevo."
+    },
+    "form": {
+      "createTitle": "Añadir empresa",
+      "editTitle": "Modificar empresa",
+      "createSubmit": "Crear empresa",
+      "save": "Guardar cambios",
+      "created": "Empresa creada correctamente",
+      "updated": "Empresa actualizada correctamente",
+      "createError": "No se ha podido crear la empresa. Inténtalo de nuevo.",
+      "updateError": "No se ha podido actualizar la empresa. Inténtalo de nuevo.",
+      "duplicateTaxId": "Ya existe una empresa con ese CIF/NIF.",
+      "fields": {
+        "name": "Nombre",
+        "taxId": "CIF / NIF",
+        "contactName": "Persona de contacto",
+        "contactEmail": "Email de contacto",
+        "contactPhone": "Teléfono de contacto"
+      },
+      "placeholders": {
+        "name": "Ej. Estudio Acme",
+        "taxId": "Ej. B12345678",
+        "contactName": "Ej. Ada Lovelace",
+        "contactEmail": "Ej. ada@empresa.com",
+        "contactPhone": "Ej. +34 600 000 000"
+      },
+      "validation": {
+        "nameRequired": "El nombre de la empresa es obligatorio",
+        "emailInvalid": "Introduce un email válido"
+      }
+    }
   },
   "suppliers": {
     "navLabel": "Proveedores",

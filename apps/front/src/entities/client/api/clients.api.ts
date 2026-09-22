@@ -3,13 +3,14 @@ import { stripEmpty } from '@/shared/api/sanitize';
 import type {
   ClientDeletionOutcomeDto,
   ClientDto,
+  ClientSummaryDto,
   ClientUnarchiveOutcomeDto,
   CreateClientPayload,
   UpdateClientPayload,
 } from './types';
 
-export function listClients(): Promise<ClientDto[]> {
-  return get<ClientDto[]>('/clients');
+export function listClients(): Promise<ClientSummaryDto[]> {
+  return get<ClientSummaryDto[]>('/clients');
 }
 
 export function getClient(clientId: string): Promise<ClientDto> {

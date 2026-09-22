@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { updateProject, projectQueries } from '@/entities/project';
+import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { ThemeModeProvider } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { SettingsSection } from './SettingsSection';
@@ -105,5 +106,70 @@ describe('SettingsSection', () => {
     const payload = vi.mocked(updateProject).mock.calls[0]?.[1] as Record<string, unknown>;
     expect(payload.clientId).toBeUndefined();
     expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: projectQueries.all });
+  });
+
+  it('shows the required-client field error for INVALID_VALUE', async () => {
+    const user = userEvent.setup();
+    mocks.updateProject.mockRejectedValue(new ApiError(400, { code: 'INVALID_VALUE' }));
+    render(
+      <ConfigProvider>
+        <ThemeModeProvider>
+          <App>
+            <SettingsSection
+              project={{
+                id: 'project-1',
+                name: 'Project One',
+                code: 'P-001',
+                documentCount: 0,
+                pendingCount: 0,
+                color: 'terracotta',
+              }}
+              color="terracotta"
+            />
+          </App>
+        </ThemeModeProvider>
+      </ConfigProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText('El cliente actual está archivado')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    await waitFor(() => expect(screen.getByText('Selecciona un cliente')).toBeInTheDocument());
+    expect(mocks.invalidateQueries).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [404, 'ENTITY_NOT_FOUND', 'El cliente seleccionado ya no está disponible. Actualiza la lista de clientes e inténtalo de nuevo.'],
+    [409, 'CLIENT_ARCHIVED', 'El cliente seleccionado está archivado. Elige un cliente activo.'],
+  ] as const)('refreshes selector and project caches for %s/%s', async (status, code, errorMessage) => {
+    const user = userEvent.setup();
+    mocks.updateProject.mockRejectedValue(new ApiError(status, { code }));
+    render(
+      <ConfigProvider>
+        <ThemeModeProvider>
+          <App>
+            <SettingsSection
+              project={{
+                id: 'project-1',
+                name: 'Project One',
+                code: 'P-001',
+                documentCount: 0,
+                pendingCount: 0,
+                color: 'terracotta',
+              }}
+              color="terracotta"
+            />
+          </App>
+        </ThemeModeProvider>
+      </ConfigProvider>,
+    );
+
+    await waitFor(() => expect(screen.getByText('El cliente actual está archivado')).toBeInTheDocument());
+    await user.click(screen.getByRole('button', { name: 'Guardar' }));
+
+    await waitFor(() => expect(screen.getByText(errorMessage)).toBeInTheDocument());
+    expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: ['clients'] });
+    expect(mocks.invalidateQueries).toHaveBeenCalledWith({ queryKey: projectQueries.all });
+    expect(screen.queryByText('Ya existe un proyecto con ese código.')).not.toBeInTheDocument();
   });
 });

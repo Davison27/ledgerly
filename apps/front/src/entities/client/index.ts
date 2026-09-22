@@ -10,6 +10,7 @@ export type {
   ClientDeletionOutcome,
   ClientDeletionOutcomeDto,
   ClientDto,
+  ClientSummaryDto,
   ClientUnarchiveOutcomeDto,
   CreateClientPayload,
   UpdateClientPayload,
@@ -25,5 +26,6 @@ export {
   restoreClient,
   updateClient as updateClientModel,
   visibleClients,
+  parentClientError,
 } from './model/client';
-export type { Client, ClientFormValues } from './model/client';
+export type { Client, ClientFormValues, ParentClientError } from './model/client';

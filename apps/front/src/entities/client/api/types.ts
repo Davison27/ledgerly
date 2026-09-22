@@ -8,6 +8,10 @@ export interface ClientDto {
   archivedAt?: string | null;
 }
 
+export interface ClientSummaryDto extends ClientDto {
+  projectCount: number;
+}
+
 export type ClientDeletionOutcome = 'deleted' | 'archived';
 
 export interface ClientDeletionOutcomeDto {

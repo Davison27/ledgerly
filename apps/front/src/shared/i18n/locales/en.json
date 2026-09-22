@@ -1531,6 +1531,8 @@
       "duplicateCode": "A project with that code already exists.",
       "loadError": "The project could not be loaded.",
       "clientArchived": "Current client is archived",
+      "clientUnavailable": "The selected client is no longer available. Refresh the client list and try again.",
+      "clientArchivedConflict": "The selected client is archived. Choose an active client.",
       "reassignClient": "Reassign client",
       "sections": {
         "general": "General",
@@ -1678,6 +1680,64 @@
     "taxIdPlaceholder": "E.g. B12345678",
     "archived": "Client archived",
     "unarchived": "Client unarchived"
+  },
+  "companies": {
+    "title": "Companies",
+    "subtitle": "Manage the clients behind your projects.",
+    "add": "Add company",
+    "empty": "There are no companies yet.",
+    "emptyHint": "Create a company to organize its projects and history.",
+    "loadError": "Companies could not be loaded. Please try again.",
+    "showArchived": "Show archived",
+    "openProjects": "Open projects",
+    "projectCount_one": "{{count}} project",
+    "projectCount_other": "{{count}} projects",
+    "noProjects": "No projects yet",
+    "taxId": "Tax ID",
+    "contact": "Contact",
+    "noContact": "No contact details",
+    "archivedTag": "Archived",
+    "deleted": "Company deleted",
+    "archived": "Company archived",
+    "unarchived": "Company unarchived",
+    "unavailable": "This company is no longer available.",
+    "archiveConflict": "The company is archived and cannot receive new projects.",
+    "deleteConfirm": {
+      "title": "Delete company",
+      "content": "Are you sure you want to delete {{name}}?",
+      "archiveHint": "Companies with project history are archived instead of deleted.",
+      "ok": "Delete",
+      "error": "The company could not be deleted. Please try again."
+    },
+    "form": {
+      "createTitle": "Add company",
+      "editTitle": "Edit company",
+      "createSubmit": "Create company",
+      "save": "Save changes",
+      "created": "Company created successfully",
+      "updated": "Company updated successfully",
+      "createError": "The company could not be created. Please try again.",
+      "updateError": "The company could not be updated. Please try again.",
+      "duplicateTaxId": "A company with that tax ID already exists.",
+      "fields": {
+        "name": "Name",
+        "taxId": "Tax ID",
+        "contactName": "Contact person",
+        "contactEmail": "Contact email",
+        "contactPhone": "Contact phone"
+      },
+      "placeholders": {
+        "name": "E.g. Acme Studio",
+        "taxId": "E.g. B12345678",
+        "contactName": "E.g. Ada Lovelace",
+        "contactEmail": "E.g. ada@example.com",
+        "contactPhone": "E.g. +34 600 000 000"
+      },
+      "validation": {
+        "nameRequired": "Company name is required",
+        "emailInvalid": "Enter a valid email"
+      }
+    }
   },
   "suppliers": {
     "navLabel": "Suppliers",

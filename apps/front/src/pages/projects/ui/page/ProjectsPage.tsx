@@ -13,6 +13,7 @@ import {
   type Project,
   type ProjectFormValues,
 } from '@/entities/project';
+import { parentClientError } from '@/entities/client';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -126,6 +127,7 @@ export function ProjectsPage() {
       setIsFormOpen(false);
       setEditingProject(null);
     } catch (error) {
+      if (parentClientError(error)) throw error;
       if (error instanceof ApiError && error.status === 409) {
         void message.error(t('projects.form.duplicateCode'));
       } else {

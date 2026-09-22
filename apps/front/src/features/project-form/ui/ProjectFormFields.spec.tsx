@@ -73,6 +73,7 @@ describe('ProjectFormFields', () => {
       id: 'client-archived',
       name: 'Archived client',
       archivedAt: '2026-01-01T00:00:00.000Z',
+      projectCount: 1,
     };
     renderFields({ name: 'Project', code: 'P-001', type: 'client', clientId: archivedClient.id }, archivedClient);
 

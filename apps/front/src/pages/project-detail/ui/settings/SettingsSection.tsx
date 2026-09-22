@@ -4,12 +4,15 @@ import { App, Button, Flex, Form, Skeleton, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from '../../model/types';
+import { parentClientError } from '@/entities/client';
 import { projectQueries, updateProject, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import {
+  parentClientErrorMessageKey,
   ProjectFormFields,
+  refreshParentClientCaches,
   type ProjectFormFieldValues,
 } from '@/features/project-form';
 import styles from './SettingsSection.module.css';
@@ -55,36 +58,47 @@ export function SettingsSection({ project }: ProjectSectionProps) {
     });
   }, [fullProject, form]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!fullProject) return;
 
-    form
-      .validateFields()
-      .then(async (values) => {
-        const { startDate, endDate, ...rest } = values;
-        const payload = {
-          ...rest,
-          clientId: values.clientId === fullProject.clientId ? undefined : values.clientId,
-          startDate: startDate ? startDate.format('YYYY-MM-DD') : undefined,
-          endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
-          image,
-        } as ProjectFormValues;
-        setSaving(true);
-        try {
-          await updateProject(project.id, payload);
-          await queryClient.invalidateQueries({ queryKey: projectQueries.all });
-          void message.success(t('projects.settings.saved'));
-        } catch (error) {
-          if (error instanceof ApiError && error.status === 409) {
-            void message.error(t('projects.form.duplicateCode'));
-          } else {
-            void message.error(t('projects.settings.saveError'));
-          }
-        } finally {
-          setSaving(false);
-        }
-      })
-      .catch(() => {});
+    let values: ProjectFormFieldValues;
+    try {
+      values = await form.validateFields();
+    } catch {
+      return;
+    }
+
+    const { startDate, endDate, ...rest } = values;
+    const payload = {
+      ...rest,
+      clientId: values.clientId === fullProject.clientId ? undefined : values.clientId,
+      startDate: startDate ? startDate.format('YYYY-MM-DD') : undefined,
+      endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
+      image,
+    } as ProjectFormValues;
+    setSaving(true);
+    try {
+      await updateProject(project.id, payload);
+      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+      void message.success(t('projects.settings.saved'));
+    } catch (error) {
+      const mappedError = parentClientError(error);
+      if (mappedError === 'required') {
+        form.setFields([{
+          name: 'clientId',
+          errors: [t(parentClientErrorMessageKey(mappedError))],
+        }]);
+      } else if (mappedError) {
+        await refreshParentClientCaches(queryClient);
+        void message.error(t(parentClientErrorMessageKey(mappedError)));
+      } else if (error instanceof ApiError && error.status === 409) {
+        void message.error(t('projects.form.duplicateCode'));
+      } else {
+        void message.error(t('projects.settings.saveError'));
+      }
+    } finally {
+      setSaving(false);
+    }
   };
 
   if (loading || !fullProject) {
