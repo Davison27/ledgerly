@@ -81,9 +81,10 @@ and mutation conventions.
 ## Release notes are separate
 
 Release copy is static product data bundled with the frontend. The backend
-stores only each member's acknowledgement timestamp in the separate
-`release_note_acknowledgements` table; it does not create notification rows or
-events. Authenticated members of every role can read or acknowledge only their
-own release version. Repeated writes preserve the first timestamp. These
-acknowledgements do not affect the notification bell, unread count, schedulers,
-or delivery pipeline.
+stores only `(workspace_member_id, release_version, acknowledged_at)` in the
+separate `release_note_acknowledgements` table; it does not create notification
+rows or events. Every active authenticated member, including viewers, can read
+or acknowledge only their own release version. The server derives member
+identity from the authenticated request, and repeated writes preserve the first
+timestamp across sessions and devices. These acknowledgements do not affect the
+notification bell, unread count, schedulers, or delivery pipeline.

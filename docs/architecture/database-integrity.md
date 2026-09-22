@@ -31,9 +31,12 @@ Foreign-key delete actions express lifecycle policy:
   `workspace_members.id`. A legacy audit UUID with no matching member is
   normalized to `NULL`; `NULL` is the explicit unknown-actor value. Member
   removal therefore retains the membership row and its audit identity.
-- `release_note_acknowledgements` is keyed by
+- `release_note_acknowledgements` stores only
+  `(workspace_member_id, release_version, acknowledged_at)`, keyed by
   `(workspace_member_id, release_version)` with the named composite primary
-  key `PK_release_note_acknowledgements`. Its named
+  key `PK_release_note_acknowledgements`. This allows one durable
+  acknowledgement per member and release while keeping release copy in the
+  frontend's static catalogue. Its named
   `FK_release_note_acknowledgements_workspace_member` cascades only when a
   workspace member is physically deleted; normal member removal disables and
   retains the member. The named

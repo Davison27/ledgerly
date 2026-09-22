@@ -84,6 +84,7 @@ identities on every render.
 | `scheduleQueries`                                     | Board, events, and schedulable projects under `['schedule', ...]`                  |                                                                                                |
 | `dashboardQueries`                                    | `['dashboard', 'company', year ?? null]`                                           | Page aggregate; not exported outside the dashboard.                                            |
 | `notificationQueries`                                 | `['notifications', 'unread-count']`, `['notifications', 'list', size]`             | The unread count refetches every five minutes; the list is an infinite query opened on demand. |
+| `releaseNoteQueries`                                  | `['release-notes']`, `['release-notes', 'acknowledgement', version]`                | Reads the authenticated member's server-side acknowledgement for a release version.             |
 | `workspaceMemberQueries`                              | `['workspace-members', ...]`                                                       | Uses the authenticated workspace-member API.                                                   |
 | `integrationQueries`                                  | `['integrations', 'list']`                                                         | Uses in-memory fixtures; see `docs/architecture/workspace.md`.                                 |
 
@@ -137,7 +138,16 @@ when the mutation changes their visible state:
 | Calendar event or assignment change                 | `scheduleQueries.all`                                        |
 | Company settings or onboarding completion           | `companyQueries.singleton().queryKey`                        |
 | Notification state change                           | `notificationQueries.all`                                    |
+| Release acknowledgement succeeds                    | `releaseNoteQueries.acknowledgement(version).queryKey`      |
 | Workspace member or integration change              | Its respective `all` key                                     |
+
+`releaseNoteQueries.acknowledgement(version)` is consumed by the release notice
+mounted once in the authenticated `AppLayout`, using the current version from
+the bundled release registry. The server identifies the member from the
+authenticated session; the frontend does not send a member ID or keep this
+acknowledgement in browser storage. After a successful acknowledgement, the
+mutation updates the active query data and invalidates that same version key
+so the persisted server state is fetched again.
 
 ## Company singleton sentinel
 

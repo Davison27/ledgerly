@@ -203,6 +203,12 @@ changelog mismatch. The version and release entry are part of the same logical
 feature change, so release history remains synchronized with the deployed
 bundle.
 
+`pnpm verify:release` checks that the root, frontend, and backend versions
+match the registry's current and newest release versions, release records are
+ordered and valid, both locales cover exactly the registry entry IDs, and the
+checked-in `CHANGELOG.md` matches deterministic generation from the registry
+and English translations.
+
 The private deployment repository owns deployment automation.
 Its hosted CI keeps repository hygiene, lint, type checking, and production
 build checks, while the unit-test gate stays local to avoid repeating the same
