@@ -45,3 +45,55 @@ describe('TypeOrmClientRepository.save', () => {
     await expect(repository.save(buildClient())).rejects.toBe(error);
   });
 });
+
+describe('TypeOrmClientRepository.findAllSummaries', () => {
+  it('returns deterministic project counts from client references', async () => {
+    const query = jest.fn().mockResolvedValue([
+      {
+        id: 'client-1',
+        name: 'Acme SL',
+        taxId: 'B12345678',
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        archivedAt: null,
+        projectCount: 2,
+      },
+      {
+        id: 'client-2',
+        name: 'Archived SL',
+        taxId: null,
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        archivedAt: new Date('2026-09-21T10:00:00.000Z'),
+        projectCount: 1,
+      },
+    ]);
+    const repository = new TypeOrmClientRepository({ manager: { query } } as unknown as Repository<ClientOrmEntity>);
+
+    await expect(repository.findAllSummaries()).resolves.toEqual([
+      {
+        id: 'client-1',
+        name: 'Acme SL',
+        taxId: 'B12345678',
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        archivedAt: null,
+        projectCount: 2,
+      },
+      {
+        id: 'client-2',
+        name: 'Archived SL',
+        taxId: null,
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        archivedAt: '2026-09-21T10:00:00.000Z',
+        projectCount: 1,
+      },
+    ]);
+    expect(query).toHaveBeenCalledWith(expect.stringContaining('COUNT(p.id)::int'), [501]);
+  });
+});

@@ -1,4 +1,5 @@
 import { Client } from '../../domain/client';
+import { ClientSummary } from '../../domain/client-summary';
 import { ClientRepository } from '../../domain/client.repository';
 import { ClientNotFoundException } from '../../domain/errors/client-not-found.exception';
 import { ClientTaxIdAlreadyExistsException } from '../../domain/errors/client-tax-id-already-exists.exception';
@@ -9,6 +10,14 @@ class InMemoryClientRepository implements ClientRepository {
 
   findAll(): Promise<Client[]> {
     return Promise.resolve(this.clients);
+  }
+
+  findAllSummaries(): Promise<ClientSummary[]> {
+    return Promise.resolve(this.clients.map((client) => ({
+      ...client.toPrimitives(),
+      archivedAt: client.archivedAt,
+      projectCount: 0,
+    })));
   }
 
   findById(id: string): Promise<Client | null> {

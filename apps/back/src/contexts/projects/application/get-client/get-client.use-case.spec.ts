@@ -1,4 +1,5 @@
 import { Client } from '../../domain/client';
+import { ClientSummary } from '../../domain/client-summary';
 import { ClientRepository } from '../../domain/client.repository';
 import { ClientNotFoundException } from '../../domain/errors/client-not-found.exception';
 import { GetClientUseCase } from './get-client.use-case';
@@ -8,6 +9,14 @@ class InMemoryClientRepository implements ClientRepository {
 
   findAll(): Promise<Client[]> {
     return Promise.resolve(this.client === null ? [] : [this.client]);
+  }
+
+  findAllSummaries(): Promise<ClientSummary[]> {
+    return Promise.resolve(this.client === null ? [] : [{
+      ...this.client.toPrimitives(),
+      archivedAt: this.client.archivedAt,
+      projectCount: 0,
+    }]);
   }
 
   findById(): Promise<Client | null> {

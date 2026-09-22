@@ -9,6 +9,7 @@ import { ListClientsUseCase } from '../../application/list-clients/list-clients.
 import { UnarchiveClientUseCase } from '../../application/unarchive-client/unarchive-client.use-case';
 import { UpdateClientUseCase } from '../../application/update-client/update-client.use-case';
 import { ClientResponse } from './client.response';
+import { ClientSummaryResponse } from './client-summary.response';
 import { CreateClientDto } from './dtos/create-client.dto';
 import { UpdateClientDto } from './dtos/update-client.dto';
 
@@ -25,8 +26,8 @@ export class ClientsController {
   ) {}
 
   @Get()
-  async list(): Promise<ClientResponse[]> {
-    return (await this.listClientsUseCase.execute()).map((client) => ClientResponse.fromDomain(client));
+  async list(): Promise<ClientSummaryResponse[]> {
+    return (await this.listClientsUseCase.execute()).map((client) => ClientSummaryResponse.fromSummary(client));
   }
 
   @RequiresAccess('projects', 'edit')

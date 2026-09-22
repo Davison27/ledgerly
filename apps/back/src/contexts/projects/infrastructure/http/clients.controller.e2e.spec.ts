@@ -41,6 +41,57 @@ describe('ClientsController (HTTP, no DB)', () => {
     await app.close();
   });
 
+  it('returns lightweight summaries with deterministic project counts', async () => {
+    const listExecute = app.get(ListClientsUseCase).execute as jest.Mock;
+    listExecute.mockResolvedValueOnce([
+      {
+        id: '00000000-0000-0000-0000-000000000001',
+        name: 'Acme SL',
+        taxId: 'B12345678',
+        contactName: 'Ada Lovelace',
+        contactEmail: 'ada@example.com',
+        contactPhone: '+34 600 000 000',
+        archivedAt: null,
+        projectCount: 3,
+      },
+      {
+        id: '00000000-0000-0000-0000-000000000002',
+        name: 'Archived SL',
+        taxId: null,
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        archivedAt: '2026-09-21T10:00:00.000Z',
+        projectCount: 1,
+      },
+    ]);
+
+    const response = await request(httpServer).get('/clients');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([
+      {
+        id: '00000000-0000-0000-0000-000000000001',
+        name: 'Acme SL',
+        taxId: 'B12345678',
+        contactName: 'Ada Lovelace',
+        contactEmail: 'ada@example.com',
+        contactPhone: '+34 600 000 000',
+        projectCount: 3,
+      },
+      {
+        id: '00000000-0000-0000-0000-000000000002',
+        name: 'Archived SL',
+        taxId: null,
+        contactName: null,
+        contactEmail: null,
+        contactPhone: null,
+        archivedAt: '2026-09-21T10:00:00.000Z',
+        projectCount: 1,
+      },
+    ]);
+  });
+
   it('returns the locked client lifecycle outcome', async () => {
     const response = await request(httpServer).delete('/clients/00000000-0000-0000-0000-000000000001');
 

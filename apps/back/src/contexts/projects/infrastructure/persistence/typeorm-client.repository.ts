@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { QueryFailedError, Repository } from 'typeorm';
 import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
 import { Client } from '../../domain/client';
+import { ClientSummary } from '../../domain/client-summary';
 import { ClientRepository } from '../../domain/client.repository';
 import { ClientMapper } from './client.mapper';
 import { ClientOrmEntity } from './client.orm-entity';
@@ -25,6 +26,45 @@ export class TypeOrmClientRepository implements ClientRepository {
     if (rows.length > limit) throw new ListLimitExceededException(limit, 'Clients');
 
     return rows.map((row) => this.mapper.toDomain(row));
+  }
+
+  async findAllSummaries(): Promise<ClientSummary[]> {
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const rows: Array<{
+      id: string;
+      name: string;
+      taxId: string | null;
+      contactName: string | null;
+      contactEmail: string | null;
+      contactPhone: string | null;
+      archivedAt: Date | string | null;
+      projectCount: number | string;
+    }> = await this.repository.manager.query(
+      `
+      SELECT c.id, c.name, c.tax_id AS "taxId", c.contact_name AS "contactName",
+        c.contact_email AS "contactEmail", c.contact_phone AS "contactPhone",
+        c.archived_at AS "archivedAt", COUNT(p.id)::int AS "projectCount"
+      FROM clients c
+      LEFT JOIN projects p ON p.client_id = c.id
+      GROUP BY c.id, c.name, c.tax_id, c.contact_name, c.contact_email, c.contact_phone, c.archived_at
+      ORDER BY c.name ASC, c.id ASC
+      LIMIT $1
+    `,
+      [limit + 1],
+    );
+
+    if (rows.length > limit) throw new ListLimitExceededException(limit, 'Clients');
+
+    return rows.map((row) => ({
+      id: row.id,
+      name: row.name,
+      taxId: row.taxId,
+      contactName: row.contactName,
+      contactEmail: row.contactEmail,
+      contactPhone: row.contactPhone,
+      archivedAt: row.archivedAt === null ? null : new Date(row.archivedAt).toISOString(),
+      projectCount: Number(row.projectCount),
+    }));
   }
 
   async findById(id: string): Promise<Client | null> {
