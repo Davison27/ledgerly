@@ -66,6 +66,7 @@ describe('application routes', () => {
         '/companies/$clientId/projects',
         '/projects',
         '/projects/$projectId',
+        '/changelog',
       ]),
     );
   });

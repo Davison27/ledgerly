@@ -62,6 +62,36 @@
   border-top: 1px solid var(--ant-color-border-secondary);
 }
 
+.versionLink {
+  display: flex;
+  align-items: center;
+  gap: var(--lg-space-sm);
+  min-width: 0;
+  padding: var(--lg-space-xs) var(--lg-space-sm);
+  border-radius: var(--ant-border-radius);
+  color: var(--ant-color-text-secondary);
+  text-decoration: none;
+  transition:
+    color var(--lg-duration-fast) var(--lg-ease-standard),
+    background-color var(--lg-duration-fast) var(--lg-ease-standard);
+}
+
+.versionLink:hover,
+.versionLink[data-active='true'] {
+  color: var(--ant-color-primary);
+  background: color-mix(in srgb, var(--ant-color-primary) 10%, transparent);
+}
+
+.versionLink[data-collapsed='true'] {
+  justify-content: center;
+  padding-inline: 0;
+}
+
+.versionIcon {
+  flex: none;
+  font-size: var(--lg-font-size-lg);
+}
+
 .trigger {
   cursor: pointer;
   margin: calc(var(--lg-space-xs) * -1);

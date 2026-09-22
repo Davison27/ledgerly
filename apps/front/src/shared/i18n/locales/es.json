@@ -2331,6 +2331,9 @@
       "title": "Registro de cambios",
       "description": "Consulta el historial completo de versiones de Ledgerly.",
       "currentVersion": "Versión actual",
+      "versionLink": "Ledgerly v{{version}}",
+      "versionLinkLabel": "Abrir el registro de cambios de Ledgerly versión {{version}}",
+      "whatsNew": "Novedades",
       "releasedOn": "Publicado el",
       "empty": "Todavía no hay notas de versión disponibles."
     },

@@ -69,6 +69,7 @@ const EquipmentPage = withRouteFallback(lazy(() => import('@/pages/equipment').t
 const StaffPage = withRouteFallback(lazy(() => import('@/pages/staff').then(({ StaffPage }) => ({ default: StaffPage }))));
 const StaffMemberDetailPage = withRouteFallback(lazy(() => import('@/pages/staff-detail').then(({ StaffMemberDetailPage }) => ({ default: StaffMemberDetailPage }))));
 const WorkspacePage = withRouteFallback(lazy(() => import('@/pages/workspace').then(({ WorkspacePage }) => ({ default: WorkspacePage }))));
+const ChangelogPage = withRouteFallback(lazy(() => import('@/pages/changelog').then(({ ChangelogPage }) => ({ default: ChangelogPage }))));
 
 const rootRoute = createRootRoute({ component: RootLayout });
 
@@ -203,6 +204,12 @@ const workspaceRoute = createRoute({
   component: WorkspacePage,
 });
 
+const changelogRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/changelog',
+  component: ChangelogPage,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
   onboardingRoute,
@@ -220,6 +227,7 @@ const routeTree = rootRoute.addChildren([
     staffRoute,
     staffMemberDetailRoute,
     workspaceRoute,
+    changelogRoute,
   ]),
 ]);
 

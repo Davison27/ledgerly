@@ -5,6 +5,7 @@ import { type MenuProps } from 'antd';
 import {
   ApiOutlined,
   BulbOutlined,
+  HistoryOutlined,
   PoweroffOutlined,
   SafetyCertificateOutlined,
   ShopOutlined,
@@ -51,6 +52,12 @@ export function useSettingsMenuItems(): MenuProps['items'] {
             },
           ]
         : []),
+      {
+        key: 'whats-new',
+        label: t('releaseNotes.changelog.whatsNew'),
+        icon: <HistoryOutlined className={styles.menuIcon} />,
+        onClick: () => void navigate({ to: '/changelog' }),
+      },
       {
         key: 'extraction-hints',
         label: t('extractionHints.navLabel'),

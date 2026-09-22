@@ -2327,6 +2327,9 @@
       "title": "Changelog",
       "description": "Review the complete Ledgerly release history.",
       "currentVersion": "Current version",
+      "versionLink": "Ledgerly v{{version}}",
+      "versionLinkLabel": "Open the changelog for Ledgerly version {{version}}",
+      "whatsNew": "What’s new",
       "releasedOn": "Released on",
       "empty": "No release notes are available yet."
     },

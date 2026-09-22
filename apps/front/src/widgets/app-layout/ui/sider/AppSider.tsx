@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
-import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
 import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography } from 'antd';
 import {
   CalendarOutlined,
   DashboardOutlined,
   DownOutlined,
   FileTextOutlined,
+  HistoryOutlined,
   IdcardOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -15,6 +16,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { useCompany, type Company } from '@/entities/company';
+import { currentReleaseVersion } from '@/entities/release-note';
 import {
   memberInitials,
   useWorkspaceAccess,
@@ -89,6 +91,9 @@ export function AppSider({
   const { member } = useWorkspaceAccess();
   const profileLabel = member ? `${t('common.profile')}: ${member.name}` : t('common.profile');
   const settingsItems = useSettingsMenuItems();
+  const versionLinkLabel = t('releaseNotes.changelog.versionLinkLabel', {
+    version: currentReleaseVersion,
+  });
   const isSettingsRouteActive =
     pathname.startsWith('/workspace') || pathname.startsWith('/extraction-hints');
 
@@ -180,45 +185,65 @@ export function AppSider({
         />
 
         <div className={styles.footer}>
-          {collapsed ? (
-            <Flex justify="center">
+          <Flex vertical gap={SPACE.md}>
+            <Tooltip title={versionLinkLabel} placement={collapsed ? 'right' : 'top'}>
+              <Link
+                to="/changelog"
+                aria-label={versionLinkLabel}
+                aria-current={pathname === '/changelog' ? 'page' : undefined}
+                className={styles.versionLink}
+                data-collapsed={collapsed}
+                data-active={pathname === '/changelog' || undefined}
+              >
+                <HistoryOutlined className={styles.versionIcon} aria-hidden="true" />
+                {!collapsed && (
+                  <span>
+                    {t('releaseNotes.changelog.versionLink', { version: currentReleaseVersion })}
+                  </span>
+                )}
+              </Link>
+            </Tooltip>
+
+            {collapsed ? (
+              <Flex justify="center">
+                <Dropdown
+                  menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
+                  trigger={['click']}
+                >
+                  <Tooltip title={member?.name} placement="right">
+                    <button
+                      type="button"
+                      aria-label={profileLabel}
+                      className={styles.trigger}
+                      data-active={isSettingsRouteActive || undefined}
+                    >
+                      <MemberAvatar member={member} size={36} />
+                    </button>
+                  </Tooltip>
+                </Dropdown>
+              </Flex>
+            ) : (
               <Dropdown
                 menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
                 trigger={['click']}
               >
-                <Tooltip title={member?.name} placement="right">
-                  <button
-                    type="button"
-                    aria-label={profileLabel}
-                    className={styles.trigger}
-                    data-active={isSettingsRouteActive || undefined}
-                  >
-                    <MemberAvatar member={member} size={36} />
-                  </button>
-                </Tooltip>
+                <button
+                  type="button"
+                  aria-label={profileLabel}
+                  className={styles.identityRow}
+                  data-active={isSettingsRouteActive || undefined}
+                >
+                  <MemberAvatar member={member} size={36} />
+                  <span className={styles.identityDetails}>
+                    <Text strong ellipsis className={styles.identityName}>
+                      {member?.name}
+                    </Text>
+                    <DownOutlined className={styles.chevron} />
+                  </span>
+                </button>
               </Dropdown>
-            </Flex>
-          ) : (
-            <Dropdown
-              menu={{ items: settingsItems, style: { minWidth: 150, padding: 10 } }}
-              trigger={['click']}
-            >
-              <button
-                type="button"
-                aria-label={profileLabel}
-                className={styles.identityRow}
-                data-active={isSettingsRouteActive || undefined}
-              >
-                <MemberAvatar member={member} size={36} />
-                <span className={styles.identityDetails}>
-                  <Text strong ellipsis className={styles.identityName}>
-                    {member?.name}
-                  </Text>
-                  <DownOutlined className={styles.chevron} />
-                </span>
-              </button>
-            </Dropdown>
-          )}
+            )}
+          </Flex>
         </div>
       </Flex>
     </Layout.Sider>
