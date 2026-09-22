@@ -31,6 +31,7 @@ describe('database migration discovery', () => {
         '1730000009000-PreserveWorkspaceMemberAuditIdentity.ts',
         '1730000010000-RemoveProjectFiscalYear.ts',
         '1730000011000-RequireProjectClient.ts',
+        '1730000012000-CreateReleaseNoteAcknowledgements.ts',
       ].toSorted(),
     );
     expect(discoveredFiles).not.toContain('encrypted-stored-files.migration.e2e.spec.ts');
