@@ -4,7 +4,8 @@
   "testPathIgnorePatterns": [
     "/database/migrations/",
     "/typeorm-document\\.repository\\.e2e\\.spec\\.ts$",
-    "/encrypted-image-assets\\.e2e\\.spec\\.ts$"
+    "/encrypted-image-assets\\.e2e\\.spec\\.ts$",
+    "/typeorm-project-client-lifecycle-coordinator\\.e2e\\.spec\\.ts$"
   ],
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
