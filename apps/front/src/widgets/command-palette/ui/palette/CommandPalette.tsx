@@ -107,11 +107,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         onSelect: () => void navigate({ to: '/dashboard' }),
       },
       {
-        key: 'nav-projects',
+        key: 'nav-companies',
         category: 'nav',
         icon: <ProjectOutlined />,
-        label: t('nav.projects'),
-        onSelect: () => void navigate({ to: '/projects' }),
+        label: t('nav.companies'),
+        onSelect: () => void navigate({ to: '/companies' }),
       },
       {
         key: 'nav-calendar',

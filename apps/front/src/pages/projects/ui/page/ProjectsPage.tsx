@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card, Flex, Skeleton, Switch } from 'antd';
-import { PlusOutlined, ProjectOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, PlusOutlined, ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import {
   addProject,
@@ -13,7 +13,8 @@ import {
   type Project,
   type ProjectFormValues,
 } from '@/entities/project';
-import { parentClientError } from '@/entities/client';
+import { clientQueries, parentClientError } from '@/entities/client';
+import { documentQueries } from '@/entities/document';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -42,11 +43,17 @@ function ProjectCardSkeleton() {
 export function ProjectsPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { clientId } = useParams({ strict: false }) as { clientId?: string };
+  const isScoped = Boolean(clientId);
   const { message } = App.useApp();
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
   const queryClient = useQueryClient();
-  const { data: projects, isPending: projectsLoading } = useQuery(projectQueries.list());
+  const { data: parentClient, isPending: parentClientLoading, isError: parentClientLoadError } = useQuery({
+    ...clientQueries.detail(clientId ?? ''),
+    enabled: isScoped,
+  });
+  const { data: projects, isPending: projectsLoading } = useQuery(projectQueries.list(clientId));
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('projects', 'edit');
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -57,6 +64,23 @@ export function ProjectsPage() {
   const [showArchived, setShowArchived] = useState(false);
 
   const visibleProjectList = visibleProjects(projects ?? [], showArchived);
+  const clientArchived = Boolean(parentClient?.archivedAt);
+  const canCreate = canEdit && (!isScoped || (Boolean(parentClient) && !clientArchived));
+
+  const invalidateProjectViews = async (projectId?: string, oldClientId?: string, newClientId?: string) => {
+    const scopedClientIds = [...new Set([oldClientId, newClientId].filter((id): id is string => Boolean(id)))];
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: projectQueries.all }),
+      queryClient.invalidateQueries({ queryKey: clientQueries.all }),
+      queryClient.invalidateQueries({ queryKey: documentQueries.all }),
+      ...(projectId
+        ? [queryClient.invalidateQueries({ queryKey: projectQueries.detail(projectId).queryKey })]
+        : []),
+      ...scopedClientIds.map((id) =>
+        queryClient.invalidateQueries({ queryKey: projectQueries.list(id).queryKey }),
+      ),
+    ]);
+  };
 
   const handleOpen = (project: Project) => {
     void navigate({
@@ -88,7 +112,7 @@ export function ProjectsPage() {
     try {
       const outcome = await removeProject(project.id);
       void message.success(t(projectDeletionMessageKey(outcome)));
-      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+      await invalidateProjectViews(project.id, clientId);
     } catch {
       void message.error(t('projects.deleteConfirm.error'));
     } finally {
@@ -101,7 +125,7 @@ export function ProjectsPage() {
     try {
       await unarchiveProject(project.id);
       void message.success(t('projects.unarchived'));
-      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+      await invalidateProjectViews(project.id, clientId);
     } catch {
       void message.error(t('projects.deleteConfirm.error'));
     } finally {
@@ -123,7 +147,11 @@ export function ProjectsPage() {
         await addProject(values);
         void message.success(t('projects.form.created'));
       }
-      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+      await invalidateProjectViews(
+        editingProject?.id,
+        editingProject?.clientId,
+        values.clientId,
+      );
       setIsFormOpen(false);
       setEditingProject(null);
     } catch (error) {
@@ -138,13 +166,65 @@ export function ProjectsPage() {
     }
   };
 
+  if (isScoped && parentClientLoadError) {
+    return (
+        <PageContainer>
+          <PageHeader
+            title={(
+              <Flex align="center" gap={8}>
+                <Button
+                  type="text"
+                  icon={<ArrowLeftOutlined />}
+                  onClick={() => void navigate({ to: '/companies' })}
+                  aria-label={t('companies.back')}
+                >
+                  {t('companies.back')}
+                </Button>
+                <span>{t('projects.title')}</span>
+              </Flex>
+            )}
+          />
+          <EmptyHint
+            icon={<ProjectOutlined />}
+            title={t('companies.notFound')}
+          />
+        </PageContainer>
+      );
+  }
+
+  if (isScoped && parentClientLoading) {
+    return (
+      <PageContainer>
+        <div className={styles.grid}>
+          {Array.from({ length: SKELETON_CARD_COUNT }).map((_, index) => (
+            <ProjectCardSkeleton key={index} />
+          ))}
+        </div>
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer>
       <PageHeader
-        title={t('projects.title')}
-        subtitle={t('projects.subtitle')}
+        title={(
+          <Flex align="center" gap={8}>
+            {isScoped ? (
+              <Button
+                type="text"
+                icon={<ArrowLeftOutlined />}
+                onClick={() => void navigate({ to: '/companies' })}
+                aria-label={t('companies.back')}
+              >
+                {t('companies.back')}
+              </Button>
+            ) : null}
+            <span>{isScoped && parentClient ? `${t('projects.title')} · ${parentClient.name}` : t('projects.title')}</span>
+          </Flex>
+        )}
+        subtitle={isScoped ? t('projects.subtitle') : t('projects.subtitle')}
         actions={
-          canEdit ? (
+          canCreate ? (
             <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
               {t('common.add')}
             </Button>
@@ -163,7 +243,7 @@ export function ProjectsPage() {
           icon={<ProjectOutlined />}
           title={t('projects.empty')}
           action={
-            canEdit ? (
+            canCreate ? (
               <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>
                 {t('common.add')}
               </Button>
@@ -207,6 +287,8 @@ export function ProjectsPage() {
       <ProjectFormModal
         open={isFormOpen}
         project={editingProject}
+        scopedClientId={!editingProject && isScoped ? clientId : undefined}
+        scopedClientName={!editingProject ? parentClient?.name : undefined}
         onCancel={handleFormCancel}
         onSubmit={handleSubmit}
       />

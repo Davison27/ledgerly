@@ -166,7 +166,7 @@ export function DashboardPage() {
                 </Flex>
               }
             >
-              <Button type="primary" onClick={() => void navigate({ to: '/projects' })}>
+              <Button type="primary" onClick={() => void navigate({ to: '/companies' })}>
                 {t('dashboard.empty.cta')}
               </Button>
             </Empty>

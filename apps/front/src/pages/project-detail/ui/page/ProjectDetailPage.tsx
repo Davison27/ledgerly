@@ -1,14 +1,16 @@
-import { useParams } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { Avatar, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
+import { Avatar, Button, Flex, Segmented, Skeleton, Typography, theme } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import { projectQueries } from '@/entities/project';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { DetailPageHeader } from '@/shared/ui/DetailPageHeader';
+import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { useProjectDetailSection, type ProjectDetailSection } from '../../model/useProjectDetailSection';
+import { projectClientProjectsPath } from '../../model/projectHierarchy';
 import { DocumentsSection } from '../documents/DocumentsSection';
 import { DashboardSection } from '../dashboard/DashboardSection';
 import { ScheduleSection } from '../schedule/ScheduleSection';
@@ -24,6 +26,7 @@ const { useToken } = theme;
 export function ProjectDetailPage() {
   const { token } = useToken();
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
   const {
     data: project,
@@ -55,6 +58,24 @@ export function ProjectDetailPage() {
     );
   }
 
+  if (!project.client) {
+    return (
+      <PageContainer>
+        <EmptyHint
+          icon={<ProjectOutlined />}
+          title={t('projects.hierarchyUnavailable')}
+          action={(
+            <Button type="primary" onClick={() => void navigate({ to: '/companies' })}>
+              {t('projects.hierarchyUnavailableAction')}
+            </Button>
+          )}
+        />
+      </PageContainer>
+    );
+  }
+
+  const projectParentPath = projectClientProjectsPath(project);
+
   const options = [
     { label: t('projects.sections.documents'), value: 'documents' as const },
     { label: t('projects.sections.equipment'), value: 'equipment' as const },
@@ -77,8 +98,8 @@ export function ProjectDetailPage() {
   return (
     <Flex vertical className={styles.page}>
       <DetailPageHeader
-        backTo="/projects"
-        backLabel={t('projects.back')}
+        backTo={projectParentPath ?? '/companies'}
+        backLabel={t('projects.backToCompanies')}
         avatar={avatar}
         title={project.name}
         subtitle={project.code}

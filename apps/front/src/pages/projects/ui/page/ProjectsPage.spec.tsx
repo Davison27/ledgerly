@@ -2,15 +2,16 @@ import { App } from 'antd';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { useNavigate } from '@tanstack/react-router';
+import { useNavigate, useParams } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { removeProject } from '@/entities/project';
+import { projectQueries, removeProject } from '@/entities/project';
+import { clientQueries } from '@/entities/client';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectsPage } from './ProjectsPage';
 
 vi.mock('@tanstack/react-query', () => ({ useQuery: vi.fn(), useQueryClient: vi.fn() }));
-vi.mock('@tanstack/react-router', () => ({ useNavigate: vi.fn() }));
+vi.mock('@tanstack/react-router', () => ({ useNavigate: vi.fn(), useParams: vi.fn() }));
 vi.mock('@/entities/project', () => ({
   projectQueries: { list: vi.fn(), all: ['projects'] },
   addProject: vi.fn(),
@@ -18,6 +19,14 @@ vi.mock('@/entities/project', () => ({
   removeProject: vi.fn(),
   unarchiveProject: vi.fn(),
 }));
+vi.mock('@/entities/client', () => ({
+  clientQueries: {
+    all: ['clients'],
+    detail: vi.fn(() => ({ queryKey: ['clients', 'detail'] })),
+  },
+  parentClientError: vi.fn(() => null),
+}));
+vi.mock('@/entities/document', () => ({ documentQueries: { all: ['documents'] } }));
 vi.mock('@/entities/workspace-member', () => ({ useWorkspaceAccess: vi.fn() }));
 vi.mock('@/shared/lib/theme-mode/ThemeModeProvider', () => ({ useThemeMode: vi.fn() }));
 vi.mock('@/shared/ui/PageContainer', () => ({ PageContainer: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
@@ -48,6 +57,7 @@ describe('ProjectsPage', () => {
 
   beforeEach(() => {
     vi.mocked(useNavigate).mockReturnValue(navigate as never);
+    vi.mocked(useParams).mockReturnValue({} as never);
     vi.mocked(useQueryClient).mockReturnValue({} as never);
     vi.mocked(useThemeMode).mockReturnValue({ mode: 'light' } as never);
     vi.mocked(useWorkspaceAccess).mockReturnValue({ canAccess: () => true } as never);
@@ -97,5 +107,48 @@ describe('ProjectsPage', () => {
       expect(screen.getByText('Proyecto archivado')).toBeInTheDocument();
     });
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['projects'] });
+  });
+
+  it('loads a client-scoped list and exposes a hierarchy back action', async () => {
+    vi.mocked(useParams).mockReturnValue({ clientId: 'client-1' } as never);
+    vi.mocked(clientQueries.detail).mockReturnValue({ queryKey: ['clients', 'detail', 'client-1'] } as never);
+    vi.mocked(projectQueries.list).mockImplementation((clientId?: string) => ({
+      queryKey: ['projects', 'list', clientId ?? null],
+    }) as never);
+    vi.mocked(useQuery).mockImplementation((options) => {
+      const queryKey = (options as { queryKey?: unknown[] } | undefined)?.queryKey;
+      if (queryKey?.[0] === 'clients') {
+        return { isPending: false, isError: false, data: { id: 'client-1', name: 'Acme', archivedAt: null } } as never;
+      }
+      return { isPending: false, isError: false, data: [] } as never;
+    });
+
+    render(<ProjectsPage />);
+
+    expect(projectQueries.list).toHaveBeenCalledWith('client-1');
+    expect(screen.getByRole('button', { name: 'Volver a empresas' })).toBeInTheDocument();
+    expect(screen.getByText('Proyectos · Acme')).toBeInTheDocument();
+
+    await userEvent.setup().click(screen.getByRole('button', { name: 'Volver a empresas' }));
+    expect(navigate).toHaveBeenCalledWith({ to: '/companies' });
+  });
+
+  it('keeps creation unavailable for archived client history', () => {
+    vi.mocked(useParams).mockReturnValue({ clientId: 'client-archived' } as never);
+    vi.mocked(clientQueries.detail).mockReturnValue({ queryKey: ['clients', 'detail', 'client-archived'] } as never);
+    vi.mocked(projectQueries.list).mockImplementation((clientId?: string) => ({
+      queryKey: ['projects', 'list', clientId ?? null],
+    }) as never);
+    vi.mocked(useQuery).mockImplementation((options) => {
+      const queryKey = (options as { queryKey?: unknown[] } | undefined)?.queryKey;
+      if (queryKey?.[0] === 'clients') {
+        return { isPending: false, isError: false, data: { id: 'client-archived', name: 'Legacy', archivedAt: '2026-01-01' } } as never;
+      }
+      return { isPending: false, isError: false, data: [] } as never;
+    });
+
+    render(<ProjectsPage />);
+
+    expect(screen.queryByRole('button', { name: 'Añadir' })).not.toBeInTheDocument();
   });
 });

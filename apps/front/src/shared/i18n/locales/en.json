@@ -528,6 +528,7 @@
   "nav": {
     "dashboard": "Dashboard",
     "projects": "Projects",
+    "companies": "Companies",
     "calendar": "Calendar",
     "documents": "Documents",
     "suppliers": "Suppliers",
@@ -551,7 +552,7 @@
     "empty": {
       "title": "There's no data to show yet",
       "description": "Create your first project and add documents to see your company's statistics here.",
-      "cta": "Create project"
+      "cta": "Manage companies"
     },
     "topProjects": {
       "title": "Top projects",
@@ -1187,6 +1188,9 @@
     "subtitle": "Select a project to continue",
     "notFound": "Project not found",
     "back": "Back to projects",
+    "backToCompanies": "Back to companies",
+    "hierarchyUnavailable": "This project's company is no longer available.",
+    "hierarchyUnavailableAction": "Back to companies",
     "empty": "There are no projects yet.",
     "card": {
       "profit": "Net profit",
@@ -1688,6 +1692,8 @@
     "empty": "There are no companies yet.",
     "emptyHint": "Create a company to organize its projects and history.",
     "loadError": "Companies could not be loaded. Please try again.",
+    "notFound": "Company not found",
+    "back": "Back to companies",
     "showArchived": "Show archived",
     "openProjects": "Open projects",
     "projectCount_one": "{{count}} project",

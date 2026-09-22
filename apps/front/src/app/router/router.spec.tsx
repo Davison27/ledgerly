@@ -1,7 +1,7 @@
 import { act, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/shared/i18n';
-import { RouteFallback } from './router';
+import { router, RouteFallback } from './router';
 
 describe('RouteFallback', () => {
   beforeEach(() => {
@@ -55,5 +55,18 @@ describe('RouteFallback', () => {
 
     expect(clearTimeoutSpy).toHaveBeenCalledOnce();
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
+  });
+});
+
+describe('application routes', () => {
+  it('keeps hierarchy and compatibility paths registered', () => {
+    expect(Object.keys(router.routesByPath)).toEqual(
+      expect.arrayContaining([
+        '/companies',
+        '/companies/$clientId/projects',
+        '/projects',
+        '/projects/$projectId',
+      ]),
+    );
   });
 });

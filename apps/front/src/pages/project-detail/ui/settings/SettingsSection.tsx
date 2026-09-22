@@ -4,7 +4,8 @@ import { App, Button, Flex, Form, Skeleton, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from '../../model/types';
-import { parentClientError } from '@/entities/client';
+import { clientQueries, parentClientError } from '@/entities/client';
+import { documentQueries } from '@/entities/document';
 import { projectQueries, updateProject, type ProjectFormValues } from '@/entities/project';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
@@ -79,7 +80,18 @@ export function SettingsSection({ project }: ProjectSectionProps) {
     setSaving(true);
     try {
       await updateProject(project.id, payload);
-      await queryClient.invalidateQueries({ queryKey: projectQueries.all });
+      const scopedClientIds = [...new Set(
+        [fullProject.clientId, values.clientId].filter((id): id is string => Boolean(id)),
+      )];
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: projectQueries.all }),
+        queryClient.invalidateQueries({ queryKey: projectQueries.detail(project.id).queryKey }),
+        queryClient.invalidateQueries({ queryKey: clientQueries.all }),
+        queryClient.invalidateQueries({ queryKey: documentQueries.all }),
+        ...scopedClientIds.map((clientId) =>
+          queryClient.invalidateQueries({ queryKey: projectQueries.list(clientId).queryKey }),
+        ),
+      ]);
       void message.success(t('projects.settings.saved'));
     } catch (error) {
       const mappedError = parentClientError(error);

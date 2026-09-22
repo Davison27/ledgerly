@@ -102,6 +102,8 @@ interface ProjectFormFieldsProps {
   colorSeed?: string;
   canEdit?: boolean;
   currentClient?: Client | null;
+  lockedClientId?: string;
+  lockedClientName?: string;
 }
 
 export function ProjectFormFields({
@@ -110,6 +112,8 @@ export function ProjectFormFields({
   colorSeed,
   canEdit = true,
   currentClient = null,
+  lockedClientId,
+  lockedClientName,
 }: ProjectFormFieldsProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
@@ -120,6 +124,7 @@ export function ProjectFormFields({
   const archivedParentSelected = Boolean(
     currentClient?.archivedAt && selectedClientId === currentClient.id,
   );
+  const clientSelectionLocked = Boolean(lockedClientId);
 
   useEffect(() => {
     setReassigningArchivedClient(false);
@@ -255,8 +260,15 @@ export function ProjectFormFields({
                   loading={clientField.clientsPending}
                   optionFilterProp="label"
                   placeholder={t('projects.form.placeholders.client')}
-                  disabled={archivedParentSelected && !reassigningArchivedClient}
+                  disabled={clientSelectionLocked || (archivedParentSelected && !reassigningArchivedClient)}
                   options={[
+                    ...(lockedClientId
+                      ? [{
+                          value: lockedClientId,
+                          label: lockedClientName ?? lockedClientId,
+                          disabled: true,
+                        }]
+                      : []),
                     ...(archivedParentSelected && currentClient
                       ? [{
                           value: currentClient.id,
@@ -264,7 +276,7 @@ export function ProjectFormFields({
                           disabled: true,
                         }]
                       : []),
-                    ...clientField.clients.map((client) => ({
+                    ...clientField.clients.filter((client) => client.id !== lockedClientId).map((client) => ({
                       value: client.id,
                       label: client.taxId ? `${client.name} · ${client.taxId}` : client.name,
                     })),
@@ -277,15 +289,17 @@ export function ProjectFormFields({
                   {t('projects.form.reassignClient')}
                 </Button>
               )}
-              <Button
-                type="default"
-                icon={<PlusOutlined />}
-                aria-label={t('clients.create')}
-                disabled={!canEdit}
-                onClick={clientField.openCreate}
-              >
-                {t('clients.create')}
-              </Button>
+              {!clientSelectionLocked ? (
+                <Button
+                  type="default"
+                  icon={<PlusOutlined />}
+                  aria-label={t('clients.create')}
+                  disabled={!canEdit}
+                  onClick={clientField.openCreate}
+                >
+                  {t('clients.create')}
+                </Button>
+              ) : null}
             </Flex>
           </Form.Item>
         </Col>

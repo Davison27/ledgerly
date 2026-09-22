@@ -24,7 +24,11 @@ vi.mock('../model/useProjectClientField', () => ({
   useProjectClientField: () => clientField,
 }));
 
-function renderFields(initialValues?: Partial<ProjectFormFieldValues>, currentClient?: Client | null) {
+function renderFields(
+  initialValues?: Partial<ProjectFormFieldValues>,
+  currentClient?: Client | null,
+  lockedClient?: { id: string; name: string },
+) {
   const onFinish = vi.fn();
   render(
     <ConfigProvider>
@@ -39,6 +43,8 @@ function renderFields(initialValues?: Partial<ProjectFormFieldValues>, currentCl
               image={null}
               onImageChange={vi.fn()}
               currentClient={currentClient}
+              lockedClientId={lockedClient?.id}
+              lockedClientName={lockedClient?.name}
             />
             <button type="submit">Submit project</button>
           </Form>
@@ -84,5 +90,17 @@ describe('ProjectFormFields', () => {
     await user.click(screen.getByRole('button', { name: 'Reasignar cliente' }));
 
     expect(document.querySelector('.ant-select-disabled')).toBeNull();
+  });
+
+  it('locks the route client during scoped creation', () => {
+    renderFields(
+      { name: 'Project', code: 'P-001', type: 'client', clientId: 'client-scoped' },
+      null,
+      { id: 'client-scoped', name: 'Scoped client' },
+    );
+
+    expect(document.querySelector('.ant-select-disabled')).not.toBeNull();
+    expect(screen.getByText('Scoped client')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Crear cliente' })).not.toBeInTheDocument();
   });
 });

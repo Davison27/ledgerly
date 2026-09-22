@@ -1,4 +1,4 @@
-import { del, get, patch, post } from '@/shared/api/httpClient';
+import { buildQueryString, del, get, patch, post } from '@/shared/api/httpClient';
 import { stripEmpty } from '@/shared/api/sanitize';
 import type {
   CreateProjectPayload,
@@ -9,8 +9,8 @@ import type {
   ProjectUnarchiveOutcomeDto,
 } from './types';
 
-export function listProjects(): Promise<ProjectSummaryDto[]> {
-  return get<ProjectSummaryDto[]>('/projects');
+export function listProjects(clientId?: string): Promise<ProjectSummaryDto[]> {
+  return get<ProjectSummaryDto[]>(`/projects${buildQueryString({ clientId })}`);
 }
 
 export function getProject(id: string): Promise<ProjectDto> {

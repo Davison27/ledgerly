@@ -1,4 +1,5 @@
 import type { ClientSummaryDto } from '@/entities/client';
+import { useNavigate } from '@tanstack/react-router';
 import { CompaniesPage as CompaniesPageView } from '../ui/page/CompaniesPage';
 import { useCompaniesPage } from './useCompaniesPage';
 
@@ -7,5 +8,13 @@ export interface CompaniesPageContainerProps {
 }
 
 export function CompaniesPageContainer({ onOpenClient }: CompaniesPageContainerProps) {
-  return <CompaniesPageView model={useCompaniesPage({ onOpenClient })} />;
+  const navigate = useNavigate();
+  const handleOpenClient = onOpenClient ?? ((client: ClientSummaryDto) => {
+    void navigate({
+      to: '/companies/$clientId/projects',
+      params: { clientId: client.id },
+    });
+  });
+
+  return <CompaniesPageView model={useCompaniesPage({ onOpenClient: handleOpenClient })} />;
 }

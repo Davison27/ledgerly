@@ -16,11 +16,20 @@ import styles from './ProjectFormModal.module.css';
 interface ProjectFormModalProps {
   open: boolean;
   project?: Project | null;
+  scopedClientId?: string;
+  scopedClientName?: string;
   onCancel: () => void;
   onSubmit: (values: ProjectFormValues) => void | Promise<void>;
 }
 
-export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectFormModalProps) {
+export function ProjectFormModal({
+  open,
+  project,
+  scopedClientId,
+  scopedClientName,
+  onCancel,
+  onSubmit,
+}: ProjectFormModalProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
@@ -49,9 +58,12 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
       setImage(project.image);
     } else {
       form.resetFields();
+      if (scopedClientId) {
+        form.setFieldValue('clientId', scopedClientId);
+      }
       setImage(undefined);
     }
-  }, [open, project, form]);
+  }, [open, project, scopedClientId, form]);
 
   const handleCancel = () => {
     form.resetFields();
@@ -129,6 +141,8 @@ export function ProjectFormModal({ open, project, onCancel, onSubmit }: ProjectF
           onImageChange={setImage}
           colorSeed={project?.id}
           currentClient={project?.client ?? null}
+          lockedClientId={!project ? scopedClientId : undefined}
+          lockedClientName={!project ? scopedClientName : undefined}
         />
       </Form>
     </Modal>

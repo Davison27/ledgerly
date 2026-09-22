@@ -3,6 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import {
   addClient,
   removeClient,
@@ -16,6 +17,7 @@ import type { CompaniesPageModel } from '../../model/useCompaniesPage';
 import { CompaniesPage as CompaniesPageView } from './CompaniesPage';
 
 vi.mock('@tanstack/react-query', () => ({ useQuery: vi.fn(), useQueryClient: vi.fn() }));
+vi.mock('@tanstack/react-router', () => ({ useNavigate: vi.fn() }));
 vi.mock('@/entities/client', () => ({
   addClient: vi.fn(),
   clientQueries: {
@@ -63,6 +65,7 @@ describe('CompaniesPage', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(useNavigate).mockReturnValue(vi.fn() as never);
     vi.mocked(useWorkspaceAccess).mockReturnValue({ canAccess: () => true } as never);
     vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries, fetchQuery } as never);
     vi.mocked(useQuery).mockReturnValue({ isPending: false, isError: false, data: clients } as never);
@@ -172,7 +175,7 @@ describe('CompaniesPage', () => {
     await user.click(screen.getByRole('switch', { name: 'Mostrar archivadas' }));
     await user.click(screen.getByRole('button', { name: 'Modificar: Active client' }));
     expect(fetchQuery).toHaveBeenCalledWith({ queryKey: ['clients', 'detail', 'client-active'] });
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
 
     await user.click(screen.getByRole('button', { name: 'Desarchivar' }));
     await waitFor(() => expect(restoreClient).toHaveBeenCalledWith('client-archived'));

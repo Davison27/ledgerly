@@ -50,7 +50,7 @@ describe('DashboardPage', () => {
     expect(screen.queryByRole('button', { name: 'Crear proyecto' })).not.toBeInTheDocument();
   });
 
-  it('takes an empty workspace to projects from the empty-state action', async () => {
+  it('takes an empty workspace to companies from the empty-state action', async () => {
     const user = userEvent.setup();
     vi.mocked(useQuery).mockReturnValue({
       isPending: false,
@@ -58,7 +58,7 @@ describe('DashboardPage', () => {
       data: { projectCount: 0, totalDocuments: 0, year: 2026, availableYears: [2026] },
     } as never);
     render(<DashboardPage />);
-    await user.click(screen.getByRole('button', { name: 'Crear proyecto' }));
-    expect(navigate).toHaveBeenCalledWith({ to: '/projects' });
+    await user.click(screen.getByRole('button', { name: 'Gestionar empresas' }));
+    expect(navigate).toHaveBeenCalledWith({ to: '/companies' });
   });
 });

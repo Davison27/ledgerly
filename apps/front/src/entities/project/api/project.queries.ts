@@ -3,10 +3,10 @@ import { fetchProject, fetchProjects } from '../model/project';
 
 export const projectQueries = {
   all: ['projects'] as const,
-  list: () =>
+  list: (clientId?: string) =>
     queryOptions({
-      queryKey: ['projects', 'list'] as const,
-      queryFn: fetchProjects,
+      queryKey: ['projects', 'list', clientId ?? null] as const,
+      queryFn: () => fetchProjects(clientId),
     }),
   detail: (id: string) =>
     queryOptions({

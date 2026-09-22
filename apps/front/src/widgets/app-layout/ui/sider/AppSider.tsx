@@ -31,7 +31,7 @@ const { Text } = Typography;
 
 type NavKey =
   | 'dashboard'
-  | 'projects'
+  | 'companies'
   | 'calendar'
   | 'documents'
   | 'suppliers'
@@ -41,7 +41,7 @@ type NavKey =
 function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
   if (pathname.startsWith('/documents')) return 'documents';
-  if (pathname.startsWith('/projects')) return 'projects';
+  if (pathname.startsWith('/companies') || pathname.startsWith('/projects')) return 'companies';
   if (pathname.startsWith('/calendar')) return 'calendar';
   if (pathname.startsWith('/suppliers')) return 'suppliers';
   if (pathname.startsWith('/equipment')) return 'equipment';
@@ -101,10 +101,10 @@ export function AppSider({
         onClick: () => void navigate({ to: '/dashboard' }),
       },
       {
-        key: 'projects' satisfies NavKey,
+        key: 'companies' satisfies NavKey,
         icon: <ProjectOutlined />,
-        label: t('nav.projects'),
-        onClick: () => void navigate({ to: '/projects' }),
+        label: t('nav.companies'),
+        onClick: () => void navigate({ to: '/companies' }),
       },
       {
         key: 'calendar' satisfies NavKey,

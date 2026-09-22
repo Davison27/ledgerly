@@ -24,9 +24,17 @@ vi.mock('@/entities/project', async (importOriginal) => ({
   projectQueries: {
     all: ['projects'],
     detail: vi.fn(() => ({ queryKey: ['projects', 'detail', 'project-1'] })),
+    list: vi.fn((clientId?: string) => ({ queryKey: ['projects', 'list', clientId ?? null] })),
   },
   updateProject: mocks.updateProject,
 }));
+
+vi.mock('@/entities/client', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/entities/client')>()),
+  clientQueries: { all: ['clients'] },
+}));
+
+vi.mock('@/entities/document', () => ({ documentQueries: { all: ['documents'] } }));
 
 vi.mock('@/entities/workspace-member', () => ({
   useWorkspaceAccess: vi.fn(),

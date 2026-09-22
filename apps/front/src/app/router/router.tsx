@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
-import { createRootRoute, createRoute, createRouter } from '@tanstack/react-router';
+import { createRootRoute, createRoute, createRouter, Navigate } from '@tanstack/react-router';
 import { Flex, Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
 
@@ -58,6 +58,7 @@ function withRouteFallback(Component: ComponentType) {
 }
 
 const DashboardPage = withRouteFallback(lazy(() => import('@/pages/dashboard').then(({ DashboardPage }) => ({ default: DashboardPage }))));
+const CompaniesPage = withRouteFallback(lazy(() => import('@/pages/companies').then(({ CompaniesPage }) => ({ default: CompaniesPage }))));
 const ProjectsPage = withRouteFallback(lazy(() => import('@/pages/projects').then(({ ProjectsPage }) => ({ default: ProjectsPage }))));
 const ProjectDetailPage = withRouteFallback(lazy(() => import('@/pages/project-detail').then(({ ProjectDetailPage }) => ({ default: ProjectDetailPage }))));
 const CalendarPage = withRouteFallback(lazy(() => import('@/pages/calendar').then(({ CalendarPage }) => ({ default: CalendarPage }))));
@@ -108,10 +109,22 @@ const dashboardRoute = createRoute({
   component: DashboardPage,
 });
 
+const companiesRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/companies',
+  component: CompaniesPage,
+});
+
+const companyProjectsRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/companies/$clientId/projects',
+  component: ProjectsPage,
+});
+
 const projectsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/projects',
-  component: ProjectsPage,
+  component: () => <Navigate to="/companies" replace />,
 });
 
 const projectDetailRoute = createRoute({
@@ -195,6 +208,8 @@ const routeTree = rootRoute.addChildren([
   onboardingRoute,
   appLayoutRoute.addChildren([
     dashboardRoute,
+    companiesRoute,
+    companyProjectsRoute,
     projectsRoute,
     projectDetailRoute,
     calendarRoute,

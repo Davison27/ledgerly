@@ -115,8 +115,8 @@ function mapProject(dto: ProjectDto): Project {
   };
 }
 
-export async function fetchProjects(): Promise<Project[]> {
-  const dtos = await listProjects();
+export async function fetchProjects(clientId?: string): Promise<Project[]> {
+  const dtos = await listProjects(clientId);
   return dtos.map(mapProjectSummary);
 }
 

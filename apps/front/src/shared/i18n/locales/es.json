@@ -532,6 +532,7 @@
   "nav": {
     "dashboard": "Panel",
     "projects": "Proyectos",
+    "companies": "Empresas",
     "calendar": "Calendario",
     "documents": "Documentos",
     "suppliers": "Proveedores",
@@ -555,7 +556,7 @@
     "empty": {
       "title": "Todavía no hay datos que mostrar",
       "description": "Crea tu primer proyecto y añade documentos para ver aquí las estadísticas de tu empresa.",
-      "cta": "Crear proyecto"
+      "cta": "Gestionar empresas"
     },
     "topProjects": {
       "title": "Proyectos principales",
@@ -1191,6 +1192,9 @@
     "subtitle": "Selecciona un proyecto para continuar",
     "notFound": "Proyecto no encontrado",
     "back": "Volver a proyectos",
+    "backToCompanies": "Volver a empresas",
+    "hierarchyUnavailable": "La empresa de este proyecto ya no está disponible.",
+    "hierarchyUnavailableAction": "Volver a empresas",
     "empty": "Todavía no hay proyectos.",
     "card": {
       "profit": "Beneficio neto",
@@ -1692,6 +1696,8 @@
     "empty": "Todavía no hay empresas.",
     "emptyHint": "Crea una empresa para organizar sus proyectos e historial.",
     "loadError": "No se han podido cargar las empresas. Inténtalo de nuevo.",
+    "notFound": "Empresa no encontrada",
+    "back": "Volver a empresas",
     "showArchived": "Mostrar archivadas",
     "openProjects": "Abrir proyectos",
     "projectCount_one": "{{count}} proyecto",
