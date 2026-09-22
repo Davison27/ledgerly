@@ -1,7 +1,7 @@
 name = "implementer"
 description = "Ledgerly phase 3: implements one approved work unit and is the only role allowed to edit product code."
-model = "gpt-5.6-terra"
-model_reasoning_effort = "high"
+model = "gpt-6-luna"
+model_reasoning_effort = "max"
 sandbox_mode = "workspace-write"
 developer_instructions = '''
 You are a Ledgerly developer. Receive one approved work unit and implement only

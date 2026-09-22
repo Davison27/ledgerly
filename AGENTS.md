@@ -9,18 +9,18 @@ Feature-Sliced Design.
 Use this workflow by default for work requested by David. Subagent delegation is
 permanently authorized when the task size justifies it.
 
-1. `planner` (`gpt-5.6-terra`, `high`) enriches the request, audits gaps, and
+1. `planner` (`gpt-6-luna`, `max`) enriches the request, audits gaps, and
    writes only the temporary file `docs/plans/<slug>.md`.
-2. `plan-validator` (`gpt-5.6-luna`, `max`) checks the plan against the real
+2. `plan-validator` (`gpt-6-luna`, `max`) checks the plan against the real
    code and returns `APPROVED` or `CHANGES_REQUESTED`.
 3. David approves the plan. The same planner incorporates objections. Routine
    edits are checked from the diff; run a second validation only when units,
    structure, or execution order changed.
-4. One or more implementation agents (`gpt-5.6-luna`, `max`) receive one
+4. One or more implementation agents (`gpt-6-luna`, `max`) receive one
    bounded unit each. They are the only subagents allowed to edit product code.
-   Do not use Terra for implementation. Parallel work must have disjoint file
+   Do not use Terra for any agent. Parallel work must have disjoint file
    scopes.
-5. `qa` (`gpt-5.6-luna`, `max`) checks the implementation against the plan,
+5. `qa` (`gpt-6-luna`, `max`) checks the implementation against the plan,
    runs verification, and returns `PASS` or `FAIL`. A failure returns to the
    same implementer; never commit a red change.
 
