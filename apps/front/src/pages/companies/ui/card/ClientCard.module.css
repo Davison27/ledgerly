@@ -52,6 +52,16 @@
   text-decoration: underline;
 }
 
+.moreButton {
+  flex: none;
+  color: var(--ant-color-text-tertiary);
+}
+
+.moreButton:hover,
+.moreButton:focus-visible {
+  color: var(--ant-color-text);
+}
+
 .taxId {
   font-size: var(--lg-font-size-xs);
 }
@@ -95,10 +105,6 @@
 .projectLink:focus-visible {
   color: var(--ant-color-primary);
   text-decoration: underline;
-}
-
-.actions {
-  flex: none;
 }
 
 @media (max-width: 640px) {

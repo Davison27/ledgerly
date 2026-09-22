@@ -159,7 +159,8 @@ describe('CompaniesPage', () => {
 
     renderPage();
 
-    await user.click(screen.getByRole('button', { name: 'Eliminar: Active client' }));
+    await user.click(screen.getByRole('button', { name: 'Acciones' }));
+    await user.click(screen.getByRole('menuitem', { name: /Eliminar/ }));
     await user.click(await screen.findByRole('button', { name: 'Eliminar' }));
 
     await waitFor(() => expect(removeClient).toHaveBeenCalledWith('client-active'));
@@ -173,11 +174,14 @@ describe('CompaniesPage', () => {
     renderPage();
 
     await user.click(screen.getByRole('switch', { name: 'Mostrar archivadas' }));
-    await user.click(screen.getByRole('button', { name: 'Modificar: Active client' }));
+    await user.click(screen.getAllByRole('button', { name: 'Acciones' })[0]);
+    await user.click(screen.getByRole('menuitem', { name: /Modificar/ }));
     expect(fetchQuery).toHaveBeenCalledWith({ queryKey: ['clients', 'detail', 'client-active'] });
     await waitFor(() => expect(screen.getByRole('dialog')).toBeInTheDocument());
 
-    await user.click(screen.getByRole('button', { name: 'Desarchivar' }));
+    await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+    await user.click(screen.getAllByRole('button', { name: 'Acciones' })[1]);
+    await user.click(screen.getByRole('menuitem', { name: /Desarchivar/ }));
     await waitFor(() => expect(restoreClient).toHaveBeenCalledWith('client-archived'));
     expect(screen.getByText('Empresa desarchivada')).toBeInTheDocument();
     expect(updateClientModel).not.toHaveBeenCalled();
