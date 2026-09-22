@@ -1,0 +1,74 @@
+.modalRoot :global(.ant-modal) {
+  max-width: calc(100vw - var(--lg-space-xxl));
+}
+
+.body {
+  max-height: min(70vh, 44rem);
+  overflow-y: auto;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-xl);
+}
+
+.releaseMetadata {
+  flex-wrap: wrap;
+}
+
+.description {
+  font-size: var(--lg-font-size-lg);
+}
+
+.categoryList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-xl);
+}
+
+.category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-md);
+}
+
+.categoryTitle {
+  font-size: var(--lg-font-size-lg);
+}
+
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-lg);
+  margin: 0;
+  padding-inline-start: var(--lg-space-xl);
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-xs);
+}
+
+.checkError,
+.saveError {
+  display: flex;
+  flex-direction: column;
+  gap: var(--lg-space-lg);
+}
+
+.actions {
+  flex-wrap: wrap;
+  margin-top: var(--lg-space-md);
+}
+
+@media (max-width: 480px) {
+  .actions {
+    flex-direction: column-reverse;
+  }
+
+  .actions :global(.ant-btn) {
+    width: 100%;
+  }
+}

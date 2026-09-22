@@ -2343,6 +2343,8 @@
       "acknowledge": "Aceptar",
       "viewFullChangelog": "Ver el registro completo",
       "error": "No se ha podido guardar la confirmación. Inténtalo de nuevo.",
+      "checkTitle": "Comprobando Ledgerly {{version}}",
+      "loadError": "No se ha podido comprobar si has visto esta versión. Inténtalo de nuevo.",
       "retry": "Reintentar"
     },
     "categories": {

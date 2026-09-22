@@ -2339,6 +2339,8 @@
       "acknowledge": "OK",
       "viewFullChangelog": "View full changelog",
       "error": "We could not save your acknowledgement. Try again.",
+      "checkTitle": "Checking Ledgerly {{version}}",
+      "loadError": "We could not check whether you have seen this release. Try again.",
       "retry": "Try again"
     },
     "categories": {
