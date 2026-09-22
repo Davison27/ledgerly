@@ -8,11 +8,15 @@ import type {
 
 export const PERMISSION_LEVELS: readonly PermissionLevelDto[] = ['none', 'view', 'edit'];
 
+const PERMISSION_RANK: Record<PermissionLevelDto, number> = {
+  none: 0,
+  view: 1,
+  edit: 2,
+};
+
 export function moduleSupportsEdit(module: WorkspaceModuleDto): boolean {
   return module !== 'dashboard';
 }
-
-type PresetRole = 'admin' | 'editor' | 'viewer';
 
 function buildMatrix(resolve: (module: WorkspaceModuleDto) => PermissionLevelDto): PermissionMatrixDto {
   return WORKSPACE_MODULES.reduce<PermissionMatrixDto>(
@@ -24,29 +28,13 @@ function buildMatrix(resolve: (module: WorkspaceModuleDto) => PermissionLevelDto
   );
 }
 
-export const ROLE_PRESETS: Record<PresetRole, PermissionMatrixDto> = {
-  admin: buildMatrix((module) => (module === 'dashboard' ? 'view' : 'edit')),
-  editor: buildMatrix((module) => (module === 'dashboard' || module === 'staff' ? 'view' : 'edit')),
-  viewer: buildMatrix(() => 'view'),
-};
-
 export function emptyMatrix(): PermissionMatrixDto {
   return buildMatrix(() => 'none');
 }
 
 export function matrixForRole(role: WorkspaceRoleDto): PermissionMatrixDto {
-  if (role === 'custom') return emptyMatrix();
-  return { ...ROLE_PRESETS[role] };
-}
-
-function matchesPreset(matrix: PermissionMatrixDto, preset: PermissionMatrixDto): boolean {
-  return WORKSPACE_MODULES.every((module) => matrix[module] === preset[module]);
-}
-
-export function resolveRole(matrix: PermissionMatrixDto): WorkspaceRoleDto {
-  const presetRoles = Object.keys(ROLE_PRESETS) as PresetRole[];
-  const matched = presetRoles.find((role) => matchesPreset(matrix, ROLE_PRESETS[role]));
-  return matched ?? 'custom';
+  if (role === 'admin') return buildMatrix((module) => (module === 'dashboard' ? 'view' : 'edit'));
+  return buildMatrix(() => 'view');
 }
 
 export function fillMatrix(level: PermissionLevelDto): PermissionMatrixDto {
@@ -65,4 +53,14 @@ export function countAccess(matrix: PermissionMatrixDto): { edit: number; view: 
 
 export function grantsWorkspaceAdmin(role: WorkspaceRoleDto): boolean {
   return role === 'admin';
+}
+
+export function hasModuleAccess(
+  role: WorkspaceRoleDto,
+  permissions: PermissionMatrixDto,
+  module: WorkspaceModuleDto,
+  level: PermissionLevelDto,
+): boolean {
+  if (grantsWorkspaceAdmin(role)) return true;
+  return PERMISSION_RANK[permissions[module]] >= PERMISSION_RANK[level];
 }

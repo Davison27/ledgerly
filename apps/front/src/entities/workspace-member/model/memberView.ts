@@ -16,7 +16,5 @@ export const MEMBER_STATUS_TONE: Record<WorkspaceMemberStatusDto, SemanticTone> 
 
 export const ROLE_TONE: Record<WorkspaceRoleDto, SemanticTone> = {
   admin: 'info',
-  editor: 'neutral',
-  viewer: 'neutral',
-  custom: 'pending',
+  member: 'neutral',
 };

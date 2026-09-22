@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import type { FormInstance } from 'antd';
-import { Button, Drawer, Flex, Form, Input, Radio, Typography } from 'antd';
+import { Alert, Button, Drawer, Flex, Form, Input, Radio, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import {
   matrixForRole,
-  resolveRole,
   type PermissionMatrixDto,
   type WorkspaceRoleDto,
 } from '@/entities/workspace-member';
@@ -15,7 +14,7 @@ import styles from './MemberDrawer.module.css';
 
 const { Text } = Typography;
 
-const ASSIGNABLE_ROLES: readonly Exclude<WorkspaceRoleDto, 'custom'>[] = ['admin', 'editor', 'viewer'];
+const ASSIGNABLE_ROLES: readonly WorkspaceRoleDto[] = ['admin', 'member'];
 
 export interface MemberDrawerProps {
   drawer: MembersDrawerState;
@@ -38,21 +37,22 @@ export interface MemberDrawerProps {
 export function MemberDrawer({ drawer, submitting, onClose, onInvite, onSave }: MemberDrawerProps) {
   const { t } = useTranslation();
   const [form] = Form.useForm<MemberFormValues>();
-  const [matrix, setMatrix] = useState<PermissionMatrixDto>(() => matrixForRole('viewer'));
+  const [role, setRole] = useState<WorkspaceRoleDto>('member');
+  const [matrix, setMatrix] = useState<PermissionMatrixDto>(() => matrixForRole('member'));
 
   const open = drawer !== null;
   const mode = drawer?.mode;
   const editingMember = drawer?.mode === 'edit' ? drawer.member : null;
-  const role = resolveRole(matrix);
-
   useEffect(() => {
     if (!drawer) return;
     if (drawer.mode === 'edit') {
       form.setFieldsValue({ name: drawer.member.name, email: drawer.member.email });
+      setRole(drawer.member.role);
       setMatrix({ ...drawer.member.permissions });
     } else {
       form.resetFields();
-      setMatrix(matrixForRole('viewer'));
+      setRole('member');
+      setMatrix(matrixForRole('member'));
     }
   }, [drawer, form]);
 
@@ -64,10 +64,12 @@ export function MemberDrawer({ drawer, submitting, onClose, onInvite, onSave }: 
       return;
     }
 
+    const submittedMatrix = role === 'admin' && mode === 'invite' ? matrixForRole('admin') : matrix;
+
     if (mode === 'invite') {
-      await onInvite(values, role, matrix, form);
+      await onInvite(values, role, submittedMatrix, form);
     } else if (editingMember) {
-      await onSave(editingMember.id, values.name, role, matrix);
+      await onSave(editingMember.id, values.name, role, submittedMatrix);
     }
   };
 
@@ -125,40 +127,31 @@ export function MemberDrawer({ drawer, submitting, onClose, onInvite, onSave }: 
           <Radio.Group
             className={styles.roleGroup}
             value={role}
-            onChange={(event) => setMatrix(matrixForRole(event.target.value as WorkspaceRoleDto))}
+            onChange={(event) => setRole(event.target.value as WorkspaceRoleDto)}
           >
             <Flex vertical gap={8}>
-              {ASSIGNABLE_ROLES.map((presetRole) => (
-                <label key={presetRole} className={styles.roleCard} data-active={role === presetRole}>
-                  <Radio value={presetRole} className={styles.roleRadio} />
+              {ASSIGNABLE_ROLES.map((selectableRole) => (
+                <label key={selectableRole} className={styles.roleCard} data-active={role === selectableRole}>
+                  <Radio value={selectableRole} className={styles.roleRadio} />
                   <div>
-                    <Text strong>{t(`workspace.roles.${presetRole}.name`)}</Text>
+                    <Text strong>{t(`workspace.roles.${selectableRole}.name`)}</Text>
                     <div>
                       <Text type="secondary" className={typography.caption}>
-                        {t(`workspace.roles.${presetRole}.description`)}
+                        {t(`workspace.roles.${selectableRole}.description`)}
                       </Text>
                     </div>
                   </div>
                 </label>
               ))}
-              {role === 'custom' && (
-                <label className={styles.roleCard} data-active="true">
-                  <Radio value="custom" disabled className={styles.roleRadio} />
-                  <div>
-                    <Text strong>{t('workspace.roles.custom.name')}</Text>
-                    <div>
-                      <Text type="secondary" className={typography.caption}>
-                        {t('workspace.roles.custom.description')}
-                      </Text>
-                    </div>
-                  </div>
-                </label>
-              )}
             </Flex>
           </Radio.Group>
         </div>
 
-        <PermissionMatrix value={matrix} onChange={setMatrix} />
+        {role === 'admin' ? (
+          <Alert type="info" showIcon title={t('workspace.memberDrawer.adminAccess')} />
+        ) : (
+          <PermissionMatrix value={matrix} onChange={setMatrix} />
+        )}
       </Flex>
     </Drawer>
   );

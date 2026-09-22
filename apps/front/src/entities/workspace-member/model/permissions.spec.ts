@@ -1,31 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import { WORKSPACE_MODULES } from '../api/types';
 import {
-  ROLE_PRESETS,
   countAccess,
   emptyMatrix,
   fillMatrix,
   grantsWorkspaceAdmin,
+  hasModuleAccess,
   matrixForRole,
   moduleSupportsEdit,
-  resolveRole,
 } from './permissions';
 
 describe('workspace permissions', () => {
-  it('gives administrators edit access except dashboard view access', () => {
+  it('keeps administrator access independent from the stored permission matrix', () => {
     const matrix = matrixForRole('admin');
 
     expect(matrix.dashboard).toBe('view');
     expect(Object.values(matrix).filter((level) => level === 'edit')).toHaveLength(
       WORKSPACE_MODULES.length - 1,
     );
-    expect(resolveRole(matrix)).toBe('admin');
+    expect(hasModuleAccess('admin', emptyMatrix(), 'staff', 'edit')).toBe(true);
   });
 
-  it('keeps staff read-only in the editor preset', () => {
-    expect(matrixForRole('editor').staff).toBe('view');
-    expect(matrixForRole('editor').projects).toBe('edit');
-    expect(resolveRole(matrixForRole('editor'))).toBe('editor');
+  it('uses view-only permissions as the member invitation default', () => {
+    const matrix = matrixForRole('member');
+
+    expect(Object.values(matrix)).toEqual(Array(WORKSPACE_MODULES.length).fill('view'));
+    expect(hasModuleAccess('member', emptyMatrix(), 'projects', 'view')).toBe(false);
   });
 
   it('creates a none matrix and counts access levels', () => {
@@ -43,17 +43,9 @@ describe('workspace permissions', () => {
     expect(countAccess(matrix).edit).toBe(WORKSPACE_MODULES.length - 1);
   });
 
-  it('recognizes custom matrices instead of misclassifying them as presets', () => {
-    const custom = { ...ROLE_PRESETS.viewer, projects: 'none' as const };
-
-    expect(resolveRole(custom)).toBe('custom');
-  });
-
-  it('only administrators receive workspace-admin capability', () => {
+  it('only the explicit administrator role receives workspace-admin capability', () => {
     expect(grantsWorkspaceAdmin('admin')).toBe(true);
-    expect(grantsWorkspaceAdmin('editor')).toBe(false);
-    expect(grantsWorkspaceAdmin('viewer')).toBe(false);
-    expect(grantsWorkspaceAdmin('custom')).toBe(false);
+    expect(grantsWorkspaceAdmin('member')).toBe(false);
   });
 
   it('only treats non-dashboard modules as editable', () => {

@@ -32,6 +32,7 @@ import {
   RoleTag,
   countAccess,
   memberInitials,
+  matrixForRole,
   moduleSupportsEdit,
   WORKSPACE_MODULES,
   workspaceMemberAvatarUrl,
@@ -52,9 +53,10 @@ const EDITABLE_MODULE_COUNT = WORKSPACE_MODULES.filter(moduleSupportsEdit).lengt
 
 function AccessCell({ member }: { member: WorkspaceMemberDto }) {
   const { t } = useTranslation();
-  const counts = countAccess(member.permissions);
+  const permissions = member.role === 'admin' ? matrixForRole('admin') : member.permissions;
+  const counts = countAccess(permissions);
   const summary =
-    counts.none === 0 && counts.edit === EDITABLE_MODULE_COUNT
+    member.role === 'admin' || (counts.none === 0 && counts.edit === EDITABLE_MODULE_COUNT)
       ? t('workspace.members.accessFull')
       : counts.edit === 0 && counts.view === 0
         ? t('workspace.members.accessNone')
@@ -67,7 +69,7 @@ function AccessCell({ member }: { member: WorkspaceMemberDto }) {
           {WORKSPACE_MODULES.map((module) => (
             <Flex key={module} justify="space-between" gap={12}>
               <span>{t(`nav.${module}`)}</span>
-              <span>{t(`workspace.permissions.levels.${member.permissions[module]}`)}</span>
+              <span>{t(`workspace.permissions.levels.${permissions[module]}`)}</span>
             </Flex>
           ))}
         </Flex>
@@ -101,8 +103,10 @@ export function MembersTab() {
     busyId,
     isSelf,
     canRevoke,
+    canToggleEnabled,
     canEditAccess,
     revokeBlockReason,
+    statusBlockReason,
     invite,
     saveAccess,
     toggleEnabled,
@@ -113,9 +117,7 @@ export function MembersTab() {
   const roleFilterOptions: { value: MembersRoleFilter; label: string }[] = [
     { value: 'all', label: t('workspace.members.filters.allRoles') },
     { value: 'admin', label: t('workspace.roles.admin.name') },
-    { value: 'editor', label: t('workspace.roles.editor.name') },
-    { value: 'viewer', label: t('workspace.roles.viewer.name') },
-    { value: 'custom', label: t('workspace.roles.custom.name') },
+    { value: 'member', label: t('workspace.roles.member.name') },
   ];
 
   const statusFilterOptions: { value: MembersStatusFilter; label: string }[] = [
@@ -150,6 +152,11 @@ export function MembersTab() {
     const editAllowed = canEditAccess(member);
     const revokeAllowed = canRevoke(member);
     const revokeReason = revokeBlockReason(member);
+    const statusAllowed = canToggleEnabled(member);
+    const statusReason = statusBlockReason(member);
+    const statusHelp = t(
+      statusReason === 'lastAdmin' ? 'workspace.members.guard.lastAdmin' : 'workspace.members.guard.self',
+    );
 
     const items: MenuProps['items'] = [
       {
@@ -171,16 +178,30 @@ export function MembersTab() {
       items.push({
         key: 'enable',
         icon: <CheckCircleOutlined />,
-        label: t('workspace.members.actions.enable'),
-        onClick: () => void toggleEnabled(member),
+        disabled: !statusAllowed,
+        label: statusAllowed ? (
+          t('workspace.members.actions.enable')
+        ) : (
+          <Tooltip title={statusHelp}>
+            <span>{t('workspace.members.actions.enable')}</span>
+          </Tooltip>
+        ),
+        onClick: statusAllowed ? () => void toggleEnabled(member) : undefined,
       });
     } else {
       items.push({
         key: 'disable',
         danger: true,
         icon: <StopOutlined />,
-        label: t('workspace.members.actions.disable'),
-        onClick: () => confirmDisable(member),
+        disabled: !statusAllowed,
+        label: statusAllowed ? (
+          t('workspace.members.actions.disable')
+        ) : (
+          <Tooltip title={statusHelp}>
+            <span>{t('workspace.members.actions.disable')}</span>
+          </Tooltip>
+        ),
+        onClick: statusAllowed ? () => confirmDisable(member) : undefined,
       });
     }
 

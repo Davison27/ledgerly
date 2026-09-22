@@ -57,8 +57,10 @@ export interface UseMembersPanelResult {
   busyId: string | null;
   isSelf: (member: WorkspaceMemberDto) => boolean;
   canRevoke: (member: WorkspaceMemberDto) => boolean;
+  canToggleEnabled: (member: WorkspaceMemberDto) => boolean;
   canEditAccess: (member: WorkspaceMemberDto) => boolean;
   revokeBlockReason: (member: WorkspaceMemberDto) => MembersGuardReason;
+  statusBlockReason: (member: WorkspaceMemberDto) => MembersGuardReason;
   invite: (
     values: MemberFormValues,
     role: WorkspaceRoleDto,
@@ -123,15 +125,24 @@ export function useMembersPanel(): UseMembersPanelResult {
     [members],
   );
 
+  const activeAdminCount = members.filter((member) => member.role === 'admin' && member.status === 'active').length;
+
   const isSelf = (member: WorkspaceMemberDto) => member.id === current?.id;
 
   const revokeBlockReason = (member: WorkspaceMemberDto): MembersGuardReason => {
     if (isSelf(member)) return 'self';
-    if (member.role === 'admin' && stats.adminCount <= 1) return 'lastAdmin';
+    if (member.role === 'admin' && member.status === 'active' && activeAdminCount <= 1) return 'lastAdmin';
+    return null;
+  };
+
+  const statusBlockReason = (member: WorkspaceMemberDto): MembersGuardReason => {
+    if (isSelf(member)) return 'self';
+    if (member.status === 'active' && member.role === 'admin' && activeAdminCount <= 1) return 'lastAdmin';
     return null;
   };
 
   const canRevoke = (member: WorkspaceMemberDto) => revokeBlockReason(member) === null;
+  const canToggleEnabled = (member: WorkspaceMemberDto) => statusBlockReason(member) === null;
   const canEditAccess = (member: WorkspaceMemberDto) => !isSelf(member);
 
   const openInvite = () => setDrawer({ mode: 'invite' });
@@ -244,8 +255,10 @@ export function useMembersPanel(): UseMembersPanelResult {
     busyId,
     isSelf,
     canRevoke,
+    canToggleEnabled,
     canEditAccess,
     revokeBlockReason,
+    statusBlockReason,
     invite,
     saveAccess,
     toggleEnabled,

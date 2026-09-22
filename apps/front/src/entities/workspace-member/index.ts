@@ -22,13 +22,12 @@ export { useWorkspaceAccess } from './model/useWorkspaceAccess';
 export {
   PERMISSION_LEVELS,
   moduleSupportsEdit,
-  ROLE_PRESETS,
   emptyMatrix,
   matrixForRole,
-  resolveRole,
   fillMatrix,
   countAccess,
   grantsWorkspaceAdmin,
+  hasModuleAccess,
 } from './model/permissions';
 export { memberInitials, MEMBER_STATUS_TONE, ROLE_TONE } from './model/memberView';
 export { RoleTag } from './ui/role/RoleTag';

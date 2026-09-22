@@ -867,22 +867,14 @@
         "name": "Administrador",
         "description": "Acceso total, incluidos los ajustes del espacio, las personas y las integraciones"
       },
-      "editor": {
-        "name": "Editor",
-        "description": "Crea y edita el trabajo del día a día; no gestiona el espacio"
-      },
-      "viewer": {
-        "name": "Lector",
-        "description": "Solo consulta; no puede modificar nada"
-      },
-      "custom": {
-        "name": "Personalizado",
-        "description": "Permisos ajustados módulo a módulo"
+      "member": {
+        "name": "Miembro",
+        "description": "El acceso se configura por separado para cada sección"
       }
     },
     "permissions": {
-      "title": "Permisos por módulo",
-      "hint": "Elige un rol para partir de un preajuste y afínalo módulo a módulo",
+      "title": "Permisos por sección",
+      "hint": "Elige qué puede consultar y editar esta persona en cada sección",
       "module": "Módulo",
       "levels": {
         "none": "Sin acceso",
@@ -915,6 +907,7 @@
         "emailTaken": "Esa persona ya está en el espacio"
       },
       "emailLocked": "El email no se puede cambiar",
+      "adminAccess": "Los administradores siempre tienen acceso total a todas las secciones y a los ajustes del espacio.",
       "submitInvite": "Enviar invitación",
       "submitEdit": "Guardar acceso"
     },

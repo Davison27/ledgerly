@@ -863,22 +863,14 @@
         "name": "Administrator",
         "description": "Full access, including workspace settings, people and integrations"
       },
-      "editor": {
-        "name": "Editor",
-        "description": "Creates and edits day-to-day work; does not manage the workspace"
-      },
-      "viewer": {
-        "name": "Viewer",
-        "description": "Read-only; cannot change anything"
-      },
-      "custom": {
-        "name": "Custom",
-        "description": "Permissions tuned module by module"
+      "member": {
+        "name": "Member",
+        "description": "Access is configured separately for each section"
       }
     },
     "permissions": {
-      "title": "Permissions by module",
-      "hint": "Pick a role as a preset and fine-tune it module by module",
+      "title": "Permissions by section",
+      "hint": "Choose what this member can view and edit in each section",
       "module": "Module",
       "levels": {
         "none": "No access",
@@ -911,6 +903,7 @@
         "emailTaken": "That person is already in the workspace"
       },
       "emailLocked": "The email cannot be changed",
+      "adminAccess": "Administrators always have full access to every section and workspace settings.",
       "submitInvite": "Send invitation",
       "submitEdit": "Save access"
     },

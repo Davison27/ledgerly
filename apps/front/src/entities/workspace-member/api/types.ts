@@ -10,7 +10,7 @@ export const WORKSPACE_MODULES = [
 export type WorkspaceModuleDto = (typeof WORKSPACE_MODULES)[number];
 export type PermissionLevelDto = 'none' | 'view' | 'edit';
 export type PermissionMatrixDto = Record<WorkspaceModuleDto, PermissionLevelDto>;
-export type WorkspaceRoleDto = 'admin' | 'editor' | 'viewer' | 'custom';
+export type WorkspaceRoleDto = 'admin' | 'member';
 export type WorkspaceMemberStatusDto = 'active' | 'invited' | 'disabled';
 
 export interface WorkspaceMemberDto {
