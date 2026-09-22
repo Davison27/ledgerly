@@ -183,7 +183,7 @@ describe('CompaniesPage', () => {
     await user.click(screen.getAllByRole('button', { name: 'Acciones' })[1]);
     await user.click(screen.getByRole('menuitem', { name: /Desarchivar/ }));
     await waitFor(() => expect(restoreClient).toHaveBeenCalledWith('client-archived'));
-    expect(screen.getByText('Empresa desarchivada')).toBeInTheDocument();
+    expect(await screen.findByText('Empresa desarchivada')).toBeInTheDocument();
     expect(updateClientModel).not.toHaveBeenCalled();
   });
 });
