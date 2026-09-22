@@ -42,7 +42,7 @@ describe('ClientsController (HTTP, no DB)', () => {
   });
 
   it('returns lightweight summaries with deterministic project counts', async () => {
-    const listExecute = app.get(ListClientsUseCase).execute as jest.Mock;
+    const listExecute = jest.spyOn(app.get(ListClientsUseCase), 'execute');
     listExecute.mockResolvedValueOnce([
       {
         id: '00000000-0000-0000-0000-000000000001',
