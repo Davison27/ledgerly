@@ -2325,5 +2325,54 @@
       "suppliers": "Proveedores",
       "documents": "Documentos"
     }
+  },
+  "releaseNotes": {
+    "changelog": {
+      "title": "Registro de cambios",
+      "description": "Consulta el historial completo de versiones de Ledgerly.",
+      "currentVersion": "Versión actual",
+      "releasedOn": "Publicado el",
+      "empty": "Todavía no hay notas de versión disponibles."
+    },
+    "dialog": {
+      "title": "Novedades de Ledgerly {{version}}",
+      "description": "Esta versión incluye las siguientes mejoras.",
+      "acknowledge": "Aceptar",
+      "viewFullChangelog": "Ver el registro completo",
+      "error": "No se ha podido guardar la confirmación. Inténtalo de nuevo.",
+      "retry": "Reintentar"
+    },
+    "categories": {
+      "added": "Añadido",
+      "changed": "Modificado",
+      "fixed": "Corregido",
+      "security": "Seguridad"
+    },
+    "releases": {
+      "v1_1_0": {
+        "entries": {
+          "contracting-company-hierarchy": {
+            "title": "Jerarquía de empresas contratantes",
+            "description": "Organiza proyectos, clientes y documentos bajo su empresa contratante."
+          },
+          "normalized-business-workflows": {
+            "title": "Flujos de trabajo empresariales normalizados",
+            "description": "Mantén coherentes los registros empresariales del espacio operativo."
+          },
+          "archived-lifecycle-controls": {
+            "title": "Controles del ciclo de archivado",
+            "description": "Archiva y restaura registros operativos sin perder su historial."
+          },
+          "secure-document-processing": {
+            "title": "Procesamiento seguro de documentos",
+            "description": "Protege los documentos subidos con análisis acotado y detección privada de malware."
+          },
+          "release-history": {
+            "title": "Historial de versiones",
+            "description": "Consulta los cambios versionados de Ledgerly y confirma cada versión una sola vez."
+          }
+        }
+      }
+    }
   }
 }

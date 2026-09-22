@@ -173,6 +173,36 @@ frontend Vitest unit suites before a public ref is pushed. Integration and
 end-to-end suites remain separate commands because they require additional
 local services.
 
+## Versioned release workflow
+
+Ledgerly is released as one product. The root workspace, frontend, and backend
+package manifests must use the same stable SemVer version as the newest release
+record in `apps/front/src/entities/release-note/config/release-notes.json`.
+The registry is the source of release identity and order; `CHANGELOG.md` is a
+generated English view of that registry and the English release translations.
+
+For every feature release:
+
+1. Run `pnpm prepare-release <major|minor|patch> <YYYY-MM-DD>` from a clean
+   contract. The command updates all three manifests and creates an incomplete
+   next release record. It rejects divergent versions and refuses to overwrite
+   an incomplete record.
+2. Add stable entry IDs and categories (`added`, `changed`, `fixed`, or
+   `security`) to the new registry record. Keep release prose out of the
+   registry and add the matching title and description under the generated
+   version key in both `en.json` and `es.json`.
+3. Run `pnpm generate-changelog` to regenerate the deterministic English
+   `CHANGELOG.md`, then run `pnpm verify:release`.
+4. Run `pnpm check:repo` together with the normal build, lint, typecheck, and
+   test gates before creating a deployment commit.
+
+The release registry does not backfill historical versions and this workflow
+does not create Git tags. A deployment must not proceed while the release
+contract verifier reports a version, translation, registry, or generated
+changelog mismatch. The version and release entry are part of the same logical
+feature change, so release history remains synchronized with the deployed
+bundle.
+
 The private deployment repository owns deployment automation.
 Its hosted CI keeps repository hygiene, lint, type checking, and production
 build checks, while the unit-test gate stays local to avoid repeating the same

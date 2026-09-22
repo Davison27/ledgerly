@@ -2321,5 +2321,54 @@
       "suppliers": "Suppliers",
       "documents": "Documents"
     }
+  },
+  "releaseNotes": {
+    "changelog": {
+      "title": "Changelog",
+      "description": "Review the complete Ledgerly release history.",
+      "currentVersion": "Current version",
+      "releasedOn": "Released on",
+      "empty": "No release notes are available yet."
+    },
+    "dialog": {
+      "title": "What’s new in Ledgerly {{version}}",
+      "description": "This release includes the following improvements.",
+      "acknowledge": "OK",
+      "viewFullChangelog": "View full changelog",
+      "error": "We could not save your acknowledgement. Try again.",
+      "retry": "Try again"
+    },
+    "categories": {
+      "added": "Added",
+      "changed": "Changed",
+      "fixed": "Fixed",
+      "security": "Security"
+    },
+    "releases": {
+      "v1_1_0": {
+        "entries": {
+          "contracting-company-hierarchy": {
+            "title": "Contracting company hierarchy",
+            "description": "Organize projects, clients, and documents under their contracting company."
+          },
+          "normalized-business-workflows": {
+            "title": "Normalized business workflows",
+            "description": "Keep core business records consistent across the operational workspace."
+          },
+          "archived-lifecycle-controls": {
+            "title": "Archived lifecycle controls",
+            "description": "Archive and restore operational records without losing their history."
+          },
+          "secure-document-processing": {
+            "title": "Secure document processing",
+            "description": "Protect uploaded documents with bounded parsing and private malware scanning."
+          },
+          "release-history": {
+            "title": "Release history",
+            "description": "Review versioned Ledgerly changes and acknowledge each release once."
+          }
+        }
+      }
+    }
   }
 }

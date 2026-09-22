@@ -1,6 +1,6 @@
 {
   "name": "ledgerly-erp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "packageManager": "pnpm@12.4.2",
   "engines": {
@@ -10,11 +10,14 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "lint": "turbo run lint && pnpm check:repo",
-    "check:repo": "node scripts/check-repository-hygiene.mjs",
+    "check:repo": "node scripts/check-repository-hygiene.mjs && pnpm verify:release",
     "test": "turbo run test --concurrency=1",
     "verify:push": "pnpm test",
     "typecheck": "pnpm --filter @ledgerly/front run typecheck && pnpm --filter @ledgerly/back run typecheck",
     "prepare": "husky",
+    "prepare-release": "node scripts/prepare-release.mjs",
+    "generate-changelog": "node scripts/generate-changelog.mjs",
+    "verify:release": "node scripts/verify-release-contract.mjs",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "clean": "turbo run clean && rm -rf node_modules"
   },
