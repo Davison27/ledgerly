@@ -13,6 +13,7 @@ import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from './173000000800
 import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from './1730000009000-PreserveWorkspaceMemberAuditIdentity';
 import { RemoveProjectFiscalYear1730000010000 } from './1730000010000-RemoveProjectFiscalYear';
 import { RequireProjectClient1730000011000 } from './1730000011000-RequireProjectClient';
+import { CreateReleaseNoteAcknowledgements1730000012000 } from './1730000012000-CreateReleaseNoteAcknowledgements';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
@@ -27,6 +28,7 @@ const migrations: Array<new () => MigrationInterface> = [
   PreserveWorkspaceMemberAuditIdentity1730000009000,
   RemoveProjectFiscalYear1730000010000,
   RequireProjectClient1730000011000,
+  CreateReleaseNoteAcknowledgements1730000012000,
 ];
 
 const encryptedChecks = [
@@ -162,6 +164,56 @@ describe('entity and migration schema parity', () => {
     expect(columns).toEqual([{ isNullable: 'NO' }]);
     expect(indexes).toEqual([{ name: 'IDX_projects_client_id' }]);
     expect(foreignKeys).toEqual([{ name: 'FK_projects_client', deleteAction: 'r' }]);
+  });
+
+  it('matches release acknowledgement constraint names, columns, order, expressions, and lifecycle', async () => {
+    const rows: Array<{
+      name: string;
+      type: string;
+      deleteAction: string;
+      definition: string;
+      columns: string[];
+    }> = await dataSource.query(
+      `SELECT
+         constraint_row.conname AS name,
+         constraint_row.contype AS type,
+         constraint_row.confdeltype AS "deleteAction",
+         pg_get_constraintdef(constraint_row.oid, true) AS definition,
+         to_json(ARRAY(
+           SELECT attribute.attname
+           FROM unnest(constraint_row.conkey) WITH ORDINALITY AS key(attnum, ordinal)
+           JOIN pg_attribute attribute
+             ON attribute.attrelid = constraint_row.conrelid
+            AND attribute.attnum = key.attnum
+           ORDER BY key.ordinal
+         )) AS columns
+       FROM pg_constraint constraint_row
+       WHERE constraint_row.conrelid = 'release_note_acknowledgements'::regclass
+         AND constraint_row.contype IN ('p', 'f', 'c')
+       ORDER BY constraint_row.conname`,
+    );
+    const primaryKey = rows.find((row) => row.name === 'PK_release_note_acknowledgements');
+    const versionCheck = rows.find((row) => row.name === 'CHK_release_note_acknowledgements_version');
+    const workspaceMemberForeignKey = rows.find(
+      (row) => row.name === 'FK_release_note_acknowledgements_workspace_member',
+    );
+
+    expect(rows.map((row) => row.name)).toEqual([
+      'CHK_release_note_acknowledgements_version',
+      'FK_release_note_acknowledgements_workspace_member',
+      'PK_release_note_acknowledgements',
+    ]);
+    expect(primaryKey).toMatchObject({ type: 'p', columns: ['workspace_member_id', 'release_version'] });
+    expect(versionCheck?.type).toBe('c');
+    expect(versionCheck?.definition).toContain(
+      `'^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$'`,
+    );
+    expect(workspaceMemberForeignKey).toMatchObject({
+      type: 'f',
+      deleteAction: 'c',
+      columns: ['workspace_member_id'],
+    });
+    expect(workspaceMemberForeignKey?.definition).toContain('REFERENCES workspace_members(id) ON DELETE CASCADE');
   });
 
   it('preserves all encrypted-envelope checks', async () => {

@@ -37,6 +37,7 @@ const APPLICATION_TABLES = [
   'extraction_outcomes',
   'notifications',
   'notification_event_retries',
+  'release_note_acknowledgements',
   'tax_client_profiles',
   'tax_compliance_settings',
   'tax_deadline_occurrences',

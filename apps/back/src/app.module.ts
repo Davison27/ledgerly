@@ -22,6 +22,7 @@ import { ScheduleModule } from './contexts/schedule/schedule.module';
 import { NotificationsModule } from './contexts/notifications/notifications.module';
 import { HealthModule } from './health/health.module';
 import { TaxComplianceModule } from './contexts/tax-compliance/tax-compliance.module';
+import { ReleaseNotesModule } from './contexts/release-notes/release-notes.module';
 
 @Module({
   imports: [
@@ -40,6 +41,7 @@ import { TaxComplianceModule } from './contexts/tax-compliance/tax-compliance.mo
     ScheduleModule,
     NotificationsModule,
     TaxComplianceModule,
+    ReleaseNotesModule,
     HealthModule,
   ],
   controllers: [AppController],

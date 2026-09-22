@@ -31,6 +31,15 @@ Foreign-key delete actions express lifecycle policy:
   `workspace_members.id`. A legacy audit UUID with no matching member is
   normalized to `NULL`; `NULL` is the explicit unknown-actor value. Member
   removal therefore retains the membership row and its audit identity.
+- `release_note_acknowledgements` is keyed by
+  `(workspace_member_id, release_version)` with the named composite primary
+  key `PK_release_note_acknowledgements`. Its named
+  `FK_release_note_acknowledgements_workspace_member` cascades only when a
+  workspace member is physically deleted; normal member removal disables and
+  retains the member. The named
+  `CHK_release_note_acknowledgements_version` permits stable SemVer values
+  without leading zeroes, prerelease suffixes, or build metadata. The composite
+  primary key also supplies the member/version lookup index.
 - Soft-deleted documents remain physical references for integrity and deletion
   decisions, but normal listings and financial projections exclude them.
 

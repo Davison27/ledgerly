@@ -77,3 +77,13 @@ All notification endpoints require notification access:
 The frontend polls the unread count and loads the paginated list when the
 notification panel is opened. See `docs/architecture/data-layer.md` for query
 and mutation conventions.
+
+## Release notes are separate
+
+Release copy is static product data bundled with the frontend. The backend
+stores only each member's acknowledgement timestamp in the separate
+`release_note_acknowledgements` table; it does not create notification rows or
+events. Authenticated members of every role can read or acknowledge only their
+own release version. Repeated writes preserve the first timestamp. These
+acknowledgements do not affect the notification bell, unread count, schedulers,
+or delivery pipeline.
