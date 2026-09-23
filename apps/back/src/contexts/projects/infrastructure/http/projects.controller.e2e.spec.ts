@@ -1,4 +1,5 @@
 import type { Server } from 'http';
+import type { NextFunction, Request, Response } from 'express';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -67,6 +68,8 @@ describe('ProjectsController (HTTP, no DB)', () => {
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
   let unarchiveExecute: jest.Mock;
+  let documentViewAccess = true;
+  let equipmentViewAccess = true;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildSummary()]));
@@ -94,6 +97,19 @@ describe('ProjectsController (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use((request: Request, _response: Response, next: NextFunction) => {
+      Object.assign(request, {
+        member: {
+          canAccess: (module: string) =>
+            module === 'documents'
+              ? documentViewAccess
+              : module === 'equipment'
+                ? equipmentViewAccess
+                : true,
+        },
+      });
+      next();
+    });
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
@@ -107,6 +123,8 @@ describe('ProjectsController (HTTP, no DB)', () => {
     updateExecute.mockClear();
     deleteExecute.mockClear();
     unarchiveExecute.mockClear();
+    documentViewAccess = true;
+    equipmentViewAccess = true;
   });
 
   afterAll(async () => {
@@ -133,6 +151,48 @@ describe('ProjectsController (HTTP, no DB)', () => {
           color: null,
         },
       ]);
+    });
+
+    it('omits document-derived aggregates without Documents view', async () => {
+      documentViewAccess = false;
+      listExecute.mockResolvedValueOnce([
+        buildSummary({
+          documentCount: 4,
+          pendingCount: 2,
+          financials: [
+            { currency: 'EUR', income: 1000, expenses: 300, profit: 700, margin: 0.7 },
+          ],
+        }),
+      ]);
+
+      const response = await request(httpServer).get('/projects');
+
+      expect(response.status).toBe(200);
+      const body = response.body as Array<Record<string, unknown>>;
+      expect(body[0]).toMatchObject({ id: 'project-1', name: 'Acme Project' });
+      expect(body[0]).not.toHaveProperty('documentCount');
+      expect(body[0]).not.toHaveProperty('pendingCount');
+      expect(body[0]).not.toHaveProperty('financials');
+    });
+
+    it('omits financials without Equipment view while keeping document counts', async () => {
+      equipmentViewAccess = false;
+      listExecute.mockResolvedValueOnce([
+        buildSummary({
+          documentCount: 4,
+          pendingCount: 2,
+          financials: [
+            { currency: 'EUR', income: 1000, expenses: 300, profit: 700, margin: 0.7 },
+          ],
+        }),
+      ]);
+
+      const response = await request(httpServer).get('/projects');
+
+      expect(response.status).toBe(200);
+      const body = response.body as Array<Record<string, unknown>>;
+      expect(body[0]).toMatchObject({ documentCount: 4, pendingCount: 2 });
+      expect(body[0]).not.toHaveProperty('financials');
     });
 
     it('returns the color assigned to the project', async () => {

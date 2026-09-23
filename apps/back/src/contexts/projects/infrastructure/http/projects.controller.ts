@@ -25,6 +25,11 @@ import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http
 import { UnarchiveProjectUseCase } from '../../application/unarchive-project/unarchive-project.use-case';
 import { CLIENT_REPOSITORY, ClientRepository } from '../../domain/client.repository';
 import { ListProjectsQueryDto } from './dtos/list-projects.query.dto';
+import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
+
+interface ProjectListMemberAccess {
+  canAccess(module: 'documents' | 'equipment', level: 'view'): boolean;
+}
 
 @RequiresAccess('projects', 'view')
 @Controller('projects')
@@ -40,10 +45,17 @@ export class ProjectsController {
   ) {}
 
   @Get()
-  async list(@Query() query: ListProjectsQueryDto = {}): Promise<ProjectSummaryResponse[]> {
+  async list(
+    @CurrentMember() member: ProjectListMemberAccess,
+    @Query() query: ListProjectsQueryDto = {},
+  ): Promise<ProjectSummaryResponse[]> {
     const summaries = await this.listProjectsUseCase.execute(query.clientId);
+    const includeDocumentAggregates = member.canAccess('documents', 'view');
+    const includeFinancials = includeDocumentAggregates && member.canAccess('equipment', 'view');
 
-    return summaries.map((summary) => ProjectSummaryResponse.fromSummary(summary));
+    return summaries.map((summary) =>
+      ProjectSummaryResponse.fromSummary(summary, includeDocumentAggregates, includeFinancials),
+    );
   }
 
   @RequiresAccess('projects', 'edit')
