@@ -22,6 +22,7 @@ import { ListStaffDocumentsQueryDto } from './dtos/list-staff-documents.query.dt
 import { StaffDocumentResponse } from './staff-document.response';
 
 @RequiresAccess('staff', 'view')
+@RequiresAccess('documents', 'view')
 @Controller('staff/:staffMemberId/documents')
 export class StaffDocumentsController {
   constructor(
@@ -63,6 +64,7 @@ export class StaffDocumentsController {
   }
 
   @RequiresAccess('staff', 'edit')
+  @RequiresAccess('documents', 'edit')
   @Patch(':documentId')
   async update(
     @Param('staffMemberId') staffMemberId: string,
@@ -82,6 +84,7 @@ export class StaffDocumentsController {
   }
 
   @RequiresAccess('staff', 'edit')
+  @RequiresAccess('documents', 'edit')
   @Delete(':documentId')
   @HttpCode(204)
   async remove(

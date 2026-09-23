@@ -4,6 +4,7 @@ import { ListStaffDocumentTypesUseCase } from '../../application/list-staff-docu
 import { StaffDocumentTypeResponse } from './staff-document-type.response';
 
 @RequiresAccess('staff', 'view')
+@RequiresAccess('documents', 'view')
 @Controller('staff-document-types')
 export class StaffDocumentTypesController {
   constructor(private readonly listStaffDocumentTypesUseCase: ListStaffDocumentTypesUseCase) {}

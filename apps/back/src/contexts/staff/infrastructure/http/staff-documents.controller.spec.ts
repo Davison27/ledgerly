@@ -1,5 +1,11 @@
 import type { Response } from 'express';
+import {
+  ACCESS_REQUIREMENT_KEY,
+  accessRequirementsFromMetadata,
+} from '../../../../shared/infrastructure/http/access/access-requirement';
+import type { AccessRequirement } from '../../../../shared/infrastructure/http/access/access-requirement';
 import { StaffDocumentsController } from './staff-documents.controller';
+import { StaffDocumentTypesController } from './staff-document-types.controller';
 import { ListStaffDocumentsUseCase } from '../../application/list-staff-documents/list-staff-documents.use-case';
 import { UpdateStaffDocumentUseCase } from '../../application/update-staff-document/update-staff-document.use-case';
 import { UpdateStaffDocumentCommand } from '../../application/update-staff-document/update-staff-document.command';
@@ -22,6 +28,23 @@ function buildDocument(): StaffDocument {
     mimeType: 'application/pdf',
     fileSize: 4,
   });
+}
+
+function accessRequirementsFor(
+  controller: { prototype: object },
+  method?: string,
+): AccessRequirement[] {
+  const handler: unknown = method
+    ? (Object.getOwnPropertyDescriptor(controller.prototype, method)?.value as unknown)
+    : undefined;
+
+  const controllerRequirements =
+    accessRequirementsFromMetadata(Reflect.getMetadata(ACCESS_REQUIREMENT_KEY, controller) as unknown) ?? [];
+  const handlerRequirements = typeof handler === 'function'
+    ? accessRequirementsFromMetadata(Reflect.getMetadata(ACCESS_REQUIREMENT_KEY, handler) as unknown) ?? []
+    : [];
+
+  return [...controllerRequirements, ...handlerRequirements];
 }
 
 describe('StaffDocumentsController', () => {
@@ -47,6 +70,37 @@ describe('StaffDocumentsController', () => {
       { execute: updateExecute } as unknown as UpdateStaffDocumentUseCase,
       { execute: deleteExecute } as unknown as DeleteStaffDocumentUseCase,
       { execute: getFileExecute } as unknown as GetStaffDocumentFileUseCase,
+    );
+  });
+
+  it('requires both staff and document access to read staff documents and their types', () => {
+    const readRequirements = [
+      { kind: 'access', module: 'staff', level: 'view' },
+      { kind: 'access', module: 'documents', level: 'view' },
+    ];
+
+    expect(accessRequirementsFor(StaffDocumentsController, 'list')).toEqual(
+      expect.arrayContaining(readRequirements),
+    );
+    expect(accessRequirementsFor(StaffDocumentsController, 'getFile')).toEqual(
+      expect.arrayContaining(readRequirements),
+    );
+    expect(accessRequirementsFor(StaffDocumentTypesController, 'list')).toEqual(
+      expect.arrayContaining(readRequirements),
+    );
+  });
+
+  it('requires both staff and document edit access to update or delete staff documents', () => {
+    const editRequirements = [
+      { kind: 'access', module: 'staff', level: 'edit' },
+      { kind: 'access', module: 'documents', level: 'edit' },
+    ];
+
+    expect(accessRequirementsFor(StaffDocumentsController, 'update')).toEqual(
+      expect.arrayContaining(editRequirements),
+    );
+    expect(accessRequirementsFor(StaffDocumentsController, 'remove')).toEqual(
+      expect.arrayContaining(editRequirements),
     );
   });
 
