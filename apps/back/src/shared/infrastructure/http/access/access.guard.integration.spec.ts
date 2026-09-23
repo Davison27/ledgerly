@@ -45,6 +45,7 @@ function adminMember(): WorkspaceMember {
     id: 'member-1',
     email: MemberEmail.create('admin@ledgerly.dev'),
     name: 'Admin',
+    role: 'admin',
     permissions: PermissionMatrix.admin(),
     status: 'active',
     invitedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -65,33 +66,54 @@ describe('authorization HTTP integration', () => {
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
-      controllers: [AppController, HealthController, AuthController, CompanyController, UnclassifiedController],
+      controllers: [
+        AppController,
+        HealthController,
+        AuthController,
+        CompanyController,
+        UnclassifiedController,
+      ],
       providers: [
         AppService,
-        { provide: BootstrapFirstAdminUseCase, useValue: { execute: jest.fn(() => Promise.resolve(adminMember())) } },
+        {
+          provide: BootstrapFirstAdminUseCase,
+          useValue: { execute: jest.fn(() => Promise.resolve(adminMember())) },
+        },
         { provide: GetCurrentMemberUseCase, useValue: { execute: jest.fn() } },
         { provide: WORKSPACE_MEMBER_REPOSITORY, useValue: memberRepository },
         { provide: AUTH_SESSION_RESOLVER, useValue: sessionResolver },
-        { provide: CLOCK, useValue: { now: () => new Date('2026-01-02T00:00:00.000Z'), todayIso: () => '2026-01-02' } },
+        {
+          provide: CLOCK,
+          useValue: {
+            now: () => new Date('2026-01-02T00:00:00.000Z'),
+            todayIso: () => '2026-01-02',
+          },
+        },
         { provide: GetCompanyUseCase, useValue: { execute: jest.fn() } },
         { provide: UpdateCompanyUseCase, useValue: { execute: jest.fn() } },
-        { provide: GetCompanyBrandingUseCase, useValue: { execute: jest.fn(() => Promise.resolve({ name: 'Ledgerly', logo: null, brandColor: null })) } },
+        {
+          provide: GetCompanyBrandingUseCase,
+          useValue: {
+            execute: jest.fn(() =>
+              Promise.resolve({ name: 'Ledgerly', logo: null, brandColor: null }),
+            ),
+          },
+        },
         { provide: HealthCheckService, useValue: {} },
         { provide: TypeOrmHealthIndicator, useValue: {} },
       ],
-    })
-      .compile();
+    }).compile();
 
     app = moduleRef.createNestApplication();
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    );
     app.useGlobalGuards(
       new OriginGuard({ get: () => 'https://app.ledgerly.dev' } as never),
-      new AccessGuard(
-        new Reflector(),
-        memberRepository as never,
-        sessionResolver,
-        { now: () => new Date('2026-01-02T00:00:00.000Z'), todayIso: () => '2026-01-02' },
-      ),
+      new AccessGuard(new Reflector(), memberRepository as never, sessionResolver, {
+        now: () => new Date('2026-01-02T00:00:00.000Z'),
+        todayIso: () => '2026-01-02',
+      }),
     );
     await app.init();
     httpServer = app.getHttpServer() as Server;
@@ -110,17 +132,14 @@ describe('authorization HTTP integration', () => {
     await app.close();
   });
 
-  it.each([
-    '/',
-    '/health',
-    '/auth/status',
-    '/company/branding',
-    '/auth/better-auth-route',
-  ])('allows the reviewed public route %s', async (path) => {
-    const response = await request(httpServer).get(path);
+  it.each(['/', '/health', '/auth/status', '/company/branding', '/auth/better-auth-route'])(
+    'allows the reviewed public route %s',
+    async (path) => {
+      const response = await request(httpServer).get(path);
 
-    expect(response.status).toBeLessThan(400);
-  });
+      expect(response.status).toBeLessThan(400);
+    },
+  );
 
   it('allows the reviewed public bootstrap route from the configured origin', async () => {
     const response = await request(httpServer)

@@ -20,7 +20,11 @@ import {
   AuthSessionResolver,
   ResolvedAuthSession,
 } from '../../../domain/auth-session-resolver.port';
-import { AccessRequirement, ACCESS_REQUIREMENT_KEY } from './access-requirement';
+import {
+  AccessRequirement,
+  ACCESS_REQUIREMENT_KEY,
+  accessRequirementsFromMetadata,
+} from './access-requirement';
 import { IS_PUBLIC_KEY } from './public.decorator';
 import { appendSetCookies } from '../session-cookies';
 
@@ -47,19 +51,22 @@ export class AccessGuard implements CanActivate {
       return true;
     }
 
-    const requirement = this.reflector.getAllAndOverride<AccessRequirement | undefined>(ACCESS_REQUIREMENT_KEY, [
+    const requirementMetadata = this.reflector.getAllAndMerge<AccessRequirement[]>(ACCESS_REQUIREMENT_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
+    const requirements = accessRequirementsFromMetadata(requirementMetadata);
 
-    if (!requirement) {
+    if (requirements === null) {
       throw new ForbiddenException();
     }
 
     const request = context.switchToHttp().getRequest<RequestWithMember>();
     const member = await this.resolveActiveMember(request);
 
-    this.assertRequirement(requirement, member);
+    for (const requirement of requirements) {
+      this.assertRequirement(requirement, member);
+    }
 
     request.member = member;
 
@@ -99,15 +106,7 @@ export class AccessGuard implements CanActivate {
   }
 
   private assertRequirement(requirement: AccessRequirement, member: WorkspaceMember): void {
-    if (requirement.kind === 'authenticated') {
-      return;
-    }
-
-    if (requirement.kind === 'notifications') {
-      if (member.getRole() === 'viewer') {
-        throw new ForbiddenException();
-      }
-
+    if (requirement.kind === 'authenticated' || requirement.kind === 'notifications') {
       return;
     }
 

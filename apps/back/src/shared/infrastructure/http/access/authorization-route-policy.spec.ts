@@ -11,7 +11,11 @@ jest.mock('../../../../contexts/auth/infrastructure/persistence/better-auth-user
 }));
 
 import { AppModule } from '../../../../app.module';
-import { ACCESS_REQUIREMENT_KEY, AccessRequirement } from './access-requirement';
+import {
+  ACCESS_REQUIREMENT_KEY,
+  AccessRequirement,
+  accessRequirementsFromMetadata,
+} from './access-requirement';
 import { authorizationResourceParameterHandoffs } from './authorization-bola-handoff.fixture';
 import { AuthorizationResourceInput, authorizationRouteResourceInputPolicies } from './authorization-resource-input-policy.fixture';
 import { authorizationRoutePolicies, AuthorizationRoutePolicy } from './authorization-route-policy.fixture';
@@ -87,6 +91,75 @@ function metadataFor<T>(handler: object, controller: ControllerType, key: string
   return (handlerMetadata ?? controllerMetadata) as T | undefined;
 }
 
+function effectiveAccessRequirement(
+  handler: object,
+  controller: ControllerType,
+): AccessRequirement | readonly AccessRequirement[] | null {
+  const metadata = [
+    Reflect.getMetadata(ACCESS_REQUIREMENT_KEY, controller),
+    Reflect.getMetadata(ACCESS_REQUIREMENT_KEY, handler),
+  ];
+  const requirements: AccessRequirement[] = [];
+
+  for (const value of metadata) {
+    if (value === undefined) {
+      continue;
+    }
+
+    const parsed = accessRequirementsFromMetadata(value);
+
+    if (parsed === null) {
+      return null;
+    }
+
+    requirements.push(...parsed);
+  }
+
+  if (requirements.some(({ kind }) => kind === 'admin')) {
+    return { kind: 'admin' };
+  }
+
+  const levels: readonly ('none' | 'view' | 'edit')[] = ['none', 'view', 'edit'];
+  const accessByModule = new Map<
+    Extract<AccessRequirement, { kind: 'access' }>['module'],
+    Extract<AccessRequirement, { kind: 'access' }>['level']
+  >();
+
+  for (const requirement of requirements) {
+    if (requirement.kind !== 'access') {
+      continue;
+    }
+
+    const currentLevel = accessByModule.get(requirement.module);
+
+    if (currentLevel === undefined || levels.indexOf(requirement.level) > levels.indexOf(currentLevel)) {
+      accessByModule.set(requirement.module, requirement.level);
+    }
+  }
+
+  const moduleRequirements = [...accessByModule].map(([module, level]) => ({
+    kind: 'access' as const,
+    module,
+    level,
+  }));
+
+  if (moduleRequirements.length === 1) {
+    return moduleRequirements[0];
+  }
+
+  if (moduleRequirements.length > 1) {
+    return moduleRequirements;
+  }
+
+  const notificationRequirement = requirements.find(({ kind }) => kind === 'notifications');
+
+  if (notificationRequirement) {
+    return notificationRequirement;
+  }
+
+  return requirements.find(({ kind }) => kind === 'authenticated') ?? null;
+}
+
 function discoverAuthorizationRoutes(): AuthorizationRoutePolicy[] {
   return reachableControllers(AppModule)
     .flatMap((controller) => {
@@ -110,7 +183,7 @@ function discoverAuthorizationRoutes(): AuthorizationRoutePolicy[] {
           method: RequestMethod[method],
           path: routePath(controllerPath ?? '', handlerPath),
           public: metadataFor<boolean>(handler, controller, IS_PUBLIC_KEY) ?? false,
-          access: metadataFor<AccessRequirement>(handler, controller, ACCESS_REQUIREMENT_KEY) ?? null,
+          access: effectiveAccessRequirement(handler, controller),
         }];
       });
     })

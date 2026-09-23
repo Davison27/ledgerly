@@ -5,7 +5,10 @@ jest.mock('better-auth/node', () => ({ fromNodeHeaders: jest.fn(() => new Header
 
 import { WorkspaceMember } from '../../../../contexts/auth/domain/workspace-member';
 import { MemberEmail } from '../../../../contexts/auth/domain/value-objects/member-email';
-import { PermissionMatrix, WORKSPACE_MODULES } from '../../../../contexts/auth/domain/value-objects/permission-matrix';
+import {
+  PermissionMatrix,
+  WORKSPACE_MODULES,
+} from '../../../../contexts/auth/domain/value-objects/permission-matrix';
 import {
   AuthSessionResolution,
   ResolvedAuthSession,
@@ -13,8 +16,11 @@ import {
 import { AccessGuard } from './access.guard';
 import { ACCESS_REQUIREMENT_KEY, AccessRequirement } from './access-requirement';
 import { IS_PUBLIC_KEY } from './public.decorator';
+import { RequiresAccess } from './requires-access.decorator';
 
-function permissionMatrix(levels: Partial<Record<(typeof WORKSPACE_MODULES)[number], 'none' | 'view' | 'edit'>>): PermissionMatrix {
+function permissionMatrix(
+  levels: Partial<Record<(typeof WORKSPACE_MODULES)[number], 'none' | 'view' | 'edit'>>,
+): PermissionMatrix {
   return PermissionMatrix.create(
     WORKSPACE_MODULES.reduce<Record<string, string>>((matrix, module) => {
       matrix[module] = levels[module] ?? 'none';
@@ -23,11 +29,16 @@ function permissionMatrix(levels: Partial<Record<(typeof WORKSPACE_MODULES)[numb
   );
 }
 
-function member(permissions: PermissionMatrix, status: 'invited' | 'active' | 'disabled' = 'active'): WorkspaceMember {
+function member(
+  permissions: PermissionMatrix,
+  status: 'invited' | 'active' | 'disabled' = 'active',
+  role: 'admin' | 'member' = 'member',
+): WorkspaceMember {
   return WorkspaceMember.create({
     id: 'member-1',
     email: MemberEmail.create('member@ledgerly.dev'),
     name: 'Member',
+    role,
     permissions,
     status,
     invitedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -44,23 +55,31 @@ function session(): ResolvedAuthSession {
   };
 }
 
-function resolution(sessionValue: ResolvedAuthSession | null, setCookies: string[] = []): AuthSessionResolution {
+function resolution(
+  sessionValue: ResolvedAuthSession | null,
+  setCookies: string[] = [],
+): AuthSessionResolution {
   return { session: sessionValue, setCookies };
 }
 
 function contextFor(
   request: { headers: Record<string, string>; member?: WorkspaceMember },
-  options: { public?: boolean; requirement?: AccessRequirement } = {},
+  options: {
+    public?: boolean;
+    requirement?: AccessRequirement;
+    handler?: object;
+    controller?: object;
+  } = {},
 ): ExecutionContext {
-  const handler = () => undefined;
-  const controller = class {};
+  const handler = options.handler ?? (() => undefined);
+  const controller = options.controller ?? class {};
 
   if (options.public) {
     Reflect.defineMetadata(IS_PUBLIC_KEY, true, handler);
   }
 
   if (options.requirement) {
-    Reflect.defineMetadata(ACCESS_REQUIREMENT_KEY, options.requirement, handler);
+    Reflect.defineMetadata(ACCESS_REQUIREMENT_KEY, [options.requirement], handler);
   }
 
   return {
@@ -69,6 +88,32 @@ function contextFor(
     switchToHttp: () => ({ getRequest: () => request }),
   } as unknown as ExecutionContext;
 }
+
+class CompoundAccessController {
+  getResources(): void {}
+}
+
+const compoundAccessDescriptor = Object.getOwnPropertyDescriptor(
+  CompoundAccessController.prototype,
+  'getResources',
+);
+const compoundAccessHandler: unknown = compoundAccessDescriptor?.value;
+
+if (!compoundAccessDescriptor || typeof compoundAccessHandler !== 'function') {
+  throw new Error('compound access handler descriptor is missing');
+}
+
+RequiresAccess('projects', 'view')(CompoundAccessController);
+RequiresAccess('documents', 'view')(
+  CompoundAccessController.prototype,
+  'getResources',
+  compoundAccessDescriptor,
+);
+RequiresAccess('staff', 'view')(
+  CompoundAccessController.prototype,
+  'getResources',
+  compoundAccessDescriptor,
+);
 
 describe('AccessGuard', () => {
   const memberRepository = {
@@ -132,7 +177,9 @@ describe('AccessGuard', () => {
 
   it('returns 403 when the session member has been disabled', async () => {
     sessionResolver.resolve.mockResolvedValue(resolution(session()));
-    memberRepository.findByEmail.mockResolvedValue(member(PermissionMatrix.admin(), 'disabled'));
+    memberRepository.findByEmail.mockResolvedValue(
+      member(PermissionMatrix.admin(), 'disabled', 'admin'),
+    );
 
     await expect(
       guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'authenticated' } })),
@@ -156,9 +203,11 @@ describe('AccessGuard', () => {
     expect(request.member).toBe(invitedMember);
   });
 
-  it('grants admin-only access to the admin permission matrix', async () => {
+  it('grants admin-only access to the explicit administrator role', async () => {
     sessionResolver.resolve.mockResolvedValue(resolution(session()));
-    memberRepository.findByEmail.mockResolvedValue(member(PermissionMatrix.admin()));
+    memberRepository.findByEmail.mockResolvedValue(
+      member(PermissionMatrix.admin(), 'active', 'admin'),
+    );
 
     await expect(
       guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'admin' } })),
@@ -168,25 +217,61 @@ describe('AccessGuard', () => {
   it('grants editor access to editable document routes', async () => {
     sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(
-      member(permissionMatrix({ dashboard: 'view', staff: 'view', documents: 'edit', projects: 'edit', calendar: 'edit', suppliers: 'edit', equipment: 'edit' })),
+      member(
+        permissionMatrix({
+          dashboard: 'view',
+          staff: 'view',
+          documents: 'edit',
+          projects: 'edit',
+          calendar: 'edit',
+          suppliers: 'edit',
+          equipment: 'edit',
+        }),
+      ),
     );
 
     await expect(
-      guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'access', module: 'documents', level: 'edit' } })),
+      guard.canActivate(
+        contextFor(
+          { headers: {} },
+          { requirement: { kind: 'access', module: 'documents', level: 'edit' } },
+        ),
+      ),
     ).resolves.toBe(true);
   });
 
-  it('grants viewer access to view routes and denies notifications', async () => {
-    const viewer = member(permissionMatrix({ dashboard: 'view', projects: 'view', calendar: 'view', documents: 'view', suppliers: 'view', equipment: 'view', staff: 'view' }));
+  it('grants view access only to permitted modules', async () => {
+    const viewer = member(
+      permissionMatrix({
+        dashboard: 'view',
+        projects: 'view',
+        calendar: 'view',
+        documents: 'view',
+        suppliers: 'view',
+        equipment: 'view',
+        staff: 'view',
+      }),
+    );
     sessionResolver.resolve.mockResolvedValue(resolution(session()));
     memberRepository.findByEmail.mockResolvedValue(viewer);
 
     await expect(
-      guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'access', module: 'documents', level: 'view' } })),
+      guard.canActivate(
+        contextFor(
+          { headers: {} },
+          { requirement: { kind: 'access', module: 'documents', level: 'view' } },
+        ),
+      ),
     ).resolves.toBe(true);
+  });
+
+  it('allows notification access for every active member', async () => {
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
+    memberRepository.findByEmail.mockResolvedValue(member(permissionMatrix({})));
+
     await expect(
       guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'notifications' } })),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    ).resolves.toBe(true);
   });
 
   it('grants custom access only for the modules explicitly permitted', async () => {
@@ -195,10 +280,60 @@ describe('AccessGuard', () => {
     memberRepository.findByEmail.mockResolvedValue(customMember);
 
     await expect(
-      guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'access', module: 'projects', level: 'view' } })),
+      guard.canActivate(
+        contextFor(
+          { headers: {} },
+          { requirement: { kind: 'access', module: 'projects', level: 'view' } },
+        ),
+      ),
     ).resolves.toBe(true);
     await expect(
-      guard.canActivate(contextFor({ headers: {} }, { requirement: { kind: 'access', module: 'documents', level: 'view' } })),
+      guard.canActivate(
+        contextFor(
+          { headers: {} },
+          { requirement: { kind: 'access', module: 'documents', level: 'view' } },
+        ),
+      ),
     ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('grants section access to administrators regardless of their stored permission matrix', async () => {
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
+    memberRepository.findByEmail.mockResolvedValue(
+      member(permissionMatrix({}), 'active', 'admin'),
+    );
+
+    await expect(
+      guard.canActivate(
+        contextFor(
+          { headers: {} },
+          { requirement: { kind: 'access', module: 'projects', level: 'edit' } },
+        ),
+      ),
+    ).resolves.toBe(true);
+  });
+
+  it('requires every class and method section grant on compound routes', async () => {
+    sessionResolver.resolve.mockResolvedValue(resolution(session()));
+    memberRepository.findByEmail.mockResolvedValue(
+      member(permissionMatrix({ documents: 'view', staff: 'view' })),
+    );
+
+    const context = () =>
+      contextFor(
+        { headers: {} },
+        {
+          handler: compoundAccessHandler,
+          controller: CompoundAccessController,
+        },
+      );
+
+    await expect(guard.canActivate(context())).rejects.toBeInstanceOf(ForbiddenException);
+
+    memberRepository.findByEmail.mockResolvedValue(
+      member(permissionMatrix({ projects: 'view', documents: 'view', staff: 'view' })),
+    );
+
+    await expect(guard.canActivate(context())).resolves.toBe(true);
   });
 });
