@@ -77,7 +77,9 @@ function viewerPermissions(): Record<string, string> {
 }
 
 describe('InviteWorkspaceMemberUseCase', () => {
-  function buildUseCase(repository: InMemoryWorkspaceMemberRepository): InviteWorkspaceMemberUseCase {
+  function buildUseCase(
+    repository: InMemoryWorkspaceMemberRepository,
+  ): InviteWorkspaceMemberUseCase {
     return new InviteWorkspaceMemberUseCase(
       repository,
       new SequentialIdGenerator(),
@@ -85,18 +87,19 @@ describe('InviteWorkspaceMemberUseCase', () => {
     );
   }
 
-  it('invites a new member with the derived role and invited status', async () => {
+  it('invites a new member with the explicit role and invited status', async () => {
     const repository = new InMemoryWorkspaceMemberRepository();
     const useCase = buildUseCase(repository);
 
     const member = await useCase.execute({
       name: 'Jane Doe',
       email: 'Jane@Ledgerly.dev',
+      role: 'member',
       permissions: viewerPermissions(),
     });
 
     expect(member.getEmail()).toBe('jane@ledgerly.dev');
-    expect(member.getRole()).toBe('viewer');
+    expect(member.getRole()).toBe('member');
     expect(member.getStatus()).toBe('invited');
     expect(repository.members).toHaveLength(1);
   });
@@ -104,10 +107,20 @@ describe('InviteWorkspaceMemberUseCase', () => {
   it('rejects an email that already belongs to another member', async () => {
     const repository = new InMemoryWorkspaceMemberRepository();
     const useCase = buildUseCase(repository);
-    await useCase.execute({ name: 'Jane Doe', email: 'jane@ledgerly.dev', permissions: viewerPermissions() });
+    await useCase.execute({
+      name: 'Jane Doe',
+      email: 'jane@ledgerly.dev',
+      role: 'member',
+      permissions: viewerPermissions(),
+    });
 
     await expect(
-      useCase.execute({ name: 'Jane Again', email: 'jane@ledgerly.dev', permissions: viewerPermissions() }),
+      useCase.execute({
+        name: 'Jane Again',
+        email: 'jane@ledgerly.dev',
+        role: 'member',
+        permissions: viewerPermissions(),
+      }),
     ).rejects.toThrow(MemberEmailAlreadyExistsException);
     expect(repository.members).toHaveLength(1);
   });
@@ -118,6 +131,7 @@ describe('InviteWorkspaceMemberUseCase', () => {
       id: 'retained-member',
       email: MemberEmail.create('jane@ledgerly.dev'),
       name: 'Jane Doe',
+      role: 'member',
       permissions: PermissionMatrix.create(viewerPermissions()),
       status: 'disabled',
       invitedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -126,9 +140,29 @@ describe('InviteWorkspaceMemberUseCase', () => {
     const useCase = buildUseCase(repository);
 
     await expect(
-      useCase.execute({ name: 'Jane Again', email: 'jane@ledgerly.dev', permissions: viewerPermissions() }),
+      useCase.execute({
+        name: 'Jane Again',
+        email: 'jane@ledgerly.dev',
+        role: 'member',
+        permissions: viewerPermissions(),
+      }),
     ).rejects.toThrow(MemberEmailAlreadyExistsException);
     expect(repository.members).toHaveLength(1);
     expect(repository.members[0].getId()).toBe('retained-member');
+  });
+
+  it('keeps an invited administrator independent from section permissions', async () => {
+    const repository = new InMemoryWorkspaceMemberRepository();
+    const useCase = buildUseCase(repository);
+
+    const member = await useCase.execute({
+      name: 'Jane Doe',
+      email: 'jane@ledgerly.dev',
+      role: 'admin',
+      permissions: viewerPermissions(),
+    });
+
+    expect(member.getRole()).toBe('admin');
+    expect(member.canAccess('documents', 'edit')).toBe(true);
   });
 });

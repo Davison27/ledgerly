@@ -48,14 +48,19 @@ function parseAvatarContentType(value: string | null): AvatarContentType | null 
 
 function hasAvatarSignature(image: Buffer, contentType: AvatarContentType): boolean {
   if (contentType === 'image/png') {
-    return image.subarray(0, 8).equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+    return image
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
   }
 
   if (contentType === 'image/jpeg') {
     return image.length >= 3 && image[0] === 0xff && image[1] === 0xd8 && image[2] === 0xff;
   }
 
-  return image.subarray(0, 4).equals(Buffer.from('RIFF')) && image.subarray(8, 12).equals(Buffer.from('WEBP'));
+  return (
+    image.subarray(0, 4).equals(Buffer.from('RIFF')) &&
+    image.subarray(8, 12).equals(Buffer.from('WEBP'))
+  );
 }
 
 async function cancelAvatarResponse(response: globalThis.Response): Promise<void> {
@@ -127,7 +132,10 @@ async function fetchGoogleAvatar(url: URL): Promise<globalThis.Response | null> 
   for (let redirects = 0; redirects <= MAX_AVATAR_REDIRECTS; redirects += 1) {
     let response: globalThis.Response;
     try {
-      response = await fetch(currentUrl, { redirect: 'manual', signal: AbortSignal.timeout(5_000) });
+      response = await fetch(currentUrl, {
+        redirect: 'manual',
+        signal: AbortSignal.timeout(5_000),
+      });
     } catch {
       return null;
     }
@@ -156,15 +164,20 @@ export class WorkspaceMembersController {
     private readonly updateWorkspaceMemberUseCase: UpdateWorkspaceMemberUseCase,
     private readonly removeWorkspaceMemberUseCase: RemoveWorkspaceMemberUseCase,
     @Inject(AUTH_USER_DIRECTORY) private readonly userDirectory: AuthUserDirectory,
-    @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
+    @Inject(WORKSPACE_MEMBER_REPOSITORY)
+    private readonly memberRepository: WorkspaceMemberRepository,
   ) {}
 
   @Get()
   async list(): Promise<WorkspaceMemberResponse[]> {
     const members = await this.listWorkspaceMembersUseCase.execute();
 
-    const identities = await this.userDirectory.findByEmails(members.map((member) => member.getEmail()));
-    return members.map((member) => WorkspaceMemberResponse.fromDomain(member, identities.get(member.getEmail().toLowerCase())));
+    const identities = await this.userDirectory.findByEmails(
+      members.map((member) => member.getEmail()),
+    );
+    return members.map((member) =>
+      WorkspaceMemberResponse.fromDomain(member, identities.get(member.getEmail().toLowerCase())),
+    );
   }
 
   @Get(':id/avatar')
@@ -179,8 +192,9 @@ export class WorkspaceMembersController {
       throw new NotFoundException('Workspace member not found');
     }
 
-    const identity = (await this.userDirectory.findByEmails([member.getEmail()]))
-      .get(member.getEmail().toLowerCase());
+    const identity = (await this.userDirectory.findByEmails([member.getEmail()])).get(
+      member.getEmail().toLowerCase(),
+    );
     const imageUrl = identity?.image;
 
     if (!imageUrl) {
@@ -222,6 +236,7 @@ export class WorkspaceMembersController {
     const member = await this.inviteWorkspaceMemberUseCase.execute({
       name: dto.name,
       email: dto.email,
+      role: dto.role,
       permissions: { ...dto.permissions },
     });
 
@@ -238,6 +253,7 @@ export class WorkspaceMembersController {
       id,
       actingMemberId: actingMember.getId(),
       name: dto.name,
+      role: dto.role,
       permissions: dto.permissions ? { ...dto.permissions } : undefined,
       status: dto.status,
     });
@@ -247,7 +263,10 @@ export class WorkspaceMembersController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async remove(@Param('id') id: string, @CurrentMember() actingMember: WorkspaceMember): Promise<void> {
+  async remove(
+    @Param('id') id: string,
+    @CurrentMember() actingMember: WorkspaceMember,
+  ): Promise<void> {
     await this.removeWorkspaceMemberUseCase.execute({ id, actingMemberId: actingMember.getId() });
   }
 }

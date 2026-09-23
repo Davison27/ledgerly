@@ -4,7 +4,7 @@ import { Check, Column, Entity, Index, PrimaryColumn } from 'typeorm';
 @Index('UQ_workspace_members_founder', { synchronize: false })
 @Index('UQ_workspace_members_email', ['email'], { unique: true })
 @Index('UQ_workspace_members_google_subject', ['googleSubject'], { unique: true })
-@Check('CHK_workspace_members_role', `"role" IN ('admin', 'editor', 'viewer', 'custom')`)
+@Check('CHK_workspace_members_role', `"role" IN ('admin', 'member')`)
 @Check('CHK_workspace_members_status', `"status" IN ('invited', 'active', 'disabled')`)
 export class WorkspaceMemberOrmEntity {
   @PrimaryColumn('uuid')

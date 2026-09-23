@@ -4,18 +4,24 @@ import { SelfAccessChangeException } from '../../domain/errors/self-access-chang
 import { WorkspaceMemberNotFoundException } from '../../domain/errors/workspace-member-not-found.exception';
 import { PermissionMatrix } from '../../domain/value-objects/permission-matrix';
 import { WorkspaceMember } from '../../domain/workspace-member';
-import { WORKSPACE_MEMBER_REPOSITORY, WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
+import {
+  WORKSPACE_MEMBER_REPOSITORY,
+  WorkspaceMemberRepository,
+} from '../../domain/workspace-member.repository';
 import { AUTH_SESSION_REVOKER, AuthSessionRevoker } from '../../domain/auth-session-revoker.port';
 import { UpdateWorkspaceMemberCommand } from './update-workspace-member.command';
 
 function touchesAccess(command: UpdateWorkspaceMemberCommand): boolean {
-  return command.permissions !== undefined || command.status !== undefined;
+  return (
+    command.role !== undefined || command.permissions !== undefined || command.status !== undefined
+  );
 }
 
 @Injectable()
 export class UpdateWorkspaceMemberUseCase {
   constructor(
-    @Inject(WORKSPACE_MEMBER_REPOSITORY) private readonly memberRepository: WorkspaceMemberRepository,
+    @Inject(WORKSPACE_MEMBER_REPOSITORY)
+    private readonly memberRepository: WorkspaceMemberRepository,
     @Inject(AUTH_SESSION_REVOKER) private readonly sessionRevoker: AuthSessionRevoker,
   ) {}
 
@@ -34,6 +40,10 @@ export class UpdateWorkspaceMemberUseCase {
 
     if (command.name !== undefined) {
       member.rename(command.name);
+    }
+
+    if (command.role !== undefined) {
+      member.changeRole(command.role);
     }
 
     if (command.permissions !== undefined) {

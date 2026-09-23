@@ -7,6 +7,97 @@ import { UpdateWorkspaceMemberUseCase } from '../../application/update-workspace
 import { RemoveWorkspaceMemberUseCase } from '../../application/remove-workspace-member/remove-workspace-member.use-case';
 import { WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
 import { AuthUserDirectory } from '../../domain/auth-user-directory.port';
+import { MemberEmail } from '../../domain/value-objects/member-email';
+import { PermissionMatrix, WORKSPACE_MODULES } from '../../domain/value-objects/permission-matrix';
+import { WorkspaceMember } from '../../domain/workspace-member';
+import { PermissionMatrixDto } from './dtos/permission-matrix.dto';
+
+function workspaceMember(role: 'admin' | 'member'): WorkspaceMember {
+  return WorkspaceMember.create({
+    id: 'member-1',
+    email: MemberEmail.create('member@ledgerly.dev'),
+    name: 'Member',
+    role,
+    permissions: PermissionMatrix.create(
+      WORKSPACE_MODULES.reduce<Record<string, string>>((matrix, module) => {
+        matrix[module] = 'view';
+        return matrix;
+      }, {}),
+    ),
+    status: 'invited',
+    invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+  });
+}
+
+function permissionDto(): PermissionMatrixDto {
+  return {
+    dashboard: 'view',
+    projects: 'view',
+    calendar: 'view',
+    documents: 'view',
+    suppliers: 'view',
+    equipment: 'view',
+    staff: 'view',
+  };
+}
+
+describe('WorkspaceMembersController role contract', () => {
+  const inviteExecute = jest.fn();
+  const updateExecute = jest.fn();
+
+  function controller(): WorkspaceMembersController {
+    return new WorkspaceMembersController(
+      {} as ListWorkspaceMembersUseCase,
+      { execute: inviteExecute } as unknown as InviteWorkspaceMemberUseCase,
+      { execute: updateExecute } as unknown as UpdateWorkspaceMemberUseCase,
+      {} as RemoveWorkspaceMemberUseCase,
+      {} as AuthUserDirectory,
+      {} as WorkspaceMemberRepository,
+    );
+  }
+
+  beforeEach(() => {
+    inviteExecute.mockReset();
+    updateExecute.mockReset();
+  });
+
+  it('forwards and returns the requested invitation role', async () => {
+    inviteExecute.mockResolvedValue(workspaceMember('admin'));
+    const result = await controller().invite({
+      name: 'Member',
+      email: 'member@ledgerly.dev',
+      role: 'admin',
+      permissions: permissionDto(),
+    });
+
+    expect(inviteExecute).toHaveBeenCalledWith({
+      name: 'Member',
+      email: 'member@ledgerly.dev',
+      role: 'admin',
+      permissions: permissionDto(),
+    });
+    expect(result.role).toBe('admin');
+  });
+
+  it('forwards and returns an explicit role update', async () => {
+    updateExecute.mockResolvedValue(workspaceMember('member'));
+    const result = await controller().update(
+      'member-1',
+      { role: 'member' },
+      workspaceMember('admin'),
+    );
+
+    expect(updateExecute).toHaveBeenCalledWith({
+      id: 'member-1',
+      actingMemberId: 'member-1',
+      name: undefined,
+      role: 'member',
+      permissions: undefined,
+      status: undefined,
+    });
+    expect(result.role).toBe('member');
+  });
+});
 
 describe('WorkspaceMembersController avatar', () => {
   const originalFetch = globalThis.fetch;
@@ -21,9 +112,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,
@@ -35,9 +128,11 @@ describe('WorkspaceMembersController avatar', () => {
     );
     const setHeader = jest.fn();
     const response = { setHeader } as unknown as Response;
-    globalThis.fetch = jest.fn().mockResolvedValue(
-      new Response(Buffer.alloc(1024 * 1024 + 1), { headers: { 'content-type': 'image/png' } }),
-    );
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        new Response(Buffer.alloc(1024 * 1024 + 1), { headers: { 'content-type': 'image/png' } }),
+      );
 
     await expect(controller.avatar('member-1', response)).rejects.toThrow(BadGatewayException);
   });
@@ -47,9 +142,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,
@@ -80,9 +177,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,
@@ -94,7 +193,10 @@ describe('WorkspaceMembersController avatar', () => {
     );
     const response = { setHeader: jest.fn() } as unknown as Response;
     globalThis.fetch = jest.fn().mockResolvedValue(
-      new Response(null, { status: 302, headers: { location: 'https://attacker.example/avatar' } }),
+      new Response(null, {
+        status: 302,
+        headers: { location: 'https://attacker.example/avatar' },
+      }),
     );
 
     await expect(controller.avatar('member-1', response)).rejects.toThrow(BadGatewayException);
@@ -109,9 +211,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,
@@ -122,9 +226,20 @@ describe('WorkspaceMembersController avatar', () => {
       memberRepository,
     );
     const response = { setHeader: jest.fn() } as unknown as Response;
-    globalThis.fetch = jest.fn()
-      .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: 'https://lh3.googleusercontent.com/next' } }))
-      .mockResolvedValueOnce(new Response(null, { status: 302, headers: { location: 'https://attacker.example/avatar' } }));
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { location: 'https://lh3.googleusercontent.com/next' },
+        }),
+      )
+      .mockResolvedValueOnce(
+        new Response(null, {
+          status: 302,
+          headers: { location: 'https://attacker.example/avatar' },
+        }),
+      );
 
     await expect(controller.avatar('member-1', response)).rejects.toThrow(BadGatewayException);
     expect(globalThis.fetch).toHaveBeenCalledTimes(2);
@@ -135,9 +250,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,
@@ -148,9 +265,11 @@ describe('WorkspaceMembersController avatar', () => {
       memberRepository,
     );
     const response = { setHeader: jest.fn() } as unknown as Response;
-    globalThis.fetch = jest.fn().mockResolvedValue(
-      new Response('<svg></svg>', { headers: { 'content-type': 'image/svg+xml' } }),
-    );
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(
+        new Response('<svg></svg>', { headers: { 'content-type': 'image/svg+xml' } }),
+      );
 
     await expect(controller.avatar('member-1', response)).rejects.toThrow(BadGatewayException);
   });
@@ -160,9 +279,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,
@@ -173,9 +294,9 @@ describe('WorkspaceMembersController avatar', () => {
       memberRepository,
     );
     const response = { setHeader: jest.fn() } as unknown as Response;
-    globalThis.fetch = jest.fn().mockResolvedValue(
-      new Response('not a PNG', { headers: { 'content-type': 'image/png' } }),
-    );
+    globalThis.fetch = jest
+      .fn()
+      .mockResolvedValue(new Response('not a PNG', { headers: { 'content-type': 'image/png' } }));
 
     await expect(controller.avatar('member-1', response)).rejects.toThrow(BadGatewayException);
   });
@@ -185,9 +306,11 @@ describe('WorkspaceMembersController avatar', () => {
       findById: jest.fn().mockResolvedValue({ getEmail: () => 'member@example.com' }),
     } as unknown as WorkspaceMemberRepository;
     const userDirectory = {
-      findByEmails: jest.fn().mockResolvedValue(
-        new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
-      ),
+      findByEmails: jest
+        .fn()
+        .mockResolvedValue(
+          new Map([['member@example.com', { image: 'https://lh3.googleusercontent.com/avatar' }]]),
+        ),
     } as unknown as AuthUserDirectory;
     const controller = new WorkspaceMembersController(
       {} as ListWorkspaceMembersUseCase,

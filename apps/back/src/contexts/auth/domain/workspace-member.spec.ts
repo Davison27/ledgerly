@@ -17,6 +17,7 @@ function createInvitedMember(): WorkspaceMember {
     id: 'member-1',
     email: MemberEmail.create('person@ledgerly.dev'),
     name: 'Provisional Name',
+    role: 'member',
     permissions: viewerMatrix(),
     status: 'invited',
     invitedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -53,7 +54,11 @@ describe('WorkspaceMember', () => {
     member.bindGoogleAccount('google-subject-1', 'Real Name', new Date('2026-01-02T00:00:00.000Z'));
 
     expect(() =>
-      member.bindGoogleAccount('google-subject-2', 'Real Name', new Date('2026-01-03T00:00:00.000Z')),
+      member.bindGoogleAccount(
+        'google-subject-2',
+        'Real Name',
+        new Date('2026-01-03T00:00:00.000Z'),
+      ),
     ).toThrow(GoogleIdentityRejectedException);
   });
 
@@ -63,7 +68,11 @@ describe('WorkspaceMember', () => {
     member.changeStatus('disabled');
 
     expect(() =>
-      member.bindGoogleAccount('google-subject-1', 'Real Name', new Date('2026-01-03T00:00:00.000Z')),
+      member.bindGoogleAccount(
+        'google-subject-1',
+        'Real Name',
+        new Date('2026-01-03T00:00:00.000Z'),
+      ),
     ).toThrow(GoogleIdentityRejectedException);
     expect(member.getStatus()).toBe('disabled');
   });
@@ -74,6 +83,7 @@ describe('WorkspaceMember', () => {
       email: MemberEmail.create('person@ledgerly.dev'),
       googleSubject: 'google-subject-1',
       name: 'Provisional Name',
+      role: 'member',
       permissions: viewerMatrix(),
       status: 'active',
       invitedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -93,11 +103,32 @@ describe('WorkspaceMember', () => {
     expect(member.getStatus()).toBe('active');
   });
 
-  it('derives isAdmin from the permission matrix', () => {
-    const admin = WorkspaceMember.create({
-      id: 'member-2',
+  it('keeps administrator access independent from the permission matrix', () => {
+    const administrator = WorkspaceMember.create({
+      id: 'admin-1',
       email: MemberEmail.create('admin@ledgerly.dev'),
       name: 'Admin',
+      role: 'admin',
+      permissions: PermissionMatrix.create(
+        WORKSPACE_MODULES.reduce<Record<string, string>>((matrix, module) => {
+          matrix[module] = 'none';
+          return matrix;
+        }, {}),
+      ),
+      status: 'active',
+      invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+    });
+
+    expect(administrator.isAdmin()).toBe(true);
+    expect(administrator.canAccess('documents', 'edit')).toBe(true);
+  });
+
+  it('keeps the member role independent from full section grants', () => {
+    const member = WorkspaceMember.create({
+      id: 'member-2',
+      email: MemberEmail.create('editor@ledgerly.dev'),
+      name: 'Editor',
+      role: 'member',
       permissions: PermissionMatrix.create(
         WORKSPACE_MODULES.reduce<Record<string, string>>((matrix, module) => {
           matrix[module] = module === 'dashboard' ? 'view' : 'edit';
@@ -108,7 +139,8 @@ describe('WorkspaceMember', () => {
       invitedAt: new Date('2026-01-01T00:00:00.000Z'),
     });
 
-    expect(admin.isAdmin()).toBe(true);
-    expect(admin.canAccess('documents', 'edit')).toBe(true);
+    expect(member.getRole()).toBe('member');
+    expect(member.isAdmin()).toBe(false);
+    expect(member.canAccess('documents', 'edit')).toBe(true);
   });
 });

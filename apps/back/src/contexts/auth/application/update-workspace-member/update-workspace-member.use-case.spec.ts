@@ -35,7 +35,9 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   }
 
   countActiveAdmins(): Promise<number> {
-    return Promise.resolve(this.members.filter((member) => member.isAdmin() && member.isActive()).length);
+    return Promise.resolve(
+      this.members.filter((member) => member.isAdmin() && member.isActive()).length,
+    );
   }
 
   save(member: WorkspaceMember): Promise<void> {
@@ -81,6 +83,7 @@ function adminMember(id: string): WorkspaceMember {
     id,
     email: MemberEmail.create(`${id}@ledgerly.dev`),
     name: 'Admin',
+    role: 'admin',
     permissions: adminMatrix(),
     status: 'active',
     invitedAt: NOW,
@@ -98,8 +101,11 @@ describe('UpdateWorkspaceMemberUseCase', () => {
     ).rejects.toThrow(WorkspaceMemberNotFoundException);
   });
 
-  it('rejects changing your own permissions or status', async () => {
-    const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
+  it('rejects changing your own role, permissions or status', async () => {
+    const memberRepository = new InMemoryWorkspaceMemberRepository([
+      adminMember('admin-1'),
+      adminMember('admin-2'),
+    ]);
     const sessionRepository = new InMemorySessionRevoker();
     const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
@@ -108,12 +114,29 @@ describe('UpdateWorkspaceMemberUseCase', () => {
     ).rejects.toThrow(SelfAccessChangeException);
   });
 
+  it('rejects changing your own role', async () => {
+    const memberRepository = new InMemoryWorkspaceMemberRepository([
+      adminMember('admin-1'),
+      adminMember('admin-2'),
+    ]);
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
+
+    await expect(
+      useCase.execute({ id: 'admin-1', actingMemberId: 'admin-1', role: 'member' }),
+    ).rejects.toThrow(SelfAccessChangeException);
+  });
+
   it('allows changing your own name', async () => {
     const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1')]);
     const sessionRepository = new InMemorySessionRevoker();
     const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
-    const updated = await useCase.execute({ id: 'admin-1', actingMemberId: 'admin-1', name: 'New Name' });
+    const updated = await useCase.execute({
+      id: 'admin-1',
+      actingMemberId: 'admin-1',
+      name: 'New Name',
+    });
 
     expect(updated.getName()).toBe('New Name');
   });
@@ -128,35 +151,84 @@ describe('UpdateWorkspaceMemberUseCase', () => {
     ).rejects.toThrow(LastAdminException);
   });
 
-  it('allows disabling an admin when another active admin remains, and revokes sessions', async () => {
-    const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
+  it('rejects demoting the last active admin', async () => {
+    const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1')]);
     const sessionRepository = new InMemorySessionRevoker();
     const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
-    const updated = await useCase.execute({ id: 'admin-1', actingMemberId: 'other-actor', status: 'disabled' });
-
-    expect(updated.getStatus()).toBe('disabled');
-    expect(sessionRepository.revokedEmails).toEqual(['admin-1@ledgerly.dev']);
+    await expect(
+      useCase.execute({ id: 'admin-1', actingMemberId: 'other-actor', role: 'member' }),
+    ).rejects.toThrow(LastAdminException);
+    expect(sessionRepository.revokedEmails).toEqual([]);
   });
 
-  it('allows demoting an admin to viewer when another admin remains', async () => {
-    const memberRepository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
+  it('allows disabling an admin when another active admin remains, and revokes sessions', async () => {
+    const memberRepository = new InMemoryWorkspaceMemberRepository([
+      adminMember('admin-1'),
+      adminMember('admin-2'),
+    ]);
     const sessionRepository = new InMemorySessionRevoker();
     const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 
     const updated = await useCase.execute({
       id: 'admin-1',
       actingMemberId: 'other-actor',
+      status: 'disabled',
+    });
+
+    expect(updated.getStatus()).toBe('disabled');
+    expect(sessionRepository.revokedEmails).toEqual(['admin-1@ledgerly.dev']);
+  });
+
+  it('allows demoting an admin while another active administrator remains', async () => {
+    const memberRepository = new InMemoryWorkspaceMemberRepository([
+      adminMember('admin-1'),
+      adminMember('admin-2'),
+    ]);
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
+
+    const updated = await useCase.execute({
+      id: 'admin-1',
+      actingMemberId: 'other-actor',
+      role: 'member',
       permissions: viewerMatrix().toPrimitives(),
     });
 
-    expect(updated.getRole()).toBe('viewer');
+    expect(updated.getRole()).toBe('member');
+    expect(updated.isAdmin()).toBe(false);
+    expect(updated.canAccess('documents', 'view')).toBe(true);
+    expect(sessionRepository.revokedEmails).toEqual(['admin-1@ledgerly.dev']);
+  });
+
+  it('does not promote a member with full section grants', async () => {
+    const memberRepository = new InMemoryWorkspaceMemberRepository([
+      adminMember('admin-1'),
+      adminMember('admin-2'),
+    ]);
+    const sessionRepository = new InMemorySessionRevoker();
+    const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
+
+    const updated = await useCase.execute({
+      id: 'admin-1',
+      actingMemberId: 'other-actor',
+      role: 'member',
+      permissions: adminMatrix().toPrimitives(),
+    });
+
+    expect(updated.getRole()).toBe('member');
+    expect(updated.isAdmin()).toBe(false);
+    expect(updated.canAccess('documents', 'edit')).toBe(true);
+    expect(sessionRepository.revokedEmails).toEqual(['admin-1@ledgerly.dev']);
   });
 
   it('reactivates a disabled member through status update without changing its ID', async () => {
     const disabled = adminMember('admin-1');
     disabled.disable();
-    const memberRepository = new InMemoryWorkspaceMemberRepository([disabled, adminMember('admin-2')]);
+    const memberRepository = new InMemoryWorkspaceMemberRepository([
+      disabled,
+      adminMember('admin-2'),
+    ]);
     const sessionRepository = new InMemorySessionRevoker();
     const useCase = new UpdateWorkspaceMemberUseCase(memberRepository, sessionRepository);
 

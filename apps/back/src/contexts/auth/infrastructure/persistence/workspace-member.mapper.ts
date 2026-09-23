@@ -1,4 +1,5 @@
 import { WorkspaceMember, WorkspaceMemberStatus } from '../../domain/workspace-member';
+import { WorkspaceRole } from '../../domain/value-objects/permission-matrix';
 import { WorkspaceMemberOrmEntity } from './workspace-member.orm-entity';
 
 export class WorkspaceMemberMapper {
@@ -8,6 +9,7 @@ export class WorkspaceMemberMapper {
       email: orm.email,
       googleSubject: orm.googleSubject,
       name: orm.name,
+      role: orm.role as WorkspaceRole,
       permissions: orm.permissions,
       status: orm.status as WorkspaceMemberStatus,
       isFounder: orm.isFounder,

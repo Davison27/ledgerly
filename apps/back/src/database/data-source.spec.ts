@@ -5,7 +5,9 @@ import dataSource from './data-source';
 
 describe('database migration discovery', () => {
   it('discovers timestamped migrations without loading spec files', () => {
-    const migrations = Array.isArray(dataSource.options.migrations) ? dataSource.options.migrations : [];
+    const migrations = Array.isArray(dataSource.options.migrations)
+      ? dataSource.options.migrations
+      : [];
     const migrationPattern = migrations.find(
       (migration): migration is string => typeof migration === 'string',
     );
@@ -32,6 +34,7 @@ describe('database migration discovery', () => {
         '1730000010000-RemoveProjectFiscalYear.ts',
         '1730000011000-RequireProjectClient.ts',
         '1730000012000-CreateReleaseNoteAcknowledgements.ts',
+        '1730000013000-ConvertWorkspaceMemberRoles.ts',
       ].toSorted(),
     );
     expect(discoveredFiles).not.toContain('encrypted-stored-files.migration.e2e.spec.ts');

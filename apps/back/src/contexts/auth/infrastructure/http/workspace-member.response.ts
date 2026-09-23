@@ -1,26 +1,35 @@
-import { WorkspaceMember } from '../../domain/workspace-member';
+import { WorkspaceMember, WorkspaceMemberStatus } from '../../domain/workspace-member';
 import { AuthUserIdentity } from '../../domain/auth-user-directory.port';
+import { WorkspaceRole } from '../../domain/value-objects/permission-matrix';
 
 interface WorkspaceMemberResponseProps {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: WorkspaceRole;
   permissions: Record<string, unknown>;
-  status: string;
+  status: WorkspaceMemberStatus;
   invitedAt: string;
   joinedAt: string | null;
   lastActiveAt: string | null;
-  auth: { image: string | null; emailVerified: boolean; createdAt: string; updatedAt: string; providers: string[]; activeSessions: number; lastSessionAt: string | null } | null;
+  auth: {
+    image: string | null;
+    emailVerified: boolean;
+    createdAt: string;
+    updatedAt: string;
+    providers: string[];
+    activeSessions: number;
+    lastSessionAt: string | null;
+  } | null;
 }
 
 export class WorkspaceMemberResponse {
   id: string;
   name: string;
   email: string;
-  role: string;
+  role: WorkspaceRole;
   permissions: Record<string, unknown>;
-  status: string;
+  status: WorkspaceMemberStatus;
   invitedAt: string;
   joinedAt: string | null;
   lastActiveAt: string | null;
@@ -52,7 +61,17 @@ export class WorkspaceMemberResponse {
       invitedAt: primitives.invitedAt.toISOString(),
       joinedAt: primitives.joinedAt ? primitives.joinedAt.toISOString() : null,
       lastActiveAt: primitives.lastActiveAt ? primitives.lastActiveAt.toISOString() : null,
-      auth: identity ? { image: identity.image, emailVerified: identity.emailVerified, createdAt: identity.createdAt.toISOString(), updatedAt: identity.updatedAt.toISOString(), providers: identity.providers, activeSessions: identity.activeSessions, lastSessionAt: identity.lastSessionAt ? identity.lastSessionAt.toISOString() : null } : null,
+      auth: identity
+        ? {
+            image: identity.image,
+            emailVerified: identity.emailVerified,
+            createdAt: identity.createdAt.toISOString(),
+            updatedAt: identity.updatedAt.toISOString(),
+            providers: identity.providers,
+            activeSessions: identity.activeSessions,
+            lastSessionAt: identity.lastSessionAt ? identity.lastSessionAt.toISOString() : null,
+          }
+        : null,
     });
   }
 }

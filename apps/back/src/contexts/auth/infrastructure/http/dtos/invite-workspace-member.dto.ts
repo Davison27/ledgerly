@@ -2,7 +2,7 @@ import { Type } from 'class-transformer';
 import { IsEmail, IsIn, IsNotEmpty, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { PermissionMatrixDto } from './permission-matrix.dto';
 
-const ROLES = ['admin', 'editor', 'viewer', 'custom'] as const;
+const ROLES = ['admin', 'member'] as const;
 
 export class InviteWorkspaceMemberDto {
   @IsString()
@@ -15,7 +15,7 @@ export class InviteWorkspaceMemberDto {
   email: string;
 
   @IsIn(ROLES)
-  role: 'admin' | 'editor' | 'viewer' | 'custom';
+  role: (typeof ROLES)[number];
 
   @ValidateNested()
   @Type(() => PermissionMatrixDto)

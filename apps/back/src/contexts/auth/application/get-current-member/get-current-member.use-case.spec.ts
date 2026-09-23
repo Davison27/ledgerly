@@ -60,6 +60,7 @@ describe('GetCurrentMemberUseCase', () => {
       id: 'member-1',
       email: MemberEmail.create('person@ledgerly.dev'),
       name: 'Person',
+      role: 'member',
       permissions: viewerMatrix(),
       status: 'active',
       invitedAt: new Date('2026-01-01T00:00:00.000Z'),

@@ -2,7 +2,7 @@ import { Type } from 'class-transformer';
 import { IsIn, IsNotEmpty, IsOptional, IsString, MaxLength, ValidateNested } from 'class-validator';
 import { PermissionMatrixDto } from './permission-matrix.dto';
 
-const ROLES = ['admin', 'editor', 'viewer', 'custom'] as const;
+const ROLES = ['admin', 'member'] as const;
 const STATUSES = ['invited', 'active', 'disabled'] as const;
 
 export class UpdateWorkspaceMemberDto {
@@ -14,7 +14,7 @@ export class UpdateWorkspaceMemberDto {
 
   @IsOptional()
   @IsIn(ROLES)
-  role?: 'admin' | 'editor' | 'viewer' | 'custom';
+  role?: (typeof ROLES)[number];
 
   @IsOptional()
   @ValidateNested()

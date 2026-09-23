@@ -30,6 +30,7 @@ function viewerMember(): WorkspaceMember {
     id: MEMBER_ID,
     email: MemberEmail.create(MEMBER_EMAIL),
     name: 'Viewer',
+    role: 'member',
     permissions: PermissionMatrix.create({
       dashboard: 'view',
       projects: 'view',
@@ -69,7 +70,9 @@ describe('ReleaseNotesController (HTTP, no DB)', () => {
 
     app = moduleRef.createNestApplication();
     app.setGlobalPrefix('api');
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    );
     app.useGlobalFilters(new DomainExceptionFilter());
     app.useGlobalGuards(
       new OriginGuard({ get: () => FRONTEND_ORIGIN } as never),
@@ -86,7 +89,10 @@ describe('ReleaseNotesController (HTTP, no DB)', () => {
     acknowledgeExecute.mockResolvedValue(undefined);
     sessionResolver.resolve.mockReset();
     sessionResolver.resolve.mockResolvedValue({
-      session: { user: { email: MEMBER_EMAIL }, session: { createdAt: new Date(), token: 'session-token' } },
+      session: {
+        user: { email: MEMBER_EMAIL },
+        session: { createdAt: new Date(), token: 'session-token' },
+      },
       setCookies: [],
     });
     memberRepository.findByEmail.mockReset();
@@ -111,9 +117,15 @@ describe('ReleaseNotesController (HTTP, no DB)', () => {
     const response = await request(httpServer).get('/api/release-notes/1.1.0/acknowledgement');
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ acknowledged: true, acknowledgedAt: '2026-09-22T10:00:00.000Z' });
+    expect(response.body).toEqual({
+      acknowledged: true,
+      acknowledgedAt: '2026-09-22T10:00:00.000Z',
+    });
     expect(response.headers['cache-control']).toBe('private, no-store');
-    expect(getExecute).toHaveBeenCalledWith({ workspaceMemberId: MEMBER_ID, releaseVersion: '1.1.0' });
+    expect(getExecute).toHaveBeenCalledWith({
+      workspaceMemberId: MEMBER_ID,
+      releaseVersion: '1.1.0',
+    });
   });
 
   it('returns a null timestamp when the current member has not acknowledged the release', async () => {
@@ -133,17 +145,25 @@ describe('ReleaseNotesController (HTTP, no DB)', () => {
     expect(response.status).toBe(204);
     expect(response.text).toBe('');
     expect(response.headers['cache-control']).toBe('private, no-store');
-    expect(acknowledgeExecute).toHaveBeenCalledWith({ workspaceMemberId: MEMBER_ID, releaseVersion: '1.1.0' });
+    expect(acknowledgeExecute).toHaveBeenCalledWith({
+      workspaceMemberId: MEMBER_ID,
+      releaseVersion: '1.1.0',
+    });
   });
 
-  it.each(['01.1.0', '1.1.0-rc.1'])('rejects invalid route version %s with the shared code', async (version) => {
-    const response = await request(httpServer).get(`/api/release-notes/${version}/acknowledgement`);
+  it.each(['01.1.0', '1.1.0-rc.1'])(
+    'rejects invalid route version %s with the shared code',
+    async (version) => {
+      const response = await request(httpServer).get(
+        `/api/release-notes/${version}/acknowledgement`,
+      );
 
-    expect(response.status).toBe(400);
-    expect((response.body as { code: string }).code).toBe('INVALID_VALUE');
-    expect(response.headers['cache-control']).toBe('no-store');
-    expect(getExecute).not.toHaveBeenCalled();
-  });
+      expect(response.status).toBe(400);
+      expect((response.body as { code: string }).code).toBe('INVALID_VALUE');
+      expect(response.headers['cache-control']).toBe('no-store');
+      expect(getExecute).not.toHaveBeenCalled();
+    },
+  );
 
   it('returns 401 when the caller has no session', async () => {
     sessionResolver.resolve.mockResolvedValueOnce({ session: null, setCookies: [] });

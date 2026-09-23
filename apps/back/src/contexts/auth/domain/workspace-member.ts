@@ -1,7 +1,12 @@
 import { InvalidValueException } from '../../../shared/domain/invalid-value.exception';
 import { GoogleIdentityRejectedException } from './errors/google-identity-rejected.exception';
 import { MemberEmail } from './value-objects/member-email';
-import { PermissionLevel, PermissionMatrix, WorkspaceModule, WorkspaceRole } from './value-objects/permission-matrix';
+import {
+  PermissionLevel,
+  PermissionMatrix,
+  WorkspaceModule,
+  WorkspaceRole,
+} from './value-objects/permission-matrix';
 
 export type WorkspaceMemberStatus = 'invited' | 'active' | 'disabled';
 
@@ -10,6 +15,7 @@ interface WorkspaceMemberProps {
   email: MemberEmail;
   googleSubject: string | null;
   name: string;
+  role: WorkspaceRole;
   permissions: PermissionMatrix;
   status: WorkspaceMemberStatus;
   isFounder: boolean;
@@ -26,6 +32,7 @@ export class WorkspaceMember {
     email: MemberEmail;
     googleSubject?: string | null;
     name: string;
+    role: WorkspaceRole;
     permissions: PermissionMatrix;
     status?: WorkspaceMemberStatus;
     isFounder?: boolean;
@@ -39,11 +46,16 @@ export class WorkspaceMember {
       throw new InvalidValueException('name must not be empty');
     }
 
+    if (props.role !== 'admin' && props.role !== 'member') {
+      throw new InvalidValueException('role must be admin or member');
+    }
+
     return new WorkspaceMember({
       id: props.id,
       email: props.email,
       googleSubject: props.googleSubject ?? null,
       name,
+      role: props.role,
       permissions: props.permissions,
       status: props.status ?? 'invited',
       isFounder: props.isFounder ?? false,
@@ -58,6 +70,7 @@ export class WorkspaceMember {
     email: string;
     googleSubject: string | null;
     name: string;
+    role: WorkspaceRole;
     permissions: Record<string, unknown>;
     status: WorkspaceMemberStatus;
     isFounder: boolean;
@@ -70,6 +83,7 @@ export class WorkspaceMember {
       email: MemberEmail.create(props.email),
       googleSubject: props.googleSubject,
       name: props.name,
+      role: props.role,
       permissions: PermissionMatrix.create(props.permissions),
       status: props.status,
       isFounder: props.isFounder,
@@ -100,7 +114,7 @@ export class WorkspaceMember {
   }
 
   getRole(): WorkspaceRole {
-    return this.props.permissions.deriveRole();
+    return this.props.role;
   }
 
   getStatus(): WorkspaceMemberStatus {
@@ -124,7 +138,7 @@ export class WorkspaceMember {
   }
 
   canAccess(module: WorkspaceModule, level: PermissionLevel): boolean {
-    return this.props.permissions.allows(module, level);
+    return this.isAdmin() || this.props.permissions.allows(module, level);
   }
 
   isAdmin(): boolean {
@@ -166,6 +180,14 @@ export class WorkspaceMember {
 
   changePermissions(permissions: PermissionMatrix): void {
     this.props.permissions = permissions;
+  }
+
+  changeRole(role: WorkspaceRole): void {
+    if (role !== 'admin' && role !== 'member') {
+      throw new InvalidValueException('role must be admin or member');
+    }
+
+    this.props.role = role;
   }
 
   changeStatus(status: WorkspaceMemberStatus): void {
@@ -211,7 +233,7 @@ export class WorkspaceMember {
       email: this.getEmail(),
       googleSubject: this.props.googleSubject,
       name: this.props.name,
-      role: this.getRole(),
+      role: this.props.role,
       permissions: this.props.permissions.toPrimitives(),
       status: this.props.status,
       isFounder: this.props.isFounder,

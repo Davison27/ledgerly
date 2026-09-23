@@ -33,10 +33,37 @@ const migrations: Array<new () => MigrationInterface> = [
   ConvertWorkspaceMemberRoles1730000013000,
 ];
 
-const memberId = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
-const secondMemberId = 'b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12';
+const legacyMigrations = migrations.slice(0, -1);
+const ADMIN_MATRIX = {
+  dashboard: 'view',
+  projects: 'edit',
+  calendar: 'edit',
+  documents: 'edit',
+  suppliers: 'edit',
+  equipment: 'edit',
+  staff: 'edit',
+};
+const EDITOR_MATRIX = { ...ADMIN_MATRIX, staff: 'view' };
+const VIEWER_MATRIX = {
+  dashboard: 'view',
+  projects: 'view',
+  calendar: 'view',
+  documents: 'view',
+  suppliers: 'view',
+  equipment: 'view',
+  staff: 'view',
+};
+const CUSTOM_MATRIX = {
+  dashboard: 'none',
+  projects: 'view',
+  calendar: 'none',
+  documents: 'edit',
+  suppliers: 'none',
+  equipment: 'none',
+  staff: 'none',
+};
 
-describe('CreateReleaseNoteAcknowledgements1730000012000', () => {
+describe('ConvertWorkspaceMemberRoles1730000013000', () => {
   let dataSource: DataSource;
   let schema: string;
   let testDatabaseUrl: string;
@@ -66,101 +93,93 @@ describe('CreateReleaseNoteAcknowledgements1730000012000', () => {
     }
   });
 
-  it('rejects orphaned acknowledgements and invalid stable versions', async () => {
-    await expect(
-      dataSource.query(
-        `INSERT INTO release_note_acknowledgements (workspace_member_id, release_version, acknowledged_at)
-         VALUES ($1, '1.1.0', CURRENT_TIMESTAMP)`,
-        [memberId],
-      ),
-    ).rejects.toMatchObject({
-      driverError: {
-        code: '23503',
-        constraint: 'FK_release_note_acknowledgements_workspace_member',
-      },
-    });
+  it('converts legacy roles without changing their permission matrices and safely restores them', async () => {
+    const expected = [
+      { name: 'admin', role: 'admin', permissions: ADMIN_MATRIX },
+      { name: 'custom', role: 'custom', permissions: CUSTOM_MATRIX },
+      { name: 'editor', role: 'editor', permissions: EDITOR_MATRIX },
+      { name: 'viewer', role: 'viewer', permissions: VIEWER_MATRIX },
+    ];
 
-    await insertMember(dataSource, memberId);
+    for (const { name, role, permissions } of expected) {
+      await insertMember(dataSource, role, name, permissions);
+    }
 
-    await expect(
-      dataSource.query(
-        `INSERT INTO release_note_acknowledgements (workspace_member_id, release_version, acknowledged_at)
-         VALUES ($1, '01.1.0', CURRENT_TIMESTAMP)`,
-        [memberId],
-      ),
-    ).rejects.toMatchObject({
-      driverError: { code: '23514', constraint: 'CHK_release_note_acknowledgements_version' },
-    });
+    await invokeMigration('up');
 
-    await expect(
-      dataSource.query(
-        `INSERT INTO release_note_acknowledgements (workspace_member_id, release_version, acknowledged_at)
-         VALUES ($1, '1.1.0-rc.1', CURRENT_TIMESTAMP)`,
-        [memberId],
-      ),
-    ).rejects.toMatchObject({
-      driverError: { code: '23514', constraint: 'CHK_release_note_acknowledgements_version' },
-    });
+    const migrated: Array<{ name: string; role: string; permissions: Record<string, string> }> =
+      await dataSource.query(`SELECT name, role, permissions FROM workspace_members ORDER BY name`);
+
+    expect(migrated).toEqual([
+      { name: 'admin', role: 'admin', permissions: ADMIN_MATRIX },
+      { name: 'custom', role: 'member', permissions: CUSTOM_MATRIX },
+      { name: 'editor', role: 'member', permissions: EDITOR_MATRIX },
+      { name: 'viewer', role: 'member', permissions: VIEWER_MATRIX },
+    ]);
+
+    await invokeMigration('down');
+
+    const restored: Array<{ name: string; role: string; permissions: Record<string, string> }> =
+      await dataSource.query(`SELECT name, role, permissions FROM workspace_members ORDER BY name`);
+
+    expect(restored).toEqual(expected);
   });
 
-  it('uses the composite primary key and cascades when a member is physically deleted', async () => {
-    await insertMember(dataSource, memberId);
-    await insertMember(dataSource, secondMemberId);
-    await dataSource.query(
-      `INSERT INTO release_note_acknowledgements (workspace_member_id, release_version, acknowledged_at)
-       VALUES ($1, '1.1.0', '2026-09-22T10:00:00.000Z'), ($2, '1.1.0', '2026-09-22T10:00:00.000Z'),
-              ($1, '1.2.0', '2026-09-22T10:00:00.000Z')`,
-      [memberId, secondMemberId],
+  it('refuses rollback when a member has the legacy administrator matrix', async () => {
+    await invokeMigration('up');
+    await insertMember(dataSource, 'member', 'admin-matrix-member', ADMIN_MATRIX);
+
+    await expect(invokeMigration('down')).rejects.toThrow(
+      'Cannot roll back workspace roles while a member has the administrator permission matrix',
     );
-
-    await expect(
-      dataSource.query(
-        `INSERT INTO release_note_acknowledgements (workspace_member_id, release_version, acknowledged_at)
-         VALUES ($1, '1.1.0', '2026-09-22T11:00:00.000Z')`,
-        [memberId],
-      ),
-    ).rejects.toMatchObject({
-      driverError: { code: '23505', constraint: 'PK_release_note_acknowledgements' },
-    });
-
-    await dataSource.query('DELETE FROM workspace_members WHERE id = $1', [memberId]);
-
-    const rows: Array<{ workspaceMemberId: string; releaseVersion: string }> =
-      await dataSource.query(
-        `SELECT workspace_member_id AS "workspaceMemberId", release_version AS "releaseVersion"
-       FROM release_note_acknowledgements ORDER BY workspace_member_id, release_version`,
-      );
-
-    expect(rows).toEqual([{ workspaceMemberId: secondMemberId, releaseVersion: '1.1.0' }]);
+    await expect(readRoleConstraint()).resolves.toHaveLength(1);
   });
 
-  it('reverts and reapplies only the acknowledgement table', async () => {
-    await dataSource.undoLastMigration({ transaction: 'each' });
+  it('refuses rollback when an administrator has a non-administrator matrix', async () => {
+    await invokeMigration('up');
+    await insertMember(dataSource, 'admin', 'restricted-admin', VIEWER_MATRIX);
 
-    const tableRows: Array<{ tableName: string }> = await dataSource.query(
-      `SELECT table_name AS "tableName" FROM information_schema.tables
-       WHERE table_schema = current_schema() AND table_name = ANY($1) ORDER BY table_name`,
-      [['release_note_acknowledgements', 'workspace_members']],
+    await expect(invokeMigration('down')).rejects.toThrow(
+      'Cannot roll back workspace roles while an administrator has a non-administrator permission matrix',
     );
-
-    expect(tableRows).toEqual([{ tableName: 'workspace_members' }]);
-
-    await dataSource.runMigrations({ transaction: 'each' });
-
-    const restored: Array<{ tableName: string }> = await dataSource.query(
-      `SELECT table_name AS "tableName" FROM information_schema.tables
-       WHERE table_schema = current_schema() AND table_name = 'release_note_acknowledgements'`,
-    );
-
-    expect(restored).toEqual([{ tableName: 'release_note_acknowledgements' }]);
+    await expect(readRoleConstraint()).resolves.toHaveLength(1);
   });
+
+  async function readRoleConstraint(): Promise<Array<{ name: string }>> {
+    return dataSource.query(
+      `SELECT conname AS name FROM pg_constraint
+       WHERE conrelid = 'workspace_members'::regclass AND conname = 'CHK_workspace_members_role'`,
+    );
+  }
+
+  async function invokeMigration(direction: 'up' | 'down'): Promise<void> {
+    const queryRunner = dataSource.createQueryRunner();
+    await queryRunner.connect();
+    await queryRunner.startTransaction();
+    try {
+      const migration = new ConvertWorkspaceMemberRoles1730000013000();
+      if (direction === 'up') await migration.up(queryRunner);
+      else await migration.down(queryRunner);
+      await queryRunner.commitTransaction();
+    } catch (error) {
+      await queryRunner.rollbackTransaction();
+      throw error;
+    } finally {
+      await queryRunner.release();
+    }
+  }
 });
 
-async function insertMember(dataSource: DataSource, id: string): Promise<void> {
+async function insertMember(
+  dataSource: DataSource,
+  role: string,
+  identifier: string,
+  permissions: Record<string, string>,
+): Promise<void> {
   await dataSource.query(
     `INSERT INTO workspace_members (id, email, name, role, permissions, status, is_founder, invited_at)
-     VALUES ($1, $2, 'Release member', 'member', '{}'::jsonb, 'active', false, CURRENT_TIMESTAMP)`,
-    [id, `${id}@ledgerly.dev`],
+     VALUES ($1, $2, $3, $4, $5::jsonb, 'active', false, CURRENT_TIMESTAMP)`,
+    [randomUUID(), `${identifier}@ledgerly.dev`, identifier, role, JSON.stringify(permissions)],
   );
 }
 
@@ -170,7 +189,7 @@ function createDataSource(testDatabaseUrl: string, schema: string): DataSource {
     url: testDatabaseUrl,
     logging: false,
     entities: [join(__dirname, '..', '..', 'contexts', '**', '*.orm-entity.{ts,js}')],
-    migrations,
+    migrations: legacyMigrations,
     migrationsTransactionMode: 'each',
     extra: { max: 1, options: `-c search_path=${schema},public` },
   });

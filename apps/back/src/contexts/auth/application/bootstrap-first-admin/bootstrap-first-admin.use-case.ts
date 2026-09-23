@@ -6,7 +6,10 @@ import { BootstrapUnavailableException } from '../../domain/errors/bootstrap-una
 import { MemberEmail } from '../../domain/value-objects/member-email';
 import { PermissionMatrix } from '../../domain/value-objects/permission-matrix';
 import { WorkspaceMember } from '../../domain/workspace-member';
-import { WORKSPACE_MEMBER_REPOSITORY, WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
+import {
+  WORKSPACE_MEMBER_REPOSITORY,
+  WorkspaceMemberRepository,
+} from '../../domain/workspace-member.repository';
 import { BootstrapFirstAdminCommand } from './bootstrap-first-admin.command';
 
 export const BOOTSTRAP_ADMIN_EMAIL = Symbol('BootstrapAdminEmail');
@@ -38,6 +41,7 @@ export class BootstrapFirstAdminUseCase {
       id: this.idGenerator.generate(),
       email,
       name: command.email.split('@')[0],
+      role: 'admin',
       permissions: PermissionMatrix.admin(),
       status: 'invited',
       isFounder: true,

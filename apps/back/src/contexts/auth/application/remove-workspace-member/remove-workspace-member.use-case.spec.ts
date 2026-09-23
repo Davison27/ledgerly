@@ -11,7 +11,10 @@ import { AuthSessionRevoker } from '../../domain/auth-session-revoker.port';
 class InMemorySessionRevoker implements AuthSessionRevoker {
   revokedEmails: string[] = [];
 
-  constructor(private readonly operations: string[] = [], private readonly failure: Error | null = null) {}
+  constructor(
+    private readonly operations: string[] = [],
+    private readonly failure: Error | null = null,
+  ) {}
 
   revokeAllForEmail(email: string): Promise<void> {
     this.operations.push('revoke');
@@ -24,7 +27,10 @@ class InMemorySessionRevoker implements AuthSessionRevoker {
 class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   disabledIds: string[] = [];
 
-  constructor(private members: WorkspaceMember[], private readonly operations: string[] = []) {}
+  constructor(
+    private members: WorkspaceMember[],
+    private readonly operations: string[] = [],
+  ) {}
 
   findAll(): Promise<WorkspaceMember[]> {
     return Promise.resolve(this.members);
@@ -47,7 +53,9 @@ class InMemoryWorkspaceMemberRepository implements WorkspaceMemberRepository {
   }
 
   countActiveAdmins(): Promise<number> {
-    return Promise.resolve(this.members.filter((member) => member.isAdmin() && member.isActive()).length);
+    return Promise.resolve(
+      this.members.filter((member) => member.isAdmin() && member.isActive()).length,
+    );
   }
 
   save(member: WorkspaceMember): Promise<void> {
@@ -70,6 +78,7 @@ function adminMember(id: string): WorkspaceMember {
     id,
     email: MemberEmail.create(`${id}@ledgerly.dev`),
     name: 'Admin',
+    role: 'admin',
     permissions: PermissionMatrix.admin(),
     status: 'active',
     invitedAt: new Date('2026-01-01T00:00:00.000Z'),
@@ -81,6 +90,7 @@ function viewerMember(id: string): WorkspaceMember {
     id,
     email: MemberEmail.create(`${id}@ledgerly.dev`),
     name: 'Viewer',
+    role: 'member',
     permissions: PermissionMatrix.create(
       WORKSPACE_MODULES.reduce<Record<string, string>>((matrix, module) => {
         matrix[module] = 'view';
@@ -123,7 +133,10 @@ describe('RemoveWorkspaceMemberUseCase', () => {
 
   it('removes a viewer without touching the admin count', async () => {
     const operations: string[] = [];
-    const repository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), viewerMember('viewer-1')], operations);
+    const repository = new InMemoryWorkspaceMemberRepository(
+      [adminMember('admin-1'), viewerMember('viewer-1')],
+      operations,
+    );
     const sessionRevoker = new InMemorySessionRevoker(operations);
     const useCase = new RemoveWorkspaceMemberUseCase(repository, sessionRevoker);
 
@@ -136,7 +149,10 @@ describe('RemoveWorkspaceMemberUseCase', () => {
   });
 
   it('removes an admin when another active admin remains', async () => {
-    const repository = new InMemoryWorkspaceMemberRepository([adminMember('admin-1'), adminMember('admin-2')]);
+    const repository = new InMemoryWorkspaceMemberRepository([
+      adminMember('admin-1'),
+      adminMember('admin-2'),
+    ]);
     const useCase = new RemoveWorkspaceMemberUseCase(repository, new InMemorySessionRevoker());
 
     await useCase.execute({ id: 'admin-1', actingMemberId: 'admin-2' });
@@ -150,10 +166,15 @@ describe('RemoveWorkspaceMemberUseCase', () => {
       [adminMember('admin-1'), viewerMember('viewer-1')],
       operations,
     );
-    const sessionRevoker = new InMemorySessionRevoker(operations, new Error('session revocation failed'));
+    const sessionRevoker = new InMemorySessionRevoker(
+      operations,
+      new Error('session revocation failed'),
+    );
     const useCase = new RemoveWorkspaceMemberUseCase(repository, sessionRevoker);
 
-    await expect(useCase.execute({ id: 'viewer-1', actingMemberId: 'admin-1' })).resolves.toBeUndefined();
+    await expect(
+      useCase.execute({ id: 'viewer-1', actingMemberId: 'admin-1' }),
+    ).resolves.toBeUndefined();
     expect(repository.disabledIds).toEqual(['viewer-1']);
     expect((await repository.findById('viewer-1'))?.getStatus()).toBe('disabled');
     expect(operations).toEqual(['save', 'revoke']);

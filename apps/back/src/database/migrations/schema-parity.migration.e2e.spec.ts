@@ -14,6 +14,7 @@ import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from './17300000090
 import { RemoveProjectFiscalYear1730000010000 } from './1730000010000-RemoveProjectFiscalYear';
 import { RequireProjectClient1730000011000 } from './1730000011000-RequireProjectClient';
 import { CreateReleaseNoteAcknowledgements1730000012000 } from './1730000012000-CreateReleaseNoteAcknowledgements';
+import { ConvertWorkspaceMemberRoles1730000013000 } from './1730000013000-ConvertWorkspaceMemberRoles';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
@@ -29,6 +30,7 @@ const migrations: Array<new () => MigrationInterface> = [
   RemoveProjectFiscalYear1730000010000,
   RequireProjectClient1730000011000,
   CreateReleaseNoteAcknowledgements1730000012000,
+  ConvertWorkspaceMemberRoles1730000013000,
 ];
 
 const encryptedChecks = [
@@ -137,7 +139,10 @@ describe('entity and migration schema parity', () => {
          AND column_name = 'fiscal_year'`,
     );
 
-    expect(indexRows.map((row) => row.name)).toEqual(['IDX_documents_created_by', 'IDX_documents_deleted_by']);
+    expect(indexRows.map((row) => row.name)).toEqual([
+      'IDX_documents_created_by',
+      'IDX_documents_deleted_by',
+    ]);
     expect(foreignKeyRows.map((row) => row.name)).toEqual([
       'FK_documents_created_by_workspace_member',
       'FK_documents_deleted_by_workspace_member',
@@ -193,7 +198,9 @@ describe('entity and migration schema parity', () => {
        ORDER BY constraint_row.conname`,
     );
     const primaryKey = rows.find((row) => row.name === 'PK_release_note_acknowledgements');
-    const versionCheck = rows.find((row) => row.name === 'CHK_release_note_acknowledgements_version');
+    const versionCheck = rows.find(
+      (row) => row.name === 'CHK_release_note_acknowledgements_version',
+    );
     const workspaceMemberForeignKey = rows.find(
       (row) => row.name === 'FK_release_note_acknowledgements_workspace_member',
     );
@@ -203,7 +210,10 @@ describe('entity and migration schema parity', () => {
       'FK_release_note_acknowledgements_workspace_member',
       'PK_release_note_acknowledgements',
     ]);
-    expect(primaryKey).toMatchObject({ type: 'p', columns: ['workspace_member_id', 'release_version'] });
+    expect(primaryKey).toMatchObject({
+      type: 'p',
+      columns: ['workspace_member_id', 'release_version'],
+    });
     expect(versionCheck?.type).toBe('c');
     expect(versionCheck?.definition).toContain(
       `'^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$'`,
@@ -213,7 +223,25 @@ describe('entity and migration schema parity', () => {
       deleteAction: 'c',
       columns: ['workspace_member_id'],
     });
-    expect(workspaceMemberForeignKey?.definition).toContain('REFERENCES workspace_members(id) ON DELETE CASCADE');
+    expect(workspaceMemberForeignKey?.definition).toContain(
+      'REFERENCES workspace_members(id) ON DELETE CASCADE',
+    );
+  });
+
+  it('restricts persisted workspace roles to explicit administrators and members', async () => {
+    const rows: Array<{ name: string; type: string; definition: string }> = await dataSource.query(
+      `SELECT conname AS name, contype AS type, pg_get_constraintdef(oid, true) AS definition
+       FROM pg_constraint
+       WHERE conrelid = 'workspace_members'::regclass AND conname = 'CHK_workspace_members_role'`,
+    );
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].type).toBe('c');
+    expect(rows[0].definition).toContain('admin');
+    expect(rows[0].definition).toContain('member');
+    expect(rows[0].definition).not.toContain('editor');
+    expect(rows[0].definition).not.toContain('viewer');
+    expect(rows[0].definition).not.toContain('custom');
   });
 
   it('preserves all encrypted-envelope checks', async () => {
@@ -227,7 +255,6 @@ describe('entity and migration schema parity', () => {
 
     expect(rows.map((row) => row.name)).toEqual([...encryptedChecks].sort());
   });
-
 });
 
 function createSchemaParityDataSource(testDatabaseUrl: string, schema: string): DataSource {

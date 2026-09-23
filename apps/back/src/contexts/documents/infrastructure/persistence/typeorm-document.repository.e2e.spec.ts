@@ -46,7 +46,14 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     dataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [DocumentOrmEntity, ProjectOrmEntity, ClientOrmEntity, SupplierOrmEntity, StaffMemberOrmEntity, WorkspaceMemberOrmEntity],
+      entities: [
+        DocumentOrmEntity,
+        ProjectOrmEntity,
+        ClientOrmEntity,
+        SupplierOrmEntity,
+        StaffMemberOrmEntity,
+        WorkspaceMemberOrmEntity,
+      ],
       migrations: [
         InitialLedgerlySchema1730000000000,
         AddListQueryIndexes1730000001000,
@@ -111,14 +118,12 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
 
     const deletedAt = new Date('2026-06-15T10:00:00.000Z');
     await expect(
-      repository.softDelete(
-        document.id,
-        '00000000-0000-0000-0000-000000000102',
-        deletedAt,
-      ),
+      repository.softDelete(document.id, '00000000-0000-0000-0000-000000000102', deletedAt),
     ).resolves.toBe(true);
 
-    await expect(selectEncryptedDocument(dataSource, document.id)).resolves.toEqual(encryptedBefore);
+    await expect(selectEncryptedDocument(dataSource, document.id)).resolves.toEqual(
+      encryptedBefore,
+    );
     await expect(selectDeletionMetadata(dataSource, document.id)).resolves.toEqual({
       deletedBy: '00000000-0000-0000-0000-000000000102',
       deletedAt,
@@ -155,7 +160,10 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       keys: new Map([['v1', Buffer.alloc(32, 1)]]),
     });
     const repository = new TypeOrmDocumentRepository(entityRepository, cipher);
-    const projectRepository = new TypeOrmProjectRepository(dataSource.getRepository(ProjectOrmEntity), cipher);
+    const projectRepository = new TypeOrmProjectRepository(
+      dataSource.getRepository(ProjectOrmEntity),
+      cipher,
+    );
     const financialsProvider = new TypeOrmProjectFinancialsProvider(dataSource);
 
     await expect(repository.findAllForListing({})).resolves.toEqual([
@@ -170,7 +178,9 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     ]);
 
     await insertWorkspaceMember(dataSource, '00000000-0000-0000-0000-000000000113');
-    await expect(repository.softDelete(documentId, '00000000-0000-0000-0000-000000000113', new Date())).resolves.toBe(true);
+    await expect(
+      repository.softDelete(documentId, '00000000-0000-0000-0000-000000000113', new Date()),
+    ).resolves.toBe(true);
 
     await expect(repository.findAllForListing({})).resolves.toEqual([]);
     await expect(projectRepository.findSummaryById(projectId)).resolves.toMatchObject({
@@ -239,10 +249,14 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       repository.findAllForListing({ clientId: clientOneId, projectId: projectOtherId }),
     ).resolves.toEqual([]);
 
-    await dataSource.query(`UPDATE clients SET archived_at = CURRENT_TIMESTAMP WHERE id = $1`, [clientOneId]);
+    await dataSource.query(`UPDATE clients SET archived_at = CURRENT_TIMESTAMP WHERE id = $1`, [
+      clientOneId,
+    ]);
     await expect(repository.findAllForListing({ clientId: clientOneId })).resolves.toHaveLength(3);
 
-    await expect(repository.softDelete(deletedDocumentId, deletedBy, new Date())).resolves.toBe(true);
+    await expect(repository.softDelete(deletedDocumentId, deletedBy, new Date())).resolves.toBe(
+      true,
+    );
     await expect(repository.findAllForListing({ clientId: clientOneId })).resolves.toEqual([
       expect.objectContaining({ id: documentTwoId }),
       expect.objectContaining({ id: documentOneId }),
@@ -260,10 +274,9 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       `INSERT INTO projects (id, name, code, type, currency, client_id) VALUES ($1, 'Referenced project', 'PROJECT-121', 'client', 'EUR', $2)`,
       [projectId, '00000000-0000-0000-0000-000000000221'],
     );
-    await dataSource.query(
-      `INSERT INTO suppliers (id, name) VALUES ($1, 'Referenced supplier')`,
-      [supplierId],
-    );
+    await dataSource.query(`INSERT INTO suppliers (id, name) VALUES ($1, 'Referenced supplier')`, [
+      supplierId,
+    ]);
     await dataSource.query(
       `INSERT INTO staff_members (id, first_name, last_name) VALUES ($1, 'Referenced', 'staff')`,
       [staffMemberId],
@@ -293,7 +306,9 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       keys: new Map([['v1', Buffer.alloc(32, 1)]]),
     });
     const documentRepository = new TypeOrmDocumentRepository(entityRepository, cipher);
-    await expect(documentRepository.softDelete(documentId, deletedBy, new Date())).resolves.toBe(true);
+    await expect(documentRepository.softDelete(documentId, deletedBy, new Date())).resolves.toBe(
+      true,
+    );
 
     const supplierCounter = new TypeOrmSupplierPhysicalDocumentReferenceCounter(dataSource);
     const staffCounter = new TypeOrmStaffPhysicalDocumentReferenceCounter(dataSource);
@@ -302,21 +317,42 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
     await expect(staffCounter.countPhysicalDocumentReferences(staffMemberId)).resolves.toBe(1);
     await expect(projectCounter.countPhysicalDocumentReferences(projectId)).resolves.toBe(1);
 
-    const supplierRepository = new TypeOrmSupplierRepository(dataSource.getRepository(SupplierOrmEntity));
-    const staffRepository = new TypeOrmStaffMemberRepository(dataSource.getRepository(StaffMemberOrmEntity));
-    const projectRepository = new TypeOrmProjectRepository(dataSource.getRepository(ProjectOrmEntity), cipher);
-    await expect(new DeleteSupplierUseCase(supplierRepository, supplierCounter).execute(supplierId)).resolves.toBe('archived');
-    await expect(new DeleteStaffMemberUseCase(staffRepository, staffCounter).execute(staffMemberId)).resolves.toBe('archived');
-    await expect(new DeleteProjectUseCase(projectRepository, projectCounter).execute(projectId)).resolves.toBe('archived');
+    const supplierRepository = new TypeOrmSupplierRepository(
+      dataSource.getRepository(SupplierOrmEntity),
+    );
+    const staffRepository = new TypeOrmStaffMemberRepository(
+      dataSource.getRepository(StaffMemberOrmEntity),
+    );
+    const projectRepository = new TypeOrmProjectRepository(
+      dataSource.getRepository(ProjectOrmEntity),
+      cipher,
+    );
+    await expect(
+      new DeleteSupplierUseCase(supplierRepository, supplierCounter).execute(supplierId),
+    ).resolves.toBe('archived');
+    await expect(
+      new DeleteStaffMemberUseCase(staffRepository, staffCounter).execute(staffMemberId),
+    ).resolves.toBe('archived');
+    await expect(
+      new DeleteProjectUseCase(projectRepository, projectCounter).execute(projectId),
+    ).resolves.toBe('archived');
 
-    const rows: Array<{ supplierArchived: boolean; staffArchived: boolean; projectStatus: string }> = await dataSource.query(
+    const rows: Array<{
+      supplierArchived: boolean;
+      staffArchived: boolean;
+      projectStatus: string;
+    }> = await dataSource.query(
       `SELECT
          (SELECT archived_at IS NOT NULL FROM suppliers WHERE id = $1) AS "supplierArchived",
          (SELECT archived_at IS NOT NULL FROM staff_members WHERE id = $2) AS "staffArchived",
          (SELECT status FROM projects WHERE id = $3) AS "projectStatus"`,
       [supplierId, staffMemberId, projectId],
     );
-    expect(rows[0]).toEqual({ supplierArchived: true, staffArchived: true, projectStatus: 'archived' });
+    expect(rows[0]).toEqual({
+      supplierArchived: true,
+      staffArchived: true,
+      projectStatus: 'archived',
+    });
   });
 });
 
@@ -324,15 +360,20 @@ async function selectEncryptedDocument(
   dataSource: DataSource,
   id: string,
 ): Promise<{ ciphertext: Buffer; keyVersion: string; nonce: Buffer; tag: Buffer } | null> {
-  const rows: Array<{ ciphertext: Buffer; keyVersion: string; nonce: Buffer; tag: Buffer }> = await dataSource.query(
-    `SELECT content_ciphertext AS ciphertext, content_nonce AS nonce, content_tag AS tag, content_key_version AS "keyVersion" FROM documents WHERE id = $1`,
-    [id],
-  );
+  const rows: Array<{ ciphertext: Buffer; keyVersion: string; nonce: Buffer; tag: Buffer }> =
+    await dataSource.query(
+      `SELECT content_ciphertext AS ciphertext, content_nonce AS nonce, content_tag AS tag, content_key_version AS "keyVersion" FROM documents WHERE id = $1`,
+      [id],
+    );
 
   return rows[0] ?? null;
 }
 
-function buildListingDocument(id: string, projectId: string, name: string): Partial<DocumentOrmEntity> {
+function buildListingDocument(
+  id: string,
+  projectId: string,
+  name: string,
+): Partial<DocumentOrmEntity> {
   return {
     id,
     projectId,
@@ -371,10 +412,11 @@ async function insertWorkspaceMember(dataSource: DataSource, id: string): Promis
 }
 
 async function insertClient(dataSource: DataSource, id: string, taxId: string): Promise<void> {
-  await dataSource.query(
-    `INSERT INTO clients (id, name, tax_id) VALUES ($1, $2, $3)`,
-    [id, `Client ${id}`, taxId],
-  );
+  await dataSource.query(`INSERT INTO clients (id, name, tax_id) VALUES ($1, $2, $3)`, [
+    id,
+    `Client ${id}`,
+    taxId,
+  ]);
 }
 
 function parseMigrationTestDatabaseUrl(value: unknown): string {

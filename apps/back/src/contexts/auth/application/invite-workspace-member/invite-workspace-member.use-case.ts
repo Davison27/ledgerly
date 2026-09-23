@@ -5,7 +5,10 @@ import { MemberEmailAlreadyExistsException } from '../../domain/errors/member-em
 import { MemberEmail } from '../../domain/value-objects/member-email';
 import { PermissionMatrix } from '../../domain/value-objects/permission-matrix';
 import { WorkspaceMember } from '../../domain/workspace-member';
-import { WORKSPACE_MEMBER_REPOSITORY, WorkspaceMemberRepository } from '../../domain/workspace-member.repository';
+import {
+  WORKSPACE_MEMBER_REPOSITORY,
+  WorkspaceMemberRepository,
+} from '../../domain/workspace-member.repository';
 import { InviteWorkspaceMemberCommand } from './invite-workspace-member.command';
 
 @Injectable()
@@ -28,6 +31,7 @@ export class InviteWorkspaceMemberUseCase {
       id: this.idGenerator.generate(),
       email,
       name: command.name,
+      role: command.role,
       permissions: PermissionMatrix.create(command.permissions),
       status: 'invited',
       invitedAt: this.clock.now(),

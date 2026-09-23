@@ -59,11 +59,14 @@ describe('ListWorkspaceMembersUseCase', () => {
       id: 'member-1',
       email: MemberEmail.create('person@ledgerly.dev'),
       name: 'Person',
+      role: 'member',
       permissions: viewerMatrix(),
       status: 'active',
       invitedAt: new Date('2026-01-01T00:00:00.000Z'),
     });
-    const useCase = new ListWorkspaceMembersUseCase(new InMemoryWorkspaceMemberRepository([member]));
+    const useCase = new ListWorkspaceMembersUseCase(
+      new InMemoryWorkspaceMemberRepository([member]),
+    );
 
     const members = await useCase.execute();
 

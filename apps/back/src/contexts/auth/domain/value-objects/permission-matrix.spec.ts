@@ -34,35 +34,16 @@ describe('PermissionMatrix', () => {
     expect(() => PermissionMatrix.create(matrix)).toThrow(InvalidValueException);
   });
 
-  it('derives the admin role from the admin preset', () => {
-    const matrix = PermissionMatrix.create({ ...fullMatrix('edit'), dashboard: 'view' });
-
-    expect(matrix.deriveRole()).toBe('admin');
-  });
-
-  it('derives the editor role from the editor preset', () => {
-    const matrix = PermissionMatrix.create({
-      ...fullMatrix('edit'),
+  it('creates the matrix used when bootstrapping the administrator', () => {
+    expect(PermissionMatrix.admin().toPrimitives()).toEqual({
       dashboard: 'view',
-      staff: 'view',
-    });
-
-    expect(matrix.deriveRole()).toBe('editor');
-  });
-
-  it('derives the viewer role from the viewer preset', () => {
-    const matrix = PermissionMatrix.create(fullMatrix('view'));
-
-    expect(matrix.deriveRole()).toBe('viewer');
-  });
-
-  it('derives custom for a matrix that matches no preset', () => {
-    const matrix = PermissionMatrix.create({
-      ...fullMatrix('view'),
+      projects: 'edit',
+      calendar: 'edit',
       documents: 'edit',
+      suppliers: 'edit',
+      equipment: 'edit',
+      staff: 'edit',
     });
-
-    expect(matrix.deriveRole()).toBe('custom');
   });
 
   it('allows view when the level is edit', () => {
