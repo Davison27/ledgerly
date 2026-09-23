@@ -3,7 +3,7 @@ import { ScheduleEvent } from '../../domain/schedule-event';
 import { ScheduleEventRepository, ScheduleEventVisibility } from '../../domain/schedule-event.repository';
 import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-event-not-found.exception';
 
-const fullScheduleAccess = { projects: 'edit', staff: 'edit', equipment: 'edit' } as const;
+const calendarWriteAccess = { calendar: 'edit' } as const;
 
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   constructor(private events: ScheduleEvent[] = []) {}
@@ -42,6 +42,8 @@ function buildEvent(): ScheduleEvent {
     id: 'event-1',
     projectId: 'project-1',
     days: [{ date: '2026-07-03', startTime: null, endTime: null }],
+    staffMemberIds: ['staff-1'],
+    equipment: [{ equipmentId: 'equipment-1', quantity: 1 }],
   });
 }
 
@@ -50,7 +52,7 @@ describe('DeleteScheduleEventUseCase', () => {
     const repository = new InMemoryScheduleEventRepository([buildEvent()]);
     const useCase = new DeleteScheduleEventUseCase(repository);
 
-    await useCase.execute('event-1', fullScheduleAccess);
+    await useCase.execute('event-1', calendarWriteAccess);
 
     expect(await repository.findById('event-1')).toBeNull();
   });
@@ -59,12 +61,12 @@ describe('DeleteScheduleEventUseCase', () => {
     const repository = new InMemoryScheduleEventRepository();
     const useCase = new DeleteScheduleEventUseCase(repository);
 
-    await expect(useCase.execute('missing-event', fullScheduleAccess)).rejects.toThrow(
+    await expect(useCase.execute('missing-event', calendarWriteAccess)).rejects.toThrow(
       ScheduleEventNotFoundException,
     );
   });
 
-  it('does not delete events linked to sections without edit access', async () => {
+  it('does not delete schedule events without calendar edit access', async () => {
     const repository = new InMemoryScheduleEventRepository([
       ScheduleEvent.create({
         id: 'event-1',
@@ -76,9 +78,7 @@ describe('DeleteScheduleEventUseCase', () => {
     const useCase = new DeleteScheduleEventUseCase(repository);
 
     const removed = await useCase.execute('event-1', {
-      projects: 'edit',
-      staff: 'edit',
-      equipment: 'view',
+      calendar: 'view',
     });
 
     expect(removed).toBe(false);

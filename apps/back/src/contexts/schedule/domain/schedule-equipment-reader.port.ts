@@ -6,6 +6,16 @@ export interface ScheduleEquipmentView {
   stock: number;
 }
 
+export interface ScheduleEquipmentEditorOption {
+  id: string;
+  displayName: string;
+}
+
 export interface ScheduleEquipmentReader {
   findByIds(ids: string[]): Promise<ScheduleEquipmentView[]>;
+}
+
+export interface ScheduleEquipmentEditorReader {
+  findEditorOptions(): Promise<ScheduleEquipmentEditorOption[]>;
+  findEditorLabelsByIds(ids: string[]): Promise<ScheduleEquipmentEditorOption[]>;
 }

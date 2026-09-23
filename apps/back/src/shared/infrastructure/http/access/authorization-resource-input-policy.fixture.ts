@@ -25,6 +25,10 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
     { location: 'query', key: 'supplierId' },
     { location: 'query', key: 'staffMemberId' },
   ],
+  'GET /schedule/editor/board': [],
+  'GET /schedule/editor/equipment': [],
+  'GET /schedule/editor/projects': [],
+  'GET /schedule/editor/staff': [],
   'GET /schedule/events': [
     { location: 'query', key: 'projectId' },
     { location: 'query', key: 'staffMemberId' },

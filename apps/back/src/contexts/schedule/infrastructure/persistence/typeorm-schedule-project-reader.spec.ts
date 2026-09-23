@@ -61,4 +61,27 @@ describe('TypeOrmScheduleProjectReader', () => {
     await expect(reader.findByIds([])).resolves.toEqual([]);
     expect(query).not.toHaveBeenCalled();
   });
+
+  it('selects only the project identifier and name for calendar editor reads', async () => {
+    const calls: Array<{ sql: string; params?: unknown[] }> = [];
+    const query = jest.fn((sql: string, params?: unknown[]) => {
+      calls.push({ sql, params });
+      return Promise.resolve([{ id: 'project-1', displayName: 'Project' }]);
+    });
+    const reader = new TypeOrmScheduleProjectReader({ query } as unknown as DataSource, createCipher());
+
+    await expect(reader.findEditorOptions()).resolves.toEqual([{ id: 'project-1', displayName: 'Project' }]);
+    await expect(reader.findEditorLabelsByIds(['project-1'])).resolves.toEqual([
+      { id: 'project-1', displayName: 'Project' },
+    ]);
+
+    const selectorQuery = calls[0].sql;
+    const labelQuery = calls[1].sql;
+    expect(selectorQuery).toContain("WHERE p.status = 'active'");
+    expect(selectorQuery).toMatch(/SELECT\s+p\.id,\s*p\.name AS "displayName"/);
+    expect(labelQuery).toMatch(/SELECT\s+id,\s*name AS "displayName"/);
+    expect(labelQuery).not.toMatch(/WHERE[^\n]*status/i);
+    expect(`${selectorQuery} ${labelQuery}`).not.toMatch(/image|code|status,|start_date|end_date|color/i);
+    expect(calls[1].params).toEqual([['project-1']]);
+  });
 });

@@ -19,6 +19,10 @@ import { DeleteScheduleEventUseCase } from './application/delete-schedule-event/
 import { ListScheduleEventsUseCase } from './application/list-schedule-events/list-schedule-events.use-case';
 import { GetScheduleBoardUseCase } from './application/get-schedule-board/get-schedule-board.use-case';
 import { ListSchedulableProjectsUseCase } from './application/list-schedulable-projects/list-schedulable-projects.use-case';
+import { GetCalendarEditorBoardUseCase } from './application/get-calendar-editor-board/get-calendar-editor-board.use-case';
+import { ListCalendarEditorProjectsUseCase } from './application/list-calendar-editor-projects/list-calendar-editor-projects.use-case';
+import { ListCalendarEditorStaffUseCase } from './application/list-calendar-editor-staff/list-calendar-editor-staff.use-case';
+import { ListCalendarEditorEquipmentUseCase } from './application/list-calendar-editor-equipment/list-calendar-editor-equipment.use-case';
 import { SharedModule } from '../../shared/shared.module';
 
 @Module({
@@ -39,6 +43,10 @@ import { SharedModule } from '../../shared/shared.module';
     ListScheduleEventsUseCase,
     GetScheduleBoardUseCase,
     ListSchedulableProjectsUseCase,
+    GetCalendarEditorBoardUseCase,
+    ListCalendarEditorProjectsUseCase,
+    ListCalendarEditorStaffUseCase,
+    ListCalendarEditorEquipmentUseCase,
     { provide: SCHEDULE_EVENT_REPOSITORY, useClass: TypeOrmScheduleEventRepository },
     { provide: SCHEDULE_PROJECT_READER, useClass: TypeOrmScheduleProjectReader },
     { provide: SCHEDULE_STAFF_READER, useClass: TypeOrmScheduleStaffReader },

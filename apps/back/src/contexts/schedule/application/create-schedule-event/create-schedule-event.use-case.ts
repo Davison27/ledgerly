@@ -24,7 +24,7 @@ import {
 } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 import { CreateScheduleEventCommand } from './create-schedule-event.command';
-import { canEditScheduleSections, ScheduleAccessSnapshot } from '../schedule-access';
+import { canWriteSchedule, ScheduleWriteAccess } from '../schedule-access';
 
 @Injectable()
 export class CreateScheduleEventUseCase {
@@ -45,13 +45,13 @@ export class CreateScheduleEventUseCase {
 
   async execute(
     command: CreateScheduleEventCommand,
-    access: ScheduleAccessSnapshot,
+    access: ScheduleWriteAccess,
   ): Promise<ScheduleEventView | null> {
     const staffMemberIds = command.staffMemberIds ?? [];
     const equipmentCommands = command.equipment ?? [];
     const equipmentIds = equipmentCommands.map((equipment) => equipment.equipmentId);
 
-    if (!canEditScheduleSections(access, staffMemberIds, equipmentIds)) {
+    if (!canWriteSchedule(access)) {
       return null;
     }
 

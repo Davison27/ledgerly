@@ -3,6 +3,8 @@ import { InjectDataSource } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import {
   ScheduleProjectReader,
+  ScheduleProjectEditorOption,
+  ScheduleProjectEditorReader,
   ScheduleProjectView,
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
@@ -21,7 +23,7 @@ type ScheduleProjectRow = Omit<ScheduleProjectView, 'image'> & {
 };
 
 @Injectable()
-export class TypeOrmScheduleProjectReader implements ScheduleProjectReader {
+export class TypeOrmScheduleProjectReader implements ScheduleProjectReader, ScheduleProjectEditorReader {
   constructor(
     @InjectDataSource() private readonly dataSource: DataSource,
     @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
@@ -61,6 +63,32 @@ export class TypeOrmScheduleProjectReader implements ScheduleProjectReader {
     );
 
     return rows.map((row) => this.toProject(row));
+  }
+
+  async findEditorOptions(): Promise<ScheduleProjectEditorOption[]> {
+    const limit = getListLimit('MAX_LIST_ITEMS', 500);
+    const rows: ScheduleProjectEditorOption[] = await this.dataSource.query(
+      `SELECT p.id, p.name AS "displayName"
+       FROM projects p WHERE p.status = 'active' ORDER BY p.name ASC LIMIT $1`,
+      [limit + 1],
+    );
+
+    if (rows.length > limit) {
+      throw new ListLimitExceededException(limit, 'Calendar editor projects');
+    }
+
+    return rows;
+  }
+
+  async findEditorLabelsByIds(ids: string[]): Promise<ScheduleProjectEditorOption[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    return this.dataSource.query(
+      `SELECT id, name AS "displayName" FROM projects WHERE id = ANY($1)`,
+      [ids],
+    );
   }
 
   private toProject(row: ScheduleProjectRow): ScheduleProjectView | SchedulableProjectView {

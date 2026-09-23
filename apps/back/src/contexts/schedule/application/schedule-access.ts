@@ -8,6 +8,10 @@ export interface ScheduleAccessSnapshot {
   equipment: ScheduleAccessLevel;
 }
 
+export interface ScheduleWriteAccess {
+  calendar: ScheduleAccessLevel;
+}
+
 export function canReadScheduleEvent(event: ScheduleEvent, access: ScheduleAccessSnapshot): boolean {
   return (
     access.projects !== 'none' &&
@@ -16,18 +20,6 @@ export function canReadScheduleEvent(event: ScheduleEvent, access: ScheduleAcces
   );
 }
 
-export function canEditScheduleEvent(event: ScheduleEvent, access: ScheduleAccessSnapshot): boolean {
-  return canEditScheduleSections(access, event.staffMemberIds, event.equipment.map(({ equipmentId }) => equipmentId));
-}
-
-export function canEditScheduleSections(
-  access: ScheduleAccessSnapshot,
-  staffMemberIds: string[],
-  equipmentIds: string[],
-): boolean {
-  return (
-    access.projects === 'edit' &&
-    (staffMemberIds.length === 0 || access.staff === 'edit') &&
-    (equipmentIds.length === 0 || access.equipment === 'edit')
-  );
+export function canWriteSchedule(access: ScheduleWriteAccess): boolean {
+  return access.calendar === 'edit';
 }

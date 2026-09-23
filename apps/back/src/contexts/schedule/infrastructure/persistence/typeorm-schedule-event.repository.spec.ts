@@ -18,16 +18,19 @@ function createRepository() {
   const eventRepository = {
     createQueryBuilder: jest.fn(() => query),
   };
+  const dayRepository = { find: jest.fn().mockResolvedValue([]) };
+  const staffRepository = { find: jest.fn().mockResolvedValue([]) };
+  const equipmentRepository = { find: jest.fn().mockResolvedValue([]) };
   const repository = new TypeOrmScheduleEventRepository(
     {} as DataSource,
     eventRepository as unknown as Repository<ScheduleEventOrmEntity>,
-    {} as Repository<ScheduleEventDayOrmEntity>,
-    {} as Repository<ScheduleEventStaffOrmEntity>,
-    {} as Repository<ScheduleEventEquipmentOrmEntity>,
+    dayRepository as unknown as Repository<ScheduleEventDayOrmEntity>,
+    staffRepository as unknown as Repository<ScheduleEventStaffOrmEntity>,
+    equipmentRepository as unknown as Repository<ScheduleEventEquipmentOrmEntity>,
     { generate: () => 'generated-id' },
   );
 
-  return { query, repository };
+  return { query, repository, dayRepository, staffRepository, equipmentRepository };
 }
 
 describe('TypeOrmScheduleEventRepository', () => {
@@ -61,5 +64,25 @@ describe('TypeOrmScheduleEventRepository', () => {
       2,
       'NOT EXISTS (SELECT 1 FROM schedule_event_equipment equipment WHERE equipment.event_id = event.id)',
     );
+  });
+
+  it('retains staff and equipment link IDs when the editor board reads schedule events', async () => {
+    const { query, repository, dayRepository, staffRepository, equipmentRepository } = createRepository();
+    query.getMany.mockResolvedValue([
+      { id: 'event-1', projectId: 'project-1', title: 'Setup', notes: null },
+    ]);
+    dayRepository.find.mockResolvedValue([
+      { eventId: 'event-1', date: '2026-07-03', startTime: '08:00:00', endTime: '14:00:00' },
+    ]);
+    staffRepository.find.mockResolvedValue([{ eventId: 'event-1', staffMemberId: 'staff-1' }]);
+    equipmentRepository.find.mockResolvedValue([
+      { eventId: 'event-1', equipmentId: 'equipment-1', quantity: 2 },
+    ]);
+
+    const [event] = await repository.findByFilter({ from: '2026-07-01', to: '2026-07-31' });
+
+    expect(event.staffMemberIds).toEqual(['staff-1']);
+    expect(event.equipment).toEqual([{ equipmentId: 'equipment-1', quantity: 2 }]);
+    expect(query.andWhere).not.toHaveBeenCalledWith(expect.stringContaining('NOT EXISTS'));
   });
 });

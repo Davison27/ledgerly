@@ -7,7 +7,7 @@ import { MemberEmail } from '../../../auth/domain/value-objects/member-email';
 import { PermissionMatrix } from '../../../auth/domain/value-objects/permission-matrix';
 import type { PermissionMatrixPrimitives } from '../../../auth/domain/value-objects/permission-matrix';
 import { WorkspaceMember } from '../../../auth/domain/workspace-member';
-import { ScheduleAccessSnapshot } from '../../application/schedule-access';
+import { ScheduleAccessSnapshot, ScheduleWriteAccess } from '../../application/schedule-access';
 import { ScheduleController } from './schedule.controller';
 import { GetScheduleBoardUseCase, ScheduleBoard } from '../../application/get-schedule-board/get-schedule-board.use-case';
 import { ListScheduleEventsUseCase } from '../../application/list-schedule-events/list-schedule-events.use-case';
@@ -22,6 +22,10 @@ import { ScheduleProjectView } from '../../domain/schedule-project-reader.port';
 import { ScheduleProjectNotFoundException } from '../../domain/errors/schedule-project-not-found.exception';
 import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-event-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+import { GetCalendarEditorBoardUseCase } from '../../application/get-calendar-editor-board/get-calendar-editor-board.use-case';
+import { ListCalendarEditorProjectsUseCase } from '../../application/list-calendar-editor-projects/list-calendar-editor-projects.use-case';
+import { ListCalendarEditorStaffUseCase } from '../../application/list-calendar-editor-staff/list-calendar-editor-staff.use-case';
+import { ListCalendarEditorEquipmentUseCase } from '../../application/list-calendar-editor-equipment/list-calendar-editor-equipment.use-case';
 
 const PROJECT_ID = '11111111-1111-4111-8111-111111111111';
 const PROJECT_IMAGE = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
@@ -65,6 +69,20 @@ function scheduleMember(
 }
 
 const fullScheduleAccess: ScheduleAccessSnapshot = { projects: 'edit', staff: 'edit', equipment: 'edit' };
+const fullWriteAccess: ScheduleWriteAccess = { calendar: 'edit' };
+
+const editorEvent = {
+  id: 'event-1',
+  title: 'Montaje',
+  notes: null,
+  startDate: '2026-07-03',
+  endDate: '2026-07-03',
+  projectId: PROJECT_ID,
+  days: [{ date: '2026-07-03', startTime: '08:00', endTime: '14:00' }],
+  project: { id: PROJECT_ID, displayName: 'Project' },
+  staff: [{ id: 'staff-1', displayName: 'Ana García' }],
+  equipment: [{ id: 'equipment-1', displayName: 'Canopy', quantity: 2 }],
+};
 
 function buildView(overrides: Partial<CreateScheduleEventCommand> & { id?: string } = {}): ScheduleEventView {
   const event = ScheduleEvent.create({
@@ -93,6 +111,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
   let schedulableProjectsExecute: jest.Mock;
+  let editorBoardExecute: jest.Mock;
+  let editorProjectsExecute: jest.Mock;
+  let editorStaffExecute: jest.Mock;
+  let editorEquipmentExecute: jest.Mock;
   let currentMember = scheduleMember();
 
   beforeAll(async () => {
@@ -104,8 +126,12 @@ describe('ScheduleController (HTTP, no DB)', () => {
     updateExecute = jest.fn((command: { id: string } & Partial<CreateScheduleEventCommand>) =>
       Promise.resolve(buildView(command)),
     );
-    deleteExecute = jest.fn<Promise<boolean>, [string, ScheduleAccessSnapshot]>().mockResolvedValue(true);
+    deleteExecute = jest.fn<Promise<boolean>, [string, ScheduleWriteAccess]>().mockResolvedValue(true);
     schedulableProjectsExecute = jest.fn(() => Promise.resolve([PROJECT_VIEW]));
+    editorBoardExecute = jest.fn(() => Promise.resolve([editorEvent]));
+    editorProjectsExecute = jest.fn(() => Promise.resolve([{ id: PROJECT_ID, displayName: 'Project' }]));
+    editorStaffExecute = jest.fn(() => Promise.resolve([{ id: 'staff-1', displayName: 'Ana García' }]));
+    editorEquipmentExecute = jest.fn(() => Promise.resolve([{ id: 'equipment-1', displayName: 'Canopy' }]));
 
     const moduleRef = await Test.createTestingModule({
       controllers: [ScheduleController],
@@ -116,6 +142,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
         { provide: UpdateScheduleEventUseCase, useValue: { execute: updateExecute } },
         { provide: DeleteScheduleEventUseCase, useValue: { execute: deleteExecute } },
         { provide: ListSchedulableProjectsUseCase, useValue: { execute: schedulableProjectsExecute } },
+        { provide: GetCalendarEditorBoardUseCase, useValue: { execute: editorBoardExecute } },
+        { provide: ListCalendarEditorProjectsUseCase, useValue: { execute: editorProjectsExecute } },
+        { provide: ListCalendarEditorStaffUseCase, useValue: { execute: editorStaffExecute } },
+        { provide: ListCalendarEditorEquipmentUseCase, useValue: { execute: editorEquipmentExecute } },
       ],
     }).compile();
 
@@ -137,6 +167,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
     updateExecute.mockClear();
     deleteExecute.mockClear();
     schedulableProjectsExecute.mockClear();
+    editorBoardExecute.mockClear();
+    editorProjectsExecute.mockClear();
+    editorStaffExecute.mockClear();
+    editorEquipmentExecute.mockClear();
     currentMember = scheduleMember();
   });
 
@@ -191,10 +225,9 @@ describe('ScheduleController (HTTP, no DB)', () => {
       expect(response.status).toBe(201);
       expect(createExecute).toHaveBeenCalledWith(
         expect.objectContaining({ projectId: PROJECT_ID }),
-        fullScheduleAccess,
+        fullWriteAccess,
       );
-      const body = response.body as { project: { image: string | null } };
-      expect(body.project.image).toBe(PROJECT_IMAGE);
+      expect(response.body).toEqual({ id: 'event-1' });
     });
 
     it('returns 400 when a day has a malformed date', async () => {
@@ -237,10 +270,9 @@ describe('ScheduleController (HTTP, no DB)', () => {
       expect(response.status).toBe(200);
       expect(updateExecute).toHaveBeenCalledWith(
         expect.objectContaining({ id: 'event-1', title: 'Evento' }),
-        fullScheduleAccess,
+        fullWriteAccess,
       );
-      const body = response.body as { project: { image: string | null } };
-      expect(body.project.image).toBe(PROJECT_IMAGE);
+      expect(response.body).toEqual({ id: 'event-1' });
     });
 
     it('returns 404 when the event is not found', async () => {
@@ -257,7 +289,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
       const response = await request(httpServer).delete('/schedule/events/event-1');
 
       expect(response.status).toBe(204);
-      expect(deleteExecute).toHaveBeenCalledWith('event-1', fullScheduleAccess);
+      expect(deleteExecute).toHaveBeenCalledWith('event-1', fullWriteAccess);
     });
   });
 
@@ -271,5 +303,48 @@ describe('ScheduleController (HTTP, no DB)', () => {
       expect(body[0].id).toBe(PROJECT_ID);
       expect(body[0].image).toBe(PROJECT_IMAGE);
     });
+  });
+
+  describe('GET /schedule/editor/board', () => {
+    it('returns only the allowlisted schedule fields and labels', async () => {
+      const response = await request(httpServer)
+        .get('/schedule/editor/board')
+        .query({ from: '2026-07-01', to: '2026-07-31' });
+
+      expect(response.status).toBe(200);
+      expect(editorBoardExecute).toHaveBeenCalledWith({ from: '2026-07-01', to: '2026-07-31' });
+      expect(response.body).toEqual([editorEvent]);
+      const body = response.body as Array<{
+        project: Record<string, unknown>;
+        staff: Array<Record<string, unknown>>;
+        equipment: Array<Record<string, unknown>>;
+      }>;
+      expect(Object.keys(body[0]).sort()).toEqual([
+        'days', 'endDate', 'equipment', 'id', 'notes', 'project', 'projectId', 'staff', 'startDate', 'title',
+      ]);
+      expect(Object.keys(body[0].project).sort()).toEqual(['displayName', 'id']);
+      expect(Object.keys(body[0].staff[0]).sort()).toEqual(['displayName', 'id']);
+      expect(Object.keys(body[0].equipment[0]).sort()).toEqual(['displayName', 'id', 'quantity']);
+    });
+
+    it('returns 400 when the date range is missing', async () => {
+      const response = await request(httpServer).get('/schedule/editor/board').query({ to: '2026-07-31' });
+
+      expect(response.status).toBe(400);
+      expect(editorBoardExecute).not.toHaveBeenCalled();
+    });
+  });
+
+  it.each([
+    ['/schedule/editor/projects', { id: PROJECT_ID, displayName: 'Project' }],
+    ['/schedule/editor/staff', { id: 'staff-1', displayName: 'Ana García' }],
+    ['/schedule/editor/equipment', { id: 'equipment-1', displayName: 'Canopy' }],
+  ])('returns minimal selector fields from %s', async (path, option) => {
+    const response = await request(httpServer).get(path);
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual([option]);
+    const body = response.body as Array<Record<string, unknown>>;
+    expect(Object.keys(body[0]).sort()).toEqual(['displayName', 'id']);
   });
 });

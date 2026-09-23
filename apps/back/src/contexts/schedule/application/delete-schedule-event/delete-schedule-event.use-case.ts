@@ -4,7 +4,7 @@ import {
   ScheduleEventRepository,
 } from '../../domain/schedule-event.repository';
 import { ScheduleEventNotFoundException } from '../../domain/errors/schedule-event-not-found.exception';
-import { canEditScheduleEvent, ScheduleAccessSnapshot } from '../schedule-access';
+import { canWriteSchedule, ScheduleWriteAccess } from '../schedule-access';
 
 @Injectable()
 export class DeleteScheduleEventUseCase {
@@ -13,22 +13,15 @@ export class DeleteScheduleEventUseCase {
     private readonly scheduleEventRepository: ScheduleEventRepository,
   ) {}
 
-  async execute(id: string, access: ScheduleAccessSnapshot): Promise<boolean> {
-    if (access.projects !== 'edit') {
+  async execute(id: string, access: ScheduleWriteAccess): Promise<boolean> {
+    if (!canWriteSchedule(access)) {
       return false;
     }
 
-    const event = await this.scheduleEventRepository.findById(id, {
-      staff: access.staff !== 'none',
-      equipment: access.equipment !== 'none',
-    });
+    const event = await this.scheduleEventRepository.findById(id);
 
     if (event === null) {
       throw new ScheduleEventNotFoundException(id);
-    }
-
-    if (!canEditScheduleEvent(event, access)) {
-      return false;
     }
 
     await this.scheduleEventRepository.delete(id);

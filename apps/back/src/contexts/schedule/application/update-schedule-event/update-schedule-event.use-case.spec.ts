@@ -16,7 +16,7 @@ import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 
-const fullScheduleAccess = { projects: 'edit', staff: 'edit', equipment: 'edit' } as const;
+const calendarWriteAccess = { calendar: 'edit' } as const;
 
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
@@ -145,17 +145,25 @@ describe('UpdateScheduleEventUseCase', () => {
       publisher,
     );
 
-    const view = (await useCase.execute({ id: 'event-1', title: 'Evento actualizado' }, fullScheduleAccess))!;
+    const view = (await useCase.execute({
+      id: 'event-1',
+      title: 'Evento actualizado',
+      days: [{ date: '2026-07-04' }],
+    }, calendarWriteAccess))!;
 
     expect(view.event.title).toBe('Evento actualizado');
+    expect(view.event.startDate).toBe('2026-07-04');
     expect(view.event.projectId).toBe('project-1');
+    expect(view.project.startDate).toBe('2026-07-01');
     expect(view.project.image).toBe(projectImage);
     expect(view.event.staffMemberIds).toEqual(['staff-1']);
+    expect(view.staff).toEqual([STAFF_MEMBER]);
+    expect(view.equipment).toEqual([{ ...EQUIPMENT, quantity: 2 }]);
     expect(publisher.published).toHaveLength(1);
     const [event] = publisher.published as ScheduleEventSavedEvent[];
     expect(event.name).toBe(ScheduleEventSavedEvent.EVENT_NAME);
     expect(event.eventId).toBe('event-1');
-    expect(event.dates).toEqual(['2026-07-03']);
+    expect(event.dates).toEqual(['2026-07-04']);
   });
 
   it('replaces the project when a new projectId is given', async () => {
@@ -168,7 +176,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeDomainEventPublisher(),
     );
 
-    const view = (await useCase.execute({ id: 'event-1', projectId: 'project-2' }, fullScheduleAccess))!;
+    const view = (await useCase.execute({ id: 'event-1', projectId: 'project-2' }, calendarWriteAccess))!;
 
     expect(view.event.projectId).toBe('project-2');
     expect(view.project.id).toBe('project-2');
@@ -183,7 +191,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeDomainEventPublisher(),
     );
 
-    await expect(useCase.execute({ id: 'missing-event', title: 'x' }, fullScheduleAccess)).rejects.toThrow(
+    await expect(useCase.execute({ id: 'missing-event', title: 'x' }, calendarWriteAccess)).rejects.toThrow(
       ScheduleEventNotFoundException,
     );
   });
@@ -199,7 +207,7 @@ describe('UpdateScheduleEventUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ id: 'event-1', projectId: 'missing-project' }, fullScheduleAccess),
+      useCase.execute({ id: 'event-1', projectId: 'missing-project' }, calendarWriteAccess),
     ).rejects.toThrow(ScheduleProjectNotFoundException);
   });
 
@@ -214,7 +222,7 @@ describe('UpdateScheduleEventUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ id: 'event-1', staffMemberIds: ['missing-staff'] }, fullScheduleAccess),
+      useCase.execute({ id: 'event-1', staffMemberIds: ['missing-staff'] }, calendarWriteAccess),
     ).rejects.toThrow(ScheduleStaffMemberNotFoundException);
   });
 
@@ -231,12 +239,12 @@ describe('UpdateScheduleEventUseCase', () => {
     await expect(
       useCase.execute(
         { id: 'event-1', equipment: [{ equipmentId: 'missing-equipment', quantity: 1 }] },
-        fullScheduleAccess,
+        calendarWriteAccess,
       ),
     ).rejects.toThrow(ScheduleEquipmentNotFoundException);
   });
 
-  it('rejects edits to events linked to sections without edit access', async () => {
+  it('rejects edits without calendar edit access', async () => {
     const repository = new InMemoryScheduleEventRepository([buildEvent()]);
     const useCase = new UpdateScheduleEventUseCase(
       repository,
@@ -248,7 +256,7 @@ describe('UpdateScheduleEventUseCase', () => {
 
     const result = await useCase.execute(
       { id: 'event-1', title: 'Evento actualizado' },
-      { projects: 'edit', staff: 'edit', equipment: 'view' },
+      { calendar: 'view' },
     );
 
     expect(result).toBeNull();
