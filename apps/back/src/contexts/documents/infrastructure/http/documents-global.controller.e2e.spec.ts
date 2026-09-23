@@ -1,6 +1,7 @@
 import type { Server } from 'http';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import { DocumentsGlobalController } from './documents-global.controller';
 import { ListAllDocumentsUseCase } from '../../application/list-all-documents/list-all-documents.use-case';
@@ -17,6 +18,9 @@ import { MalwareScannerUnavailableException } from '../../../../shared/domain/er
 import { PDF_READER, PdfReadResult } from '../../domain/extraction/pdf-reader.port';
 import { INVOICE_HINT_REPOSITORY } from '../../domain/extraction/hints/invoice-hint.repository';
 import { DOMAIN_EVENT_PUBLISHER } from '../../../../shared/domain/domain-event-publisher.port';
+import { MemberEmail } from '../../../auth/domain/value-objects/member-email';
+import { PermissionMatrix } from '../../../auth/domain/value-objects/permission-matrix';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
 
 const PDF_HEADER = Buffer.from('%PDF-1.4\n%mock');
 const PDF_READ_RESULT: PdfReadResult = { text: 'invoice', attachments: [] };
@@ -54,6 +58,26 @@ function buildMatch(overrides: Partial<DocumentDuplicateMatch> = {}): DocumentDu
   };
 }
 
+function createMember(projects: 'none' | 'view'): WorkspaceMember {
+  return WorkspaceMember.create({
+    id: 'member-1',
+    email: MemberEmail.create('member@example.com'),
+    name: 'Member',
+    role: 'member',
+    permissions: PermissionMatrix.create({
+      dashboard: 'view',
+      projects,
+      calendar: 'none',
+      documents: 'view',
+      suppliers: 'none',
+      equipment: 'none',
+      staff: 'none',
+    }),
+    status: 'active',
+    invitedAt: new Date('2026-01-01T00:00:00Z'),
+  });
+}
+
 describe('DocumentsGlobalController (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
@@ -63,12 +87,14 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
   let extractOriginal: (command: ExtractInvoiceCommand) => Promise<ExtractedInvoiceResult>;
   let readExecute: jest.Mock;
   let scanExecute: jest.Mock;
+  let member: WorkspaceMember;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildListItem()]));
     duplicateCheckExecute = jest.fn(() => Promise.resolve([]));
     readExecute = jest.fn(() => Promise.resolve(PDF_READ_RESULT));
     scanExecute = jest.fn(() => Promise.resolve());
+    member = createMember('view');
 
     const moduleRef = await Test.createTestingModule({
       controllers: [DocumentsGlobalController],
@@ -84,6 +110,10 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use((incoming: Request, _response: Response, next: NextFunction) => {
+      (incoming as Request & { member?: WorkspaceMember }).member = member;
+      next();
+    });
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
@@ -94,6 +124,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
   });
 
   afterEach(() => {
+    member = createMember('view');
     listExecute.mockClear();
     duplicateCheckExecute.mockClear();
     extractExecute.mockReset();
@@ -178,6 +209,26 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual([]);
+    });
+
+    it('hides all project-linked rows before querying when the member cannot view projects', async () => {
+      member = createMember('none');
+
+      const response = await request(httpServer).get('/documents');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual([]);
+      expect(listExecute).not.toHaveBeenCalled();
+    });
+
+    it('returns an empty page before querying when the member cannot view projects', async () => {
+      member = createMember('none');
+
+      const response = await request(httpServer).get('/documents').query({ page: 2, size: 5 });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toEqual({ items: [], total: 0, page: 2, size: 5 });
+      expect(listExecute).not.toHaveBeenCalled();
     });
 
     it('rejects an invalid type filter', async () => {

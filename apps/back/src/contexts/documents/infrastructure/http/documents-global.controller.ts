@@ -12,6 +12,8 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { Throttle } from '@nestjs/throttler';
 import { memoryStorage } from 'multer';
 import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
+import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
 import { ListAllDocumentsUseCase } from '../../application/list-all-documents/list-all-documents.use-case';
 import { CheckDocumentDuplicateUseCase } from '../../application/check-document-duplicate/check-document-duplicate.use-case';
 import { ExtractInvoiceUseCase } from '../../application/extract-invoice/extract-invoice.use-case';
@@ -36,17 +38,19 @@ export class DocumentsGlobalController {
     @Inject(MALWARE_SCANNER) private readonly malwareScanner: MalwareScanner,
   ) {}
 
+  @RequiresAccess('projects', 'view')
   @Get('duplicate-check')
   async duplicateCheck(
     @Query() query: DuplicateCheckQueryDto,
   ): Promise<DocumentDuplicateCheckResponse> {
+    const pageRequest = getOptionalPageRequest(query);
+
     const duplicateQuery = {
       issuerName: query.issuerName,
       issuerTaxId: query.issuerTaxId,
       invoiceNumber: query.invoiceNumber,
       amount: query.amount,
     };
-    const pageRequest = getOptionalPageRequest(query);
 
     if (pageRequest) {
       return DocumentDuplicateCheckResponse.fromPage(
@@ -61,6 +65,7 @@ export class DocumentsGlobalController {
 
   @Get()
   async list(
+    @CurrentMember() member: WorkspaceMember,
     @Query() query: ListAllDocumentsQueryDto,
   ): Promise<DocumentListItemResponse[] | DocumentListPageResponse> {
     const filters = {
@@ -78,6 +83,17 @@ export class DocumentsGlobalController {
       staffMemberId: query.staffMemberId,
     };
     const pageRequest = getOptionalPageRequest(query);
+
+    if (!member.canAccess('projects', 'view')) {
+      if (!pageRequest) return [];
+
+      return DocumentListPageResponse.fromPage({
+        items: [],
+        total: 0,
+        page: pageRequest.page,
+        size: pageRequest.size,
+      });
+    }
 
     if (pageRequest) {
       return DocumentListPageResponse.fromPage(

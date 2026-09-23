@@ -50,6 +50,7 @@ import { DocumentPageResponse } from './document-page.response';
 import { MALWARE_SCANNER, MalwareScanner } from '../../../../shared/domain/malware-scanner.port';
 
 @RequiresAccess('documents', 'view')
+@RequiresAccess('projects', 'view')
 @Controller('projects/:projectId/documents')
 export class DocumentsController {
   private readonly logger = new Logger(DocumentsController.name);
@@ -97,6 +98,7 @@ export class DocumentsController {
   }
 
   @RequiresAccess('documents', 'edit')
+  @RequiresAccess('projects', 'edit')
   @Post()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
@@ -223,6 +225,7 @@ export class DocumentsController {
   }
 
   @RequiresAccess('documents', 'edit')
+  @RequiresAccess('projects', 'edit')
   @Post('extract')
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
@@ -282,6 +285,7 @@ export class DocumentsController {
   }
 
   @RequiresAccess('documents', 'edit')
+  @RequiresAccess('projects', 'edit')
   @Patch(':id')
   async update(
     @Param('projectId') projectId: string,
@@ -353,6 +357,7 @@ export class DocumentsController {
   }
 
   @RequiresAccess('documents', 'edit')
+  @RequiresAccess('projects', 'edit')
   @Delete(':id')
   @HttpCode(204)
   async remove(

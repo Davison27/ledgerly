@@ -22,6 +22,10 @@ import { Document } from '../../domain/document';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
+import {
+  ACCESS_REQUIREMENT_KEY,
+  accessRequirementsFromMetadata,
+} from '../../../../shared/infrastructure/http/access/access-requirement';
 
 function loadFixture(name: string): Buffer {
   return readFileSync(join(__dirname, '../pdf/__fixtures__', name));
@@ -116,6 +120,19 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('requires document and project access for nested document routes and direct file downloads', () => {
+    const requirements = accessRequirementsFromMetadata(
+      Reflect.getMetadata(ACCESS_REQUIREMENT_KEY, DocumentsController),
+    );
+
+    expect(requirements).toEqual(
+      expect.arrayContaining([
+        { kind: 'access', module: 'documents', level: 'view' },
+        { kind: 'access', module: 'projects', level: 'view' },
+      ]),
+    );
   });
 
   describe('POST /projects/:projectId/documents (multipart)', () => {
