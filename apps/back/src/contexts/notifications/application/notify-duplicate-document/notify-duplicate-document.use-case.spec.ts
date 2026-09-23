@@ -27,8 +27,8 @@ class InMemoryNotificationRepository implements NotificationRepository {
     return Promise.resolve(this.notifications.find((notification) => notification.getId() === id) ?? null);
   }
 
-  save(): Promise<void> {
-    return Promise.resolve();
+  save(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   findPage(): Promise<Page<NotificationListRow>> {

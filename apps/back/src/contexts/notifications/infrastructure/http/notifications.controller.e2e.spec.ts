@@ -1,4 +1,5 @@
 import type { Server } from 'http';
+import type { NextFunction, Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -11,6 +12,38 @@ import { ResolveNotificationUseCase } from '../../application/resolve-notificati
 import { NotificationsPage } from '../../application/list-notifications/notifications-page';
 import { NotificationNotFoundException } from '../../domain/errors/notification-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
+import { MemberEmail } from '../../../auth/domain/value-objects/member-email';
+import { PermissionMatrix } from '../../../auth/domain/value-objects/permission-matrix';
+import { NotificationAccessSnapshot } from '../../domain/notification-access';
+
+const ACCESS: NotificationAccessSnapshot = {
+  projects: 'view',
+  calendar: 'view',
+  documents: 'view',
+  staff: 'none',
+  equipment: 'none',
+};
+
+function activeMember(): WorkspaceMember {
+  return WorkspaceMember.create({
+    id: 'member-1',
+    email: MemberEmail.create('member@ledgerly.dev'),
+    name: 'Member',
+    role: 'member',
+    permissions: PermissionMatrix.create({
+      dashboard: 'view',
+      projects: ACCESS.projects,
+      calendar: ACCESS.calendar,
+      documents: ACCESS.documents,
+      suppliers: 'none',
+      equipment: ACCESS.equipment,
+      staff: ACCESS.staff,
+    }),
+    status: 'active',
+    invitedAt: new Date('2026-09-01T00:00:00.000Z'),
+  });
+}
 
 function buildPage(overrides: Partial<NotificationsPage> = {}): NotificationsPage {
   return {
@@ -70,6 +103,11 @@ describe('NotificationsController (HTTP, no DB)', () => {
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
+    const member = activeMember();
+    app.use((request: ExpressRequest, _response: ExpressResponse, next: NextFunction) => {
+      (request as ExpressRequest & { member?: WorkspaceMember }).member = member;
+      next();
+    });
     await app.init();
     httpServer = app.getHttpServer() as Server;
   });
@@ -115,13 +153,13 @@ describe('NotificationsController (HTTP, no DB)', () => {
         size: 20,
         unreadCount: 12,
       });
-      expect(listExecute).toHaveBeenCalledWith({ page: 1, size: 20, status: 'open' });
+      expect(listExecute).toHaveBeenCalledWith({ page: 1, size: 20, status: 'open', access: ACCESS });
     });
 
     it('forwards pagination and the unread filter', async () => {
       await request(httpServer).get('/notifications').query({ page: '2', size: '10', status: 'unread' });
 
-      expect(listExecute).toHaveBeenCalledWith({ page: 2, size: 10, status: 'unread' });
+      expect(listExecute).toHaveBeenCalledWith({ page: 2, size: 10, status: 'unread', access: ACCESS });
     });
 
     it('rejects a size above the maximum', async () => {
@@ -145,6 +183,7 @@ describe('NotificationsController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ count: 12 });
+      expect(unreadCountExecute).toHaveBeenCalledWith(ACCESS);
     });
   });
 
@@ -153,7 +192,7 @@ describe('NotificationsController (HTTP, no DB)', () => {
       const response = await request(httpServer).post('/notifications/read-all');
 
       expect(response.status).toBe(204);
-      expect(markAllReadExecute).toHaveBeenCalledTimes(1);
+      expect(markAllReadExecute).toHaveBeenCalledWith(ACCESS);
     });
   });
 
@@ -162,7 +201,7 @@ describe('NotificationsController (HTTP, no DB)', () => {
       const response = await request(httpServer).post('/notifications/notification-1/read');
 
       expect(response.status).toBe(204);
-      expect(markReadExecute).toHaveBeenCalledWith({ id: 'notification-1' });
+      expect(markReadExecute).toHaveBeenCalledWith({ id: 'notification-1', access: ACCESS });
     });
 
     it('returns 404 with the domain exception shape when the notification does not exist', async () => {
@@ -175,6 +214,15 @@ describe('NotificationsController (HTTP, no DB)', () => {
         code: 'ENTITY_NOT_FOUND',
         message: 'Notification with id missing was not found',
       });
+    });
+  });
+
+  describe('POST /notifications/:id/resolve', () => {
+    it('passes the active member access snapshot to the resolver', async () => {
+      const response = await request(httpServer).post('/notifications/notification-1/resolve');
+
+      expect(response.status).toBe(204);
+      expect(resolveExecute).toHaveBeenCalledWith('notification-1', ACCESS);
     });
   });
 });

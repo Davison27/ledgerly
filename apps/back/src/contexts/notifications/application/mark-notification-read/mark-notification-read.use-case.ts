@@ -12,12 +12,16 @@ export class MarkNotificationReadUseCase {
   ) {}
 
   async execute(command: MarkNotificationReadCommand): Promise<void> {
-    const notification = await this.repository.findById(command.id);
+    const notification = await this.repository.findById(command.id, command.access);
 
     if (!notification) {
       throw new NotificationNotFoundException(command.id);
     }
 
-    await this.repository.save(notification.markAsRead(this.clock.now()));
+    const updated = await this.repository.save(notification.markAsRead(this.clock.now()), command.access);
+
+    if (!updated) {
+      throw new NotificationNotFoundException(command.id);
+    }
   }
 }

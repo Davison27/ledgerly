@@ -1,12 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { IsNull, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Notification } from '../../domain/notification';
 import { NotificationPageQuery, NotificationRepository } from '../../domain/notification.repository';
 import { NotificationListRow } from '../../domain/notification-list-row';
 import { Page } from '../../../../shared/domain/pagination';
 import { NotificationOrmEntity } from './notification.orm-entity';
 import { NotificationMapper } from './notification.mapper';
+import { notificationVisibilityCondition } from './notification-visibility-condition';
 
 const SEVERITY_ORDER_SQL = "CASE notification.severity WHEN 'error' THEN 0 WHEN 'warning' THEN 1 ELSE 2 END";
 
@@ -37,14 +38,27 @@ export class TypeOrmNotificationRepository implements NotificationRepository {
     return notifications.filter((notification) => insertedIds.has(notification.getId()));
   }
 
-  async findById(id: string): Promise<Notification | null> {
-    const orm = await this.repository.findOne({ where: { id } });
+  async findById(id: string, access: NotificationPageQuery['access']): Promise<Notification | null> {
+    const orm = await this.repository
+      .createQueryBuilder('notification')
+      .where('notification.id = :id', { id })
+      .andWhere(notificationVisibilityCondition(access, 'notification'))
+      .getOne();
 
     return orm ? NotificationMapper.toDomain(orm) : null;
   }
 
-  async save(notification: Notification): Promise<void> {
-    await this.repository.save(NotificationMapper.toOrm(notification));
+  async save(notification: Notification, access: NotificationPageQuery['access']): Promise<boolean> {
+    const primitives = notification.toPrimitives();
+    const result = await this.repository
+      .createQueryBuilder()
+      .update(NotificationOrmEntity)
+      .set({ readAt: primitives.readAt, resolvedAt: primitives.resolvedAt ?? null })
+      .where('id = :id', { id: primitives.id })
+      .andWhere(notificationVisibilityCondition(access, 'notifications'))
+      .execute();
+
+    return (result.affected ?? 0) > 0;
   }
 
   async findPage(query: NotificationPageQuery): Promise<Page<NotificationListRow>> {
@@ -57,6 +71,8 @@ export class TypeOrmNotificationRepository implements NotificationRepository {
     } else if (query.status === 'resolved') {
       queryBuilder.andWhere('notification.resolved_at IS NOT NULL');
     }
+
+    queryBuilder.andWhere(notificationVisibilityCondition(query.access, 'notification'));
 
     const total = await queryBuilder.getCount();
 
@@ -75,16 +91,21 @@ export class TypeOrmNotificationRepository implements NotificationRepository {
     };
   }
 
-  countUnread(): Promise<number> {
-    return this.repository.count({ where: { readAt: IsNull(), resolvedAt: IsNull() } });
+  countUnread(access: NotificationPageQuery['access']): Promise<number> {
+    return this.repository
+      .createQueryBuilder('notification')
+      .where('notification.read_at IS NULL AND notification.resolved_at IS NULL')
+      .andWhere(notificationVisibilityCondition(access, 'notification'))
+      .getCount();
   }
 
-  async markAllRead(readAt: Date): Promise<void> {
+  async markAllRead(readAt: Date, access: NotificationPageQuery['access']): Promise<void> {
     await this.repository
       .createQueryBuilder()
       .update(NotificationOrmEntity)
       .set({ readAt })
       .where('read_at IS NULL')
+      .andWhere(notificationVisibilityCondition(access, 'notifications'))
       .execute();
   }
 

@@ -5,6 +5,15 @@ import { NotificationNotFoundException } from '../../domain/errors/notification-
 import { NotificationListRow } from '../../domain/notification-list-row';
 import { Page } from '../../../../shared/domain/pagination';
 import { Clock } from '../../../../shared/domain/clock.port';
+import { NotificationAccessSnapshot } from '../../domain/notification-access';
+
+const ACCESS: NotificationAccessSnapshot = {
+  projects: 'view',
+  calendar: 'view',
+  documents: 'view',
+  staff: 'none',
+  equipment: 'none',
+};
 
 class InMemoryNotificationRepository implements NotificationRepository {
   constructor(private notifications: Notification[] = []) {}
@@ -13,15 +22,17 @@ class InMemoryNotificationRepository implements NotificationRepository {
     return Promise.resolve(notifications);
   }
 
-  findById(id: string): Promise<Notification | null> {
+  findById(id: string, access: NotificationAccessSnapshot): Promise<Notification | null> {
+    if (access.projects === 'none' || access.documents === 'none') return Promise.resolve(null);
     return Promise.resolve(this.notifications.find((notification) => notification.getId() === id) ?? null);
   }
 
-  save(notification: Notification): Promise<void> {
+  save(notification: Notification, access: NotificationAccessSnapshot): Promise<boolean> {
+    if (access.projects === 'none' || access.documents === 'none') return Promise.resolve(false);
     this.notifications = this.notifications.map((existing) =>
       existing.getId() === notification.getId() ? notification : existing,
     );
-    return Promise.resolve();
+    return Promise.resolve(true);
   }
 
   findPage(): Promise<Page<NotificationListRow>> {
@@ -77,7 +88,7 @@ describe('MarkNotificationReadUseCase', () => {
     const clock = new FixedClock(new Date('2026-07-18T09:00:00Z'));
     const useCase = new MarkNotificationReadUseCase(repository, clock);
 
-    await useCase.execute({ id: 'notification-1' });
+    await useCase.execute({ id: 'notification-1', access: ACCESS });
 
     expect(repository.all[0].getReadAt()).toEqual(new Date('2026-07-18T09:00:00Z'));
   });
@@ -87,7 +98,24 @@ describe('MarkNotificationReadUseCase', () => {
     const clock = new FixedClock(new Date('2026-07-18T09:00:00Z'));
     const useCase = new MarkNotificationReadUseCase(repository, clock);
 
-    await expect(useCase.execute({ id: 'missing' })).rejects.toThrow(NotificationNotFoundException);
+    await expect(useCase.execute({ id: 'missing', access: ACCESS })).rejects.toThrow(NotificationNotFoundException);
+  });
+
+  it('does not expose or update a notification when its sections are denied', async () => {
+    const notification = buildNotification();
+    const repository = new InMemoryNotificationRepository([notification]);
+    const useCase = new MarkNotificationReadUseCase(
+      repository,
+      new FixedClock(new Date('2026-07-18T09:00:00Z')),
+    );
+
+    await expect(
+      useCase.execute({
+        id: 'notification-1',
+        access: { ...ACCESS, projects: 'none', documents: 'none' },
+      }),
+    ).rejects.toThrow(NotificationNotFoundException);
+    expect(repository.all[0].getReadAt()).toBeNull();
   });
 
   it('does not rewrite the read date when the notification was already read', async () => {
@@ -96,7 +124,7 @@ describe('MarkNotificationReadUseCase', () => {
     const clock = new FixedClock(new Date('2026-07-18T09:00:00Z'));
     const useCase = new MarkNotificationReadUseCase(repository, clock);
 
-    await useCase.execute({ id: 'notification-1' });
+    await useCase.execute({ id: 'notification-1', access: ACCESS });
 
     expect(repository.all[0].getReadAt()).toEqual(alreadyRead);
   });

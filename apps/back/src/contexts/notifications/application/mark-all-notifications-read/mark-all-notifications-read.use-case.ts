@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { CLOCK, Clock } from '../../../../shared/domain/clock.port';
 import { NOTIFICATION_REPOSITORY, NotificationRepository } from '../../domain/notification.repository';
+import { NotificationAccessSnapshot } from '../../domain/notification-access';
 
 @Injectable()
 export class MarkAllNotificationsReadUseCase {
@@ -9,7 +10,7 @@ export class MarkAllNotificationsReadUseCase {
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
-  execute(): Promise<void> {
-    return this.repository.markAllRead(this.clock.now());
+  execute(access: NotificationAccessSnapshot): Promise<void> {
+    return this.repository.markAllRead(this.clock.now(), access);
   }
 }

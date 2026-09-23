@@ -10,7 +10,7 @@ export class ListNotificationsUseCase {
   async execute(query: ListNotificationsQuery): Promise<NotificationsPage> {
     const [page, unreadCount] = await Promise.all([
       this.repository.findPage(query),
-      this.repository.countUnread(),
+      this.repository.countUnread(query.access),
     ]);
 
     return { ...page, unreadCount };

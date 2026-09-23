@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { GetScheduleBoardUseCase } from '../../../schedule/application/get-schedule-board/get-schedule-board.use-case';
+import { ScheduleAccessSnapshot } from '../../../schedule/application/schedule-access';
 import { ScheduleConflictKind } from '../../../schedule/domain/schedule-conflict';
 import { NotificationConflictKind } from '../../domain/notification-conflict-kind';
 import {
@@ -17,12 +18,14 @@ const CONFLICT_KIND_MAP: Record<ScheduleConflictKind, NotificationConflictKind> 
   equipment_stock_unset: 'equipment_stock_unset',
 };
 
+const FULL_SCHEDULE_ACCESS: ScheduleAccessSnapshot = { projects: 'edit', staff: 'edit', equipment: 'edit' };
+
 @Injectable()
 export class ScheduleBoardNotificationReader implements NotificationScheduleReader {
   constructor(private readonly getScheduleBoardUseCase: GetScheduleBoardUseCase) {}
 
   async findUpcomingEvents(from: string, to: string): Promise<NotificationScheduleEventRow[]> {
-    const board = await this.getScheduleBoardUseCase.execute({ from, to });
+    const board = await this.getScheduleBoardUseCase.execute({ from, to }, FULL_SCHEDULE_ACCESS);
 
     return board.events.flatMap((view) =>
       view.event.days
@@ -38,7 +41,7 @@ export class ScheduleBoardNotificationReader implements NotificationScheduleRead
   }
 
   async findBlockingConflicts(from: string, to: string): Promise<NotificationScheduleConflictRow[]> {
-    const board = await this.getScheduleBoardUseCase.execute({ from, to });
+    const board = await this.getScheduleBoardUseCase.execute({ from, to }, FULL_SCHEDULE_ACCESS);
     const eventById = new Map(board.events.map((view) => [view.event.id, view]));
 
     return board.conflicts

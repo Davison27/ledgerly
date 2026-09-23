@@ -18,8 +18,8 @@ class FakeNotificationRepository implements NotificationRepository {
     return Promise.resolve(null);
   }
 
-  save(): Promise<void> {
-    return Promise.resolve();
+  save(): Promise<boolean> {
+    return Promise.resolve(true);
   }
 
   findPage(): Promise<Page<NotificationListRow>> {
