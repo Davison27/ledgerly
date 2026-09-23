@@ -16,6 +16,7 @@ import { GetScheduleBoardQuery } from './get-schedule-board.query';
 import { ScheduleBoardSummary, summarizeScheduleConflicts } from './schedule-board-summary';
 import { assertDateRangeWithinDays } from '../../../../shared/domain/date-range';
 import { getListLimit } from '../../../../shared/infrastructure/list-limit';
+import { canReadScheduleEvent, ScheduleAccessSnapshot } from '../schedule-access';
 
 export interface ScheduleBoard {
   events: ScheduleEventView[];
@@ -36,13 +37,27 @@ export class GetScheduleBoardUseCase {
     private readonly equipmentReader: ScheduleEquipmentReader,
   ) {}
 
-  async execute(query: GetScheduleBoardQuery): Promise<ScheduleBoard> {
+  async execute(query: GetScheduleBoardQuery, access: ScheduleAccessSnapshot): Promise<ScheduleBoard> {
     assertDateRangeWithinDays(
       query.from,
       query.to,
       getListLimit('MAX_CALENDAR_RANGE_DAYS', 366),
     );
-    const events = await this.scheduleEventRepository.findByFilter({ from: query.from, to: query.to });
+    const emptyBoard = (): ScheduleBoard => {
+      const conflicts: ScheduleConflict[] = [];
+      return { events: [], conflicts, summary: summarizeScheduleConflicts(conflicts) };
+    };
+
+    if (access.projects === 'none') {
+      return emptyBoard();
+    }
+
+    const events = await this.scheduleEventRepository.findByFilter({
+      from: query.from,
+      to: query.to,
+      excludeStaffAssignments: access.staff === 'none',
+      excludeEquipmentAssignments: access.equipment === 'none',
+    });
 
     const projectIds = [...new Set(events.map((event) => event.projectId))];
     const staffIds = [...new Set(events.flatMap((event) => event.staffMemberIds))];
@@ -52,11 +67,13 @@ export class GetScheduleBoardUseCase {
 
     const [projects, staff, equipment] = await Promise.all([
       this.projectReader.findByIds(projectIds),
-      this.staffReader.findByIds(staffIds),
-      this.equipmentReader.findByIds(equipmentIds),
+      access.staff === 'none' ? Promise.resolve([]) : this.staffReader.findByIds(staffIds),
+      access.equipment === 'none' ? Promise.resolve([]) : this.equipmentReader.findByIds(equipmentIds),
     ]);
 
-    const views = buildScheduleEventViews(events, { projects, staff, equipment });
+    const views = buildScheduleEventViews(events, { projects, staff, equipment }).filter((view) =>
+      canReadScheduleEvent(view.event, access),
+    );
     const conflicts = detectScheduleConflicts(views, { from: query.from, to: query.to });
 
     return { events: views, conflicts, summary: summarizeScheduleConflicts(conflicts) };

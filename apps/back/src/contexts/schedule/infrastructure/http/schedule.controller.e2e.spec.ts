@@ -1,7 +1,13 @@
 import type { Server } from 'http';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
+import { MemberEmail } from '../../../auth/domain/value-objects/member-email';
+import { PermissionMatrix } from '../../../auth/domain/value-objects/permission-matrix';
+import type { PermissionMatrixPrimitives } from '../../../auth/domain/value-objects/permission-matrix';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
+import { ScheduleAccessSnapshot } from '../../application/schedule-access';
 import { ScheduleController } from './schedule.controller';
 import { GetScheduleBoardUseCase, ScheduleBoard } from '../../application/get-schedule-board/get-schedule-board.use-case';
 import { ListScheduleEventsUseCase } from '../../application/list-schedule-events/list-schedule-events.use-case';
@@ -31,6 +37,35 @@ const PROJECT_VIEW: ScheduleProjectView = {
   color: null,
 };
 
+type RequestWithMember = Request & { member?: WorkspaceMember };
+
+function scheduleMember(
+  permissionChanges: Partial<PermissionMatrixPrimitives> = {},
+): WorkspaceMember {
+  return WorkspaceMember.create({
+    id: 'member-1',
+    email: MemberEmail.create('member@ledgerly.dev'),
+    name: 'Member',
+    role: 'member',
+    permissions: PermissionMatrix.create({
+      dashboard: 'view',
+      projects: 'edit',
+      calendar: 'edit',
+      documents: 'view',
+      suppliers: 'none',
+      equipment: 'edit',
+      staff: 'edit',
+      ...permissionChanges,
+    }),
+    status: 'active',
+    isFounder: false,
+    invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+    joinedAt: new Date('2026-01-01T00:00:00.000Z'),
+  });
+}
+
+const fullScheduleAccess: ScheduleAccessSnapshot = { projects: 'edit', staff: 'edit', equipment: 'edit' };
+
 function buildView(overrides: Partial<CreateScheduleEventCommand> & { id?: string } = {}): ScheduleEventView {
   const event = ScheduleEvent.create({
     id: overrides.id ?? 'event-1',
@@ -58,6 +93,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
   let schedulableProjectsExecute: jest.Mock;
+  let currentMember = scheduleMember();
 
   beforeAll(async () => {
     boardExecute = jest.fn(() =>
@@ -68,7 +104,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
     updateExecute = jest.fn((command: { id: string } & Partial<CreateScheduleEventCommand>) =>
       Promise.resolve(buildView(command)),
     );
-    deleteExecute = jest.fn<Promise<void>, [string]>().mockResolvedValue(undefined);
+    deleteExecute = jest.fn<Promise<boolean>, [string, ScheduleAccessSnapshot]>().mockResolvedValue(true);
     schedulableProjectsExecute = jest.fn(() => Promise.resolve([PROJECT_VIEW]));
 
     const moduleRef = await Test.createTestingModule({
@@ -84,6 +120,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use((incoming: Request, _response: Response, next: NextFunction) => {
+      (incoming as RequestWithMember).member = currentMember;
+      next();
+    });
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
@@ -97,6 +137,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
     updateExecute.mockClear();
     deleteExecute.mockClear();
     schedulableProjectsExecute.mockClear();
+    currentMember = scheduleMember();
   });
 
   afterAll(async () => {
@@ -108,7 +149,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
       const response = await request(httpServer).get('/schedule/board').query({ from: '2026-07-01', to: '2026-07-31' });
 
       expect(response.status).toBe(200);
-      expect(boardExecute).toHaveBeenCalledWith({ from: '2026-07-01', to: '2026-07-31' });
+      expect(boardExecute).toHaveBeenCalledWith({ from: '2026-07-01', to: '2026-07-31' }, fullScheduleAccess);
       const body = response.body as { events: Array<{ project: { image: string | null } }> };
       expect(body.events[0].project.image).toBe(PROJECT_IMAGE);
     });
@@ -127,6 +168,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(200);
       expect(listExecute).toHaveBeenCalledTimes(1);
+      expect(listExecute).toHaveBeenCalledWith(
+        { from: undefined, to: undefined, projectId: undefined, staffMemberId: undefined },
+        fullScheduleAccess,
+      );
       const body = response.body as Array<{ id: string; startDate: string; project: { image: string | null } }>;
       expect(body[0].startDate).toBe('2026-07-03');
       expect(body[0].project.image).toBe(PROJECT_IMAGE);
@@ -144,7 +189,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
       const response = await request(httpServer).post('/schedule/events').send(VALID_PAYLOAD);
 
       expect(response.status).toBe(201);
-      expect(createExecute).toHaveBeenCalledWith(expect.objectContaining({ projectId: PROJECT_ID }));
+      expect(createExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ projectId: PROJECT_ID }),
+        fullScheduleAccess,
+      );
       const body = response.body as { project: { image: string | null } };
       expect(body.project.image).toBe(PROJECT_IMAGE);
     });
@@ -156,6 +204,14 @@ describe('ScheduleController (HTTP, no DB)', () => {
 
       expect(response.status).toBe(400);
       expect(createExecute).not.toHaveBeenCalled();
+    });
+
+    it('returns 403 when the linked sections are not editable', async () => {
+      createExecute.mockResolvedValueOnce(null);
+
+      const response = await request(httpServer).post('/schedule/events').send(VALID_PAYLOAD);
+
+      expect(response.status).toBe(403);
     });
 
     it('returns 400 when days is empty', async () => {
@@ -179,7 +235,10 @@ describe('ScheduleController (HTTP, no DB)', () => {
       const response = await request(httpServer).patch('/schedule/events/event-1').send({ title: 'Evento' });
 
       expect(response.status).toBe(200);
-      expect(updateExecute).toHaveBeenCalledWith(expect.objectContaining({ id: 'event-1', title: 'Evento' }));
+      expect(updateExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ id: 'event-1', title: 'Evento' }),
+        fullScheduleAccess,
+      );
       const body = response.body as { project: { image: string | null } };
       expect(body.project.image).toBe(PROJECT_IMAGE);
     });
@@ -198,7 +257,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
       const response = await request(httpServer).delete('/schedule/events/event-1');
 
       expect(response.status).toBe(204);
-      expect(deleteExecute).toHaveBeenCalledWith('event-1');
+      expect(deleteExecute).toHaveBeenCalledWith('event-1', fullScheduleAccess);
     });
   });
 
@@ -207,7 +266,7 @@ describe('ScheduleController (HTTP, no DB)', () => {
       const response = await request(httpServer).get('/schedule/schedulable-projects');
 
       expect(response.status).toBe(200);
-      expect(schedulableProjectsExecute).toHaveBeenCalledTimes(1);
+      expect(schedulableProjectsExecute).toHaveBeenCalledWith(fullScheduleAccess);
       const body = response.body as Array<{ id: string; image: string | null }>;
       expect(body[0].id).toBe(PROJECT_ID);
       expect(body[0].image).toBe(PROJECT_IMAGE);

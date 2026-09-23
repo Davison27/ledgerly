@@ -24,6 +24,7 @@ import {
 } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 import { CreateScheduleEventCommand } from './create-schedule-event.command';
+import { canEditScheduleSections, ScheduleAccessSnapshot } from '../schedule-access';
 
 @Injectable()
 export class CreateScheduleEventUseCase {
@@ -42,10 +43,17 @@ export class CreateScheduleEventUseCase {
     private readonly eventPublisher: DomainEventPublisher,
   ) {}
 
-  async execute(command: CreateScheduleEventCommand): Promise<ScheduleEventView> {
+  async execute(
+    command: CreateScheduleEventCommand,
+    access: ScheduleAccessSnapshot,
+  ): Promise<ScheduleEventView | null> {
     const staffMemberIds = command.staffMemberIds ?? [];
     const equipmentCommands = command.equipment ?? [];
     const equipmentIds = equipmentCommands.map((equipment) => equipment.equipmentId);
+
+    if (!canEditScheduleSections(access, staffMemberIds, equipmentIds)) {
+      return null;
+    }
 
     const [projects, staff, equipment] = await Promise.all([
       this.projectReader.findByIds([command.projectId]),

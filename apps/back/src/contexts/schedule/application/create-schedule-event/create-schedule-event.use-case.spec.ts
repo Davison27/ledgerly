@@ -17,6 +17,7 @@ import { DomainEventPublisher } from '../../../../shared/domain/domain-event-pub
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+const fullScheduleAccess = { projects: 'edit', staff: 'edit', equipment: 'edit' } as const;
 
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   events: ScheduleEvent[] = [];
@@ -129,7 +130,7 @@ describe('CreateScheduleEventUseCase', () => {
       publisher,
     );
 
-    const view = await useCase.execute({
+    const view = (await useCase.execute({
       projectId: 'project-1',
       title: 'Montaje',
       days: [
@@ -138,7 +139,7 @@ describe('CreateScheduleEventUseCase', () => {
       ],
       staffMemberIds: ['staff-1'],
       equipment: [{ equipmentId: 'equipment-1', quantity: 2 }],
-    });
+    }, fullScheduleAccess))!;
 
     expect(view.event.id).toBe('event-1');
     expect(view.event.startDate).toBe('2026-07-03');
@@ -165,7 +166,7 @@ describe('CreateScheduleEventUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ projectId: 'missing-project', days: [{ date: '2026-07-03' }] }),
+      useCase.execute({ projectId: 'missing-project', days: [{ date: '2026-07-03' }] }, fullScheduleAccess),
     ).rejects.toThrow(ScheduleProjectNotFoundException);
   });
 
@@ -184,7 +185,7 @@ describe('CreateScheduleEventUseCase', () => {
         projectId: 'project-1',
         days: [{ date: '2026-07-03' }],
         staffMemberIds: ['missing-staff'],
-      }),
+      }, fullScheduleAccess),
     ).rejects.toThrow(ScheduleStaffMemberNotFoundException);
   });
 
@@ -203,7 +204,33 @@ describe('CreateScheduleEventUseCase', () => {
         projectId: 'project-1',
         days: [{ date: '2026-07-03' }],
         equipment: [{ equipmentId: 'missing-equipment', quantity: 1 }],
-      }),
+      }, fullScheduleAccess),
     ).rejects.toThrow(ScheduleEquipmentNotFoundException);
+  });
+
+  it('does not create events with assignments outside editable sections', async () => {
+    const repository = new InMemoryScheduleEventRepository();
+    const publisher = new FakeDomainEventPublisher();
+    const useCase = new CreateScheduleEventUseCase(
+      repository,
+      new FakeScheduleProjectReader([PROJECT]),
+      new FakeScheduleStaffReader([STAFF_MEMBER]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
+      new SequentialIdGenerator(),
+      publisher,
+    );
+
+    const result = await useCase.execute(
+      {
+        projectId: 'project-1',
+        days: [{ date: '2026-07-03' }],
+        equipment: [{ equipmentId: 'equipment-1', quantity: 1 }],
+      },
+      { projects: 'edit', staff: 'edit', equipment: 'view' },
+    );
+
+    expect(result).toBeNull();
+    expect(repository.events).toEqual([]);
+    expect(publisher.published).toEqual([]);
   });
 });

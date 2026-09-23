@@ -5,6 +5,7 @@ import { ProjectEquipmentRecord } from '../../domain/project-equipment.repositor
 import { SaveProjectEquipmentDto } from './dtos/save-project-equipment.dto';
 
 @RequiresAccess('projects', 'view')
+@RequiresAccess('equipment', 'view')
 @Controller('projects/:projectId/equipment')
 export class ProjectEquipmentController {
   constructor(private readonly projectEquipmentUseCase: ProjectEquipmentUseCase) {}
@@ -15,6 +16,7 @@ export class ProjectEquipmentController {
   }
 
   @RequiresAccess('projects', 'edit')
+  @RequiresAccess('equipment', 'edit')
   @Post()
   async save(
     @Param('projectId') projectId: string,
@@ -24,6 +26,7 @@ export class ProjectEquipmentController {
   }
 
   @RequiresAccess('projects', 'edit')
+  @RequiresAccess('equipment', 'edit')
   @Delete(':equipmentId/lease-expenses/:expenseId')
   @HttpCode(204)
   async removeLeaseExpense(
@@ -35,6 +38,7 @@ export class ProjectEquipmentController {
   }
 
   @RequiresAccess('projects', 'edit')
+  @RequiresAccess('equipment', 'edit')
   @Delete(':equipmentId')
   @HttpCode(204)
   async remove(@Param('projectId') projectId: string, @Param('equipmentId') equipmentId: string): Promise<void> {

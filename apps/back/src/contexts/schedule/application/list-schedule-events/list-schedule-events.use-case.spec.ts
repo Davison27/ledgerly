@@ -1,6 +1,10 @@
 import { ListScheduleEventsUseCase } from './list-schedule-events.use-case';
 import { ScheduleEvent } from '../../domain/schedule-event';
-import { ScheduleEventFilter, ScheduleEventRepository } from '../../domain/schedule-event.repository';
+import {
+  ScheduleEventFilter,
+  ScheduleEventRepository,
+  ScheduleEventVisibility,
+} from '../../domain/schedule-event.repository';
 import {
   ScheduleProjectReader,
   ScheduleProjectView,
@@ -10,20 +14,33 @@ import { ScheduleStaffReader, ScheduleStaffView } from '../../domain/schedule-st
 import { ScheduleEquipmentReader, ScheduleEquipmentView } from '../../domain/schedule-equipment-reader.port';
 
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
+const fullScheduleAccess = { projects: 'edit', staff: 'edit', equipment: 'edit' } as const;
 
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
-  constructor(
-    private events: ScheduleEvent[],
-    private readonly lastFilter: { value: ScheduleEventFilter | null } = { value: null },
-  ) {}
+  private lastFilter: ScheduleEventFilter | null = null;
 
-  findById(id: string): Promise<ScheduleEvent | null> {
-    return Promise.resolve(this.events.find((event) => event.id === id) ?? null);
+  constructor(private events: ScheduleEvent[]) {}
+
+  findById(id: string, visibility?: ScheduleEventVisibility): Promise<ScheduleEvent | null> {
+    const event = this.events.find((candidate) => candidate.id === id) ?? null;
+
+    if (
+      event === null ||
+      (visibility?.staff === false && event.staffMemberIds.length > 0) ||
+      (visibility?.equipment === false && event.equipment.length > 0)
+    ) {
+      return Promise.resolve(null);
+    }
+
+    return Promise.resolve(event);
   }
 
   findByFilter(filter: ScheduleEventFilter): Promise<ScheduleEvent[]> {
-    this.lastFilter.value = filter;
-    return Promise.resolve([...this.events]);
+    this.lastFilter = filter;
+    return Promise.resolve(this.events.filter((event) =>
+      !(filter.excludeStaffAssignments && event.staffMemberIds.length > 0) &&
+      !(filter.excludeEquipmentAssignments && event.equipment.length > 0),
+    ));
   }
 
   save(event: ScheduleEvent): Promise<void> {
@@ -37,7 +54,7 @@ class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   }
 
   getLastFilter(): ScheduleEventFilter | null {
-    return this.lastFilter.value;
+    return this.lastFilter;
   }
 }
 
@@ -110,7 +127,7 @@ describe('ListScheduleEventsUseCase', () => {
       new FakeScheduleEquipmentReader([EQUIPMENT]),
     );
 
-    const views = await useCase.execute({ projectId: 'project-1' });
+    const views = await useCase.execute({ projectId: 'project-1' }, fullScheduleAccess);
 
     expect(views).toHaveLength(1);
     expect(views[0].project.id).toBe('project-1');
@@ -129,9 +146,13 @@ describe('ListScheduleEventsUseCase', () => {
     );
 
     const filter: ScheduleEventFilter = { staffMemberId: 'staff-1' };
-    await useCase.execute(filter);
+    await useCase.execute(filter, fullScheduleAccess);
 
-    expect(repository.getLastFilter()).toEqual(filter);
+    expect(repository.getLastFilter()).toEqual({
+      ...filter,
+      excludeStaffAssignments: false,
+      excludeEquipmentAssignments: false,
+    });
   });
 
   it('returns an empty array when there are no events', async () => {
@@ -142,6 +163,43 @@ describe('ListScheduleEventsUseCase', () => {
       new FakeScheduleEquipmentReader([]),
     );
 
-    expect(await useCase.execute({})).toEqual([]);
+    expect(await useCase.execute({}, fullScheduleAccess)).toEqual([]);
+  });
+
+  it('filters events linked to unreadable sections before returning the list', async () => {
+    const repository = new InMemoryScheduleEventRepository([buildEvent()]);
+    const useCase = new ListScheduleEventsUseCase(
+      repository,
+      new FakeScheduleProjectReader([PROJECT]),
+      new FakeScheduleStaffReader([STAFF_MEMBER]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
+    );
+
+    const views = await useCase.execute(
+      {},
+      { projects: 'view', staff: 'none', equipment: 'view' },
+    );
+
+    expect(views).toEqual([]);
+    expect(repository.getLastFilter()).toMatchObject({
+      excludeStaffAssignments: true,
+      excludeEquipmentAssignments: false,
+    });
+  });
+
+  it('does not query events or linked data without Projects.view', async () => {
+    const repository = new InMemoryScheduleEventRepository([buildEvent()]);
+    const projectReader = new FakeScheduleProjectReader([PROJECT]);
+    const useCase = new ListScheduleEventsUseCase(
+      repository,
+      projectReader,
+      new FakeScheduleStaffReader([STAFF_MEMBER]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
+    );
+
+    const views = await useCase.execute({}, { projects: 'none', staff: 'edit', equipment: 'edit' });
+
+    expect(views).toEqual([]);
+    expect(repository.getLastFilter()).toBeNull();
   });
 });

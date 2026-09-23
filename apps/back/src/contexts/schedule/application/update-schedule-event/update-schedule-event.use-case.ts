@@ -23,6 +23,7 @@ import {
 } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 import { UpdateScheduleEventCommand } from './update-schedule-event.command';
+import { canEditScheduleSections, ScheduleAccessSnapshot } from '../schedule-access';
 
 @Injectable()
 export class UpdateScheduleEventUseCase {
@@ -39,8 +40,18 @@ export class UpdateScheduleEventUseCase {
     private readonly eventPublisher: DomainEventPublisher,
   ) {}
 
-  async execute(command: UpdateScheduleEventCommand): Promise<ScheduleEventView> {
-    const event = await this.scheduleEventRepository.findById(command.id);
+  async execute(
+    command: UpdateScheduleEventCommand,
+    access: ScheduleAccessSnapshot,
+  ): Promise<ScheduleEventView | null> {
+    if (access.projects !== 'edit') {
+      return null;
+    }
+
+    const event = await this.scheduleEventRepository.findById(command.id, {
+      staff: access.staff !== 'none',
+      equipment: access.equipment !== 'none',
+    });
 
     if (event === null) {
       throw new ScheduleEventNotFoundException(command.id);
@@ -49,6 +60,16 @@ export class UpdateScheduleEventUseCase {
     const projectId = command.projectId ?? event.projectId;
     const staffMemberIds = command.staffMemberIds ?? event.staffMemberIds;
     const equipmentIds = (command.equipment ?? event.equipment).map((equipment) => equipment.equipmentId);
+
+    if (
+      !canEditScheduleSections(
+        access,
+        [...new Set([...event.staffMemberIds, ...staffMemberIds])],
+        [...new Set([...event.equipment.map(({ equipmentId }) => equipmentId), ...equipmentIds])],
+      )
+    ) {
+      return null;
+    }
 
     const [projects, staff, equipment] = await Promise.all([
       this.projectReader.findByIds([projectId]),

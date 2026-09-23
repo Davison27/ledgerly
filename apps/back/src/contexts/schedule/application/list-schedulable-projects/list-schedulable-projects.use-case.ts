@@ -4,6 +4,7 @@ import {
   ScheduleProjectReader,
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
+import { ScheduleAccessSnapshot } from '../schedule-access';
 
 @Injectable()
 export class ListSchedulableProjectsUseCase {
@@ -12,7 +13,11 @@ export class ListSchedulableProjectsUseCase {
     private readonly projectReader: ScheduleProjectReader,
   ) {}
 
-  execute(): Promise<SchedulableProjectView[]> {
+  execute(access: ScheduleAccessSnapshot): Promise<SchedulableProjectView[]> {
+    if (access.projects === 'none') {
+      return Promise.resolve([]);
+    }
+
     return this.projectReader.findActive();
   }
 }

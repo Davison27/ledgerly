@@ -7,10 +7,17 @@ export interface ScheduleEventFilter {
   to?: string;
   projectId?: string;
   staffMemberId?: string;
+  excludeStaffAssignments?: boolean;
+  excludeEquipmentAssignments?: boolean;
+}
+
+export interface ScheduleEventVisibility {
+  staff: boolean;
+  equipment: boolean;
 }
 
 export interface ScheduleEventRepository {
-  findById(id: string): Promise<ScheduleEvent | null>;
+  findById(id: string, visibility?: ScheduleEventVisibility): Promise<ScheduleEvent | null>;
   findByFilter(filter: ScheduleEventFilter): Promise<ScheduleEvent[]>;
   save(event: ScheduleEvent): Promise<void>;
   delete(id: string): Promise<void>;

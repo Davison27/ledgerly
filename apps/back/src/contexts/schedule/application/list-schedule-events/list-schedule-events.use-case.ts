@@ -14,6 +14,7 @@ import {
   ScheduleEquipmentReader,
 } from '../../domain/schedule-equipment-reader.port';
 import { buildScheduleEventViews, ScheduleEventView } from '../../domain/schedule-event-view';
+import { canReadScheduleEvent, ScheduleAccessSnapshot } from '../schedule-access';
 
 @Injectable()
 export class ListScheduleEventsUseCase {
@@ -28,8 +29,16 @@ export class ListScheduleEventsUseCase {
     private readonly equipmentReader: ScheduleEquipmentReader,
   ) {}
 
-  async execute(filter: ScheduleEventFilter): Promise<ScheduleEventView[]> {
-    const events = await this.scheduleEventRepository.findByFilter(filter);
+  async execute(filter: ScheduleEventFilter, access: ScheduleAccessSnapshot): Promise<ScheduleEventView[]> {
+    if (access.projects === 'none') {
+      return [];
+    }
+
+    const events = await this.scheduleEventRepository.findByFilter({
+      ...filter,
+      excludeStaffAssignments: access.staff === 'none',
+      excludeEquipmentAssignments: access.equipment === 'none',
+    });
 
     const projectIds = [...new Set(events.map((event) => event.projectId))];
     const staffIds = [...new Set(events.flatMap((event) => event.staffMemberIds))];
@@ -39,10 +48,12 @@ export class ListScheduleEventsUseCase {
 
     const [projects, staff, equipment] = await Promise.all([
       this.projectReader.findByIds(projectIds),
-      this.staffReader.findByIds(staffIds),
-      this.equipmentReader.findByIds(equipmentIds),
+      access.staff === 'none' ? Promise.resolve([]) : this.staffReader.findByIds(staffIds),
+      access.equipment === 'none' ? Promise.resolve([]) : this.equipmentReader.findByIds(equipmentIds),
     ]);
 
-    return buildScheduleEventViews(events, { projects, staff, equipment });
+    return buildScheduleEventViews(events, { projects, staff, equipment }).filter((view) =>
+      canReadScheduleEvent(view.event, access),
+    );
   }
 }

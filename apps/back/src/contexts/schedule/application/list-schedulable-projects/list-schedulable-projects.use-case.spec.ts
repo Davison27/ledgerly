@@ -5,6 +5,8 @@ import {
   SchedulableProjectView,
 } from '../../domain/schedule-project-reader.port';
 
+const fullScheduleAccess = { projects: 'edit', staff: 'edit', equipment: 'edit' } as const;
+
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
 class FakeScheduleProjectReader implements ScheduleProjectReader {
@@ -39,9 +41,17 @@ describe('ListSchedulableProjectsUseCase', () => {
       new FakeScheduleProjectReader([ACTIVE_PROJECT, COMPLETED_PROJECT]),
     );
 
-    const projects = await useCase.execute();
+    const projects = await useCase.execute(fullScheduleAccess);
 
     expect(projects).toEqual([ACTIVE_PROJECT]);
     expect(projects[0].image).toBe(projectImage);
+  });
+
+  it('does not return projects without Projects.view', async () => {
+    const useCase = new ListSchedulableProjectsUseCase(new FakeScheduleProjectReader([ACTIVE_PROJECT]));
+
+    await expect(
+      useCase.execute({ projects: 'none', staff: 'edit', equipment: 'edit' }),
+    ).resolves.toEqual([]);
   });
 });

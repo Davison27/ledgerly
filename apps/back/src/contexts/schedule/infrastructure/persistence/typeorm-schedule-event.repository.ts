@@ -5,6 +5,7 @@ import { ScheduleEvent } from '../../domain/schedule-event';
 import {
   ScheduleEventFilter,
   ScheduleEventRepository,
+  ScheduleEventVisibility,
 } from '../../domain/schedule-event.repository';
 import { ID_GENERATOR, IdGenerator } from '../../../../shared/domain/id-generator.port';
 import { ScheduleEventOrmEntity } from './schedule-event.orm-entity';
@@ -29,8 +30,22 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
     @Inject(ID_GENERATOR) private readonly idGenerator: IdGenerator,
   ) {}
 
-  async findById(id: string): Promise<ScheduleEvent | null> {
-    const orm = await this.eventRepository.findOne({ where: { id } });
+  async findById(id: string, visibility?: ScheduleEventVisibility): Promise<ScheduleEvent | null> {
+    const query = this.eventRepository.createQueryBuilder('event').where('event.id = :id', { id });
+
+    if (visibility?.staff === false) {
+      query.andWhere(
+        'NOT EXISTS (SELECT 1 FROM schedule_event_staff staff WHERE staff.event_id = event.id)',
+      );
+    }
+
+    if (visibility?.equipment === false) {
+      query.andWhere(
+        'NOT EXISTS (SELECT 1 FROM schedule_event_equipment equipment WHERE equipment.event_id = event.id)',
+      );
+    }
+
+    const orm = await query.getOne();
 
     if (orm === null) {
       return null;
@@ -76,6 +91,18 @@ export class TypeOrmScheduleEventRepository implements ScheduleEventRepository {
       query.andWhere(
         'EXISTS (SELECT 1 FROM schedule_event_staff staff WHERE staff.event_id = event.id AND staff.staff_member_id = :staffMemberId)',
         { staffMemberId: filter.staffMemberId },
+      );
+    }
+
+    if (filter.excludeStaffAssignments) {
+      query.andWhere(
+        'NOT EXISTS (SELECT 1 FROM schedule_event_staff staff WHERE staff.event_id = event.id)',
+      );
+    }
+
+    if (filter.excludeEquipmentAssignments) {
+      query.andWhere(
+        'NOT EXISTS (SELECT 1 FROM schedule_event_equipment equipment WHERE equipment.event_id = event.id)',
       );
     }
 

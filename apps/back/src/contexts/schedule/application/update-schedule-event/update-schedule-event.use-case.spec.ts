@@ -1,6 +1,6 @@
 import { UpdateScheduleEventUseCase } from './update-schedule-event.use-case';
 import { ScheduleEvent } from '../../domain/schedule-event';
-import { ScheduleEventRepository } from '../../domain/schedule-event.repository';
+import { ScheduleEventRepository, ScheduleEventVisibility } from '../../domain/schedule-event.repository';
 import {
   ScheduleProjectReader,
   ScheduleProjectView,
@@ -16,13 +16,25 @@ import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 import { ScheduleEventSavedEvent } from '../../domain/events/schedule-event-saved.event';
 
+const fullScheduleAccess = { projects: 'edit', staff: 'edit', equipment: 'edit' } as const;
+
 const projectImage = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 
 class InMemoryScheduleEventRepository implements ScheduleEventRepository {
   constructor(private events: ScheduleEvent[] = []) {}
 
-  findById(id: string): Promise<ScheduleEvent | null> {
-    return Promise.resolve(this.events.find((event) => event.id === id) ?? null);
+  findById(id: string, visibility?: ScheduleEventVisibility): Promise<ScheduleEvent | null> {
+    const event = this.events.find((candidate) => candidate.id === id) ?? null;
+
+    if (
+      event === null ||
+      (visibility?.staff === false && event.staffMemberIds.length > 0) ||
+      (visibility?.equipment === false && event.equipment.length > 0)
+    ) {
+      return Promise.resolve(null);
+    }
+
+    return Promise.resolve(event);
   }
 
   findByFilter(): Promise<ScheduleEvent[]> {
@@ -133,7 +145,7 @@ describe('UpdateScheduleEventUseCase', () => {
       publisher,
     );
 
-    const view = await useCase.execute({ id: 'event-1', title: 'Evento actualizado' });
+    const view = (await useCase.execute({ id: 'event-1', title: 'Evento actualizado' }, fullScheduleAccess))!;
 
     expect(view.event.title).toBe('Evento actualizado');
     expect(view.event.projectId).toBe('project-1');
@@ -156,7 +168,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeDomainEventPublisher(),
     );
 
-    const view = await useCase.execute({ id: 'event-1', projectId: 'project-2' });
+    const view = (await useCase.execute({ id: 'event-1', projectId: 'project-2' }, fullScheduleAccess))!;
 
     expect(view.event.projectId).toBe('project-2');
     expect(view.project.id).toBe('project-2');
@@ -171,7 +183,7 @@ describe('UpdateScheduleEventUseCase', () => {
       new FakeDomainEventPublisher(),
     );
 
-    await expect(useCase.execute({ id: 'missing-event', title: 'x' })).rejects.toThrow(
+    await expect(useCase.execute({ id: 'missing-event', title: 'x' }, fullScheduleAccess)).rejects.toThrow(
       ScheduleEventNotFoundException,
     );
   });
@@ -187,7 +199,7 @@ describe('UpdateScheduleEventUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ id: 'event-1', projectId: 'missing-project' }),
+      useCase.execute({ id: 'event-1', projectId: 'missing-project' }, fullScheduleAccess),
     ).rejects.toThrow(ScheduleProjectNotFoundException);
   });
 
@@ -202,7 +214,7 @@ describe('UpdateScheduleEventUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ id: 'event-1', staffMemberIds: ['missing-staff'] }),
+      useCase.execute({ id: 'event-1', staffMemberIds: ['missing-staff'] }, fullScheduleAccess),
     ).rejects.toThrow(ScheduleStaffMemberNotFoundException);
   });
 
@@ -217,7 +229,29 @@ describe('UpdateScheduleEventUseCase', () => {
     );
 
     await expect(
-      useCase.execute({ id: 'event-1', equipment: [{ equipmentId: 'missing-equipment', quantity: 1 }] }),
+      useCase.execute(
+        { id: 'event-1', equipment: [{ equipmentId: 'missing-equipment', quantity: 1 }] },
+        fullScheduleAccess,
+      ),
     ).rejects.toThrow(ScheduleEquipmentNotFoundException);
+  });
+
+  it('rejects edits to events linked to sections without edit access', async () => {
+    const repository = new InMemoryScheduleEventRepository([buildEvent()]);
+    const useCase = new UpdateScheduleEventUseCase(
+      repository,
+      new FakeScheduleProjectReader([PROJECT]),
+      new FakeScheduleStaffReader([STAFF_MEMBER]),
+      new FakeScheduleEquipmentReader([EQUIPMENT]),
+      new FakeDomainEventPublisher(),
+    );
+
+    const result = await useCase.execute(
+      { id: 'event-1', title: 'Evento actualizado' },
+      { projects: 'edit', staff: 'edit', equipment: 'view' },
+    );
+
+    expect(result).toBeNull();
+    expect((await repository.findById('event-1'))?.title).toBe('Montaje');
   });
 });
