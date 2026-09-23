@@ -54,13 +54,29 @@ access, and the last active administrator cannot be demoted or disabled.
 
 Projects covers both the contracting-company directory and its projects; it
 does not cover the singleton company profile, which is administrator-only.
-Nested resources require grants on both the containing section and the
+Nested resources normally require grants on both the containing section and the
 resource section. For example, project documents require Projects and
-Documents, staff documents require Staff and Documents, and staff schedules
-require Staff, Calendar, and Projects for event reads. Reads require `view`
-on each section; mutations require `edit` on each section. Equipment access
-covers both the catalogue and its nested PDFs, with the same parent/resource
-rule for document listing, download, upload, metadata changes, and deletion.
+Documents, and staff documents require Staff and Documents. Reads require
+`view` on each section; mutations require `edit` on each section. Equipment
+access covers both the catalogue and its nested PDFs, with the same
+parent/resource rule for document listing, download, upload, metadata changes,
+and deletion.
+
+Calendar editing is a schedule-only capability. `Calendar.edit` permits
+creating, changing, and removing schedule events and assigning projects, staff
+employees, and equipment, including when those sections are `none` or `view`.
+Calendar editor responses include event scheduling data and only IDs and
+display names for linked projects, employees, and equipment. These minimal
+selectors do not expose their other fields, grant access to their detail routes
+or APIs, or permit changing the underlying records. Project, staff, and
+equipment records remain governed by their own section grants. Schedule event
+dates and assignments do not change project dates, staff employment dates, or
+equipment records.
+
+Ordinary calendar board, event, and schedulable-project reads remain
+fail-closed: they require both `Calendar.view` and `Projects.view`, and events
+linked to a staff or equipment section the member cannot view are omitted.
+`Calendar.view` alone does not expose the editor board or its selectors.
 
 Extraction hints follow Documents access. Dashboard summaries omit data from
 denied contributing sections. Notifications and the changelog remain available
