@@ -2359,6 +2359,14 @@
       "security": "Security"
     },
     "releases": {
+      "v1_3_0": {
+        "entries": {
+          "calendar-schedule-editing": {
+            "title": "Calendar scheduling permissions",
+            "description": "Members with calendar edit access can schedule projects, employees, and equipment using minimal name selectors without gaining access to their records."
+          }
+        }
+      },
       "v1_2_0": {
         "entries": {
           "member-section-permissions": {

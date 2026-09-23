@@ -2363,6 +2363,14 @@
       "security": "Seguridad"
     },
     "releases": {
+      "v1_3_0": {
+        "entries": {
+          "calendar-schedule-editing": {
+            "title": "Permisos de planificación del calendario",
+            "description": "Los miembros con permiso de edición del calendario pueden programar proyectos, empleados y equipos mediante selectores mínimos con sus nombres, sin obtener acceso a sus fichas."
+          }
+        }
+      },
       "v1_2_0": {
         "entries": {
           "member-section-permissions": {

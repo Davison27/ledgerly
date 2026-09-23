@@ -2,6 +2,14 @@
 
 Review the complete Ledgerly release history.
 
+## 1.3.0 — 2026-09-23
+
+Released on: 2026-09-23
+
+### Changed
+
+- **Calendar scheduling permissions** — Members with calendar edit access can schedule projects, employees, and equipment using minimal name selectors without gaining access to their records.
+
 ## 1.2.0 — 2026-09-23
 
 Released on: 2026-09-23
