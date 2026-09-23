@@ -19,6 +19,7 @@ export class CompanyController {
     private readonly getCompanyBrandingUseCase: GetCompanyBrandingUseCase,
   ) {}
 
+  @RequiresAdmin()
   @Get()
   async getCompany(): Promise<CompanyResponse> {
     const company = await this.getCompanyUseCase.execute();
