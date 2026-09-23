@@ -12,6 +12,7 @@ import {
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import type { Project } from '@/entities/project';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useSemanticColors } from '@/shared/lib/useSemanticColors';
 import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
@@ -48,9 +49,14 @@ export function ProjectCard({
 }: ProjectCardProps) {
   const { t } = useTranslation();
   const { modal } = App.useApp();
+  const { canAccess } = useWorkspaceAccess();
   const colors = useSemanticColors();
   const currency = project.currency ?? 'EUR';
   const archived = project.status === 'archived';
+  const canViewDocuments = canAccess('documents', 'view');
+  const hasDocumentSummary = canViewDocuments && project.documentCount !== undefined;
+  const hasFinancialSummary =
+    canViewDocuments && canAccess('equipment', 'view') && project.financials !== undefined;
   const financials = project.financials?.find((entry) => entry.currency === currency) ?? {
     currency,
     income: 0,
@@ -58,9 +64,11 @@ export function ProjectCard({
     profit: 0,
     margin: null,
   };
-  const otherCurrencies = (project.financials ?? [])
-    .filter((entry) => entry.currency !== currency)
-    .map((entry) => entry.currency);
+  const otherCurrencies = hasFinancialSummary
+    ? (project.financials ?? [])
+        .filter((entry) => entry.currency !== currency)
+        .map((entry) => entry.currency)
+    : [];
   const marginColor =
     financials.margin === null
       ? 'var(--ant-color-text-tertiary)'
@@ -176,61 +184,71 @@ export function ProjectCard({
         ) : null}
       </div>
 
-      <div className={styles.profitSection}>
-        <Text type="secondary" className={typography.kpiLabel}>
-          {t('projects.card.profit')}
-        </Text>
-        <div className={styles.profitValue}>
-          <Amount value={financials.profit} currency={financials.currency} tone="auto" strong />
-        </div>
-      </div>
+      {hasFinancialSummary && (
+        <>
+          <div className={styles.profitSection}>
+            <Text type="secondary" className={typography.kpiLabel}>
+              {t('projects.card.profit')}
+            </Text>
+            <div className={styles.profitValue}>
+              <Amount value={financials.profit} currency={financials.currency} tone="auto" strong />
+            </div>
+          </div>
 
-      <div className={styles.financials}>
-        <div className={styles.financialMetric}>
-          <Text type="secondary" className={styles.metricLabel}>
-            {t('projects.card.income')}
-          </Text>
-          <Amount value={financials.income} currency={financials.currency} tone="income" strong />
-        </div>
-        <div className={styles.financialMetric}>
-          <Text type="secondary" className={styles.metricLabel}>
-            {t('projects.card.expenses')}
-          </Text>
-          <Amount
-            value={financials.expenses}
-            currency={financials.currency}
-            tone="expense"
-            strong
-          />
-        </div>
-      </div>
+          <div className={styles.financials}>
+            <div className={styles.financialMetric}>
+              <Text type="secondary" className={styles.metricLabel}>
+                {t('projects.card.income')}
+              </Text>
+              <Amount value={financials.income} currency={financials.currency} tone="income" strong />
+            </div>
+            <div className={styles.financialMetric}>
+              <Text type="secondary" className={styles.metricLabel}>
+                {t('projects.card.expenses')}
+              </Text>
+              <Amount
+                value={financials.expenses}
+                currency={financials.currency}
+                tone="expense"
+                strong
+              />
+            </div>
+          </div>
+        </>
+      )}
 
-      <div className={styles.statusRow}>
-        <span className={styles.documentSummary}>
-          <FileTextOutlined aria-hidden="true" />
-          <Numeric>{project.documentCount}</Numeric>
-          <span>{t('projects.card.documents')}</span>
-          {project.pendingCount > 0 ? (
-            <SemanticTag tone="pending">{project.pendingCount}</SemanticTag>
+      {(hasDocumentSummary || hasFinancialSummary) && (
+        <div className={styles.statusRow}>
+          {hasDocumentSummary && (
+            <span className={styles.documentSummary}>
+              <FileTextOutlined aria-hidden="true" />
+              <Numeric>{project.documentCount}</Numeric>
+              <span>{t('projects.card.documents')}</span>
+              {project.pendingCount !== undefined && project.pendingCount > 0 ? (
+                <SemanticTag tone="pending">{project.pendingCount}</SemanticTag>
+              ) : null}
+            </span>
+          )}
+          {hasFinancialSummary && (
+            <span className={styles.margin} style={{ color: marginColor }}>
+              <span>{t('projects.card.margin')}</span>
+              <Numeric>
+                {financials.margin === null
+                  ? '—'
+                  : new Intl.NumberFormat(undefined, {
+                      style: 'percent',
+                      maximumFractionDigits: 0,
+                    }).format(financials.margin)}
+              </Numeric>
+            </span>
+          )}
+          {hasFinancialSummary && otherCurrencies.length > 0 ? (
+            <span title={`${t('projects.card.otherCurrencies')}: ${otherCurrencies.join(', ')}`}>
+              <SemanticTag tone="neutral">+{otherCurrencies.length}</SemanticTag>
+            </span>
           ) : null}
-        </span>
-        <span className={styles.margin} style={{ color: marginColor }}>
-          <span>{t('projects.card.margin')}</span>
-          <Numeric>
-            {financials.margin === null
-              ? '—'
-              : new Intl.NumberFormat(undefined, {
-                  style: 'percent',
-                  maximumFractionDigits: 0,
-                }).format(financials.margin)}
-          </Numeric>
-        </span>
-        {otherCurrencies.length > 0 ? (
-          <span title={`${t('projects.card.otherCurrencies')}: ${otherCurrencies.join(', ')}`}>
-            <SemanticTag tone="neutral">+{otherCurrencies.length}</SemanticTag>
-          </span>
-        ) : null}
-      </div>
+        </div>
+      )}
     </Card>
   );
 }

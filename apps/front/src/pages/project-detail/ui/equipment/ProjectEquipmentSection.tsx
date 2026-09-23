@@ -45,9 +45,16 @@ export function ProjectEquipmentSection({ project }: ProjectSectionProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const { canAccess } = useWorkspaceAccess();
-  const canEdit = canAccess('projects', 'edit');
-  const { data: assigned = [], isPending } = useQuery(projectEquipmentQueries.list(project.id));
-  const { data: equipmentData = [] } = useQuery(equipmentQueries.list());
+  const canView = canAccess('projects', 'view') && canAccess('equipment', 'view');
+  const canEdit = canAccess('projects', 'edit') && canAccess('equipment', 'edit');
+  const { data: assigned = [], isPending } = useQuery({
+    ...projectEquipmentQueries.list(project.id),
+    enabled: canView,
+  });
+  const { data: equipmentData = [] } = useQuery({
+    ...equipmentQueries.list(),
+    enabled: canView,
+  });
   const equipment = equipmentData.filter((item) => !item.archivedAt);
   const [open, setOpen] = useState(false);
   const [modalMode, setModalMode] = useState<ModalMode>('equipment');
@@ -207,15 +214,16 @@ export function ProjectEquipmentSection({ project }: ProjectSectionProps) {
           />
         </Space>
       </PageContainer>
-      <Modal
-        open={open}
-        title={t(modalMode === 'expense' ? 'projects.equipment.leaseExpenses.addTitle' : 'projects.equipment.addTitle')}
-        onCancel={closeModal}
-        onOk={() => void save()}
-        confirmLoading={submitting}
-        okText={t('common.add')}
-      >
-        <Form form={form} layout="vertical" initialValues={{ leaseExpenseDate: dayjs() }}>
+      {canEdit && (
+        <Modal
+          open={open}
+          title={t(modalMode === 'expense' ? 'projects.equipment.leaseExpenses.addTitle' : 'projects.equipment.addTitle')}
+          onCancel={closeModal}
+          onOk={() => void save()}
+          confirmLoading={submitting}
+          okText={t('common.add')}
+        >
+          <Form form={form} layout="vertical" initialValues={{ leaseExpenseDate: dayjs() }}>
           <Form.Item
             name="equipmentId"
             label={t('projects.equipment.columns.equipment')}
@@ -249,9 +257,10 @@ export function ProjectEquipmentSection({ project }: ProjectSectionProps) {
               </Form.Item>
             </>
           ) : null}
-        </Form>
-        {expenseEquipment ? <Typography.Text type="secondary">{expenseEquipment.name}</Typography.Text> : null}
-      </Modal>
+          </Form>
+          {expenseEquipment ? <Typography.Text type="secondary">{expenseEquipment.name}</Typography.Text> : null}
+        </Modal>
+      )}
     </>
   );
 }

@@ -78,4 +78,33 @@ describe('StaffPage', () => {
       expect(screen.getByText('Trabajador archivado')).toBeInTheDocument();
     });
   });
+
+  it('shows staff profiles without document summaries when document access is denied', () => {
+    vi.mocked(useWorkspaceAccess).mockReturnValue({
+      canAccess: (module: string) => module !== 'documents',
+    } as never);
+    vi.mocked(useQuery).mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [{
+        id: 'm-2',
+        firstName: 'Alex',
+        lastName: 'Morgan',
+        taxId: null,
+        position: null,
+        endDate: null,
+      }],
+    } as never);
+
+    render(
+      <App>
+        <StaffPage />
+      </App>,
+    );
+
+    expect(screen.getByRole('link', { name: 'Alex Morgan' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('columnheader', { name: /Documentos|Documents/ }),
+    ).not.toBeInTheDocument();
+  });
 });

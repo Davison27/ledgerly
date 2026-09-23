@@ -30,11 +30,13 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const { canAccess } = useWorkspaceAccess();
-  const canEdit = canAccess('staff', 'edit');
+  const canView = canAccess('staff', 'view') && canAccess('documents', 'view');
+  const canEdit = canAccess('staff', 'edit') && canAccess('documents', 'edit');
 
-  const { data: allDocumentTypes = [], isPending: typesLoading } = useQuery(
-    staffDocumentTypeQueries.list(),
-  );
+  const { data: allDocumentTypes = [], isPending: typesLoading } = useQuery({
+    ...staffDocumentTypeQueries.list(),
+    enabled: canView,
+  });
   const documentTypes = useMemo(
     () => allDocumentTypes.filter((type) => type.code !== PAYROLL_TYPE_CODE),
     [allDocumentTypes],
@@ -49,7 +51,7 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
 
   const { data: documents = [], isPending: loading } = useQuery({
     ...staffQueries.documents(staffMember.id, activeTypeId ?? undefined),
-    enabled: Boolean(activeTypeId),
+    enabled: canView && Boolean(activeTypeId),
   });
 
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -141,6 +143,8 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
     },
   ];
 
+  if (!canView) return null;
+
   return (
     <section className={shared.section}>
       <Flex align="flex-start" justify="space-between" gap={16} className={shared.sectionHeader}>
@@ -187,14 +191,16 @@ export function StaffDocumentsSection({ staffMember }: StaffSectionProps) {
         </div>
       )}
 
-      <StaffDocumentEditModal
-        open={editingDocument !== null}
-        staffMemberId={staffMember.id}
-        document={editingDocument}
-        documentTypes={documentTypes}
-        onCancel={() => setEditingDocument(null)}
-        onUpdated={() => setEditingDocument(null)}
-      />
+      {canEdit && (
+        <StaffDocumentEditModal
+          open={editingDocument !== null}
+          staffMemberId={staffMember.id}
+          document={editingDocument}
+          documentTypes={documentTypes}
+          onCancel={() => setEditingDocument(null)}
+          onUpdated={() => setEditingDocument(null)}
+        />
+      )}
     </section>
   );
 }

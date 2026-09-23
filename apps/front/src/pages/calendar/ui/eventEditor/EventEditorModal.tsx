@@ -64,6 +64,11 @@ export interface EventEditorModalProps {
   event: ScheduleEventDto | null;
   staffMembers: StaffMemberDto[];
   equipment: EquipmentDto[];
+  canEdit: boolean;
+  canViewStaff: boolean;
+  canEditStaff: boolean;
+  canViewEquipment: boolean;
+  canEditEquipment: boolean;
   onCancel: () => void;
   onSave: (eventId: string, payload: UpdateScheduleEventPayload) => void | Promise<void>;
   onDelete: (eventId: string) => void | Promise<void>;
@@ -76,6 +81,11 @@ export function EventEditorModal({
   event,
   staffMembers,
   equipment,
+  canEdit,
+  canViewStaff,
+  canEditStaff,
+  canViewEquipment,
+  canEditEquipment,
   onCancel,
   onSave,
   onDelete,
@@ -128,7 +138,7 @@ export function EventEditorModal({
   };
 
   const handleOk = () => {
-    if (!event) return;
+    if (!canEdit || !event) return;
     form
       .validateFields()
       .then((values) => {
@@ -151,11 +161,18 @@ export function EventEditorModal({
             values.fullDay ? null : (values.startTime?.format('HH:mm') ?? null),
             values.fullDay ? null : (values.endTime?.format('HH:mm') ?? null),
           ),
-          staffMemberIds: values.staffMemberIds ?? [],
-          equipment: values.equipment.map((equipment) => ({
-            equipmentId: equipment.equipmentId!,
-            quantity: equipment.quantity!,
-          })),
+          staffMemberIds: canEditStaff
+            ? values.staffMemberIds ?? []
+            : event.staff.map((staffMember) => staffMember.id),
+          equipment: canEditEquipment
+            ? (values.equipment ?? []).map((equipment) => ({
+                equipmentId: equipment.equipmentId!,
+                quantity: equipment.quantity!,
+              }))
+            : event.equipment.map((equipment) => ({
+                equipmentId: equipment.equipmentId,
+                quantity: equipment.quantity,
+              })),
         };
         return onSave(event.id, payload);
       })
@@ -168,7 +185,7 @@ export function EventEditorModal({
   };
 
   const handleDelete = () => {
-    if (!event) return;
+    if (!canEdit || !event) return;
     void onDelete(event.id);
   };
 
@@ -192,21 +209,23 @@ export function EventEditorModal({
       classNames={{ body: styles.modalBody }}
       footer={(_, { OkBtn, CancelBtn }) => (
         <Flex justify="space-between" align="center">
-          <Popconfirm
-            title={t('calendar.editor.deleteConfirm.title')}
-            description={t('calendar.editor.deleteConfirm.content')}
-            okText={t('calendar.editor.deleteConfirm.ok')}
-            cancelText={t('common.cancel')}
-            okButtonProps={{ danger: true }}
-            onConfirm={handleDelete}
-          >
-            <Button danger loading={deleting}>
-              {t('calendar.editor.delete')}
-            </Button>
-          </Popconfirm>
+          {canEdit ? (
+            <Popconfirm
+              title={t('calendar.editor.deleteConfirm.title')}
+              description={t('calendar.editor.deleteConfirm.content')}
+              okText={t('calendar.editor.deleteConfirm.ok')}
+              cancelText={t('common.cancel')}
+              okButtonProps={{ danger: true }}
+              onConfirm={handleDelete}
+            >
+              <Button danger loading={deleting}>
+                {t('calendar.editor.delete')}
+              </Button>
+            </Popconfirm>
+          ) : <span />}
           <Flex gap={8}>
             <CancelBtn />
-            <OkBtn />
+            {canEdit && <OkBtn />}
           </Flex>
         </Flex>
       )}
@@ -216,6 +235,7 @@ export function EventEditorModal({
         layout="vertical"
         requiredMark={false}
         className={styles.form}
+        disabled={!canEdit}
       >
         <div className={styles.topSection}>
           {warnings.includes('gaps') && (
@@ -340,24 +360,30 @@ export function EventEditorModal({
             </Row>
           )}
 
-          <Form.Item name="staffMemberIds" label={t('calendar.editor.fields.staff')}>
-            <Select
-              mode="multiple"
-              allowClear
-              placeholder={t('calendar.editor.placeholders.staff')}
-              options={staffMembers.map((staffMember) => ({
-                value: staffMember.id,
-                label: `${staffMember.firstName} ${staffMember.lastName}`,
-              }))}
-            />
-          </Form.Item>
+          {canViewStaff && (
+            <Form.Item name="staffMemberIds" label={t('calendar.editor.fields.staff')}>
+              <Select
+                mode="multiple"
+                allowClear
+                disabled={!canEditStaff}
+                placeholder={t('calendar.editor.placeholders.staff')}
+                options={staffMembers.map((staffMember) => ({
+                  value: staffMember.id,
+                  label: `${staffMember.firstName} ${staffMember.lastName}`,
+                }))}
+              />
+            </Form.Item>
+          )}
 
-          <Text strong className={styles.sectionLabel}>
-            {t('calendar.editor.equipment.title')}
-          </Text>
+          {canViewEquipment && (
+            <Text strong className={styles.sectionLabel}>
+              {t('calendar.editor.equipment.title')}
+            </Text>
+          )}
         </div>
 
-        <Form.List name="equipment">
+        {canViewEquipment && (
+          <Form.List name="equipment">
           {(fields, { add, remove }) => (
             <ConfigProvider theme={{ components: { Form: { itemMarginBottom: SPACE.sm } } }}>
               <div className={styles.equipmentList}>
@@ -376,6 +402,7 @@ export function EventEditorModal({
                         >
                           <Select
                             showSearch
+                            disabled={!canEditEquipment}
                             placeholder={t('calendar.editor.placeholders.equipment')}
                             filterOption={(input, option) =>
                               (option?.label ?? '')
@@ -409,6 +436,7 @@ export function EventEditorModal({
                             min={1}
                             precision={0}
                             placeholder={t('calendar.editor.placeholders.quantity')}
+                            disabled={!canEditEquipment}
                           />
                         </Form.Item>
                       </div>
@@ -418,6 +446,7 @@ export function EventEditorModal({
                           danger
                           icon={<MinusCircleOutlined />}
                           aria-label={t('calendar.editor.equipment.remove')}
+                          disabled={!canEditEquipment}
                           onClick={() => remove(field.name)}
                         />
                       </div>
@@ -430,7 +459,7 @@ export function EventEditorModal({
                   type="dashed"
                   block
                   icon={<PlusOutlined />}
-                  disabled={equipment.length === 0}
+                  disabled={!canEditEquipment || equipment.length === 0}
                   onClick={() => add({ quantity: 1 })}
                 >
                   {t('calendar.editor.equipment.add')}
@@ -443,7 +472,8 @@ export function EventEditorModal({
               </Flex>
             </ConfigProvider>
           )}
-        </Form.List>
+          </Form.List>
+        )}
       </Form>
     </Modal>
   );

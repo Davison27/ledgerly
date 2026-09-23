@@ -7,7 +7,10 @@ interface UseProjectDocumentsResult {
   error: boolean;
 }
 
-export function useProjectDocuments(projectId: string): UseProjectDocumentsResult {
-  const { data, isPending, isError } = useQuery(documentQueries.byProject(projectId));
+export function useProjectDocuments(projectId: string, enabled = true): UseProjectDocumentsResult {
+  const { data, isPending, isError } = useQuery({
+    ...documentQueries.byProject(projectId),
+    enabled,
+  });
   return { documents: data ?? [], loading: isPending, error: isError };
 }

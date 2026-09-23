@@ -7,6 +7,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { clientQueries } from '@/entities/client';
 import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { DocumentsPage } from './DocumentsPage';
 
 vi.mock('@tanstack/react-query', async () => {
@@ -23,6 +24,7 @@ vi.mock('@/entities/project', () => ({
 vi.mock('@/entities/supplier', () => ({
   supplierQueries: { list: vi.fn(() => ({ queryKey: ['suppliers', 'list'] })) },
 }));
+vi.mock('@/entities/workspace-member', () => ({ useWorkspaceAccess: vi.fn() }));
 vi.mock('@/entities/document', async () => {
   const actual = await vi.importActual<typeof import('@/entities/document')>('@/entities/document');
   return {
@@ -52,6 +54,7 @@ describe('DocumentsPage', () => {
   beforeEach(() => {
     vi.mocked(useNavigate).mockReturnValue(vi.fn() as never);
     vi.mocked(useQueryClient).mockReturnValue({ invalidateQueries: vi.fn() } as never);
+    vi.mocked(useWorkspaceAccess).mockReturnValue({ canAccess: () => true } as never);
     vi.mocked(clientQueries.list).mockReturnValue({ queryKey: ['clients', 'list'] } as never);
     vi.mocked(projectQueries.list).mockImplementation((clientId?: string) => ({
       queryKey: ['projects', 'list', clientId ?? null],
@@ -108,5 +111,31 @@ describe('DocumentsPage', () => {
 
     await waitFor(() => expect(projectQueries.list).toHaveBeenCalledWith('client-1'));
     expect(screen.getAllByText('Acme').length).toBeGreaterThan(0);
+  });
+
+  it('does not request or expose project and supplier filters without their view grants', async () => {
+    const user = userEvent.setup();
+    vi.mocked(useWorkspaceAccess).mockReturnValue({
+      canAccess: (module: string) => module === 'documents',
+    } as never);
+
+    render(
+      <App>
+        <DocumentsPage />
+      </App>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /Más filtros/ }));
+
+    expect(screen.queryByText('Todas las empresas')).not.toBeInTheDocument();
+    expect(screen.queryByText('Todos los proyectos')).not.toBeInTheDocument();
+    expect(screen.queryByText('Todos los proveedores')).not.toBeInTheDocument();
+    expect(vi.mocked(useQuery).mock.calls).toEqual(
+      expect.arrayContaining([
+        [expect.objectContaining({ queryKey: ['clients', 'list'], enabled: false })],
+        [expect.objectContaining({ queryKey: ['projects', 'list', null], enabled: false })],
+        [expect.objectContaining({ queryKey: ['suppliers', 'list'], enabled: false })],
+      ]),
+    );
   });
 });

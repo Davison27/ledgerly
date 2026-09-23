@@ -1,7 +1,10 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { Outlet, useNavigate } from '@tanstack/react-router';
-import { Layout } from 'antd';
-import { companyNeedsSetup, useCompany } from '@/entities/company';
+import { Outlet, useNavigate, useRouterState } from '@tanstack/react-router';
+import { Flex, Layout, Result, Spin } from 'antd';
+import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { companyNeedsSetup, companyQueries } from '@/entities/company';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { ReleaseNoticeDialog } from '@/features/release-notice';
 import { useSyncBrandColor } from '../../model/useSyncBrandColor';
 import { AppSider } from '../sider/AppSider';
@@ -15,9 +18,30 @@ function CompanyGuard({
   children: ReactNode;
   onViewChangelog: () => void;
 }) {
-  const { company, isLoading } = useCompany();
+  const { isAdmin, isPending: accessPending } = useWorkspaceAccess();
+  const companyQuery = useQuery({ ...companyQueries.singleton(), enabled: isAdmin });
+  const brandingQuery = useQuery({
+    ...companyQueries.branding(),
+    enabled: !isAdmin && !accessPending,
+  });
   const navigate = useNavigate();
-  const needsSetup = !isLoading && companyNeedsSetup(company);
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const needsSetup =
+    isAdmin && companyQuery.isSuccess && companyNeedsSetup(companyQuery.data ?? { id: '', name: '' });
+  const isWaitingForConfiguration =
+    !isAdmin &&
+    !accessPending &&
+    brandingQuery.isSuccess &&
+    brandingQuery.data.name.trim().length === 0 &&
+    pathname !== '/changelog';
+  const isCheckingConfiguration =
+    !isAdmin &&
+    !accessPending &&
+    brandingQuery.isPending &&
+    pathname !== '/changelog';
+  const canShowReleaseNotice = isAdmin
+    ? companyQuery.isSuccess && !needsSetup
+    : !accessPending && brandingQuery.isSuccess;
 
   useEffect(() => {
     if (needsSetup) {
@@ -27,9 +51,38 @@ function CompanyGuard({
 
   return (
     <>
-      {children}
-      {!isLoading && !needsSetup && <ReleaseNoticeDialog onViewChangelog={onViewChangelog} />}
+      {isCheckingConfiguration ? (
+        <CheckingConfiguration />
+      ) : isWaitingForConfiguration ? (
+        <WaitingForConfiguration />
+      ) : (
+        children
+      )}
+      {canShowReleaseNotice && <ReleaseNoticeDialog onViewChangelog={onViewChangelog} />}
     </>
+  );
+}
+
+function WaitingForConfiguration() {
+  const { t } = useTranslation();
+
+  return (
+    <Result
+      status="info"
+      title={t('access.waitingForConfiguration.title')}
+      subTitle={t('access.waitingForConfiguration.description')}
+    />
+  );
+}
+
+function CheckingConfiguration() {
+  const { t } = useTranslation();
+
+  return (
+    <Flex flex="auto" align="center" justify="center" gap="small" role="status" aria-live="polite">
+      <Spin />
+      <span>{t('common.loadingPage')}</span>
+    </Flex>
   );
 }
 
@@ -43,16 +96,16 @@ export function AppLayout({ search }: AppLayoutProps) {
   useSyncBrandColor();
 
   return (
-    <CompanyGuard onViewChangelog={() => void navigate({ to: '/changelog' })}>
-      <Layout hasSider className={styles.shell}>
-        <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
-        <Layout className={styles.main}>
-          <TopBar search={search} />
-          <Layout.Content className={styles.content}>
+    <Layout hasSider className={styles.shell}>
+      <AppSider collapsed={collapsed} onCollapse={setCollapsed} />
+      <Layout className={styles.main}>
+        <TopBar search={search} />
+        <Layout.Content className={styles.content}>
+          <CompanyGuard onViewChangelog={() => void navigate({ to: '/changelog' })}>
             <Outlet />
-          </Layout.Content>
-        </Layout>
+          </CompanyGuard>
+        </Layout.Content>
       </Layout>
-    </CompanyGuard>
+    </Layout>
   );
 }

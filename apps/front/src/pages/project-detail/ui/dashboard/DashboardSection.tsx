@@ -1,4 +1,5 @@
-import { Flex } from 'antd';
+import { Alert, Flex } from 'antd';
+import { useTranslation } from 'react-i18next';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import {
   KpiRow,
@@ -17,13 +18,16 @@ import styles from './DashboardSection.module.css';
 interface DashboardSectionProps {
   color: string;
   data: DashboardData;
+  isPartial: boolean;
 }
 
-export function DashboardSection({ color, data }: DashboardSectionProps) {
+export function DashboardSection({ color, data, isPartial }: DashboardSectionProps) {
+  const { t } = useTranslation();
 
   return (
     <PageContainer>
       <Flex vertical gap={12}>
+        {isPartial && <Alert type="info" showIcon message={t('projects.dashboard.limitedData')} />}
         <KpiRow
           income={data.income}
           expenses={data.expenses}

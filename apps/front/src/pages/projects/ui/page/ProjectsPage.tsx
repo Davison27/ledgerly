@@ -268,14 +268,16 @@ export function ProjectsPage() {
         </>
       )}
 
-      <ProjectFormModal
-        open={isFormOpen}
-        project={editingProject}
-        scopedClientId={!editingProject && isScoped ? clientId : undefined}
-        scopedClientName={!editingProject ? parentClient?.name : undefined}
-        onCancel={handleFormCancel}
-        onSubmit={handleSubmit}
-      />
+      {canEdit && (
+        <ProjectFormModal
+          open={isFormOpen}
+          project={editingProject}
+          scopedClientId={!editingProject && isScoped ? clientId : undefined}
+          scopedClientName={!editingProject ? parentClient?.name : undefined}
+          onCancel={handleFormCancel}
+          onSubmit={handleSubmit}
+        />
+      )}
     </PageContainer>
   );
 }

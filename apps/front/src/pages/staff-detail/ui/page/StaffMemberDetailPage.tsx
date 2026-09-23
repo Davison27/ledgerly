@@ -4,6 +4,7 @@ import { useParams } from '@tanstack/react-router';
 import { Avatar, Flex, Segmented, Skeleton, Typography } from 'antd';
 import { IdcardOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import {
   staffDocumentFileUrl,
   staffDocumentTypeQueries,
@@ -25,7 +26,17 @@ const PHOTO_TYPE_CODE = 'foto';
 export function StaffMemberDetailPage() {
   const { t } = useTranslation();
   const { staffMemberId } = useParams({ strict: false }) as { staffMemberId?: string };
-  const { section, setSection } = useStaffDetailSection(staffMemberId);
+  const { canAccess } = useWorkspaceAccess();
+  const canViewStaff = canAccess('staff', 'view');
+  const canViewDocuments = canViewStaff && canAccess('documents', 'view');
+  const canViewCalendar =
+    canViewStaff && canAccess('calendar', 'view') && canAccess('projects', 'view');
+  const allowedSections: StaffDetailSection[] = [
+    ...(canViewDocuments ? ['documents' as const, 'payrolls' as const] : []),
+    ...(canViewCalendar ? ['schedule' as const] : []),
+  ];
+  if (allowedSections.length === 0 && canViewStaff) allowedSections.push('profile');
+  const { section, setSection } = useStaffDetailSection(staffMemberId, allowedSections);
 
   const {
     data: staffMember,
@@ -33,10 +44,13 @@ export function StaffMemberDetailPage() {
     isError: loadError,
   } = useQuery({
     ...staffQueries.detail(staffMemberId ?? ''),
-    enabled: Boolean(staffMemberId),
+    enabled: Boolean(staffMemberId) && canViewStaff,
   });
 
-  const { data: documentTypes = [] } = useQuery(staffDocumentTypeQueries.list());
+  const { data: documentTypes = [] } = useQuery({
+    ...staffDocumentTypeQueries.list(),
+    enabled: canViewDocuments,
+  });
 
   const photoTypeId = useMemo(
     () => documentTypes.find((type) => type.code === PHOTO_TYPE_CODE)?.id,
@@ -45,13 +59,15 @@ export function StaffMemberDetailPage() {
 
   const { data: photoDocuments = [] } = useQuery({
     ...staffQueries.documents(staffMemberId ?? '', photoTypeId),
-    enabled: Boolean(staffMemberId) && Boolean(photoTypeId),
+    enabled: canViewDocuments && Boolean(staffMemberId) && Boolean(photoTypeId),
   });
 
   const latestPhoto = useMemo(() => {
     if (photoDocuments.length === 0) return null;
     return [...photoDocuments].sort((a, b) => b.issueDate.localeCompare(a.issueDate))[0];
   }, [photoDocuments]);
+
+  if (!canViewStaff) return null;
 
   if (loading) {
     return (
@@ -69,11 +85,13 @@ export function StaffMemberDetailPage() {
     );
   }
 
-  const options = [
-    { label: t('staff.sections.documents'), value: 'documents' as const },
-    { label: t('staff.sections.payrolls'), value: 'payrolls' as const },
-    { label: t('staff.sections.schedule'), value: 'schedule' as const },
-  ];
+  const labels: Record<StaffDetailSection, string> = {
+    documents: t('staff.sections.documents'),
+    payrolls: t('staff.sections.payrolls'),
+    schedule: t('staff.sections.schedule'),
+    profile: t('staff.sections.profile'),
+  };
+  const options = allowedSections.map((value) => ({ label: labels[value], value }));
 
   const avatarSrc =
     latestPhoto && staffMemberId ? staffDocumentFileUrl(staffMemberId, latestPhoto.id) : undefined;
@@ -100,13 +118,16 @@ export function StaffMemberDetailPage() {
       <div className={styles.content}>
         <div className={styles.layout}>
           <main className={styles.workspace}>
+            {section === 'profile' && <ProfileSection staffMember={staffMember} />}
             {section === 'documents' && <StaffDocumentsSection staffMember={staffMember} />}
             {section === 'payrolls' && <PayrollsSection staffMember={staffMember} />}
             {section === 'schedule' && <AgendaSection staffMember={staffMember} />}
           </main>
-          <aside className={styles.profileAside}>
-            <ProfileSection staffMember={staffMember} />
-          </aside>
+          {section !== 'profile' && (
+            <aside className={styles.profileAside}>
+              <ProfileSection staffMember={staffMember} />
+            </aside>
+          )}
         </div>
       </div>
     </Flex>

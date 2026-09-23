@@ -23,6 +23,7 @@ interface ProjectSummaryStripProps {
   data: DashboardData;
   isFinancialsPending: boolean;
   isFinancialsError: boolean;
+  showFinancials: boolean;
 }
 
 export function ProjectSummaryStrip({
@@ -30,6 +31,7 @@ export function ProjectSummaryStrip({
   data,
   isFinancialsPending,
   isFinancialsError,
+  showFinancials,
 }: ProjectSummaryStripProps) {
   const { t, i18n } = useTranslation();
   const currency = project.currency ?? 'EUR';
@@ -55,16 +57,20 @@ export function ProjectSummaryStrip({
       <SummaryCell label={t('projects.form.fields.budget')}>
         {project.budget === undefined ? '—' : <Amount value={project.budget} currency={currency} strong />}
       </SummaryCell>
-      <SummaryCell label={t('projects.summary.totalSpend')}>
-        <FinancialValue isPending={isFinancialsPending} isError={isFinancialsError}>
-          <Amount value={data.expenses} currency={currency} tone="expense" strong />
-        </FinancialValue>
-      </SummaryCell>
-      <SummaryCell label={t('projects.summary.margin')}>
-        <FinancialValue isPending={isFinancialsPending} isError={isFinancialsError}>
-          <Numeric>{margin}</Numeric>
-        </FinancialValue>
-      </SummaryCell>
+      {showFinancials && (
+        <>
+          <SummaryCell label={t('projects.summary.totalSpend')}>
+            <FinancialValue isPending={isFinancialsPending} isError={isFinancialsError}>
+              <Amount value={data.expenses} currency={currency} tone="expense" strong />
+            </FinancialValue>
+          </SummaryCell>
+          <SummaryCell label={t('projects.summary.margin')}>
+            <FinancialValue isPending={isFinancialsPending} isError={isFinancialsError}>
+              <Numeric>{margin}</Numeric>
+            </FinancialValue>
+          </SummaryCell>
+        </>
+      )}
       <SummaryCell label={t('projects.summary.dates')}>
         <Numeric>{dates}</Numeric>
       </SummaryCell>

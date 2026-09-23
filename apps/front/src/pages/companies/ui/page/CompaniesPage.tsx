@@ -109,13 +109,15 @@ export function CompaniesPage({ model }: CompaniesPageProps) {
         </>
       )}
 
-      <ClientFormModal
-        open={isFormOpen}
-        client={editingClient}
-        onCancel={closeForm}
-        onSubmit={handleSubmit}
-        submitting={submitting}
-      />
+      {canEdit && (
+        <ClientFormModal
+          open={isFormOpen}
+          client={editingClient}
+          onCancel={closeForm}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+        />
+      )}
     </PageContainer>
   );
 }

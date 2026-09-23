@@ -8,30 +8,43 @@ export interface ProjectFinancialSummary {
   data: DashboardData;
   isPending: boolean;
   isError: boolean;
+  isPartial: boolean;
 }
 
-export function useProjectFinancialSummary(projectId: string): ProjectFinancialSummary {
+export function useProjectFinancialSummary(
+  projectId: string,
+  canViewDashboard = true,
+  canViewDocuments = true,
+  canViewEquipment = true,
+): ProjectFinancialSummary {
+  const documentsEnabled = Boolean(projectId) && canViewDashboard && canViewDocuments;
+  const equipmentEnabled = Boolean(projectId) && canViewDashboard && canViewEquipment;
   const documentsQuery = useQuery({
     ...documentQueries.byProject(projectId),
-    enabled: Boolean(projectId),
+    enabled: documentsEnabled,
   });
   const equipmentQuery = useQuery({
     ...projectEquipmentQueries.list(projectId),
-    enabled: Boolean(projectId),
+    enabled: equipmentEnabled,
   });
 
   const data = useMemo(
     () =>
       deriveDashboardData(
-        documentsQuery.data ?? [],
-        (equipmentQuery.data ?? []).flatMap((item) => item.leaseExpenses),
+        documentsEnabled ? documentsQuery.data ?? [] : [],
+        equipmentEnabled ? (equipmentQuery.data ?? []).flatMap((item) => item.leaseExpenses) : [],
       ),
-    [documentsQuery.data, equipmentQuery.data],
+    [documentsEnabled, documentsQuery.data, equipmentEnabled, equipmentQuery.data],
   );
 
   return {
     data,
-    isPending: documentsQuery.isPending || equipmentQuery.isPending,
-    isError: documentsQuery.isError || equipmentQuery.isError,
+    isPending:
+      (documentsEnabled && documentsQuery.isPending) ||
+      (equipmentEnabled && equipmentQuery.isPending),
+    isError:
+      (documentsEnabled && documentsQuery.isError) ||
+      (equipmentEnabled && equipmentQuery.isError),
+    isPartial: !canViewDocuments || !canViewEquipment,
   };
 }

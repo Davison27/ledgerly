@@ -26,8 +26,8 @@ export interface SupplierSpendDto {
 }
 
 export interface SupplierSummaryDto extends SupplierDto {
-  documentCount: number;
-  spend: SupplierSpendDto[];
+  documentCount?: number;
+  spend?: SupplierSpendDto[];
 }
 
 export interface CreateSupplierPayload {

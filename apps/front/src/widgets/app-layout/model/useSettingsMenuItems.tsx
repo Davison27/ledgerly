@@ -20,7 +20,7 @@ export function useSettingsMenuItems(): MenuProps['items'] {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const { isAdmin } = useWorkspaceAccess();
+  const { isAdmin, canAccess } = useWorkspaceAccess();
 
   return useMemo(
     () => [
@@ -58,12 +58,16 @@ export function useSettingsMenuItems(): MenuProps['items'] {
         icon: <HistoryOutlined className={styles.menuIcon} />,
         onClick: () => void navigate({ to: '/changelog' }),
       },
-      {
-        key: 'extraction-hints',
-        label: t('extractionHints.navLabel'),
-        icon: <BulbOutlined className={styles.menuIcon} />,
-        onClick: () => void navigate({ to: '/extraction-hints' }),
-      },
+      ...(canAccess('documents', 'view')
+        ? [
+            {
+              key: 'extraction-hints',
+              label: t('extractionHints.navLabel'),
+              icon: <BulbOutlined className={styles.menuIcon} />,
+              onClick: () => void navigate({ to: '/extraction-hints' }),
+            },
+          ]
+        : []),
       {
         key: 'signout',
         label: t('common.signOut'),
@@ -80,6 +84,6 @@ export function useSettingsMenuItems(): MenuProps['items'] {
         },
       },
     ],
-    [t, navigate, queryClient, isAdmin],
+    [t, navigate, queryClient, isAdmin, canAccess],
   );
 }

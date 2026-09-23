@@ -32,6 +32,7 @@ export interface NotificationItemProps {
   view: NotificationView;
   activeOperation: UseNotificationCenterResult['activeOperation'];
   onView: UseNotificationCenterResult['onView'];
+  canViewTarget: UseNotificationCenterResult['canViewTarget'];
   onMarkRead: UseNotificationCenterResult['onMarkRead'];
   onResolve: UseNotificationCenterResult['onResolve'];
 }
@@ -61,13 +62,20 @@ function severityIcon(severity: NotificationView['severity']) {
   }
 }
 
-export function NotificationItem({ view, activeOperation, onView, onMarkRead, onResolve }: NotificationItemProps) {
+export function NotificationItem({
+  view,
+  activeOperation,
+  onView,
+  canViewTarget,
+  onMarkRead,
+  onResolve,
+}: NotificationItemProps) {
   const { t, i18n } = useTranslation();
 
   const descriptionParams = notificationDescriptionParams(view, i18n.language, (kind) =>
     t(`calendar.conflicts.kind.${kind}`),
   );
-  const hasTarget = notificationTarget(view) !== null;
+  const hasTarget = notificationTarget(view) !== null && canViewTarget(view);
   const viewActive = isActiveOperation(activeOperation, 'view', view.id);
   const markReadActive = isActiveOperation(activeOperation, 'markRead', view.id);
   const resolveActive = isActiveOperation(activeOperation, 'resolve', view.id);

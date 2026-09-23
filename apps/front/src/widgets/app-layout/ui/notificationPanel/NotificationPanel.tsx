@@ -137,6 +137,7 @@ export function NotificationPanel({ center }: NotificationPanelProps) {
                   view={view}
                   activeOperation={center.activeOperation}
                   onView={center.onView}
+                  canViewTarget={center.canViewTarget}
                   onMarkRead={center.onMarkRead}
                   onResolve={center.onResolve}
                 />

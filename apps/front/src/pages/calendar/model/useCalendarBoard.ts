@@ -35,22 +35,44 @@ function computeRange(view: CalendarView, cursor: string): { from: string; to: s
   return { from: monday.format(DATE_FORMAT), to: monday.add(41, 'day').format(DATE_FORMAT) };
 }
 
-export function useCalendarBoard() {
+export function useCalendarBoard({
+  canViewCalendar,
+  canViewProjects,
+  canViewStaff,
+  canViewEquipment,
+}: {
+  canViewCalendar: boolean;
+  canViewProjects: boolean;
+  canViewStaff: boolean;
+  canViewEquipment: boolean;
+}) {
   const queryClient = useQueryClient();
   const [view, setView] = useState<CalendarView>('month');
   const [cursor, setCursor] = useState(() => dayjs().format(DATE_FORMAT));
 
   const range = useMemo(() => computeRange(view, cursor), [view, cursor]);
 
-  const {
-    data: board = null,
-    isPending: loading,
-    isError: loadError,
-  } = useQuery(scheduleQueries.board(range.from, range.to));
+  const canViewSchedule = canViewCalendar && canViewProjects;
+  const boardQuery = useQuery({
+    ...scheduleQueries.board(range.from, range.to),
+    enabled: canViewSchedule,
+  });
+  const board = canViewSchedule ? (boardQuery.data ?? null) : null;
+  const loading = canViewSchedule && boardQuery.isPending;
+  const loadError = canViewSchedule && boardQuery.isError;
 
-  const { data: projects = [] } = useQuery(scheduleQueries.schedulableProjects());
-  const { data: staffMembers = [] } = useQuery(staffQueries.list());
-  const { data: equipment = [] } = useQuery(equipmentQueries.list());
+  const { data: projects = [] } = useQuery({
+    ...scheduleQueries.schedulableProjects(),
+    enabled: canViewProjects,
+  });
+  const { data: staffMembers = [] } = useQuery({
+    ...staffQueries.list(),
+    enabled: canViewStaff,
+  });
+  const { data: equipment = [] } = useQuery({
+    ...equipmentQueries.list(),
+    enabled: canViewEquipment,
+  });
   const availableStaffMembers = useMemo(
     () => staffMembers.filter((staffMember) => !staffMember.archivedAt),
     [staffMembers],

@@ -19,16 +19,20 @@ export interface UseProjectDetailSectionResult {
   setSection: (section: ProjectDetailSection) => void;
 }
 
-export function useProjectDetailSection(projectId: string | undefined): UseProjectDetailSectionResult {
+export function useProjectDetailSection(
+  projectId: string | undefined,
+  allowedSections: readonly ProjectDetailSection[] = PROJECT_DETAIL_SECTIONS,
+): UseProjectDetailSectionResult {
   const search = useSearch({ strict: false }) as { section?: unknown };
   const navigate = useNavigate();
 
-  const section: ProjectDetailSection = isProjectDetailSection(search.section)
+  const section: ProjectDetailSection =
+    isProjectDetailSection(search.section) && allowedSections.includes(search.section)
     ? search.section
-    : 'documents';
+    : allowedSections[0] ?? 'documents';
 
   const setSection = (nextSection: ProjectDetailSection) => {
-    if (!projectId) return;
+    if (!projectId || !allowedSections.includes(nextSection)) return;
     void navigate({
       to: '/projects/$projectId',
       params: { projectId },

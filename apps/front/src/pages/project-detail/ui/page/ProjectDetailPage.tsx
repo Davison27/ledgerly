@@ -18,6 +18,7 @@ import { SettingsSection } from '../settings/SettingsSection';
 import { ProjectEquipmentSection } from '../equipment/ProjectEquipmentSection';
 import { useProjectFinancialSummary } from '../../model/useProjectFinancialSummary';
 import { ProjectSummaryStrip } from '../projectSummary/ProjectSummaryStrip';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import styles from './ProjectDetailPage.module.css';
 
 const { Text } = Typography;
@@ -28,19 +29,38 @@ export function ProjectDetailPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { projectId } = useParams({ strict: false }) as { projectId?: string };
+  const { canAccess } = useWorkspaceAccess();
+  const canViewProject = canAccess('projects', 'view');
+  const canViewDocuments = canAccess('documents', 'view');
+  const canViewEquipment = canAccess('equipment', 'view');
+  const canViewDashboard = canAccess('dashboard', 'view');
+  const allowedSections: ProjectDetailSection[] = [
+    ...(canViewProject && canViewDocuments ? ['documents' as const] : []),
+    ...(canViewProject && canViewEquipment ? ['equipment' as const] : []),
+    ...(canViewProject && canViewDashboard ? ['dashboard' as const] : []),
+    ...(canViewProject && canAccess('calendar', 'view') ? ['schedule' as const] : []),
+    ...(canViewProject ? ['settings' as const] : []),
+  ];
   const {
     data: project,
     isPending,
     isError,
   } = useQuery({
     ...projectQueries.detail(projectId ?? ''),
-    enabled: Boolean(projectId),
+    enabled: Boolean(projectId) && canViewProject,
   });
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
-  const financialSummary = useProjectFinancialSummary(projectId ?? '');
+  const financialSummary = useProjectFinancialSummary(
+    projectId ?? '',
+    canViewProject && canViewDashboard,
+    canViewDocuments,
+    canViewEquipment,
+  );
 
-  const { section, setSection } = useProjectDetailSection(projectId);
+  const { section, setSection } = useProjectDetailSection(projectId, allowedSections);
+
+  if (!canViewProject) return null;
 
   if (isPending) {
     return (
@@ -76,13 +96,14 @@ export function ProjectDetailPage() {
 
   const projectParentPath = projectClientProjectsPath(project);
 
-  const options = [
-    { label: t('projects.sections.documents'), value: 'documents' as const },
-    { label: t('projects.sections.equipment'), value: 'equipment' as const },
-    { label: t('projects.sections.dashboard'), value: 'dashboard' as const },
-    { label: t('projects.sections.schedule'), value: 'schedule' as const },
-    { label: t('projects.sections.settings'), value: 'settings' as const },
-  ];
+  const labels: Record<ProjectDetailSection, string> = {
+    documents: t('projects.sections.documents'),
+    equipment: t('projects.sections.equipment'),
+    dashboard: t('projects.sections.dashboard'),
+    schedule: t('projects.sections.schedule'),
+    settings: t('projects.sections.settings'),
+  };
+  const options = allowedSections.map((value) => ({ label: labels[value], value }));
 
   const avatar = project.image ? (
     <Avatar shape="square" size={28} src={project.image} />
@@ -108,12 +129,15 @@ export function ProjectDetailPage() {
         }
       />
 
-      <ProjectSummaryStrip
-        project={project}
-        data={financialSummary.data}
-        isFinancialsPending={financialSummary.isPending}
-        isFinancialsError={financialSummary.isError}
-      />
+      {canViewDashboard && (
+        <ProjectSummaryStrip
+          project={project}
+          data={financialSummary.data}
+          isFinancialsPending={financialSummary.isPending}
+          isFinancialsError={financialSummary.isError}
+          showFinancials={canViewDocuments && canViewEquipment}
+        />
+      )}
 
       <div className={styles.content}>
         {section === 'documents' && (
@@ -121,7 +145,11 @@ export function ProjectDetailPage() {
         )}
         {section === 'equipment' && <ProjectEquipmentSection project={project} color={token.colorPrimary} />}
         {section === 'dashboard' && (
-          <DashboardSection data={financialSummary.data} color={token.colorPrimary} />
+          <DashboardSection
+            data={financialSummary.data}
+            color={token.colorPrimary}
+            isPartial={financialSummary.isPartial}
+          />
         )}
         {section === 'schedule' && (
           <ScheduleSection project={project} color={token.colorPrimary} />

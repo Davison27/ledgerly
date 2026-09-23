@@ -12,11 +12,13 @@ const { Text } = Typography;
 
 interface StaffPanelItemProps {
   staffMember: StaffMemberDto;
+  canAssign: boolean;
 }
 
-function StaffPanelItem({ staffMember }: StaffPanelItemProps) {
+function StaffPanelItem({ staffMember, canAssign }: StaffPanelItemProps) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `staff-${staffMember.id}`,
+    disabled: !canAssign,
     data: {
       kind: 'staff',
       staffMemberId: staffMember.id,
@@ -34,9 +36,10 @@ function StaffPanelItem({ staffMember }: StaffPanelItemProps) {
 
 export interface StaffPanelProps {
   staffMembers: StaffMemberDto[];
+  canAssign: boolean;
 }
 
-export function StaffPanel({ staffMembers }: StaffPanelProps) {
+export function StaffPanel({ staffMembers, canAssign }: StaffPanelProps) {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
@@ -62,7 +65,13 @@ export function StaffPanel({ staffMembers }: StaffPanelProps) {
         {filtered.length === 0 ? (
           <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description={t('calendar.staffPanel.empty')} />
         ) : (
-          filtered.map((staffMember) => <StaffPanelItem key={staffMember.id} staffMember={staffMember} />)
+          filtered.map((staffMember) => (
+            <StaffPanelItem
+              key={staffMember.id}
+              staffMember={staffMember}
+              canAssign={canAssign}
+            />
+          ))
         )}
       </Flex>
     </Flex>

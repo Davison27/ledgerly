@@ -21,6 +21,21 @@
     "showArchived": "Mostrar archivados",
     "unarchive": "Desarchivar"
   },
+  "access": {
+    "denied": {
+      "title": "No tienes acceso a esta sección",
+      "description": "El administrador de tu espacio de trabajo puede cambiar tus permisos.",
+      "action": "Ir a una sección disponible"
+    },
+    "noSections": {
+      "title": "No tienes acceso a ninguna sección",
+      "description": "El administrador de tu espacio de trabajo no te ha dado acceso a ninguna sección. Ponte en contacto para solicitarlo."
+    },
+    "waitingForConfiguration": {
+      "title": "Se está configurando tu espacio de trabajo",
+      "description": "Un administrador está preparando tu espacio de trabajo. Podrás usar Ledgerly cuando termine la configuración."
+    }
+  },
   "login": {
     "signIn": "Entrar",
     "signInWithGoogle": "Continuar con Google",
@@ -1470,6 +1485,7 @@
       }
     },
     "dashboard": {
+      "limitedData": "Algunas cifras están ocultas por tus permisos.",
       "kpi": {
         "income": "Ingresos totales",
         "expenses": "Gastos totales",

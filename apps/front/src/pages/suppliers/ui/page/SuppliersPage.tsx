@@ -63,6 +63,7 @@ export function SuppliersPage() {
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('suppliers', 'edit');
+  const canViewDocuments = canAccess('documents', 'view');
 
   const filteredSuppliers = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -142,6 +143,48 @@ export function SuppliersPage() {
     }
   };
 
+  const documentColumns: TableColumnsType<SupplierSummaryDto> = canViewDocuments ? [
+    {
+      title: t('suppliers.columns.documents'),
+      dataIndex: 'documentCount',
+      key: 'documentCount',
+      width: 120,
+      align: 'right',
+      sorter: (a, b) => (a.documentCount ?? 0) - (b.documentCount ?? 0),
+      render: (documentCount: number | undefined, record) =>
+        (documentCount ?? 0) > 0 ? (
+          <Link to="/documents" search={{ supplierId: record.id }}>
+            <Numeric>{documentCount}</Numeric>
+          </Link>
+        ) : (
+          '—'
+        ),
+    },
+    {
+      title: t('suppliers.columns.spend'),
+      dataIndex: 'spend',
+      key: 'spend',
+      width: 160,
+      align: 'right',
+      sorter: (a, b) => (a.spend?.[0]?.total ?? 0) - (b.spend?.[0]?.total ?? 0),
+      render: (spend: SupplierSpendDto[] | undefined) =>
+        spend && spend.length > 0 ? (
+          <Flex vertical align="end" gap={2}>
+            {spend.map((entry) => (
+              <Amount
+                key={entry.currency}
+                value={entry.total}
+                currency={entry.currency}
+                tone="expense"
+              />
+            ))}
+          </Flex>
+        ) : (
+          '—'
+        ),
+    },
+  ] : [];
+
   const columns: TableColumnsType<SupplierSummaryDto> = [
     {
       title: t('suppliers.columns.name'),
@@ -178,45 +221,7 @@ export function SuppliersPage() {
       width: 160,
       render: (phone: string | null | undefined) => phone || '—',
     },
-    {
-      title: t('suppliers.columns.documents'),
-      dataIndex: 'documentCount',
-      key: 'documentCount',
-      width: 120,
-      align: 'right',
-      sorter: (a, b) => a.documentCount - b.documentCount,
-      render: (documentCount: number, record) =>
-        documentCount > 0 ? (
-          <Link to="/documents" search={{ supplierId: record.id }}>
-            <Numeric>{documentCount}</Numeric>
-          </Link>
-        ) : (
-          '—'
-        ),
-    },
-    {
-      title: t('suppliers.columns.spend'),
-      dataIndex: 'spend',
-      key: 'spend',
-      width: 160,
-      align: 'right',
-      sorter: (a, b) => (a.spend[0]?.total ?? 0) - (b.spend[0]?.total ?? 0),
-      render: (spend: SupplierSpendDto[]) =>
-        spend.length > 0 ? (
-          <Flex vertical align="end" gap={2}>
-            {spend.map((entry) => (
-              <Amount
-                key={entry.currency}
-                value={entry.total}
-                currency={entry.currency}
-                tone="expense"
-              />
-            ))}
-          </Flex>
-        ) : (
-          '—'
-        ),
-    },
+    ...documentColumns,
     ...(canEdit ? [{
       title: t('suppliers.columns.actions'),
       key: 'actions',
@@ -325,13 +330,15 @@ export function SuppliersPage() {
         </>
       )}
 
-      <SupplierFormModal
-        open={isFormOpen}
-        supplier={editingSupplier}
-        onCancel={handleCancelForm}
-        onSubmit={handleSubmit}
-        submitting={submitting}
-      />
+      {canEdit && (
+        <SupplierFormModal
+          open={isFormOpen}
+          supplier={editingSupplier}
+          onCancel={handleCancelForm}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+        />
+      )}
     </PageContainer>
   );
 }

@@ -1,7 +1,28 @@
 import { act, render, screen } from '@testing-library/react';
+import { createElement, type ComponentType } from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import i18n from '@/shared/i18n';
-import { router, RouteFallback } from './router';
+import {
+  findAccessibleNestedSection,
+  projectSectionModules,
+  router,
+  RouteFallback,
+  staffSectionModules,
+} from './router';
+
+const routeAccessMocks = vi.hoisted(() => ({
+  allowed: [] as string[],
+  isAdmin: false,
+  isPending: false,
+}));
+
+vi.mock('@/entities/workspace-member', () => ({
+  useWorkspaceAccess: () => ({
+    canAccess: (module: string) => routeAccessMocks.allowed.includes(module),
+    isAdmin: routeAccessMocks.isAdmin,
+    isPending: routeAccessMocks.isPending,
+  }),
+}));
 
 describe('RouteFallback', () => {
   beforeEach(() => {
@@ -69,5 +90,50 @@ describe('application routes', () => {
         '/changelog',
       ]),
     );
+  });
+
+  it('blocks direct routes when a member has no visible sections', async () => {
+    await i18n.changeLanguage('es');
+    routeAccessMocks.allowed = [];
+    const DashboardRoute = router.routesByPath['/dashboard'].options.component;
+
+    render(createElement(DashboardRoute as ComponentType));
+
+    expect(await screen.findByText('No tienes acceso a ninguna sección')).toBeInTheDocument();
+  });
+
+  it('requires both project and nested section access', () => {
+    const allowed = new Set(['projects', 'equipment']);
+    const canAccess = (module: string) => allowed.has(module);
+
+    expect(
+      findAccessibleNestedSection('documents', projectSectionModules, ['documents', 'equipment'], canAccess),
+    ).toBe('equipment');
+  });
+
+  it('requires Staff, Calendar, and Projects for the nested staff schedule', () => {
+    const calendarOnly = new Set(['staff', 'calendar']);
+    const canAccessCalendarOnly = (module: string) => calendarOnly.has(module);
+
+    expect(
+      findAccessibleNestedSection(
+        'schedule',
+        staffSectionModules,
+        ['documents', 'payrolls', 'schedule', 'profile'],
+        canAccessCalendarOnly,
+      ),
+    ).toBe('profile');
+
+    const calendarAndProjects = new Set(['staff', 'calendar', 'projects']);
+    const canAccessCalendarAndProjects = (module: string) => calendarAndProjects.has(module);
+
+    expect(
+      findAccessibleNestedSection(
+        'schedule',
+        staffSectionModules,
+        ['documents', 'payrolls', 'schedule', 'profile'],
+        canAccessCalendarAndProjects,
+      ),
+    ).toBe('schedule');
   });
 });

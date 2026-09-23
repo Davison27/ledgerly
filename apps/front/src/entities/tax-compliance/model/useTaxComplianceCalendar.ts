@@ -13,23 +13,28 @@ export interface TaxComplianceCalendarState {
 export function useTaxComplianceCalendar(
   from: string,
   to: string,
+  enabled = true,
 ): TaxComplianceCalendarState {
   const {
     data: settings,
     isPending: settingsLoading,
     isError: settingsLoadError,
-  } = useQuery(taxComplianceQueries.settings());
+  } = useQuery({
+    ...taxComplianceQueries.settings(),
+    enabled,
+  });
   const deadlinesQuery = useQuery({
     ...taxComplianceQueries.calendar(from, to),
-    enabled: settings?.enabled === true,
+    enabled: enabled && settings?.enabled === true,
   });
   const deadlines = deadlinesQuery.data ?? [];
 
   return {
-    enabled: settings?.enabled === true,
-    settingsLoading,
+    enabled: enabled && settings?.enabled === true,
+    settingsLoading: enabled && settingsLoading,
     deadlines,
-    loading: deadlinesQuery.isPending,
-    loadError: settingsLoadError || deadlinesQuery.isError,
+    loading:
+      enabled && (settingsLoading || (settings?.enabled === true && deadlinesQuery.isPending)),
+    loadError: enabled && (settingsLoadError || deadlinesQuery.isError),
   };
 }

@@ -11,15 +11,34 @@ import { CalendarPage } from './CalendarPage';
 const calendarMocks = vi.hoisted(() => ({
   monthGridProps: undefined as unknown,
   taxDeadlineModalProps: undefined as unknown,
+  dndContextProps: undefined as unknown,
+  eventEditorProps: undefined as unknown,
+  schedulablePanelMounted: false,
+  staffPanelMounted: false,
 }));
 
 vi.mock('../../model/useCalendarBoard', () => ({ useCalendarBoard: vi.fn() }));
 vi.mock('@/entities/tax-compliance', () => ({ useTaxComplianceCalendar: vi.fn() }));
 vi.mock('@/entities/workspace-member', () => ({ useWorkspaceAccess: vi.fn() }));
 vi.mock('@/shared/lib/theme-mode/ThemeModeProvider', () => ({ useThemeMode: vi.fn() }));
-vi.mock('../dnd/CalendarDndContext', () => ({ CalendarDndContext: ({ children }: { children: React.ReactNode }) => <>{children}</> }));
-vi.mock('../schedulable/SchedulablePanel', () => ({ SchedulablePanel: () => null }));
-vi.mock('../staff/StaffPanel', () => ({ StaffPanel: () => null }));
+vi.mock('../dnd/CalendarDndContext', () => ({
+  CalendarDndContext: (props: { children: React.ReactNode }) => {
+    calendarMocks.dndContextProps = props;
+    return <>{props.children}</>;
+  },
+}));
+vi.mock('../schedulable/SchedulablePanel', () => ({
+  SchedulablePanel: () => {
+    calendarMocks.schedulablePanelMounted = true;
+    return null;
+  },
+}));
+vi.mock('../staff/StaffPanel', () => ({
+  StaffPanel: () => {
+    calendarMocks.staffPanelMounted = true;
+    return null;
+  },
+}));
 vi.mock('../monthGrid/MonthGrid', () => ({
   MonthGrid: (props: unknown) => {
     calendarMocks.monthGridProps = props;
@@ -28,7 +47,12 @@ vi.mock('../monthGrid/MonthGrid', () => ({
 }));
 vi.mock('../weekGrid/WeekGrid', () => ({ WeekGrid: () => <div>semana</div> }));
 vi.mock('../conflicts/ConflictSummary', () => ({ ConflictSummary: () => null }));
-vi.mock('../eventEditor/EventEditorModal', () => ({ EventEditorModal: () => null }));
+vi.mock('../eventEditor/EventEditorModal', () => ({
+  EventEditorModal: (props: unknown) => {
+    calendarMocks.eventEditorProps = props;
+    return null;
+  },
+}));
 vi.mock('../taxDeadline/TaxDeadlineModal', () => ({
   TaxDeadlineModal: (props: unknown) => {
     calendarMocks.taxDeadlineModalProps = props;
@@ -67,6 +91,10 @@ describe('CalendarPage', () => {
   beforeEach(() => {
     calendarMocks.monthGridProps = undefined;
     calendarMocks.taxDeadlineModalProps = undefined;
+    calendarMocks.dndContextProps = undefined;
+    calendarMocks.eventEditorProps = undefined;
+    calendarMocks.schedulablePanelMounted = false;
+    calendarMocks.staffPanelMounted = false;
     vi.mocked(useThemeMode).mockReturnValue({ mode: 'light' } as never);
     vi.mocked(useWorkspaceAccess).mockReturnValue({ canAccess: () => true } as never);
     vi.mocked(useTaxComplianceCalendar).mockReturnValue({ deadlines: [], loadError: false } as never);
@@ -109,5 +137,89 @@ describe('CalendarPage', () => {
     expect(
       (calendarMocks.taxDeadlineModalProps as { deadline: TaxDeadlineDto | null }).deadline,
     ).toBe(deadline);
+  });
+
+  it('does not request or render project-dependent calendar data without Projects view', () => {
+    const grants = {
+      calendar: { view: true, edit: true },
+      projects: { view: false, edit: false },
+      staff: { view: false, edit: false },
+      equipment: { view: false, edit: false },
+    };
+    vi.mocked(useWorkspaceAccess).mockReturnValue({
+      canAccess: (module: keyof typeof grants, level: 'view' | 'edit') => grants[module][level],
+    } as never);
+    vi.mocked(useCalendarBoard).mockReturnValue({
+      ...board,
+      board: { events: [], conflicts: [], summary: { errorCount: 0, infoCount: 0, byKind: {} } },
+    } as never);
+
+    render(<CalendarPage />);
+
+    expect(useCalendarBoard).toHaveBeenCalledWith({
+      canViewCalendar: true,
+      canViewProjects: false,
+      canViewStaff: false,
+      canViewEquipment: false,
+    });
+    expect(useTaxComplianceCalendar).toHaveBeenCalledWith(
+      '2026-08-01',
+      expect.any(String),
+      false,
+    );
+    expect(calendarMocks.schedulablePanelMounted).toBe(false);
+    expect(calendarMocks.staffPanelMounted).toBe(false);
+    expect((calendarMocks.dndContextProps as { disabled: boolean }).disabled).toBe(true);
+  });
+
+  it('allows read-only calendar users to open an event without enabling edits', () => {
+    const grants = {
+      calendar: { view: true, edit: false },
+      projects: { view: true, edit: false },
+      staff: { view: false, edit: false },
+      equipment: { view: false, edit: false },
+    };
+    vi.mocked(useWorkspaceAccess).mockReturnValue({
+      canAccess: (module: keyof typeof grants, level: 'view' | 'edit') => grants[module][level],
+    } as never);
+    const event = {
+      id: 'event-1',
+      projectId: 'project-1',
+      title: 'Event',
+      notes: null,
+      startDate: '2026-08-01',
+      endDate: '2026-08-01',
+      project: {
+        id: 'project-1',
+        name: 'Project',
+        code: 'P-1',
+        image: null,
+        status: 'active',
+        startDate: null,
+        endDate: null,
+        color: null,
+      },
+      days: [{ date: '2026-08-01', startTime: null, endTime: null }],
+      staff: [],
+      equipment: [],
+    };
+    vi.mocked(useCalendarBoard).mockReturnValue({
+      ...board,
+      board: {
+        events: [event],
+        conflicts: [],
+        summary: { errorCount: 0, infoCount: 0, byKind: {} },
+      },
+    } as never);
+
+    render(<CalendarPage />);
+
+    const monthGridProps = calendarMocks.monthGridProps as {
+      onSelectEvent: (selected: typeof event) => void;
+    };
+    act(() => monthGridProps.onSelectEvent(event));
+
+    expect(calendarMocks.eventEditorProps).toMatchObject({ open: true, canEdit: false });
+    expect((calendarMocks.dndContextProps as { disabled: boolean }).disabled).toBe(true);
   });
 });

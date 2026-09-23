@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link, useNavigate, useRouterState } from '@tanstack/react-router';
+import { useQuery } from '@tanstack/react-query';
 import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography } from 'antd';
 import {
   CalendarOutlined,
@@ -15,12 +16,14 @@ import {
   TeamOutlined,
 } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import { useCompany, type Company } from '@/entities/company';
+import { companyQueries, type CompanyBrandingDto } from '@/entities/company';
 import { currentReleaseVersion } from '@/entities/release-note';
 import {
+  hasModuleAccess,
   memberInitials,
   useWorkspaceAccess,
   workspaceMemberAvatarUrl,
+  type WorkspaceModuleDto,
   type WorkspaceMemberDto,
 } from '@/entities/workspace-member';
 import { LAYOUT, SPACE } from '@/shared/config/theme';
@@ -40,6 +43,16 @@ type NavKey =
   | 'equipment'
   | 'staff';
 
+const navModule: Record<NavKey, WorkspaceModuleDto> = {
+  dashboard: 'dashboard',
+  companies: 'projects',
+  calendar: 'calendar',
+  documents: 'documents',
+  suppliers: 'suppliers',
+  equipment: 'equipment',
+  staff: 'staff',
+};
+
 function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/dashboard')) return 'dashboard';
   if (pathname.startsWith('/documents')) return 'documents';
@@ -51,7 +64,7 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   return undefined;
 }
 
-function CompanyBrand({ company, collapsed }: { company: Company; collapsed: boolean }) {
+function CompanyBrand({ company, collapsed }: { company: CompanyBrandingDto; collapsed: boolean }) {
   const source = company.logo || (collapsed ? iconUrl : logoUrl);
   const alt = company.logo ? company.name : 'Ledgerly';
 
@@ -86,7 +99,9 @@ export function AppSider({
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const selectedKey = getSelectedKey(pathname);
-  const { company } = useCompany();
+  const { data: company = { name: '', logo: null, brandColor: null } } = useQuery(
+    companyQueries.branding(),
+  );
   const collapseLabel = collapsed ? t('sider.expand') : t('sider.collapse');
   const { member } = useWorkspaceAccess();
   const profileLabel = member ? `${t('common.profile')}: ${member.name}` : t('common.profile');
@@ -143,6 +158,8 @@ export function AppSider({
       },
     ],
     [t, navigate],
+  ).filter((item) =>
+    member ? hasModuleAccess(member.role, member.permissions, navModule[item.key as NavKey], 'view') : false,
   );
 
   return (

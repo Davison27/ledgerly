@@ -13,11 +13,21 @@ interface EquipmentDetailModalProps {
   open: boolean;
   equipment: EquipmentDto | null;
   canEdit: boolean;
+  canViewDocuments: boolean;
+  canEditDocuments: boolean;
   onClose: () => void;
   onEdit: (equipment: EquipmentDto) => void;
 }
 
-export function EquipmentDetailModal({ open, equipment, canEdit, onClose, onEdit }: EquipmentDetailModalProps) {
+export function EquipmentDetailModal({
+  open,
+  equipment,
+  canEdit,
+  canViewDocuments,
+  canEditDocuments,
+  onClose,
+  onEdit,
+}: EquipmentDetailModalProps) {
   const { t } = useTranslation();
 
   if (!equipment) return null;
@@ -65,7 +75,11 @@ export function EquipmentDetailModal({ open, equipment, canEdit, onClose, onEdit
         </div>
       </div>
       {equipment.description && <div className={styles.description}><Text strong>{t('equipment.fields.description')}</Text><Paragraph>{equipment.description}</Paragraph></div>}
-      <EquipmentDocumentsManager equipmentId={equipment.id} canEdit={canEdit} />
+      <EquipmentDocumentsManager
+        equipmentId={equipment.id}
+        canView={canViewDocuments}
+        canEdit={canEditDocuments}
+      />
     </Modal>
   );
 }

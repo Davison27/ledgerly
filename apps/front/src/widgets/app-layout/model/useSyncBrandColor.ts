@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
-import { useCompany } from '@/entities/company';
+import { useQuery } from '@tanstack/react-query';
+import { companyQueries } from '@/entities/company';
 import { useBrandColor } from '@/shared/lib/brand-color/BrandColorProvider';
 
 export function useSyncBrandColor(): void {
-  const { company, isLoading } = useCompany();
+  const { data: company, isPending } = useQuery(companyQueries.branding());
   const { setBrandColor } = useBrandColor();
 
   useEffect(() => {
-    if (!isLoading) {
-      setBrandColor(company.brandColor);
+    if (!isPending && company) {
+      setBrandColor(company.brandColor ?? undefined);
     }
-  }, [company.brandColor, isLoading, setBrandColor]);
+  }, [company, isPending, setBrandColor]);
 }

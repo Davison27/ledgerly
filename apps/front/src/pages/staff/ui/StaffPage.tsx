@@ -78,6 +78,7 @@ export function StaffPage() {
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('staff', 'edit');
+  const canViewDocuments = canAccess('documents', 'view');
 
   const filteredStaffMembers = useMemo(() => {
     const query = search.trim().toLocaleLowerCase();
@@ -194,22 +195,27 @@ export function StaffPage() {
       render: (hireDate: string | null | undefined) =>
         hireDate ? <Numeric>{hireDate}</Numeric> : '—',
     },
-    {
+    ...(canViewDocuments ? [{
       title: t('staff.columns.documents'),
       dataIndex: 'documentStatus',
       key: 'documentStatus',
       width: 170,
-      sorter: (a, b) => DOCUMENT_STATUS_RANK[a.documentStatus] - DOCUMENT_STATUS_RANK[b.documentStatus],
-      render: (_: StaffDocumentExpiryStatusDto, record) => {
-        const label = record.documentStatus === 'none'
+      sorter: (a: StaffMemberSummaryDto, b: StaffMemberSummaryDto) =>
+        DOCUMENT_STATUS_RANK[a.documentStatus ?? 'none'] -
+        DOCUMENT_STATUS_RANK[b.documentStatus ?? 'none'],
+      render: (_: StaffDocumentExpiryStatusDto | undefined, record: StaffMemberSummaryDto) => {
+        const status = record.documentStatus;
+        if (!status || (status === 'none' && record.documentCount === undefined)) return '—';
+
+        const label = status === 'none'
           ? record.documentCount === 0
             ? 'noDocuments'
             : 'noExpiry'
-          : record.documentStatus;
+          : status;
 
         return (
           <Flex vertical gap={4} align="flex-start">
-            <SemanticTag tone={DOCUMENT_STATUS_TONE[record.documentStatus]}>
+            <SemanticTag tone={DOCUMENT_STATUS_TONE[status]}>
               {t(`staff.documentStatus.${label}`)}
             </SemanticTag>
             {record.earliestExpiryDate ? (
@@ -220,7 +226,7 @@ export function StaffPage() {
           </Flex>
         );
       },
-    },
+    }] : []),
     ...(canEdit ? [{
       title: t('staff.columns.actions'),
       key: 'actions',
@@ -329,13 +335,15 @@ export function StaffPage() {
         </>
       )}
 
-      <StaffMemberFormModal
-        open={isFormOpen}
-        staffMember={editingStaffMember}
-        onCancel={handleCancelForm}
-        onSubmit={handleSubmit}
-        submitting={submitting}
-      />
+      {canEdit && (
+        <StaffMemberFormModal
+          open={isFormOpen}
+          staffMember={editingStaffMember}
+          onCancel={handleCancelForm}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+        />
+      )}
     </PageContainer>
   );
 }

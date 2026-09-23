@@ -40,6 +40,7 @@ import {
 import { clientQueries } from '@/entities/client';
 import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
@@ -76,6 +77,9 @@ export function DocumentsPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const typeLabel = useTypeLabel();
+  const { canAccess } = useWorkspaceAccess();
+  const canViewProjects = canAccess('projects', 'view');
+  const canViewSuppliers = canAccess('suppliers', 'view');
 
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
@@ -100,13 +104,22 @@ export function DocumentsPage() {
     return () => clearTimeout(handle);
   }, [searchInput]);
 
-  const { data: clients = [] } = useQuery(clientQueries.list());
+  const { data: clients = [] } = useQuery({
+    ...clientQueries.list(),
+    enabled: canViewProjects,
+  });
   const {
     data: projects = [],
     isPending: projectsPending,
     isError: projectsError,
-  } = useQuery(clientId ? projectQueries.list(clientId) : projectQueries.list());
-  const { data: suppliers = [] } = useQuery(supplierQueries.list());
+  } = useQuery({
+    ...(clientId ? projectQueries.list(clientId) : projectQueries.list()),
+    enabled: canViewProjects,
+  });
+  const { data: suppliers = [] } = useQuery({
+    ...supplierQueries.list(),
+    enabled: canViewSuppliers,
+  });
   const activeProjects = projects.filter((project) => project.status !== 'archived');
   const activeSuppliers = suppliers.filter((supplier) => !supplier.archivedAt);
 
@@ -126,11 +139,11 @@ export function DocumentsPage() {
       dateTo: dateRange?.[1] ? dateRange[1].format('YYYY-MM-DD') : undefined,
       amountMin,
       amountMax,
-      clientId,
-      projectId,
-      supplierId,
+      clientId: canViewProjects ? clientId : undefined,
+      projectId: canViewProjects ? projectId : undefined,
+      supplierId: canViewSuppliers ? supplierId : undefined,
     }),
-    [search, type, status, direction, dateRange, amountMin, amountMax, clientId, projectId, supplierId],
+    [search, type, status, direction, dateRange, amountMin, amountMax, clientId, projectId, supplierId, canViewProjects, canViewSuppliers],
   );
 
   useEffect(() => {
@@ -166,9 +179,9 @@ export function DocumentsPage() {
     Boolean(dateRange?.[0] || dateRange?.[1]),
     amountMin !== undefined,
     amountMax !== undefined,
-    clientId !== undefined,
-    projectId !== undefined,
-    supplierId !== undefined,
+    canViewProjects && clientId !== undefined,
+    canViewProjects && projectId !== undefined,
+    canViewSuppliers && supplierId !== undefined,
   ].filter(Boolean).length;
 
   const chips: FilterChip[] = [];
@@ -219,21 +232,21 @@ export function DocumentsPage() {
       onClose: () => setAmountMax(undefined),
     });
   }
-  if (projectId) {
+  if (canViewProjects && projectId) {
     chips.push({
       key: 'project',
       label: projects.find((project) => project.id === projectId)?.name ?? projectId,
       onClose: () => setProjectId(undefined),
     });
   }
-  if (clientId) {
+  if (canViewProjects && clientId) {
     chips.push({
       key: 'client',
       label: clients.find((client) => client.id === clientId)?.name ?? clientId,
       onClose: () => setClientId(undefined),
     });
   }
-  if (supplierId) {
+  if (canViewSuppliers && supplierId) {
     chips.push({
       key: 'supplier',
       label: suppliers.find((supplier) => supplier.id === supplierId)?.name ?? supplierId,
@@ -292,13 +305,17 @@ export function DocumentsPage() {
   };
 
   const columns: TableColumnsType<DocumentListItemDto> = [
-    {
-      title: t('documents.columns.project'),
-      dataIndex: 'projectName',
-      key: 'projectName',
-      width: 180,
-      ellipsis: true,
-    },
+    ...(canViewProjects
+      ? [
+          {
+            title: t('documents.columns.project'),
+            dataIndex: 'projectName',
+            key: 'projectName',
+            width: 180,
+            ellipsis: true,
+          },
+        ]
+      : []),
     {
       title: t('documents.columns.name'),
       dataIndex: 'name',
@@ -376,17 +393,19 @@ export function DocumentsPage() {
               }}
             />
           </Tooltip>
-          <Tooltip title={t('projects.documents.detail.goToProject')}>
-            <Button
-              type="text"
-              icon={<ExportOutlined />}
-              aria-label={t('projects.documents.detail.goToProject')}
-              onClick={(event) => {
-                event.stopPropagation();
-                goToProject(record.projectId);
-              }}
-            />
-          </Tooltip>
+          {canViewProjects && (
+            <Tooltip title={t('projects.documents.detail.goToProject')}>
+              <Button
+                type="text"
+                icon={<ExportOutlined />}
+                aria-label={t('projects.documents.detail.goToProject')}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  goToProject(record.projectId);
+                }}
+              />
+            </Tooltip>
+          )}
         </Flex>
       ),
     },
@@ -464,43 +483,49 @@ export function DocumentsPage() {
                 min={0}
                 className={styles.advancedField}
               />
-              <Select
-                allowClear
-                showSearch
-                placeholder={t('documents.filters.allCompanies')}
-                aria-label={t('documents.filters.allCompanies')}
-                value={clientId}
-                onChange={setClientId}
-                filterOption={filterByLabel}
-                className={styles.advancedField}
-                options={clients.map((client) => ({
-                  value: client.id,
-                  label: client.archivedAt
-                    ? `${client.name} (${t('common.archivedTag')})`
-                    : client.name,
-                }))}
-              />
-              <Select
-                allowClear
-                showSearch
-                placeholder={t('documents.filters.allProjects')}
-                aria-label={t('documents.filters.allProjects')}
-                value={projectId}
-                onChange={setProjectId}
-                filterOption={filterByLabel}
-                className={styles.advancedField}
-                options={activeProjects.map((project) => ({ value: project.id, label: project.name }))}
-              />
-              <Select
-                allowClear
-                showSearch
-                placeholder={t('documents.filters.allSuppliers')}
-                value={supplierId}
-                onChange={setSupplierId}
-                filterOption={filterByLabel}
-                className={styles.advancedField}
-                options={activeSuppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
-              />
+              {canViewProjects && (
+                <>
+                  <Select
+                    allowClear
+                    showSearch
+                    placeholder={t('documents.filters.allCompanies')}
+                    aria-label={t('documents.filters.allCompanies')}
+                    value={clientId}
+                    onChange={setClientId}
+                    filterOption={filterByLabel}
+                    className={styles.advancedField}
+                    options={clients.map((client) => ({
+                      value: client.id,
+                      label: client.archivedAt
+                        ? `${client.name} (${t('common.archivedTag')})`
+                        : client.name,
+                    }))}
+                  />
+                  <Select
+                    allowClear
+                    showSearch
+                    placeholder={t('documents.filters.allProjects')}
+                    aria-label={t('documents.filters.allProjects')}
+                    value={projectId}
+                    onChange={setProjectId}
+                    filterOption={filterByLabel}
+                    className={styles.advancedField}
+                    options={activeProjects.map((project) => ({ value: project.id, label: project.name }))}
+                  />
+                </>
+              )}
+              {canViewSuppliers && (
+                <Select
+                  allowClear
+                  showSearch
+                  placeholder={t('documents.filters.allSuppliers')}
+                  value={supplierId}
+                  onChange={setSupplierId}
+                  filterOption={filterByLabel}
+                  className={styles.advancedField}
+                  options={activeSuppliers.map((supplier) => ({ value: supplier.id, label: supplier.name }))}
+                />
+              )}
             </Flex>
           }
         >

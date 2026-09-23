@@ -10,8 +10,40 @@ import {
   notificationTarget,
   type NotificationView,
 } from '@/entities/notification';
+import { useWorkspaceAccess, type WorkspaceModuleDto } from '@/entities/workspace-member';
 
 const PAGE_SIZE = 20;
+
+function notificationTargetModules(view: NotificationView): WorkspaceModuleDto[] {
+  switch (view.resource.kind) {
+    case 'document':
+      return view.resource.projectId ? ['documents', 'projects'] : ['documents'];
+    case 'staff_member':
+      return ['staff', 'documents'];
+    case 'schedule_event': {
+      const modules: WorkspaceModuleDto[] = ['calendar'];
+      if (view.resource.projectId) modules.push('projects');
+      if (view.context.conflictKind === 'staff_not_hired' || view.context.conflictKind === 'staff_overlap') {
+        modules.push('staff');
+      }
+      if (
+        view.context.conflictKind === 'equipment_overallocated' ||
+        view.context.conflictKind === 'equipment_stock_unset'
+      ) {
+        modules.push('equipment');
+      }
+      if (
+        view.context.conflictKind === 'outside_project_dates' ||
+        view.context.conflictKind === 'project_not_active'
+      ) {
+        modules.push('projects');
+      }
+      return modules;
+    }
+    case 'none':
+      return [];
+  }
+}
 
 export type NotificationOperation =
   | { kind: 'view'; view: NotificationView }
@@ -47,6 +79,14 @@ export function useNotificationCenter() {
   const failedOperationRef = useRef<NotificationOperation | null>(null);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { canAccess } = useWorkspaceAccess();
+
+  const canViewTarget = useCallback(
+    (view: NotificationView) =>
+      Boolean(notificationTarget(view)) &&
+      notificationTargetModules(view).every((module) => canAccess(module, 'view')),
+    [canAccess],
+  );
 
   const { data: unreadCount = 0 } = useQuery({
     ...notificationQueries.unreadCount(),
@@ -78,6 +118,8 @@ export function useNotificationCenter() {
 
   const navigateToTarget = useCallback(
     async (view: NotificationView) => {
+      if (!canViewTarget(view)) return;
+
       const target = notificationTarget(view);
       if (target?.kind === 'project') {
         await navigate({ to: '/projects/$projectId', params: { projectId: target.projectId } });
@@ -87,7 +129,7 @@ export function useNotificationCenter() {
         await navigate({ to: '/calendar' });
       }
     },
-    [navigate],
+    [canViewTarget, navigate],
   );
 
   const performOperation = useCallback(
@@ -136,7 +178,7 @@ export function useNotificationCenter() {
 
   const onView = useCallback(
     async (view: NotificationView) => {
-      if (!notificationTarget(view) || activeOperationRef.current) return;
+      if (!canViewTarget(view) || activeOperationRef.current) return;
 
       if (view.readAt) {
         setOpen(false);
@@ -153,7 +195,7 @@ export function useNotificationCenter() {
       setOpen(false);
       void navigateToTarget(view);
     },
-    [executeOperation, navigateToTarget],
+    [canViewTarget, executeOperation, navigateToTarget],
   );
 
   const onMarkRead = useCallback(
@@ -183,9 +225,9 @@ export function useNotificationCenter() {
 
     if (operation.kind === 'view') {
       setOpen(false);
-      void navigateToTarget(operation.view);
+      if (canViewTarget(operation.view)) void navigateToTarget(operation.view);
     }
-  }, [executeOperation, navigateToTarget]);
+  }, [canViewTarget, executeOperation, navigateToTarget]);
 
   const clearMutationFeedback = useCallback(() => {
     failedOperationRef.current = null;
@@ -227,6 +269,7 @@ export function useNotificationCenter() {
     activeOperation,
     mutationError,
     onView,
+    canViewTarget,
     onMarkRead,
     onMarkAllRead,
     onResolve,

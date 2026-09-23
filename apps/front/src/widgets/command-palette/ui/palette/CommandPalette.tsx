@@ -16,6 +16,7 @@ import { useTranslation } from 'react-i18next';
 import { documentQueries } from '@/entities/document';
 import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
+import { useWorkspaceAccess, type WorkspaceModuleDto } from '@/entities/workspace-member';
 import typography from '@/shared/ui/typography.module.css';
 import styles from './CommandPalette.module.css';
 
@@ -61,6 +62,7 @@ interface CommandPaletteProps {
 export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { canAccess } = useWorkspaceAccess();
 
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -85,11 +87,22 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
     setActiveIndex(0);
   }, [debouncedQuery]);
 
-  const { data: projects = [] } = useQuery({ ...projectQueries.list(), enabled: open });
-  const { data: suppliers = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
+  const canViewProjects = canAccess('projects', 'view');
+  const canViewSuppliers = canAccess('suppliers', 'view');
+  const canViewDocuments = canAccess('documents', 'view');
+  const canSearchDocuments = canViewProjects && canViewDocuments;
+
+  const { data: projects = [] } = useQuery({
+    ...projectQueries.list(),
+    enabled: open && canViewProjects,
+  });
+  const { data: suppliers = [] } = useQuery({
+    ...supplierQueries.list(),
+    enabled: open && canViewSuppliers,
+  });
   const { data: documents = [] } = useQuery({
     ...documentQueries.list({ search: debouncedQuery }),
-    enabled: open && Boolean(debouncedQuery),
+    enabled: open && Boolean(debouncedQuery) && canSearchDocuments,
   });
 
   const handleSelect = (item: PaletteItem) => {
@@ -98,10 +111,13 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   };
 
   const groups = useMemo<PaletteGroup[]>(() => {
-    const navItemsRaw: Array<Omit<PaletteItem, 'category'> & { category: 'nav' }> = [
+    const navItemsRaw: Array<
+      Omit<PaletteItem, 'category'> & { category: 'nav'; module: WorkspaceModuleDto }
+    > = [
       {
         key: 'nav-dashboard',
         category: 'nav',
+        module: 'dashboard',
         icon: <DashboardOutlined />,
         label: t('nav.dashboard'),
         onSelect: () => void navigate({ to: '/dashboard' }),
@@ -109,6 +125,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       {
         key: 'nav-companies',
         category: 'nav',
+        module: 'projects',
         icon: <ProjectOutlined />,
         label: t('nav.companies'),
         onSelect: () => void navigate({ to: '/companies' }),
@@ -116,6 +133,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       {
         key: 'nav-calendar',
         category: 'nav',
+        module: 'calendar',
         icon: <CalendarOutlined />,
         label: t('nav.calendar'),
         onSelect: () => void navigate({ to: '/calendar' }),
@@ -123,6 +141,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       {
         key: 'nav-documents',
         category: 'nav',
+        module: 'documents',
         icon: <FileTextOutlined />,
         label: t('nav.documents'),
         onSelect: () => void navigate({ to: '/documents' }),
@@ -130,6 +149,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       {
         key: 'nav-suppliers',
         category: 'nav',
+        module: 'suppliers',
         icon: <TeamOutlined />,
         label: t('nav.suppliers'),
         onSelect: () => void navigate({ to: '/suppliers' }),
@@ -137,6 +157,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       {
         key: 'nav-equipment',
         category: 'nav',
+        module: 'equipment',
         icon: <ToolOutlined />,
         label: t('nav.equipment'),
         onSelect: () => void navigate({ to: '/equipment' }),
@@ -144,55 +165,69 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       {
         key: 'nav-staff',
         category: 'nav',
+        module: 'staff',
         icon: <IdcardOutlined />,
         label: t('nav.staff'),
         onSelect: () => void navigate({ to: '/staff' }),
       },
     ];
     const navItems: PaletteItem[] = navItemsRaw.filter(
-      (item) => !debouncedQuery || matches(item.label, debouncedQuery),
+      (item) =>
+        canAccess(item.module, 'view') &&
+        (!debouncedQuery || matches(item.label, debouncedQuery)),
     );
 
-    const projectItems: PaletteItem[] = debouncedQuery
-      ? projects
-          .filter((project) => matches(project.name, debouncedQuery) || matches(project.code, debouncedQuery))
-          .slice(0, MAX_RESULTS_PER_GROUP)
-          .map((project) => ({
-            key: `project-${project.id}`,
-            category: 'projects',
-            icon: <ProjectOutlined />,
-            label: project.name,
-            description: project.code,
-            onSelect: () =>
-              void navigate({ to: '/projects/$projectId', params: { projectId: project.id } }),
-          }))
-      : [];
+    const projectItems: PaletteItem[] =
+      canViewProjects && debouncedQuery
+        ? projects
+            .filter(
+              (project) =>
+                matches(project.name, debouncedQuery) || matches(project.code, debouncedQuery),
+            )
+            .slice(0, MAX_RESULTS_PER_GROUP)
+            .map((project) => ({
+              key: `project-${project.id}`,
+              category: 'projects',
+              icon: <ProjectOutlined />,
+              label: project.name,
+              description: project.code,
+              onSelect: () =>
+                void navigate({ to: '/projects/$projectId', params: { projectId: project.id } }),
+            }))
+        : [];
 
-    const supplierItems: PaletteItem[] = debouncedQuery
-      ? suppliers
-          .filter((supplier) => matches(supplier.name, debouncedQuery) || matches(supplier.taxId, debouncedQuery))
-          .slice(0, MAX_RESULTS_PER_GROUP)
-          .map((supplier) => ({
-            key: `supplier-${supplier.id}`,
-            category: 'suppliers',
-            icon: <TeamOutlined />,
-            label: supplier.name,
-            description: supplier.taxId ?? undefined,
-            onSelect: () => void navigate({ to: '/suppliers' }),
-          }))
-      : [];
+    const supplierItems: PaletteItem[] =
+      canViewSuppliers && debouncedQuery
+        ? suppliers
+            .filter(
+              (supplier) =>
+                matches(supplier.name, debouncedQuery) || matches(supplier.taxId, debouncedQuery),
+            )
+            .slice(0, MAX_RESULTS_PER_GROUP)
+            .map((supplier) => ({
+              key: `supplier-${supplier.id}`,
+              category: 'suppliers',
+              icon: <TeamOutlined />,
+              label: supplier.name,
+              description: supplier.taxId ?? undefined,
+              onSelect: () => void navigate({ to: '/suppliers' }),
+            }))
+        : [];
 
-    const documentItems: PaletteItem[] = documents.slice(0, MAX_RESULTS_PER_GROUP).map((doc) => ({
-      key: `document-${doc.id}`,
-      category: 'documents',
-      icon: <FileTextOutlined />,
-      label: doc.name,
-      description: t('commandPalette.documentMeta', {
-        project: doc.projectName,
-        amount: formatAmount(doc.amount, doc.currency),
-      }),
-      onSelect: () => void navigate({ to: '/documents' }),
-    }));
+    const documentItems: PaletteItem[] =
+      canSearchDocuments
+        ? documents.slice(0, MAX_RESULTS_PER_GROUP).map((doc) => ({
+            key: `document-${doc.id}`,
+            category: 'documents',
+            icon: <FileTextOutlined />,
+            label: doc.name,
+            description: t('commandPalette.documentMeta', {
+              project: doc.projectName,
+              amount: formatAmount(doc.amount, doc.currency),
+            }),
+            onSelect: () => void navigate({ to: '/documents' }),
+          }))
+        : [];
 
     const rawGroups: PaletteGroup[] = [
       { id: 'nav', title: t('commandPalette.groups.goTo'), items: navItems },
@@ -201,7 +236,18 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
       { id: 'documents', title: t('commandPalette.groups.documents'), items: documentItems },
     ];
     return rawGroups.filter((group) => group.items.length > 0);
-  }, [t, navigate, debouncedQuery, projects, suppliers, documents]);
+  }, [
+    t,
+    navigate,
+    canAccess,
+    canSearchDocuments,
+    canViewProjects,
+    canViewSuppliers,
+    debouncedQuery,
+    projects,
+    suppliers,
+    documents,
+  ]);
 
   const flatItems = useMemo(() => groups.flatMap((group) => group.items), [groups]);
 

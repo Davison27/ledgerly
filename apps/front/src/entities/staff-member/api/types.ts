@@ -25,9 +25,9 @@ export interface StaffMemberUnarchiveOutcomeDto {
 export type StaffDocumentExpiryStatusDto = 'valid' | 'expiring' | 'expired' | 'none';
 
 export interface StaffMemberSummaryDto extends StaffMemberDto {
-  documentCount: number;
-  documentStatus: StaffDocumentExpiryStatusDto;
-  earliestExpiryDate: string | null;
+  documentCount?: number;
+  documentStatus?: StaffDocumentExpiryStatusDto;
+  earliestExpiryDate?: string | null;
 }
 
 export interface CreateStaffMemberPayload {

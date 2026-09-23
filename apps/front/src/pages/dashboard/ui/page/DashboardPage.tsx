@@ -9,7 +9,8 @@ import {
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
-import { useCompany } from '@/entities/company';
+import { companyQueries } from '@/entities/company';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
@@ -54,8 +55,12 @@ function SkeletonCard({ rows = 3 }: { rows?: number }) {
 export function DashboardPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { company } = useCompany();
+  const { canAccess } = useWorkspaceAccess();
   const { token } = useToken();
+  const { data: branding } = useQuery(companyQueries.branding());
+
+  const canViewProjects = canAccess('projects', 'view');
+  const canViewSchedule = canViewProjects && canAccess('calendar', 'view');
 
   const [year, setYear] = useState<number | undefined>(undefined);
   const {
@@ -66,7 +71,7 @@ export function DashboardPage() {
 
   const tips = useMemo(() => (data ? deriveTips(data) : []), [data]);
 
-  const greetingName = company.name?.trim() || t('common.appName');
+  const greetingName = branding?.name?.trim() || t('common.appName');
   const greetingPeriod = useMemo(() => resolveGreetingPeriod(), []);
   const isEmpty = !!data && (data.projectCount === 0 || data.totalDocuments === 0);
   const selectedYear = year ?? data?.year;
@@ -166,9 +171,11 @@ export function DashboardPage() {
                 </Flex>
               }
             >
-              <Button type="primary" onClick={() => void navigate({ to: '/companies' })}>
-                {t('dashboard.empty.cta')}
-              </Button>
+              {canViewProjects && (
+                <Button type="primary" onClick={() => void navigate({ to: '/companies' })}>
+                  {t('dashboard.empty.cta')}
+                </Button>
+              )}
             </Empty>
           </Card>
 
@@ -201,7 +208,7 @@ export function DashboardPage() {
             <div className={styles.tripleGrid}>
               <TopProjectsCard topProjects={data.topProjects} />
               <TopIssuers topIssuers={data.topIssuers} />
-              <UpcomingScheduleCard />
+              {canViewSchedule && <UpcomingScheduleCard />}
             </div>
           </Flex>
 

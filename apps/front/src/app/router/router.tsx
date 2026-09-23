@@ -1,12 +1,13 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType } from 'react';
-import { createRootRoute, createRoute, createRouter, Navigate } from '@tanstack/react-router';
-import { Flex, Spin } from 'antd';
+import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { createRootRoute, createRoute, createRouter, Link, Navigate, useParams, useSearch } from '@tanstack/react-router';
+import { Flex, Result, Spin } from 'antd';
 import { useTranslation } from 'react-i18next';
 
 import { AppShell } from './AppShell';
 import { RootLayout } from './RootLayout';
 import styles from './router.module.css';
 import { SessionGuard } from '@/widgets/app-layout';
+import { useWorkspaceAccess, type WorkspaceModuleDto } from '@/entities/workspace-member';
 import { LoginPage } from '@/pages/login';
 import { OnboardingPage } from '@/pages/onboarding';
 import type { ProjectDetailSection } from '@/pages/project-detail';
@@ -44,6 +45,168 @@ export function RouteFallback() {
         <span>{t('common.loadingPage')}</span>
       </Flex>
     </Flex>
+  );
+}
+
+type HomeRoute =
+  | '/dashboard'
+  | '/companies'
+  | '/calendar'
+  | '/documents'
+  | '/suppliers'
+  | '/equipment'
+  | '/staff';
+
+function getHomeRoute(
+  canAccess: (module: WorkspaceModuleDto, level: 'view') => boolean,
+): HomeRoute | null {
+  if (canAccess('dashboard', 'view')) return '/dashboard';
+  if (canAccess('projects', 'view')) return '/companies';
+  if (canAccess('calendar', 'view')) return '/calendar';
+  if (canAccess('documents', 'view')) return '/documents';
+  if (canAccess('suppliers', 'view')) return '/suppliers';
+  if (canAccess('equipment', 'view')) return '/equipment';
+  if (canAccess('staff', 'view')) return '/staff';
+  return null;
+}
+
+export function findAccessibleNestedSection<Section extends string>(
+  selected: Section,
+  requirements: Readonly<Record<Section, readonly WorkspaceModuleDto[]>>,
+  order: readonly Section[],
+  canAccess: (module: WorkspaceModuleDto, level: 'view') => boolean,
+): Section | null {
+  const hasAccess = (section: Section) => requirements[section].every((module) => canAccess(module, 'view'));
+  return hasAccess(selected) ? selected : order.find(hasAccess) ?? null;
+}
+
+function NoSectionsState() {
+  const { t } = useTranslation();
+
+  return (
+    <Result
+      status="403"
+      title={t('access.noSections.title')}
+      subTitle={t('access.noSections.description')}
+    />
+  );
+}
+
+function AccessDeniedState() {
+  const { t } = useTranslation();
+  const { canAccess, isPending } = useWorkspaceAccess();
+  const destination = getHomeRoute(canAccess);
+
+  if (isPending) return <RouteFallback />;
+  if (!destination) return <NoSectionsState />;
+  return (
+    <Result
+      status="403"
+      title={t('access.denied.title')}
+      subTitle={t('access.denied.description')}
+      extra={<Link to={destination}>{t('access.denied.action')}</Link>}
+    />
+  );
+}
+
+function SectionAccessGuard({
+  modules,
+  children,
+}: {
+  modules: readonly WorkspaceModuleDto[];
+  children: ReactNode;
+}) {
+  const { canAccess, isPending } = useWorkspaceAccess();
+
+  if (isPending) return <RouteFallback />;
+  if (modules.every((module) => canAccess(module, 'view'))) return <>{children}</>;
+  return <AccessDeniedState />;
+}
+
+function AdminAccessGuard({ children }: { children: ReactNode }) {
+  const { isAdmin, isPending } = useWorkspaceAccess();
+
+  if (isPending) return <RouteFallback />;
+  if (isAdmin) return <>{children}</>;
+  return <AccessDeniedState />;
+}
+
+export const projectSectionModules: Record<ProjectDetailSection, readonly WorkspaceModuleDto[]> = {
+  documents: ['projects', 'documents'],
+  equipment: ['projects', 'equipment'],
+  dashboard: ['projects', 'dashboard'],
+  schedule: ['projects', 'calendar'],
+  settings: ['projects'],
+};
+
+const projectSectionOrder: readonly ProjectDetailSection[] = [
+  'documents',
+  'equipment',
+  'dashboard',
+  'schedule',
+  'settings',
+];
+
+function ProjectDetailAccessGuard() {
+  const { canAccess, isPending } = useWorkspaceAccess();
+  const { projectId } = useParams({ strict: false }) as { projectId: string };
+  const search = useSearch({ strict: false }) as { section?: ProjectDetailSection };
+  const section = search.section ?? 'documents';
+
+  if (isPending) return <RouteFallback />;
+  if (!canAccess('projects', 'view')) return <AccessDeniedState />;
+  const availableSection = findAccessibleNestedSection(
+    section,
+    projectSectionModules,
+    projectSectionOrder,
+    canAccess,
+  );
+
+  if (!availableSection) return <AccessDeniedState />;
+  if (availableSection === section) return <ProjectDetailPage />;
+  return (
+    <Navigate
+      to="/projects/$projectId"
+      params={{ projectId }}
+      search={{ section: availableSection }}
+      replace
+    />
+  );
+}
+
+export const staffSectionModules = {
+  documents: ['staff', 'documents'],
+  payrolls: ['staff', 'documents'],
+  schedule: ['staff', 'calendar', 'projects'],
+  profile: ['staff'],
+} as const satisfies Record<StaffDetailSection, readonly WorkspaceModuleDto[]>;
+
+const staffSectionOrder: readonly StaffDetailSection[] = ['documents', 'payrolls', 'schedule', 'profile'];
+
+function StaffDetailAccessGuard() {
+  const { canAccess, isPending } = useWorkspaceAccess();
+  const { staffMemberId } = useParams({ strict: false }) as { staffMemberId: string };
+  const search = useSearch({ strict: false }) as { section?: StaffDetailSection };
+  const section = search.section ?? 'documents';
+
+  if (isPending) return <RouteFallback />;
+  if (!canAccess('staff', 'view')) return <AccessDeniedState />;
+  const availableSection = findAccessibleNestedSection(
+    section,
+    staffSectionModules,
+    staffSectionOrder,
+    canAccess,
+  );
+
+  if (!availableSection) return <AccessDeniedState />;
+  if (availableSection === section) return <StaffMemberDetailPage />;
+  return (
+    <Navigate
+      to="/staff/$staffMemberId"
+      params={{ staffMemberId }}
+      search={{ section: availableSection }}
+      replace
+    />
   );
 }
 
@@ -89,7 +252,9 @@ const onboardingRoute = createRoute({
   path: '/onboarding',
   component: () => (
     <SessionGuard>
-      <OnboardingPage />
+      <AdminAccessGuard>
+        <OnboardingPage />
+      </AdminAccessGuard>
     </SessionGuard>
   ),
 });
@@ -107,19 +272,19 @@ const appLayoutRoute = createRoute({
 const dashboardRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/dashboard',
-  component: DashboardPage,
+  component: () => <SectionAccessGuard modules={['dashboard']}><DashboardPage /></SectionAccessGuard>,
 });
 
 const companiesRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/companies',
-  component: CompaniesPage,
+  component: () => <SectionAccessGuard modules={['projects']}><CompaniesPage /></SectionAccessGuard>,
 });
 
 const companyProjectsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/companies/$clientId/projects',
-  component: ProjectsPage,
+  component: () => <SectionAccessGuard modules={['projects']}><ProjectsPage /></SectionAccessGuard>,
 });
 
 const projectsRoute = createRoute({
@@ -140,13 +305,13 @@ const projectDetailRoute = createRoute({
         ? search.section
         : undefined,
   }),
-  component: ProjectDetailPage,
+  component: ProjectDetailAccessGuard,
 });
 
 const calendarRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/calendar',
-  component: CalendarPage,
+  component: () => <SectionAccessGuard modules={['calendar']}><CalendarPage /></SectionAccessGuard>,
 });
 
 const documentsRoute = createRoute({
@@ -155,31 +320,31 @@ const documentsRoute = createRoute({
   validateSearch: (search: Record<string, unknown>): { supplierId?: string } => ({
     supplierId: typeof search.supplierId === 'string' ? search.supplierId : undefined,
   }),
-  component: DocumentsPage,
+  component: () => <SectionAccessGuard modules={['documents']}><DocumentsPage /></SectionAccessGuard>,
 });
 
 const extractionHintsRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/extraction-hints',
-  component: ExtractionHintsPage,
+  component: () => <SectionAccessGuard modules={['documents']}><ExtractionHintsPage /></SectionAccessGuard>,
 });
 
 const suppliersRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/suppliers',
-  component: SuppliersPage,
+  component: () => <SectionAccessGuard modules={['suppliers']}><SuppliersPage /></SectionAccessGuard>,
 });
 
 const equipmentRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/equipment',
-  component: EquipmentPage,
+  component: () => <SectionAccessGuard modules={['equipment']}><EquipmentPage /></SectionAccessGuard>,
 });
 
 const staffRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/staff',
-  component: StaffPage,
+  component: () => <SectionAccessGuard modules={['staff']}><StaffPage /></SectionAccessGuard>,
 });
 
 const staffMemberDetailRoute = createRoute({
@@ -187,9 +352,14 @@ const staffMemberDetailRoute = createRoute({
   path: '/staff/$staffMemberId',
   validateSearch: (search: Record<string, unknown>): { section?: StaffDetailSection } => ({
     section:
-      search.section === 'payrolls' || search.section === 'schedule' ? search.section : undefined,
+      search.section === 'documents' ||
+      search.section === 'payrolls' ||
+      search.section === 'schedule' ||
+      search.section === 'profile'
+        ? search.section
+        : undefined,
   }),
-  component: StaffMemberDetailPage,
+  component: StaffDetailAccessGuard,
 });
 
 const workspaceRoute = createRoute({
@@ -201,7 +371,7 @@ const workspaceRoute = createRoute({
         ? search.tab
         : 'company',
   }),
-  component: WorkspacePage,
+  component: () => <AdminAccessGuard><WorkspacePage /></AdminAccessGuard>,
 });
 
 const changelogRoute = createRoute({

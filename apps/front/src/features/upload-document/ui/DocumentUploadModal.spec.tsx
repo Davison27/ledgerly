@@ -12,6 +12,8 @@ const mocks = vi.hoisted(() => ({
   createDocument: vi.fn(),
   extractInvoice: vi.fn(),
   createSupplier: vi.fn(),
+  listSuppliers: vi.fn(async () => []),
+  canAccess: vi.fn((module: string, level: string) => module.length > 0 && level.length > 0),
 }));
 
 vi.mock('@/entities/document', async (importOriginal) => ({
@@ -38,8 +40,12 @@ vi.mock('@/entities/supplier', () => ({
   createSupplier: mocks.createSupplier,
   supplierQueries: {
     all: ['suppliers'],
-    list: () => ({ queryKey: ['suppliers'], queryFn: async () => [] }),
+    list: () => ({ queryKey: ['suppliers'], queryFn: mocks.listSuppliers }),
   },
+}));
+
+vi.mock('@/entities/workspace-member', () => ({
+  useWorkspaceAccess: () => ({ canAccess: mocks.canAccess }),
 }));
 
 interface Deferred<T> {
@@ -143,6 +149,10 @@ describe('DocumentUploadModal', () => {
   beforeEach(() => {
     mocks.createDocument.mockReset();
     mocks.extractInvoice.mockReset();
+    mocks.createSupplier.mockReset();
+    mocks.listSuppliers.mockReset();
+    mocks.canAccess.mockReset();
+    mocks.canAccess.mockReturnValue(true);
     const getComputedStyle = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => getComputedStyle(element));
   });
@@ -217,6 +227,63 @@ describe('DocumentUploadModal', () => {
       expect(mocks.createDocument).toHaveBeenCalledWith(
         'project-1',
         expect.objectContaining({ type: 'invoice' }),
+        expect.any(File),
+      );
+    });
+  });
+
+  it('does not load or expose supplier choices without Suppliers view', () => {
+    mocks.canAccess.mockImplementation((module: string) => module !== 'suppliers');
+
+    renderModal();
+
+    expect(mocks.listSuppliers).not.toHaveBeenCalled();
+    expect(screen.queryByText('Busca un proveedor por nombre o CIF/NIF...')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '+ Crear proveedor' })).not.toBeInTheDocument();
+  });
+
+  it('allows supplier association without Suppliers edit', async () => {
+    mocks.canAccess.mockImplementation(
+      (module: string, level: string) => module !== 'suppliers' || level === 'view',
+    );
+
+    renderModal();
+
+    const supplierPlaceholder = await screen.findByText('Busca un proveedor por nombre o CIF/NIF...');
+    expect(mocks.listSuppliers).toHaveBeenCalledOnce();
+    expect(supplierPlaceholder.closest('.ant-select')).not.toHaveClass('ant-select-disabled');
+    expect(screen.queryByRole('button', { name: '+ Crear proveedor' })).not.toBeInTheDocument();
+  });
+
+  it('auto-associates an extracted supplier with Suppliers view', async () => {
+    const user = userEvent.setup();
+    mocks.canAccess.mockImplementation(
+      (module: string, level: string) => module !== 'suppliers' || level === 'view',
+    );
+    mocks.listSuppliers.mockResolvedValue([
+      { id: 'supplier-1', name: 'Known supplier', taxId: 'TAX-1', archivedAt: null },
+    ] as never);
+    mocks.extractInvoice.mockResolvedValue({
+      ...extractionResult,
+      fields: {
+        ...extractionResult.fields,
+        issuerName: 'Known supplier',
+        issuerTaxId: 'TAX-1',
+      },
+    });
+    mocks.createDocument.mockResolvedValue({});
+    renderModal();
+
+    selectPdf();
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Listo para revisar');
+    });
+    await user.click(screen.getByRole('button', { name: 'Crear documento' }));
+
+    await waitFor(() => {
+      expect(mocks.createDocument).toHaveBeenCalledWith(
+        'project-1',
+        expect.objectContaining({ supplierId: 'supplier-1' }),
         expect.any(File),
       );
     });

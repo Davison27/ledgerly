@@ -7,7 +7,7 @@ export function AddStaffDocumentButton() {
   const { t } = useTranslation();
   const { canAccess } = useWorkspaceAccess();
 
-  if (!canAccess('staff', 'edit')) {
+  if (!canAccess('staff', 'edit') || !canAccess('documents', 'edit')) {
     return null;
   }
 

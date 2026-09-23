@@ -43,6 +43,7 @@ const { Dragger } = Upload;
 
 interface EquipmentDocumentsManagerProps {
   equipmentId: string;
+  canView: boolean;
   canEdit: boolean;
 }
 
@@ -63,7 +64,7 @@ function formatFileSize(size: number): string {
   return `${(size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-export function EquipmentDocumentsManager({ equipmentId, canEdit }: EquipmentDocumentsManagerProps) {
+export function EquipmentDocumentsManager({ equipmentId, canView, canEdit }: EquipmentDocumentsManagerProps) {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
@@ -73,9 +74,10 @@ export function EquipmentDocumentsManager({ equipmentId, canEdit }: EquipmentDoc
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const { data: documents = [], isPending, isError, refetch } = useQuery(
-    equipmentDocumentQueries.list(equipmentId),
-  );
+  const { data: documents = [], isPending, isError, refetch } = useQuery({
+    ...equipmentDocumentQueries.list(equipmentId),
+    enabled: canView,
+  });
 
   useEffect(() => {
     if (!uploadOpen && !editingDocument) return;
@@ -170,6 +172,8 @@ export function EquipmentDocumentsManager({ equipmentId, canEdit }: EquipmentDoc
     }
   };
 
+  if (!canView) return null;
+
   return (
     <section className={styles.section}>
       <Flex align="center" justify="space-between" gap={12} wrap>
@@ -259,18 +263,19 @@ export function EquipmentDocumentsManager({ equipmentId, canEdit }: EquipmentDoc
         />
       )}
 
-      <Modal
-        open={uploadOpen || editingDocument !== null}
-        title={t(editingDocument ? 'equipment.documents.form.editTitle' : 'equipment.documents.form.createTitle')}
-        okText={t('common.save')}
-        cancelText={t('common.cancel')}
-        confirmLoading={submitting}
-        onOk={() => void saveDocument()}
-        onCancel={closeForm}
-        destroyOnHidden
-        centered
-      >
-        <Form<EquipmentDocumentFormValues> form={form} layout="vertical" requiredMark={false}>
+      {canEdit && (
+        <Modal
+          open={uploadOpen || editingDocument !== null}
+          title={t(editingDocument ? 'equipment.documents.form.editTitle' : 'equipment.documents.form.createTitle')}
+          okText={t('common.save')}
+          cancelText={t('common.cancel')}
+          confirmLoading={submitting}
+          onOk={() => void saveDocument()}
+          onCancel={closeForm}
+          destroyOnHidden
+          centered
+        >
+          <Form<EquipmentDocumentFormValues> form={form} layout="vertical" requiredMark={false}>
           <Form.Item name="name" label={t('equipment.documents.form.name')}>
             <Input placeholder={t('equipment.documents.form.namePlaceholder')} />
           </Form.Item>
@@ -302,8 +307,9 @@ export function EquipmentDocumentsManager({ equipmentId, canEdit }: EquipmentDoc
               </Dragger>
             </Form.Item>
           )}
-        </Form>
-      </Modal>
+          </Form>
+        </Modal>
+      )}
     </section>
   );
 }

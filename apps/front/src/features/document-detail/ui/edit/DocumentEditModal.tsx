@@ -31,6 +31,7 @@ import {
 } from '@/entities/document';
 import { projectQueries } from '@/entities/project';
 import { supplierQueries } from '@/entities/supplier';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { SPACE } from '@/shared/config/theme';
 import styles from './DocumentEditModal.module.css';
 
@@ -78,8 +79,15 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
   const queryClient = useQueryClient();
   const [form] = Form.useForm<DocumentEditFormFields>();
   const [submitting, setSubmitting] = useState(false);
+  const { canAccess } = useWorkspaceAccess();
+  const canEdit = canAccess('projects', 'edit') && canAccess('documents', 'edit');
+  const canViewSuppliers = canAccess('suppliers', 'view');
+  const canAssociateSupplier = canEdit && canViewSuppliers;
 
-  const { data: suppliersData = [] } = useQuery({ ...supplierQueries.list(), enabled: open });
+  const { data: suppliersData = [] } = useQuery({
+    ...supplierQueries.list(),
+    enabled: open && canAssociateSupplier,
+  });
   const suppliers = suppliersData.filter((supplier) => !supplier.archivedAt);
   const [supplierId, setSupplierId] = useState<string | null>(null);
 
@@ -109,6 +117,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
   }, [open, document, form]);
 
   const handleSelectSupplier = (value: string | undefined) => {
+    if (!canAssociateSupplier) return;
     setSupplierId(value ?? null);
     if (!value) return;
     const supplier = suppliers.find((candidate) => candidate.id === value);
@@ -138,7 +147,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
       AMOUNT_MISMATCH_TOLERANCE;
 
   const handleOk = () => {
-    if (!document) return;
+    if (!canEdit || !document) return;
 
     form
       .validateFields()
@@ -160,7 +169,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           issuerName: blankToNull(values.issuerName),
           issuerTaxId: blankToNull(values.issuerTaxId),
           invoiceNumber: blankToNull(values.invoiceNumber),
-          supplierId,
+          ...(canAssociateSupplier ? { supplierId } : {}),
         };
 
         setSubmitting(true);
@@ -178,6 +187,8 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
       })
       .catch(() => {});
   };
+
+  if (!canEdit) return null;
 
   return (
     <Modal
@@ -212,6 +223,7 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
           layout="vertical"
           size="small"
           requiredMark={false}
+          disabled={!canEdit}
         >
           <Text strong className={styles.sectionLabel}>
             {t('projects.documents.upload.sections.document')}
@@ -292,25 +304,28 @@ export function DocumentEditModal({ open, document, onCancel, onUpdated }: Docum
             {t('projects.documents.upload.sections.supplier')}
           </Text>
           <Row gutter={12} className={styles.sectionRow} align="top">
-            <Col xs={24} md={8}>
-              <Form.Item label={t('projects.documents.upload.supplier.label')}>
-                <Select
-                  showSearch
-                  allowClear
-                  value={supplierId ?? undefined}
-                  onChange={handleSelectSupplier}
-                  onClear={() => handleSelectSupplier(undefined)}
-                  placeholder={t('projects.documents.upload.supplier.placeholder')}
-                  filterOption={(input, option) =>
-                    (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                  }
-                  options={suppliers.map((supplier) => ({
-                    value: supplier.id,
-                    label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
-                  }))}
-                />
-              </Form.Item>
-            </Col>
+            {canViewSuppliers && (
+              <Col xs={24} md={8}>
+                <Form.Item label={t('projects.documents.upload.supplier.label')}>
+                  <Select
+                    showSearch
+                    allowClear
+                    value={supplierId ?? undefined}
+                    onChange={handleSelectSupplier}
+                    onClear={() => handleSelectSupplier(undefined)}
+                    placeholder={t('projects.documents.upload.supplier.placeholder')}
+                    disabled={!canAssociateSupplier}
+                    filterOption={(input, option) =>
+                      (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                    }
+                    options={suppliers.map((supplier) => ({
+                      value: supplier.id,
+                      label: supplier.taxId ? `${supplier.name} (${supplier.taxId})` : supplier.name,
+                    }))}
+                  />
+                </Form.Item>
+              </Col>
+            )}
             <Col xs={24} md={8}>
               <Form.Item name="issuerName" label={t('projects.documents.upload.fields.issuerName')}>
                 <Input

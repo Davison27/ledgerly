@@ -6,6 +6,7 @@ import { CalendarOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
 import dayjs from 'dayjs';
 import { scheduleQueries } from '@/entities/schedule-event';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { SPACE } from '@/shared/config/theme';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
@@ -27,11 +28,19 @@ const SECTION_TITLE_KEY: Record<AgendaStatus, string> = {
 export function AgendaSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { canAccess } = useWorkspaceAccess();
+  const canViewProjects = canAccess('projects', 'view');
+  const canView =
+    canAccess('staff', 'view') && canAccess('calendar', 'view') && canViewProjects;
+  const canViewEquipment = canAccess('equipment', 'view');
   const {
     data: events = [],
     isPending: loading,
     isError: loadError,
-  } = useQuery(scheduleQueries.events({ staffMemberId: staffMember.id }));
+  } = useQuery({
+    ...scheduleQueries.events({ staffMemberId: staffMember.id }),
+    enabled: canView,
+  });
 
   const goToCalendar = () => void navigate({ to: '/calendar' });
   const goToProject = (projectId: string) =>
@@ -40,6 +49,8 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
   const today = dayjs().format('YYYY-MM-DD');
   const groups = useMemo(() => groupAgenda(events, today), [events, today]);
   const stats = useMemo(() => agendaStats(events), [events]);
+
+  if (!canView) return null;
 
   return (
     <PageContainer>
@@ -98,6 +109,8 @@ export function AgendaSection({ staffMember }: StaffSectionProps) {
                     event={event}
                     status={group.status}
                     staffMemberId={staffMember.id}
+                    canViewProjects={canViewProjects}
+                    canViewEquipment={canViewEquipment}
                     onOpenProject={goToProject}
                   />
                 ))}

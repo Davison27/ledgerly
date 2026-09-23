@@ -42,8 +42,8 @@ export interface Project {
   id: string;
   name: string;
   code: string;
-  documentCount: number;
-  pendingCount: number;
+  documentCount?: number;
+  pendingCount?: number;
   financials?: ProjectFinancials[];
   type?: ProjectType;
   status?: ProjectStatus;
@@ -83,7 +83,7 @@ function mapProjectSummary(dto: ProjectSummaryDto): Project {
     name: dto.name,
     code: dto.code,
     currency: dto.currency,
-    financials: dto.financials.map(mapProjectFinancials),
+    financials: dto.financials?.map(mapProjectFinancials),
     documentCount: dto.documentCount,
     pendingCount: dto.pendingCount,
     image: dto.image ?? undefined,

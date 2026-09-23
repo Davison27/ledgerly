@@ -58,6 +58,8 @@ export function EquipmentPage() {
   const [unarchivingId, setUnarchivingId] = useState<string | null>(null);
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('equipment', 'edit');
+  const canViewDocuments = canAccess('equipment', 'view') && canAccess('documents', 'view');
+  const canEditDocuments = canEdit && canAccess('documents', 'edit');
 
   const handleAdd = () => {
     setEditingEquipment(null);
@@ -271,17 +273,21 @@ export function EquipmentPage() {
         </>
       )}
 
-      <EquipmentFormModal
-        open={isFormOpen}
-        equipment={editingEquipment}
-        onCancel={handleCancelForm}
-        onSubmit={handleSubmit}
-        submitting={submitting}
-      />
+      {canEdit && (
+        <EquipmentFormModal
+          open={isFormOpen}
+          equipment={editingEquipment}
+          onCancel={handleCancelForm}
+          onSubmit={handleSubmit}
+          submitting={submitting}
+        />
+      )}
       <EquipmentDetailModal
         open={viewingEquipment !== null}
         equipment={viewingEquipment}
         canEdit={canEdit}
+        canViewDocuments={canViewDocuments}
+        canEditDocuments={canEditDocuments}
         onClose={() => setViewingEquipment(null)}
         onEdit={handleEdit}
       />

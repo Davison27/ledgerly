@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, Flex, Table, Typography, type TableColumnsType } from 'antd';
 import { FileDoneOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { documentQueries, STATUS_TONE, type DocumentListItemDto } from '@/entities/document';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { Amount } from '@/shared/ui/Amount';
@@ -14,9 +15,13 @@ const { Title, Text } = Typography;
 
 export function PayrollsSection({ staffMember }: StaffSectionProps) {
   const { t } = useTranslation();
-  const { data: payrolls = [], isPending: loading } = useQuery(
-    documentQueries.list({ staffMemberId: staffMember.id, type: 'payroll' }),
-  );
+  const { canAccess } = useWorkspaceAccess();
+  const canView = canAccess('staff', 'view') && canAccess('documents', 'view');
+  const canViewProjects = canAccess('projects', 'view');
+  const { data: payrolls = [], isPending: loading } = useQuery({
+    ...documentQueries.list({ staffMemberId: staffMember.id, type: 'payroll' }),
+    enabled: canView,
+  });
 
   const columns: TableColumnsType<DocumentListItemDto> = [
     {
@@ -25,11 +30,11 @@ export function PayrollsSection({ staffMember }: StaffSectionProps) {
       key: 'name',
       ellipsis: true,
     },
-    {
+    ...(canViewProjects ? [{
       title: t('staff.payrolls.columns.project'),
       dataIndex: 'projectName',
       key: 'projectName',
-    },
+    }] : []),
     {
       title: t('staff.payrolls.columns.date'),
       dataIndex: 'date',
@@ -56,6 +61,8 @@ export function PayrollsSection({ staffMember }: StaffSectionProps) {
       ),
     },
   ];
+
+  if (!canView) return null;
 
   return (
     <section className={shared.section}>

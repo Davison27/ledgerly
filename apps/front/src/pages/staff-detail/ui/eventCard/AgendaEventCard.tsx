@@ -25,14 +25,23 @@ export interface AgendaEventCardProps {
   event: ScheduleEventDto;
   status: AgendaStatus;
   staffMemberId: string;
+  canViewProjects: boolean;
+  canViewEquipment: boolean;
   onOpenProject: (projectId: string) => void;
 }
 
-export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }: AgendaEventCardProps) {
+export function AgendaEventCard({
+  event,
+  status,
+  staffMemberId,
+  canViewProjects,
+  canViewEquipment,
+  onOpenProject,
+}: AgendaEventCardProps) {
   const { t } = useTranslation();
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
-  const color = resolveProjectColor(event.project.color, event.projectId, isDark);
+  const color = canViewProjects ? resolveProjectColor(event.project.color, event.projectId, isDark) : undefined;
 
   const coworkers = event.staff.filter((member) => member.id !== staffMemberId);
   const visibleCoworkers = coworkers.slice(0, MAX_COWORKERS);
@@ -44,28 +53,30 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
   return (
     <Card
       size="small"
-      hoverable
-      onClick={() => onOpenProject(event.projectId)}
+      hoverable={canViewProjects}
+      onClick={canViewProjects ? () => onOpenProject(event.projectId) : undefined}
       className={styles.card}
       data-status={status}
-      style={{ borderInlineStartColor: color }}
+      style={color ? { borderInlineStartColor: color } : undefined}
     >
       <Flex vertical gap={8}>
-        <Flex align="center" gap={8}>
-          {event.project.image ? (
-            <Avatar shape="square" size={36} src={event.project.image} />
-          ) : (
-            <Avatar shape="square" size={36} style={{ backgroundColor: color }} icon={<ProjectOutlined />} />
-          )}
-          <Flex vertical gap={0} className={styles.nameCol}>
-            <Text strong ellipsis>
-              {event.project.name}
-            </Text>
-            <Text type="secondary" className={typography.caption}>
-              {event.project.code}
-            </Text>
+        {canViewProjects && (
+          <Flex align="center" gap={8}>
+            {event.project.image ? (
+              <Avatar shape="square" size={36} src={event.project.image} />
+            ) : (
+              <Avatar shape="square" size={36} style={{ backgroundColor: color }} icon={<ProjectOutlined />} />
+            )}
+            <Flex vertical gap={0} className={styles.nameCol}>
+              <Text strong ellipsis>
+                {event.project.name}
+              </Text>
+              <Text type="secondary" className={typography.caption}>
+                {event.project.code}
+              </Text>
+            </Flex>
           </Flex>
-        </Flex>
+        )}
 
         {event.title && <Text ellipsis>{event.title}</Text>}
         <ScheduleDaysSummary days={event.days} />
@@ -103,7 +114,7 @@ export function AgendaEventCard({ event, status, staffMemberId, onOpenProject }:
           </Flex>
         )}
 
-        {event.equipment.length > 0 && (
+        {canViewEquipment && event.equipment.length > 0 && (
           <Flex gap={4} wrap>
             {visibleEquipment.map((equipment) => (
               <Tag key={equipment.equipmentId} color="blue">

@@ -26,9 +26,9 @@ export interface ProjectSummaryDto {
   name: string;
   code: string;
   currency: ProjectCurrencyDto;
-  financials: ProjectFinancialsDto[];
-  documentCount: number;
-  pendingCount: number;
+  financials?: ProjectFinancialsDto[];
+  documentCount?: number;
+  pendingCount?: number;
   image?: string | null;
   color?: ProjectColorToken | null;
   status?: ProjectStatusDto;

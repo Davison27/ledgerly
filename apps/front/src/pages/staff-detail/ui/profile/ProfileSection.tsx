@@ -27,6 +27,7 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
   const canEdit = canAccess('staff', 'edit');
 
   const handleSubmit = async (values: StaffMemberFormValues) => {
+    if (!canEdit) return;
     setSubmitting(true);
     try {
       await updateStaffMember(staffMember.id, values);
@@ -75,7 +76,7 @@ export function ProfileSection({ staffMember }: StaffSectionProps) {
       </Card>
 
       <StaffMemberFormModal
-        open={isFormOpen}
+        open={canEdit && isFormOpen}
         staffMember={staffMember}
         onCancel={() => setIsFormOpen(false)}
         onSubmit={handleSubmit}

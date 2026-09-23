@@ -43,13 +43,14 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const { canAccess } = useWorkspaceAccess();
-  const canEdit = canAccess('documents', 'edit');
+  const canView = canAccess('projects', 'view') && canAccess('documents', 'view');
+  const canEdit = canAccess('projects', 'edit') && canAccess('documents', 'edit');
 
   const {
     documents,
     loading: documentsLoading,
     error: documentsError,
-  } = useProjectDocuments(project.id);
+  } = useProjectDocuments(project.id, canView);
 
   useEffect(() => {
     if (documentsError) {
@@ -235,19 +236,23 @@ export function DocumentsSection({ project, color }: ProjectSectionProps) {
         />
       </div>
 
-      <DocumentUploadModal
-        open={uploadOpen}
-        context={{ kind: 'project', projectId: project.id }}
-        onCancel={() => setUploadOpen(false)}
-        onCreated={handleDocumentCreated}
-      />
+      {canEdit && (
+        <DocumentUploadModal
+          open={uploadOpen}
+          context={{ kind: 'project', projectId: project.id }}
+          onCancel={() => setUploadOpen(false)}
+          onCreated={handleDocumentCreated}
+        />
+      )}
 
-      <DocumentEditModal
-        open={editing !== null}
-        document={editing}
-        onCancel={() => setEditing(null)}
-        onUpdated={handleDocumentUpdated}
-      />
+      {canEdit && (
+        <DocumentEditModal
+          open={editing !== null}
+          document={editing}
+          onCancel={() => setEditing(null)}
+          onUpdated={handleDocumentUpdated}
+        />
+      )}
     </Flex>
   );
 }

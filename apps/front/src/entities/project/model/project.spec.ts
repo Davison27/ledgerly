@@ -73,6 +73,23 @@ describe('project view model', () => {
     ]);
   });
 
+  it('maps project summaries when access-controlled fields are omitted', async () => {
+    vi.mocked(listProjects).mockResolvedValue([
+      {
+        id: 'project-1',
+        name: 'Project One',
+        code: 'P-001',
+        currency: 'EUR',
+      },
+    ]);
+
+    const [project] = await fetchProjects();
+
+    expect(project.financials).toBeUndefined();
+    expect(project.documentCount).toBeUndefined();
+    expect(project.pendingCount).toBeUndefined();
+  });
+
   it('maps a project detail and initializes list-only counters', async () => {
     vi.mocked(getProject).mockResolvedValue({
       id: 'project-1',

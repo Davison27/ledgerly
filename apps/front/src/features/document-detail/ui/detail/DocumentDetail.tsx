@@ -82,7 +82,8 @@ export function DocumentDetail({
   const { t } = useTranslation();
   const typeLabel = useTypeLabel();
   const { canAccess } = useWorkspaceAccess();
-  const canEdit = canAccess('documents', 'edit');
+  const canEdit = canAccess('projects', 'edit') && canAccess('documents', 'edit');
+  const canOpenProject = canAccess('projects', 'view');
   const { state: viewerState, objectUrl } = usePdfObjectUrl(document);
 
   if (!document) {
@@ -154,9 +155,9 @@ export function DocumentDetail({
             {typeLabel(document.type)} · {document.date}
           </Text>
         </div>
-        {(onGoToProject || (canEdit && (onEdit || onDelete))) && (
+        {((canOpenProject && onGoToProject) || (canEdit && (onEdit || onDelete))) && (
           <Flex gap={4} className={styles.actions}>
-            {onGoToProject && (
+            {canOpenProject && onGoToProject && (
               <Button type="text" onClick={() => onGoToProject(document)}>
                 {t('projects.documents.detail.goToProject')}
               </Button>

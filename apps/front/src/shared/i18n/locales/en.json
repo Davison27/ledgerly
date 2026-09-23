@@ -21,6 +21,21 @@
     "showArchived": "Show archived",
     "unarchive": "Unarchive"
   },
+  "access": {
+    "denied": {
+      "title": "You do not have access to this section",
+      "description": "Your workspace administrator can change your section access.",
+      "action": "Go to an available section"
+    },
+    "noSections": {
+      "title": "No sections are available",
+      "description": "Your workspace administrator has not granted access to any sections. Contact them to request access."
+    },
+    "waitingForConfiguration": {
+      "title": "Your workspace is being set up",
+      "description": "An administrator is preparing your workspace. You can use Ledgerly once configuration is complete."
+    }
+  },
   "login": {
     "signIn": "Sign in",
     "signInWithGoogle": "Continue with Google",
@@ -1466,6 +1481,7 @@
       }
     },
     "dashboard": {
+      "limitedData": "Some figures are hidden because of your access level.",
       "kpi": {
         "income": "Total income",
         "expenses": "Total expenses",

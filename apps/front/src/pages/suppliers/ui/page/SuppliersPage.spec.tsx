@@ -7,6 +7,8 @@ import { deleteSupplier } from '@/entities/supplier';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { SuppliersPage } from './SuppliersPage';
 
+const accessMocks = vi.hoisted(() => ({ documents: 'view' as string }));
+
 vi.mock('@tanstack/react-query', () => ({ useQuery: vi.fn(), useQueryClient: vi.fn() }));
 vi.mock('@tanstack/react-router', () => ({
   Link: ({ children }: { children: React.ReactNode }) => <a href="/documents">{children}</a>,
@@ -33,10 +35,13 @@ vi.mock('../form/SupplierFormModal', () => ({ SupplierFormModal: () => null }));
 
 describe('SuppliersPage', () => {
   beforeEach(() => {
+    accessMocks.documents = 'view';
     vi.mocked(useQueryClient).mockReturnValue({
       invalidateQueries: vi.fn().mockResolvedValue(undefined),
     } as never);
-    vi.mocked(useWorkspaceAccess).mockReturnValue({ canAccess: () => true } as never);
+    vi.mocked(useWorkspaceAccess).mockReturnValue({
+      canAccess: (module: string) => module === 'suppliers' || accessMocks.documents === 'view',
+    } as never);
     vi.mocked(useQuery).mockReturnValue({
       isPending: false,
       isError: false,
@@ -46,10 +51,47 @@ describe('SuppliersPage', () => {
         taxId: null,
         email: null,
         phone: null,
-        documentCount: 0,
+        documentCount: 2,
         spend: [],
       }],
     } as never);
+  });
+
+  it('shows document-derived columns and document links with Documents view', () => {
+    render(
+      <App>
+        <SuppliersPage />
+      </App>,
+    );
+
+    expect(screen.getByRole('columnheader', { name: 'Documentos' })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Gasto total' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: '2' })).toHaveAttribute('href', '/documents');
+  });
+
+  it('omits document-derived data and links without Documents view', () => {
+    accessMocks.documents = 'none';
+    vi.mocked(useQuery).mockReturnValue({
+      isPending: false,
+      isError: false,
+      data: [{
+        id: 's-1',
+        name: 'Proveedor Uno',
+        taxId: null,
+        email: null,
+        phone: null,
+      }],
+    } as never);
+
+    render(
+      <App>
+        <SuppliersPage />
+      </App>,
+    );
+
+    expect(screen.queryByRole('columnheader', { name: 'Documentos' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('columnheader', { name: 'Gasto total' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link')).not.toBeInTheDocument();
   });
 
   it('shows the archived toast when deletion archives a supplier', async () => {

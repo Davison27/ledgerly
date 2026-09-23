@@ -26,6 +26,7 @@ import {
   type ExtractInvoiceSource,
   type ExtractionHintDto,
 } from '@/entities/extraction-hint';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
 import { PageHeader } from '@/shared/ui/PageHeader';
 import { Numeric } from '@/shared/ui/Numeric';
@@ -191,11 +192,17 @@ export function ExtractionHintsPage() {
   const { t } = useTranslation();
   const { message } = App.useApp();
   const queryClient = useQueryClient();
+  const { canAccess } = useWorkspaceAccess();
+  const canView = canAccess('documents', 'view');
+  const canEdit = canAccess('documents', 'edit');
   const {
     data: hints = [],
     isPending: loading,
     isError: loadError,
-  } = useQuery(extractionHintQueries.list());
+  } = useQuery({
+    ...extractionHintQueries.list(),
+    enabled: canView,
+  });
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const groups = useMemo(() => groupByIssuer(hints), [hints]);
@@ -254,12 +261,12 @@ export function ExtractionHintsPage() {
       key: 'sampleValue',
       ellipsis: true,
     },
-    {
+    ...(canEdit ? [{
       title: t('extractionHints.columns.actions'),
       key: 'actions',
       width: 100,
-      align: 'center',
-      render: (_, record) => (
+      align: 'center' as const,
+      render: (_: unknown, record: ExtractionHintDto) => (
         <Popconfirm
           title={t('extractionHints.deleteConfirm.title')}
           description={t('extractionHints.deleteConfirm.content')}
@@ -276,8 +283,10 @@ export function ExtractionHintsPage() {
           />
         </Popconfirm>
       ),
-    },
+    }] : []),
   ];
+
+  if (!canView) return null;
 
   return (
     <PageContainer>

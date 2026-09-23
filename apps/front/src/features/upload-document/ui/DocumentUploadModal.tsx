@@ -48,6 +48,7 @@ import {
 import { ApiError } from '@/shared/api/httpClient';
 import { createSupplier, supplierQueries, type SupplierDto } from '@/entities/supplier';
 import { projectQueries } from '@/entities/project';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 import { SPACE } from '@/shared/config/theme';
 import typography from '@/shared/ui/typography.module.css';
@@ -151,6 +152,11 @@ export function DocumentUploadModal({
   const { message } = App.useApp();
   const queryClient = useQueryClient();
   const screens = useBreakpoint();
+  const { canAccess } = useWorkspaceAccess();
+  const canEditDocument = canAccess('projects', 'edit') && canAccess('documents', 'edit');
+  const canViewSuppliers = canAccess('suppliers', 'view');
+  const canAssociateSupplier = canEditDocument && canViewSuppliers;
+  const canEditSuppliers = canAccess('suppliers', 'edit');
   const isDesktop = screens.md ?? true;
   const [form] = Form.useForm<DocumentFormFields>();
 
@@ -176,13 +182,13 @@ export function DocumentUploadModal({
 
   const { data: suppliersData, isPending: suppliersPending } = useQuery({
     ...supplierQueries.list(),
-    enabled: open,
+    enabled: open && canEditDocument && canViewSuppliers,
   });
   const suppliers = useMemo(
     () => (suppliersData ?? []).filter((supplier) => !supplier.archivedAt),
     [suppliersData],
   );
-  const suppliersLoaded = !suppliersPending;
+  const suppliersLoaded = canViewSuppliers && !suppliersPending;
   const [supplierId, setSupplierId] = useState<string | null>(null);
   const [autoMatchAttempted, setAutoMatchAttempted] = useState(false);
   const [creatingSupplier, setCreatingSupplier] = useState(false);
@@ -276,6 +282,7 @@ export function DocumentUploadModal({
   };
 
   const beginQueue = (files: File[]) => {
+    if (!canEditDocument) return;
     setQueue(files);
     setCurrentIndex(0);
     resetItemState();
@@ -338,7 +345,7 @@ export function DocumentUploadModal({
   }, [currentFile]);
 
   useEffect(() => {
-    if (!extractResult || autoMatchAttempted || !suppliersLoaded) return;
+    if (!extractResult || autoMatchAttempted || !canAssociateSupplier || !suppliersLoaded) return;
     const match = findMatchingSupplier(
       suppliers,
       extractResult.fields.issuerTaxId,
@@ -348,7 +355,7 @@ export function DocumentUploadModal({
       setSupplierId(match.id);
     }
     setAutoMatchAttempted(true);
-  }, [extractResult, suppliers, suppliersLoaded, autoMatchAttempted]);
+  }, [extractResult, suppliers, suppliersLoaded, autoMatchAttempted, canAssociateSupplier]);
 
   const invoiceNumberWatch = Form.useWatch('invoiceNumber', form);
   const amountWatch = Form.useWatch('amount', form);
@@ -390,7 +397,7 @@ export function DocumentUploadModal({
       1,
       20,
     ),
-    enabled: duplicateCheckParams !== null,
+    enabled: canEditDocument && duplicateCheckParams !== null,
   });
   const duplicateMatches = duplicateCheckResult?.items ?? [];
   const hasAdditionalDuplicateMatches =
@@ -402,6 +409,7 @@ export function DocumentUploadModal({
   };
 
   const handleFilesSelected = (file: RcFile, fileList: RcFile[]): boolean => {
+    if (!canEditDocument) return false;
     if (file !== fileList[fileList.length - 1]) return false;
 
     const pdfFiles = fileList.filter(isPdfFile).slice(0, MAX_QUEUE_FILES);
@@ -419,6 +427,7 @@ export function DocumentUploadModal({
   };
 
   const handleSelectSupplier = (value: string | undefined) => {
+    if (!canAssociateSupplier) return;
     setSupplierId(value ?? null);
     if (!value) return;
     const supplier = suppliers.find((candidate) => candidate.id === value);
@@ -431,6 +440,7 @@ export function DocumentUploadModal({
   };
 
   const handleOpenCreateSupplier = () => {
+    if (!canEditSuppliers) return;
     setNewSupplierName(form.getFieldValue('issuerName') ?? '');
     setNewSupplierTaxId(form.getFieldValue('issuerTaxId') ?? '');
     setCreatingSupplier(true);
@@ -451,6 +461,7 @@ export function DocumentUploadModal({
   };
 
   const handleCreateSupplier = async () => {
+    if (!canEditSuppliers) return;
     const name = newSupplierName.trim();
     if (!name) {
       void message.warning(t('projects.documents.upload.supplier.createNameRequired'));
@@ -483,6 +494,7 @@ export function DocumentUploadModal({
   };
 
   const handleOk = () => {
+    if (!canEditDocument) return;
     form
       .validateFields()
       .then((values) => {
@@ -491,7 +503,7 @@ export function DocumentUploadModal({
           ...rest,
           date: date.format('YYYY-MM-DD'),
           dueDate: dueDate ? dueDate.format('YYYY-MM-DD') : undefined,
-          supplierId: supplierId ?? undefined,
+          supplierId: canAssociateSupplier ? supplierId ?? undefined : undefined,
         };
 
         setSubmitting(true);
@@ -568,6 +580,8 @@ export function DocumentUploadModal({
       </Flex>
     </Flex>
   );
+
+  if (!canEditDocument) return null;
 
   return (
     <Modal
@@ -890,43 +904,48 @@ export function DocumentUploadModal({
                 {t('projects.documents.upload.sections.supplier')}
               </Text>
               <Row gutter={12} className={styles.sectionRow} align="top">
-                <Col xs={24} md={8}>
-                  <Form.Item label={t('projects.documents.upload.supplier.label')}>
-                    <Select
-                      showSearch
-                      allowClear
-                      value={supplierId ?? undefined}
-                      onChange={handleSelectSupplier}
-                      onClear={() => handleSelectSupplier(undefined)}
-                      placeholder={t('projects.documents.upload.supplier.placeholder')}
-                      filterOption={(input, option) =>
-                        (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
-                      }
-                      options={suppliers.map((supplier) => ({
-                        value: supplier.id,
-                        label: supplier.taxId
-                          ? `${supplier.name} (${supplier.taxId})`
-                          : supplier.name,
-                      }))}
-                    />
-                  </Form.Item>
-                  <Popover
-                    trigger="click"
-                    open={creatingSupplier}
-                    onOpenChange={handleCreateSupplierPopoverOpenChange}
-                    placement="bottomLeft"
-                    content={createSupplierPopoverContent}
-                  >
-                    <Button
-                      type="link"
-                      size="small"
-                      icon={<PlusOutlined />}
-                      className={styles.createLinkButton}
-                    >
-                      {t('projects.documents.upload.supplier.createNew')}
-                    </Button>
-                  </Popover>
-                </Col>
+                {canViewSuppliers && (
+                  <Col xs={24} md={8}>
+                    <Form.Item label={t('projects.documents.upload.supplier.label')}>
+                      <Select
+                        showSearch
+                        allowClear
+                        value={supplierId ?? undefined}
+                        onChange={handleSelectSupplier}
+                        onClear={() => handleSelectSupplier(undefined)}
+                        placeholder={t('projects.documents.upload.supplier.placeholder')}
+                        disabled={!canAssociateSupplier}
+                        filterOption={(input, option) =>
+                          (option?.label ?? '').toString().toLowerCase().includes(input.toLowerCase())
+                        }
+                        options={suppliers.map((supplier) => ({
+                          value: supplier.id,
+                          label: supplier.taxId
+                            ? `${supplier.name} (${supplier.taxId})`
+                            : supplier.name,
+                        }))}
+                      />
+                    </Form.Item>
+                    {canEditSuppliers && (
+                      <Popover
+                        trigger="click"
+                        open={creatingSupplier}
+                        onOpenChange={handleCreateSupplierPopoverOpenChange}
+                        placement="bottomLeft"
+                        content={createSupplierPopoverContent}
+                      >
+                        <Button
+                          type="link"
+                          size="small"
+                          icon={<PlusOutlined />}
+                          className={styles.createLinkButton}
+                        >
+                          {t('projects.documents.upload.supplier.createNew')}
+                        </Button>
+                      </Popover>
+                    )}
+                  </Col>
+                )}
                 <Col xs={24} md={8}>
                   <Form.Item
                     name="issuerName"
