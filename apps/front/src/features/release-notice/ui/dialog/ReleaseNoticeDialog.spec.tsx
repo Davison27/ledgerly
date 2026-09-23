@@ -69,6 +69,28 @@ describe('ReleaseNoticeDialog', () => {
     expect(screen.getByText('Release history')).toBeInTheDocument();
   });
 
+  it('keeps release actions outside the keyboard-scrollable changelog list', async () => {
+    apiMocks.getAcknowledgement.mockResolvedValue({ acknowledged: false, acknowledgedAt: null });
+    renderReleaseNotice();
+
+    const dialog = await screen.findByRole('dialog');
+    const footer = dialog.querySelector('.ant-modal-footer');
+    const body = dialog.querySelector('.ant-modal-body');
+    const viewChangelog = screen.getByRole('button', { name: 'View full changelog' });
+    const acknowledge = screen.getByRole('button', { name: 'OK' });
+    const scrollRegion = screen.getByRole('region', {
+      name: 'This release includes the following improvements.',
+    });
+
+    expect(footer).toContainElement(viewChangelog);
+    expect(footer).toContainElement(acknowledge);
+    expect(body).not.toContainElement(viewChangelog);
+    expect(body).not.toContainElement(acknowledge);
+    expect(scrollRegion).toHaveAttribute('tabindex', '0');
+    expect(scrollRegion).toContainElement(screen.getByText('Added'));
+    expect(body).toContainElement(screen.getByText(currentReleaseVersion));
+  });
+
   it('renders the notice actions and release copy in Spanish', async () => {
     await i18n.changeLanguage('es');
     apiMocks.getAcknowledgement.mockResolvedValue({ acknowledged: false, acknowledgedAt: null });

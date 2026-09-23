@@ -2,15 +2,31 @@
   max-width: calc(100vw - var(--lg-space-xxl));
 }
 
+.modalRoot :global(.ant-modal-content) {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100dvh - var(--lg-space-xxl));
+  overflow: hidden;
+}
+
+.modalRoot :global(.ant-modal-header),
+.modalRoot :global(.ant-modal-footer) {
+  flex: 0 0 auto;
+}
+
 .body {
-  max-height: min(70vh, 44rem);
-  overflow-y: auto;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .content {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--lg-space-xl);
+  min-height: 0;
 }
 
 .releaseMetadata {
@@ -23,8 +39,18 @@
 
 .categoryList {
   display: flex;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: var(--lg-space-xl);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding-inline-end: var(--lg-space-xs);
+}
+
+.categoryList:focus-visible {
+  outline: 2px solid var(--ant-color-primary);
+  outline-offset: 2px;
 }
 
 .category {
@@ -60,7 +86,6 @@
 
 .actions {
   flex-wrap: wrap;
-  margin-top: var(--lg-space-md);
 }
 
 @media (max-width: 480px) {

@@ -41,7 +41,25 @@ export function ReleaseNoticeDialog({ onViewChangelog }: ReleaseNoticeDialogProp
       closable={false}
       maskClosable={false}
       keyboard={false}
-      footer={null}
+      footer={checkingError ? null : (
+        <Flex justify="space-between" gap="middle" className={styles.actions}>
+          <Button
+            onClick={() => void notice.performAction('view-changelog')}
+            disabled={notice.isAcknowledging}
+            loading={notice.isAcknowledging && notice.pendingAction === 'view-changelog'}
+          >
+            {t('releaseNotes.dialog.viewFullChangelog')}
+          </Button>
+          <Button
+            type="primary"
+            onClick={() => void notice.performAction('acknowledge')}
+            disabled={notice.isAcknowledging}
+            loading={notice.isAcknowledging && notice.pendingAction === 'acknowledge'}
+          >
+            {t('releaseNotes.dialog.acknowledge')}
+          </Button>
+        </Flex>
+      )}
       rootClassName={styles.modalRoot}
       classNames={{ body: styles.body }}
     >
@@ -70,7 +88,28 @@ export function ReleaseNoticeDialog({ onViewChangelog }: ReleaseNoticeDialogProp
           <Text type="secondary" className={styles.description}>
             {t('releaseNotes.dialog.description')}
           </Text>
-          <div className={styles.categoryList}>
+          {notice.mutationError && (
+            <div className={styles.saveError}>
+              <Alert
+                type="error"
+                showIcon
+                message={t('releaseNotes.dialog.error')}
+                role="alert"
+              />
+              <Button
+                onClick={notice.retryAcknowledgement}
+                loading={notice.isAcknowledging}
+              >
+                {t('releaseNotes.dialog.retry')}
+              </Button>
+            </div>
+          )}
+          <div
+            className={styles.categoryList}
+            role="region"
+            aria-label={t('releaseNotes.dialog.description')}
+            tabIndex={0}
+          >
             {releaseGroups.map(({ category, entries }) => (
               <section
                 key={category}
@@ -95,39 +134,6 @@ export function ReleaseNoticeDialog({ onViewChangelog }: ReleaseNoticeDialogProp
               </section>
             ))}
           </div>
-          {notice.mutationError && (
-            <div className={styles.saveError}>
-              <Alert
-                type="error"
-                showIcon
-                message={t('releaseNotes.dialog.error')}
-                role="alert"
-              />
-              <Button
-                onClick={notice.retryAcknowledgement}
-                loading={notice.isAcknowledging}
-              >
-                {t('releaseNotes.dialog.retry')}
-              </Button>
-            </div>
-          )}
-          <Flex justify="space-between" gap="middle" className={styles.actions}>
-            <Button
-              onClick={() => void notice.performAction('view-changelog')}
-              disabled={notice.isAcknowledging}
-              loading={notice.isAcknowledging && notice.pendingAction === 'view-changelog'}
-            >
-              {t('releaseNotes.dialog.viewFullChangelog')}
-            </Button>
-            <Button
-              type="primary"
-              onClick={() => void notice.performAction('acknowledge')}
-              disabled={notice.isAcknowledging}
-              loading={notice.isAcknowledging && notice.pendingAction === 'acknowledge'}
-            >
-              {t('releaseNotes.dialog.acknowledge')}
-            </Button>
-          </Flex>
         </div>
       )}
     </Modal>
