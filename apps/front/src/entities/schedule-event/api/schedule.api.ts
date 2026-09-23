@@ -3,8 +3,11 @@ import { stripEmpty } from '@/shared/api/sanitize';
 import type {
   CreateScheduleEventPayload,
   ScheduleBoardDto,
+  ScheduleEditorBoardDto,
+  ScheduleEditorSelectorDto,
   ScheduleEventDto,
   ScheduleEventListFilter,
+  ScheduleEventMutationDto,
   SchedulableProjectDto,
   UpdateScheduleEventPayload,
 } from './types';
@@ -27,15 +30,15 @@ export function listScheduleEvents(
 
 export function createScheduleEvent(
   payload: CreateScheduleEventPayload,
-): Promise<ScheduleEventDto> {
-  return post<ScheduleEventDto>('/schedule/events', stripEmpty(payload));
+): Promise<ScheduleEventMutationDto> {
+  return post<ScheduleEventMutationDto>('/schedule/events', stripEmpty(payload));
 }
 
 export function updateScheduleEvent(
   eventId: string,
   payload: UpdateScheduleEventPayload,
-): Promise<ScheduleEventDto> {
-  return patch<ScheduleEventDto>(`/schedule/events/${eventId}`, payload);
+): Promise<ScheduleEventMutationDto> {
+  return patch<ScheduleEventMutationDto>(`/schedule/events/${eventId}`, payload);
 }
 
 export function deleteScheduleEvent(eventId: string): Promise<void> {
@@ -44,4 +47,22 @@ export function deleteScheduleEvent(eventId: string): Promise<void> {
 
 export function listSchedulableProjects(): Promise<SchedulableProjectDto[]> {
   return get<SchedulableProjectDto[]>('/schedule/schedulable-projects');
+}
+
+export function getCalendarEditorBoard(from: string, to: string): Promise<ScheduleEditorBoardDto> {
+  return get<ScheduleEditorBoardDto>(
+    `/schedule/editor/board${buildQueryString({ from, to })}`,
+  );
+}
+
+export function listCalendarEditorProjects(): Promise<ScheduleEditorSelectorDto[]> {
+  return get<ScheduleEditorSelectorDto[]>('/schedule/editor/projects');
+}
+
+export function listCalendarEditorStaff(): Promise<ScheduleEditorSelectorDto[]> {
+  return get<ScheduleEditorSelectorDto[]>('/schedule/editor/staff');
+}
+
+export function listCalendarEditorEquipment(): Promise<ScheduleEditorSelectorDto[]> {
+  return get<ScheduleEditorSelectorDto[]>('/schedule/editor/equipment');
 }

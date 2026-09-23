@@ -3,7 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { Empty, Flex, Input, Typography } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { StaffMemberDto } from '@/entities/staff-member';
+import type { CalendarStaffOption } from '../../model/calendarEditorData';
 import type { StaffDragData } from '../../model/dragData';
 import { StaffPanelCard } from '../staffCard/StaffPanelCard';
 import styles from './StaffPanel.module.css';
@@ -11,7 +11,7 @@ import styles from './StaffPanel.module.css';
 const { Text } = Typography;
 
 interface StaffPanelItemProps {
-  staffMember: StaffMemberDto;
+  staffMember: CalendarStaffOption;
   canAssign: boolean;
 }
 
@@ -22,8 +22,7 @@ function StaffPanelItem({ staffMember, canAssign }: StaffPanelItemProps) {
     data: {
       kind: 'staff',
       staffMemberId: staffMember.id,
-      name: `${staffMember.firstName} ${staffMember.lastName}`,
-      staffMember,
+      name: staffMember.displayName,
     } satisfies StaffDragData,
   });
 
@@ -35,7 +34,7 @@ function StaffPanelItem({ staffMember, canAssign }: StaffPanelItemProps) {
 }
 
 export interface StaffPanelProps {
-  staffMembers: StaffMemberDto[];
+  staffMembers: CalendarStaffOption[];
   canAssign: boolean;
 }
 
@@ -46,7 +45,7 @@ export function StaffPanel({ staffMembers, canAssign }: StaffPanelProps) {
   const filtered = staffMembers.filter(
     (staffMember) =>
       !search.trim() ||
-      `${staffMember.firstName} ${staffMember.lastName}`.toLowerCase().includes(search.trim().toLowerCase()),
+      staffMember.displayName.toLowerCase().includes(search.trim().toLowerCase()),
   );
 
   return (

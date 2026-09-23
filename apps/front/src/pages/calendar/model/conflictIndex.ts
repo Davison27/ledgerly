@@ -40,7 +40,7 @@ export function conflictsForEventInRange(
 const STAFF_ASSIGNMENT_CONFLICT_KINDS = ['staff_not_hired', 'staff_overlap'] as const;
 
 export function staffAssignmentConflicts(
-  board: ScheduleBoardDto | null,
+  board: Pick<ScheduleBoardDto, 'conflicts'> | null,
   eventId: string,
   staffMemberId: string,
 ): ScheduleConflictDto[] {

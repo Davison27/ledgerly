@@ -1,4 +1,4 @@
-import type { SchedulableProjectDto } from '@/entities/schedule-event';
+import type { CalendarProjectOption } from './calendarEditorData';
 
 export const MAX_DERIVED_RANGE_DAYS = 366;
 
@@ -10,8 +10,8 @@ export interface DerivedProjectRange {
   endDate: string;
 }
 
-export function deriveProjectRange(project: SchedulableProjectDto): DerivedProjectRange | null {
-  if (project.status !== 'active' || project.hasEvents) return null;
+export function deriveProjectRange(project: CalendarProjectOption): DerivedProjectRange | null {
+  if (project.status !== 'active' || project.hasEvents !== false) return null;
   if (!project.startDate && !project.endDate) return null;
 
   const startDate = project.startDate ?? project.endDate!;
@@ -20,7 +20,7 @@ export function deriveProjectRange(project: SchedulableProjectDto): DerivedProje
   return { projectId: project.id, startDate, endDate };
 }
 
-export function deriveProjectRanges(projects: SchedulableProjectDto[]): DerivedProjectRange[] {
+export function deriveProjectRanges(projects: CalendarProjectOption[]): DerivedProjectRange[] {
   return projects.reduce<DerivedProjectRange[]>((ranges, project) => {
     const range = deriveProjectRange(project);
     return range ? [...ranges, range] : ranges;

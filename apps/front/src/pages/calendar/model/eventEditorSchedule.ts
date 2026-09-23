@@ -4,8 +4,8 @@ import {
   summarizeDayTimes,
   type ScheduleEventDayDto,
   type ScheduleEventDayPayload,
-  type ScheduleEventDto,
 } from '@/entities/schedule-event';
+import type { CalendarEvent } from './calendarEditorData';
 import { MAX_DERIVED_RANGE_DAYS } from './derivedRanges';
 
 export const MAX_BLOCK_DAYS = MAX_DERIVED_RANGE_DAYS;
@@ -26,7 +26,7 @@ function sortByDate(days: ScheduleEventDayDto[]): ScheduleEventDayDto[] {
   return [...days].sort((a, b) => a.date.localeCompare(b.date));
 }
 
-export function eventScheduleShape(event: ScheduleEventDto): EventScheduleShape {
+export function eventScheduleShape(event: CalendarEvent): EventScheduleShape {
   const days = sortByDate(event.days);
   const warnings: EventScheduleWarning[] = [];
 

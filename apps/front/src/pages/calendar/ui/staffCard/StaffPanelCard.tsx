@@ -1,19 +1,19 @@
-import { Flex, Typography } from 'antd';
-import { StaffAvatar, type StaffMemberDto } from '@/entities/staff-member';
+import { Avatar, Flex, Typography } from 'antd';
+import type { CalendarStaffOption } from '../../model/calendarEditorData';
 import styles from './StaffPanelCard.module.css';
 
 const { Text } = Typography;
 
 export interface StaffPanelCardProps {
-  staffMember: StaffMemberDto;
+  staffMember: CalendarStaffOption;
 }
 
 export function StaffPanelCard({ staffMember }: StaffPanelCardProps) {
   return (
     <Flex vertical align="center" gap={2} className={styles.card}>
-      <StaffAvatar staffMember={staffMember} size={40} />
+      <Avatar size={40}>{staffMember.displayName.slice(0, 1)}</Avatar>
       <Text ellipsis className={styles.name}>
-        {staffMember.firstName} {staffMember.lastName}
+        {staffMember.displayName}
       </Text>
     </Flex>
   );

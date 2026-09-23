@@ -1,4 +1,4 @@
-import type { ScheduleEventDto } from '@/entities/schedule-event';
+import type { CalendarEvent } from './calendarEditorData';
 
 export const HOUR_HEIGHT = 44;
 export const HOURS_IN_DAY = 24;
@@ -34,7 +34,7 @@ export function parseTimeToMinutes(time: string | null): number | null {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-function collectUnplacedSegments(events: ScheduleEventDto[], weekDates: string[]): UnplacedSegment[] {
+function collectUnplacedSegments(events: CalendarEvent[], weekDates: string[]): UnplacedSegment[] {
   const segments: UnplacedSegment[] = [];
 
   for (const event of events) {
@@ -78,7 +78,7 @@ function layoutDaySegments(daySegments: UnplacedSegment[]): TimedSegment[] {
   return placed.map((segment) => ({ ...segment, columnCount }));
 }
 
-export function buildTimedSegments(events: ScheduleEventDto[], weekDates: string[]): TimedSegment[] {
+export function buildTimedSegments(events: CalendarEvent[], weekDates: string[]): TimedSegment[] {
   const unplaced = collectUnplacedSegments(events, weekDates);
 
   return weekDates.flatMap((_, dayIndex) =>

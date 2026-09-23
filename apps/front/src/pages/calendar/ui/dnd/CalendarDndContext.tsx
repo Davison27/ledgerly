@@ -15,7 +15,7 @@ import {
 } from '@dnd-kit/core';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
+import type { CalendarEvent, CalendarProjectOption } from '../../model/calendarEditorData';
 import type { CalendarDragData, CalendarDropData } from '../../model/dragData';
 import { CalendarDragPreview } from '../dragPreview/CalendarDragPreview';
 
@@ -24,14 +24,14 @@ export interface CalendarDndContextProps {
   disabled?: boolean;
   colorForProject: (projectId: string, color: string | null) => string;
   onDropProject: (projectId: string, date: string) => void;
-  onDropDerivedProject: (project: SchedulableProjectDto, offsetInDays: number) => void;
-  onMoveEvent: (event: ScheduleEventDto, offsetInDays: number) => void;
-  onResizeEvent: (event: ScheduleEventDto, edge: 'start' | 'end', date: string) => void;
+  onDropDerivedProject: (project: CalendarProjectOption, offsetInDays: number) => void;
+  onMoveEvent: (event: CalendarEvent, offsetInDays: number) => void;
+  onResizeEvent: (event: CalendarEvent, edge: 'start' | 'end', date: string) => void;
   onAssignStaff: (eventId: string, staffMemberId: string) => void;
 }
 
-function eventLabel(event: ScheduleEventDto): string {
-  return event.title?.trim() || event.project.name;
+function eventLabel(event: CalendarEvent): string {
+  return event.title?.trim() || event.project.displayName;
 }
 
 const collisionDetection: CollisionDetection = (args) => {
@@ -76,9 +76,9 @@ export function CalendarDndContext({
       if (!data) return undefined;
       switch (data.kind) {
         case 'project':
-          return t('calendar.dnd.announcements.pickedUpProject', { name: data.project.name });
+          return t('calendar.dnd.announcements.pickedUpProject', { name: data.project.displayName });
         case 'derived':
-          return t('calendar.dnd.announcements.pickedUpProject', { name: data.project.name });
+          return t('calendar.dnd.announcements.pickedUpProject', { name: data.project.displayName });
         case 'event':
           return t('calendar.dnd.announcements.pickedUpEvent', { name: eventLabel(data.event) });
         case 'resize':

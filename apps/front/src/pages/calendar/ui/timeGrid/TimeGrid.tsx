@@ -3,7 +3,8 @@ import type { CSSProperties } from 'react';
 import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import { formatDayTime, type ScheduleEventDto } from '@/entities/schedule-event';
+import { formatDayTime } from '@/entities/schedule-event';
+import type { CalendarEvent } from '../../model/calendarEditorData';
 import { eventContentDensity } from '../../model/eventDensity';
 import {
   HOUR_HEIGHT,
@@ -35,9 +36,9 @@ function groupSegmentsByDay(segments: TimedSegment[]): Map<number, TimedSegment[
 export interface TimeGridProps {
   weekDates: string[];
   segments: TimedSegment[];
-  eventsById: Map<string, ScheduleEventDto>;
+  eventsById: Map<string, CalendarEvent>;
   colorForProject: (projectId: string, color: string | null) => string;
-  onSelectEvent: (event: ScheduleEventDto) => void;
+  onSelectEvent: (event: CalendarEvent) => void;
 }
 
 export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onSelectEvent }: TimeGridProps) {
@@ -86,7 +87,7 @@ export function TimeGrid({ weekDates, segments, eventsById, colorForProject, onS
                 if (!event) return null;
 
                 const geometry = segmentGeometry(segment);
-                const color = colorForProject(segment.projectId, event.project.color);
+                const color = colorForProject(segment.projectId, event.project.color ?? null);
                 const day = event.days.find((eventDay) => eventDay.date === date);
                 const scheduleLabel = day ? (formatDayTime(day) ?? '') : '';
 

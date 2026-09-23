@@ -8,13 +8,27 @@ import {
   scheduleQueries,
   shiftDays,
   updateScheduleEvent,
-  type SchedulableProjectDto,
+  type ScheduleBoardDto,
+  type ScheduleEditorBoardDto,
   type ScheduleEventDayPayload,
-  type ScheduleEventDto,
+  type ScheduleEventMutationDto,
   type UpdateScheduleEventPayload,
 } from '@/entities/schedule-event';
 import { staffQueries } from '@/entities/staff-member';
 import { equipmentQueries } from '@/entities/equipment';
+import {
+  mapEditorCalendarBoard,
+  mapFullCalendarBoard,
+  mapFullEquipmentOption,
+  mapFullProjectOption,
+  mapFullStaffOption,
+  mapSelectorOption,
+  type CalendarBoard,
+  type CalendarEquipmentOption,
+  type CalendarEvent,
+  type CalendarProjectOption,
+  type CalendarStaffOption,
+} from './calendarEditorData';
 import { deriveProjectRange, DerivedRangeTooLongError, MAX_DERIVED_RANGE_DAYS } from './derivedRanges';
 
 export type CalendarView = 'month' | 'week';
@@ -37,11 +51,13 @@ function computeRange(view: CalendarView, cursor: string): { from: string; to: s
 
 export function useCalendarBoard({
   canViewCalendar,
+  canEditCalendar,
   canViewProjects,
   canViewStaff,
   canViewEquipment,
 }: {
   canViewCalendar: boolean;
+  canEditCalendar: boolean;
   canViewProjects: boolean;
   canViewStaff: boolean;
   canViewEquipment: boolean;
@@ -51,36 +67,72 @@ export function useCalendarBoard({
   const [cursor, setCursor] = useState(() => dayjs().format(DATE_FORMAT));
 
   const range = useMemo(() => computeRange(view, cursor), [view, cursor]);
-
+  const canEditSchedule = canEditCalendar;
+  const editorMode = canEditSchedule && !(canViewProjects && canViewStaff && canViewEquipment);
   const canViewSchedule = canViewCalendar && canViewProjects;
-  const boardQuery = useQuery({
-    ...scheduleQueries.board(range.from, range.to),
-    enabled: canViewSchedule,
-  });
-  const board = canViewSchedule ? (boardQuery.data ?? null) : null;
-  const loading = canViewSchedule && boardQuery.isPending;
-  const loadError = canViewSchedule && boardQuery.isError;
+  const canLoadBoard = canViewSchedule || editorMode;
+  const useFullBoard = canViewSchedule && !editorMode;
 
-  const { data: projects = [] } = useQuery({
+  const fullBoardQuery = useQuery({
+    ...scheduleQueries.board(range.from, range.to),
+    enabled: useFullBoard,
+    select: mapFullCalendarBoard,
+  });
+  const editorBoardQuery = useQuery({
+    ...scheduleQueries.editorBoard(range.from, range.to),
+    enabled: editorMode,
+    select: mapEditorCalendarBoard,
+  });
+  const board: CalendarBoard | null = editorMode
+    ? (editorBoardQuery.data ?? null)
+    : useFullBoard
+      ? (fullBoardQuery.data ?? null)
+      : null;
+  const loading = canLoadBoard && (editorMode ? editorBoardQuery.isPending : fullBoardQuery.isPending);
+  const loadError = canLoadBoard && (editorMode ? editorBoardQuery.isError : fullBoardQuery.isError);
+
+  const fullProjectsQuery = useQuery({
     ...scheduleQueries.schedulableProjects(),
-    enabled: canViewProjects,
+    enabled: !editorMode && canViewProjects,
+    select: (projects) => projects.map(mapFullProjectOption),
   });
-  const { data: staffMembers = [] } = useQuery({
+  const editorProjectsQuery = useQuery({
+    ...scheduleQueries.editorProjects(),
+    enabled: editorMode,
+    select: (projects) => projects.map(mapSelectorOption),
+  });
+  const fullStaffQuery = useQuery({
     ...staffQueries.list(),
-    enabled: canViewStaff,
+    enabled: !editorMode && canViewStaff,
+    select: (staffMembers) =>
+      staffMembers.filter((staffMember) => !staffMember.archivedAt).map(mapFullStaffOption),
   });
-  const { data: equipment = [] } = useQuery({
+  const editorStaffQuery = useQuery({
+    ...scheduleQueries.editorStaff(),
+    enabled: editorMode,
+    select: (staffMembers) => staffMembers.map(mapSelectorOption),
+  });
+  const fullEquipmentQuery = useQuery({
     ...equipmentQueries.list(),
-    enabled: canViewEquipment,
+    enabled: !editorMode && canViewEquipment,
+    select: (equipment) =>
+      equipment.filter((item) => !item.archivedAt).map(mapFullEquipmentOption),
   });
-  const availableStaffMembers = useMemo(
-    () => staffMembers.filter((staffMember) => !staffMember.archivedAt),
-    [staffMembers],
-  );
-  const availableEquipment = useMemo(
-    () => equipment.filter((item) => !item.archivedAt),
-    [equipment],
-  );
+  const editorEquipmentQuery = useQuery({
+    ...scheduleQueries.editorEquipment(),
+    enabled: editorMode,
+    select: (equipment) => equipment.map(mapSelectorOption),
+  });
+
+  const projects: CalendarProjectOption[] = editorMode
+    ? (editorProjectsQuery.data ?? [])
+    : (fullProjectsQuery.data ?? []);
+  const staffMembers: CalendarStaffOption[] = editorMode
+    ? (editorStaffQuery.data ?? [])
+    : (fullStaffQuery.data ?? []);
+  const equipment: CalendarEquipmentOption[] = editorMode
+    ? (editorEquipmentQuery.data ?? [])
+    : (fullEquipmentQuery.data ?? []);
 
   const goToday = useCallback(() => setCursor(dayjs().format(DATE_FORMAT)), []);
 
@@ -92,6 +144,27 @@ export function useCalendarBoard({
     setCursor((prev) => dayjs(prev).add(1, view === 'month' ? 'month' : 'week').format(DATE_FORMAT));
   }, [view]);
 
+  const refreshedBoard = useCallback(async (eventId?: string) => {
+    await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
+    let nextBoard: CalendarBoard | null = null;
+    if (editorMode) {
+      const board = queryClient.getQueryData<ScheduleEditorBoardDto>(
+        scheduleQueries.editorBoard(range.from, range.to).queryKey,
+      );
+      if (board) nextBoard = mapEditorCalendarBoard(board);
+    } else {
+      const board = queryClient.getQueryData<ScheduleBoardDto>(
+        scheduleQueries.board(range.from, range.to).queryKey,
+      );
+      if (board) nextBoard = mapFullCalendarBoard(board);
+    }
+    if (!nextBoard) return { board: null, event: null };
+    return {
+      board: nextBoard,
+      event: eventId ? nextBoard.events.find((event) => event.id === eventId) ?? null : null,
+    };
+  }, [editorMode, queryClient, range.from, range.to]);
+
   const createFromDrop = useCallback(
     (projectId: string, date: string) =>
       createScheduleEvent({
@@ -99,40 +172,34 @@ export function useCalendarBoard({
         days: [{ date }],
         staffMemberIds: [],
         equipment: [],
-      }).then(async (created) => {
+      }).then(async () => {
         await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
-        return created;
       }),
     [queryClient],
   );
 
   const moveEvent = useCallback(
-    (event: ScheduleEventDto, offsetInDays: number) =>
-      updateScheduleEvent(event.id, { days: shiftDays(event.days, offsetInDays) }).then(
-        async (updated) => {
-          await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
-          return updated;
-        },
+    (event: CalendarEvent, offsetInDays: number) =>
+      updateScheduleEvent(event.id, { days: shiftDays(event.days, offsetInDays) }).then(() =>
+        refreshedBoard(event.id).then(({ event: updated }) => updated),
       ),
-    [queryClient],
+    [refreshedBoard],
   );
 
   const resizeEvent = useCallback(
-    (event: ScheduleEventDto, days: ScheduleEventDayPayload[]) =>
-      updateScheduleEvent(event.id, { days }).then(async (updated) => {
-        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
-        return updated;
-      }),
-    [queryClient],
+    (event: CalendarEvent, days: ScheduleEventDayPayload[]) =>
+      updateScheduleEvent(event.id, { days }).then(() =>
+        refreshedBoard(event.id).then(({ event: updated }) => updated),
+      ),
+    [refreshedBoard],
   );
 
   const saveEvent = useCallback(
     (eventId: string, payload: UpdateScheduleEventPayload) =>
-      updateScheduleEvent(eventId, payload).then(async (updated) => {
-        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
-        return updated;
-      }),
-    [queryClient],
+      updateScheduleEvent(eventId, payload).then(() =>
+        refreshedBoard(eventId).then(({ event: updated }) => updated),
+      ),
+    [refreshedBoard],
   );
 
   const removeEvent = useCallback(
@@ -144,49 +211,43 @@ export function useCalendarBoard({
   );
 
   const materializeDerivedRange = useCallback(
-    (project: SchedulableProjectDto, offsetInDays: number) => {
+    async (project: CalendarProjectOption, offsetInDays: number): Promise<CalendarEvent | null> => {
       const derivedRange = deriveProjectRange(project);
-      if (!derivedRange) return Promise.reject(new Error('Project has no derivable range'));
+      if (!derivedRange) throw new Error('Project has no derivable range');
 
       const shiftedStart = dayjs(derivedRange.startDate).add(offsetInDays, 'day').format(DATE_FORMAT);
       const shiftedEnd = dayjs(derivedRange.endDate).add(offsetInDays, 'day').format(DATE_FORMAT);
       const shiftedDays = daysBetween(shiftedStart, shiftedEnd);
-      if (shiftedDays.length > MAX_DERIVED_RANGE_DAYS) {
-        return Promise.reject(new DerivedRangeTooLongError());
-      }
+      if (shiftedDays.length > MAX_DERIVED_RANGE_DAYS) throw new DerivedRangeTooLongError();
 
-      return createScheduleEvent({
+      const created: ScheduleEventMutationDto = await createScheduleEvent({
         projectId: project.id,
         days: shiftedDays.map((date) => ({ date })),
         staffMemberIds: [],
         equipment: [],
-      }).then(async (created) => {
-        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
-        return created;
       });
+      const refreshed = await refreshedBoard(created.id);
+      return refreshed.event;
     },
-    [queryClient],
+    [refreshedBoard],
   );
 
   const assignStaffToEvent = useCallback(
-    (event: ScheduleEventDto, staffMemberId: string) => {
+    async (event: CalendarEvent, staffMemberId: string) => {
       if (event.staff.some((member) => member.id === staffMemberId)) {
-        return Promise.resolve({ status: 'already-assigned' as const });
+        return { status: 'already-assigned' as const };
       }
-      return updateScheduleEvent(event.id, {
+      await updateScheduleEvent(event.id, {
         staffMemberIds: [...event.staff.map((member) => member.id), staffMemberId],
-      }).then(async (updated) => {
-        await queryClient.invalidateQueries({ queryKey: scheduleQueries.all });
-        const freshBoard =
-          queryClient.getQueryData(scheduleQueries.board(range.from, range.to).queryKey) ?? null;
-        return {
-          status: 'assigned' as const,
-          updated,
-          board: freshBoard,
-        };
       });
+      const refreshed = await refreshedBoard(event.id);
+      return {
+        status: 'assigned' as const,
+        updated: refreshed.event,
+        board: refreshed.board,
+      };
     },
-    [queryClient, range.from, range.to],
+    [refreshedBoard],
   );
 
   return {
@@ -198,11 +259,13 @@ export function useCalendarBoard({
     goPrevious,
     goNext,
     board,
+    editorMode,
+    canViewBoard: canLoadBoard,
     loading,
     loadError,
     projects,
-    staffMembers: availableStaffMembers,
-    equipment: availableEquipment,
+    staffMembers,
+    equipment,
     createFromDrop,
     moveEvent,
     resizeEvent,

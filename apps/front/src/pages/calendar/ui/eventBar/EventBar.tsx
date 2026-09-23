@@ -1,21 +1,21 @@
 import type { CSSProperties } from 'react';
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import { Flex, Tag, Tooltip, Typography } from 'antd';
+import { Avatar, Flex, Tag, Tooltip, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { ScheduleConflictDto, ScheduleEventDto } from '@/entities/schedule-event';
+import type { ScheduleConflictDto } from '@/entities/schedule-event';
 import { summarizeDayTimes } from '@/entities/schedule-event';
-import { StaffAvatar } from '@/entities/staff-member';
 import { hasErrorConflict, hasInfoConflict } from '../../model/conflictIndex';
 import type { EventDragData, EventDropData, ResizeDragData } from '../../model/dragData';
 import { eventContentDensity, WEEK_BAR_HEIGHT } from '../../model/eventDensity';
 import { staffDisplay } from '../../model/staffDisplay';
+import type { CalendarEvent } from '../../model/calendarEditorData';
 import { ScheduleEventContent } from '../eventContent/ScheduleEventContent';
 import styles from './EventBar.module.css';
 
 const { Text } = Typography;
 
 export interface EventBarProps {
-  event: ScheduleEventDto;
+  event: CalendarEvent;
   barKey: string;
   rowKey: string;
   segmentStart: string;
@@ -26,7 +26,7 @@ export interface EventBarProps {
   variant: 'month' | 'week';
   color: string;
   conflicts: ScheduleConflictDto[];
-  onSelect: (event: ScheduleEventDto) => void;
+  onSelect: (event: CalendarEvent) => void;
 }
 
 export function EventBar({
@@ -66,15 +66,15 @@ export function EventBar({
     data: { kind: 'resize', event, edge: 'end' } satisfies ResizeDragData,
   });
 
-  const isInactive = event.project.status !== 'active';
+  const isInactive = event.project.status !== undefined && event.project.status !== 'active';
   const hasError = hasErrorConflict(conflicts);
   const hasInfo = hasInfoConflict(conflicts);
-  const title = event.title?.trim() || event.project.name;
+  const title = event.title?.trim() || event.project.displayName;
   const borderColor = hasError ? 'var(--ant-color-error)' : hasInfo ? 'var(--ant-color-warning)' : 'transparent';
   const segmentDays = event.days.filter((day) => day.date >= segmentStart && day.date <= segmentEnd);
 
   const monthStaff = staffDisplay(event.staff, 3);
-  const monthStaffNames = event.staff.map((member) => `${member.firstName} ${member.lastName}`).join(', ');
+  const monthStaffNames = event.staff.map((member) => member.displayName).join(', ');
 
   const daySummary = segmentDays.length > 0 ? summarizeDayTimes(segmentDays) : null;
   const scheduleLabel =
@@ -117,7 +117,7 @@ export function EventBar({
               <Text ellipsis className={styles.monthTitle}>
                 {title}
               </Text>
-              {isInactive && (
+              {isInactive && event.project.status && (
                 <Tag className={styles.monthStatusTag}>
                   {t(`projects.form.statuses.${event.project.status}`)}
                 </Tag>
@@ -128,7 +128,7 @@ export function EventBar({
                 <Flex flex="none">
                   {monthStaff.visible.map((staffMember) => (
                     <div key={staffMember.id} className={styles.monthStaffAvatar}>
-                      <StaffAvatar staffMember={staffMember} size={18} />
+                      <Avatar size={18}>{staffMember.displayName.slice(0, 1)}</Avatar>
                     </div>
                   ))}
                   {monthStaff.hidden.length > 0 && (

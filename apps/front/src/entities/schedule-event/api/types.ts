@@ -71,10 +71,34 @@ export interface ScheduleEventDto {
   equipment: ScheduleEventEquipmentDto[];
 }
 
+export interface ScheduleEditorEventDto {
+  id: string;
+  projectId: string;
+  title: string | null;
+  notes: string | null;
+  startDate: string;
+  endDate: string;
+  project: { id: string; displayName: string };
+  days: ScheduleEventDayDto[];
+  staff: { id: string; displayName: string }[];
+  equipment: { id: string; displayName: string; quantity: number }[];
+}
+
 export interface ScheduleBoardDto {
   events: ScheduleEventDto[];
   conflicts: ScheduleConflictDto[];
   summary: ScheduleBoardSummaryDto;
+}
+
+export type ScheduleEditorBoardDto = ScheduleEditorEventDto[];
+
+export interface ScheduleEditorSelectorDto {
+  id: string;
+  displayName: string;
+}
+
+export interface ScheduleEventMutationDto {
+  id: string;
 }
 
 export interface SchedulableProjectDto {

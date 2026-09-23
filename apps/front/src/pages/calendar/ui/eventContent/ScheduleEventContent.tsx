@@ -1,15 +1,14 @@
-import { Flex, Tag, Tooltip, Typography } from 'antd';
+import { Avatar, Flex, Tag, Tooltip, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { ScheduleEventDto } from '@/entities/schedule-event';
-import { StaffAvatar } from '@/entities/staff-member';
 import { staffDisplay } from '../../model/staffDisplay';
+import type { CalendarEvent } from '../../model/calendarEditorData';
 import type { EventContentDensity } from '../../model/eventDensity';
 import styles from './ScheduleEventContent.module.css';
 
 const { Text } = Typography;
 
 export interface ScheduleEventContentProps {
-  event: ScheduleEventDto;
+  event: CalendarEvent;
   scheduleLabel: string;
   density: EventContentDensity;
 }
@@ -17,11 +16,11 @@ export interface ScheduleEventContentProps {
 export function ScheduleEventContent({ event, scheduleLabel, density }: ScheduleEventContentProps) {
   const { t } = useTranslation();
 
-  const isInactive = event.project.status !== 'active';
-  const title = event.title?.trim() || event.project.name;
+  const isInactive = event.project.status !== undefined && event.project.status !== 'active';
+  const title = event.title?.trim() || event.project.displayName;
 
   const staff = staffDisplay(event.staff, density.maxStaff);
-  const staffNames = event.staff.map((member) => `${member.firstName} ${member.lastName}`).join(', ');
+  const staffNames = event.staff.map((member) => member.displayName).join(', ');
 
   const visibleEquipment = event.equipment.slice(0, density.maxEquipment);
   const hiddenEquipment = event.equipment.slice(density.maxEquipment);
@@ -31,9 +30,9 @@ export function ScheduleEventContent({ event, scheduleLabel, density }: Schedule
       <Flex align="center" gap={6} wrap>
         {staff.visible.map((staffMember) => (
           <Flex key={staffMember.id} align="center" gap={6} className={styles.chip}>
-            <StaffAvatar staffMember={staffMember} size={24} />
+            <Avatar size={24}>{staffMember.displayName.slice(0, 1)}</Avatar>
             <Text className={styles.chipName}>
-              {staffMember.firstName} {staffMember.lastName}
+              {staffMember.displayName}
             </Text>
           </Flex>
         ))}
@@ -44,7 +43,7 @@ export function ScheduleEventContent({ event, scheduleLabel, density }: Schedule
         <Flex>
           {staff.visible.map((staffMember) => (
             <div key={staffMember.id} className={styles.avatarOverlap}>
-              <StaffAvatar staffMember={staffMember} size={24} />
+              <Avatar size={24}>{staffMember.displayName.slice(0, 1)}</Avatar>
             </div>
           ))}
         </Flex>
@@ -59,7 +58,7 @@ export function ScheduleEventContent({ event, scheduleLabel, density }: Schedule
           <Text ellipsis className={styles.title}>
             {title}
           </Text>
-          {isInactive && (
+          {isInactive && event.project.status && (
             <Tag className={styles.statusTag}>{t(`projects.form.statuses.${event.project.status}`)}</Tag>
           )}
         </Flex>
@@ -82,12 +81,12 @@ export function ScheduleEventContent({ event, scheduleLabel, density }: Schedule
       {density.maxEquipment > 0 && event.equipment.length > 0 && (
         <Flex flex="none" gap={4} wrap>
           {visibleEquipment.map((equipment) => (
-            <Tag key={equipment.equipmentId} color="blue" className={styles.equipmentTag}>
-              {equipment.name} ×{equipment.quantity}
+            <Tag key={equipment.id} color="blue" className={styles.equipmentTag}>
+              {equipment.displayName} ×{equipment.quantity}
             </Tag>
           ))}
           {hiddenEquipment.length > 0 && (
-            <Tooltip title={hiddenEquipment.map((equipment) => `${equipment.name} ×${equipment.quantity}`).join(', ')}>
+            <Tooltip title={hiddenEquipment.map((equipment) => `${equipment.displayName} ×${equipment.quantity}`).join(', ')}>
               <Tag className={styles.equipmentTag}>+{hiddenEquipment.length}</Tag>
             </Tooltip>
           )}

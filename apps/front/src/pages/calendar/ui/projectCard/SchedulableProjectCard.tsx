@@ -1,12 +1,12 @@
 import { Avatar, Flex, Typography } from 'antd';
 import { ProjectOutlined } from '@ant-design/icons';
-import type { SchedulableProjectDto } from '@/entities/schedule-event';
+import type { CalendarProjectOption } from '../../model/calendarEditorData';
 import styles from './SchedulableProjectCard.module.css';
 
 const { Text } = Typography;
 
 export interface SchedulableProjectCardProps {
-  project: SchedulableProjectDto;
+  project: CalendarProjectOption;
   color: string;
 }
 
@@ -20,11 +20,13 @@ export function SchedulableProjectCard({ project, color }: SchedulableProjectCar
       )}
       <Flex vertical gap={0} className={styles.meta}>
         <Text ellipsis className={styles.name}>
-          {project.name}
+          {project.displayName}
         </Text>
-        <Text type="secondary" className={styles.code}>
-          {project.code}
-        </Text>
+        {project.code && (
+          <Text type="secondary" className={styles.code}>
+            {project.code}
+          </Text>
+        )}
       </Flex>
     </Flex>
   );

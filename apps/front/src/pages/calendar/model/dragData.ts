@@ -1,25 +1,24 @@
-import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
-import type { StaffMemberDto } from '@/entities/staff-member';
+import type { CalendarEvent, CalendarProjectOption } from './calendarEditorData';
 
 export interface ProjectDragData {
   kind: 'project';
-  project: SchedulableProjectDto;
+  project: CalendarProjectOption;
 }
 
 export interface DerivedProjectDragData {
   kind: 'derived';
-  project: SchedulableProjectDto;
+  project: CalendarProjectOption;
 }
 
 export interface EventDragData {
   kind: 'event';
-  event: ScheduleEventDto;
+  event: CalendarEvent;
   date: string;
 }
 
 export interface ResizeDragData {
   kind: 'resize';
-  event: ScheduleEventDto;
+  event: CalendarEvent;
   edge: 'start' | 'end';
 }
 
@@ -27,7 +26,6 @@ export interface StaffDragData {
   kind: 'staff';
   staffMemberId: string;
   name: string;
-  staffMember: StaffMemberDto;
 }
 
 export type CalendarDragData =

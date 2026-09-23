@@ -7,14 +7,12 @@ import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { ApiError } from '@/shared/api/httpClient';
 import type {
-  ScheduleBoardDto,
   ScheduleConflictKind,
-  SchedulableProjectDto,
-  ScheduleEventDto,
 } from '@/entities/schedule-event';
 import { useTaxComplianceCalendar, type TaxDeadlineDto } from '@/entities/tax-compliance';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useCalendarBoard, type CalendarView } from '../../model/useCalendarBoard';
+import type { CalendarBoard, CalendarEvent, CalendarProjectOption } from '../../model/calendarEditorData';
 import { buildConflictIndex, staffAssignmentConflicts } from '../../model/conflictIndex';
 import { deriveProjectRanges, DerivedRangeTooLongError } from '../../model/derivedRanges';
 import {
@@ -45,10 +43,10 @@ const CONFLICT_KINDS: ScheduleConflictKind[] = [
 ];
 
 function visibleBoardForAccess(
-  board: ScheduleBoardDto | null,
+  board: CalendarBoard | null,
   canViewStaff: boolean,
   canViewEquipment: boolean,
-): ScheduleBoardDto | null {
+): CalendarBoard | null {
   if (!board) return null;
 
   const conflicts = board.conflicts.filter(
@@ -88,14 +86,11 @@ export function CalendarPage() {
   const canViewCalendar = canAccess('calendar', 'view');
   const canEditCalendar = canAccess('calendar', 'edit');
   const canViewProjects = canAccess('projects', 'view');
-  const canEditProjects = canAccess('projects', 'edit');
   const canViewStaff = canAccess('staff', 'view');
-  const canEditStaff = canAccess('staff', 'edit');
   const canViewEquipment = canAccess('equipment', 'view');
-  const canEditEquipment = canAccess('equipment', 'edit');
-  const canEditSchedule = canEditCalendar && canEditProjects;
-  const canAssignStaff = canEditSchedule && canEditStaff;
-  const canAssignEquipment = canEditSchedule && canEditEquipment;
+  const canEditSchedule = canEditCalendar;
+  const canAssignStaff = canEditSchedule;
+  const canAssignEquipment = canEditSchedule;
   const canViewSchedule = canViewCalendar && canViewProjects;
 
   const {
@@ -104,6 +99,8 @@ export function CalendarPage() {
     cursor,
     range,
     board,
+    editorMode,
+    canViewBoard,
     loading,
     loadError,
     projects,
@@ -121,21 +118,27 @@ export function CalendarPage() {
     assignStaffToEvent,
   } = useCalendarBoard({
     canViewCalendar,
+    canEditCalendar,
     canViewProjects,
-    canViewStaff: canViewSchedule && canViewStaff,
-    canViewEquipment: canViewSchedule && canViewEquipment,
+    canViewStaff,
+    canViewEquipment,
   });
 
   const taxCalendar = useTaxComplianceCalendar(range.from, range.to, canViewSchedule);
 
-  const [selectedEvent, setSelectedEvent] = useState<ScheduleEventDto | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
   const [selectedTaxDeadline, setSelectedTaxDeadline] = useState<TaxDeadlineDto | null>(null);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const visibleBoard = useMemo(
-    () => visibleBoardForAccess(canViewSchedule ? board : null, canViewStaff, canViewEquipment),
-    [board, canViewEquipment, canViewSchedule, canViewStaff],
+    () =>
+      visibleBoardForAccess(
+        canViewBoard ? board : null,
+        canViewStaff || canEditCalendar,
+        canViewEquipment || canEditCalendar,
+      ),
+    [board, canEditCalendar, canViewBoard, canViewEquipment, canViewStaff],
   );
 
   const conflictIndex = useMemo(
@@ -144,8 +147,8 @@ export function CalendarPage() {
   );
 
   const eventsById = useMemo(
-    () => new Map((canViewSchedule ? board?.events ?? [] : []).map((event) => [event.id, event])),
-    [board?.events, canViewSchedule],
+    () => new Map((visibleBoard?.events ?? []).map((event) => [event.id, event])),
+    [visibleBoard?.events],
   );
   const projectsById = useMemo(
     () => new Map(projects.map((project) => [project.id, project])),
@@ -185,7 +188,7 @@ export function CalendarPage() {
   };
 
   const handleMaterialize = (
-    project: SchedulableProjectDto,
+    project: CalendarProjectOption,
     offsetInDays: number,
     openEditor: boolean,
   ) => {
@@ -193,7 +196,7 @@ export function CalendarPage() {
     materializeDerivedRange(project, offsetInDays)
       .then((created) => {
         void message.success(t('calendar.derived.materialized'));
-        if (openEditor) setSelectedEvent(created);
+        if (openEditor && created) setSelectedEvent(created);
       })
       .catch((error: unknown) => {
         if (error instanceof DerivedRangeTooLongError) {
@@ -208,15 +211,15 @@ export function CalendarPage() {
       });
   };
 
-  const handleDropDerivedProject = (project: SchedulableProjectDto, offsetInDays: number) => {
+  const handleDropDerivedProject = (project: CalendarProjectOption, offsetInDays: number) => {
     handleMaterialize(project, offsetInDays, false);
   };
 
-  const handleSelectDerived = (project: SchedulableProjectDto) => {
+  const handleSelectDerived = (project: CalendarProjectOption) => {
     handleMaterialize(project, 0, true);
   };
 
-  const handleMoveEvent = (event: ScheduleEventDto, offsetInDays: number) => {
+  const handleMoveEvent = (event: CalendarEvent, offsetInDays: number) => {
     if (!canEditSchedule) return;
     moveEvent(event, offsetInDays)
       .then(() => void message.success(t('calendar.event.moved')))
@@ -230,7 +233,7 @@ export function CalendarPage() {
       );
   };
 
-  const handleResizeEvent = (event: ScheduleEventDto, edge: 'start' | 'end', date: string) => {
+  const handleResizeEvent = (event: CalendarEvent, edge: 'start' | 'end', date: string) => {
     if (!canEditSchedule) return;
     resizeEvent(event, resizeEventDays(event.days, edge, date))
       .then(() => void message.success(t('calendar.event.resized')))
@@ -271,7 +274,7 @@ export function CalendarPage() {
     );
   };
 
-  const handleSelectEvent = (event: ScheduleEventDto) => {
+  const handleSelectEvent = (event: CalendarEvent) => {
     setSelectedEvent(eventsById.get(event.id) ?? event);
   };
 
@@ -347,7 +350,7 @@ export function CalendarPage() {
           </Text>
         </Flex>
 
-        {canViewSchedule && (
+        {canViewSchedule && !editorMode && (
           <div className={styles.conflictWrapper}>
             <ConflictSummary summary={visibleBoard?.summary ?? null} />
           </div>
@@ -385,12 +388,12 @@ export function CalendarPage() {
             >
               <Flex className={styles.boardRow}>
                 <Flex vertical className={styles.sidePanel}>
-                  {canViewSchedule && (
+                  {canViewBoard && (
                     <div className={styles.schedulablePanelSlot}>
                       <SchedulablePanel projects={projects} colorForProject={colorForProject} />
                     </div>
                   )}
-                  {canViewSchedule && canViewStaff && (
+                  {canViewBoard && (canViewStaff || canEditCalendar) && (
                     <div className={styles.staffPanelSlot}>
                       <StaffPanel staffMembers={staffMembers} canAssign={canAssignStaff} />
                     </div>
@@ -438,9 +441,9 @@ export function CalendarPage() {
         staffMembers={staffMembers}
         equipment={equipment}
         canEdit={canEditSchedule}
-        canViewStaff={canViewSchedule && canViewStaff}
+        canViewStaff={(canViewSchedule && canViewStaff) || canEditCalendar}
         canEditStaff={canAssignStaff}
-        canViewEquipment={canViewSchedule && canViewEquipment}
+        canViewEquipment={(canViewSchedule && canViewEquipment) || canEditCalendar}
         canEditEquipment={canAssignEquipment}
         onCancel={() => setSelectedEvent(null)}
         onSave={handleSave}

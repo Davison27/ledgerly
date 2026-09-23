@@ -1,6 +1,7 @@
-import { contiguousRuns, type ScheduleEventDto } from '@/entities/schedule-event';
+import { contiguousRuns } from '@/entities/schedule-event';
 import type { TaxDeadlineDto } from '@/entities/tax-compliance';
 import type { DerivedProjectRange } from './derivedRanges';
+import type { CalendarEvent } from './calendarEditorData';
 
 export type CalendarLaneKind = 'event' | 'tax' | 'derived';
 
@@ -31,7 +32,7 @@ export interface LaneItem {
   ownsEndHandle: boolean;
 }
 
-export function buildEventLaneItems(events: ScheduleEventDto[]): LaneItem[] {
+export function buildEventLaneItems(events: CalendarEvent[]): LaneItem[] {
   return events.flatMap((event) =>
     contiguousRuns(event.days).map((run, index) => ({
       key: `event-${event.id}-${index}`,

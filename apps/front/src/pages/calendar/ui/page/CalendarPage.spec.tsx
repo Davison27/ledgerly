@@ -1,7 +1,9 @@
-import { act, render, screen } from '@testing-library/react';
+import { act, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { App } from 'antd';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useCalendarBoard } from '../../model/useCalendarBoard';
+import type { CalendarProjectOption } from '../../model/calendarEditorData';
 import { useTaxComplianceCalendar } from '@/entities/tax-compliance';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
@@ -62,7 +64,8 @@ vi.mock('../taxDeadline/TaxDeadlineModal', () => ({
 
 const board = {
   view: 'month', setView: vi.fn(), cursor: '2026-08-01', range: { from: '2026-08-01', to: '2026-08-31' },
-  board: null, loading: false, loadError: false, projects: [], staffMembers: [], equipment: [],
+  board: null, editorMode: false, canViewBoard: true, loading: false, loadError: false,
+  projects: [], staffMembers: [], equipment: [],
   goToday: vi.fn(), goPrevious: vi.fn(), goNext: vi.fn(), createFromDrop: vi.fn(), moveEvent: vi.fn(),
   resizeEvent: vi.fn(), saveEvent: vi.fn(), removeEvent: vi.fn(), materializeDerivedRange: vi.fn(), assignStaffToEvent: vi.fn(),
 };
@@ -139,7 +142,7 @@ describe('CalendarPage', () => {
     ).toBe(deadline);
   });
 
-  it('does not request or render project-dependent calendar data without Projects view', () => {
+  it('uses schedule-scoped editor data without Projects view', () => {
     const grants = {
       calendar: { view: true, edit: true },
       projects: { view: false, edit: false },
@@ -151,6 +154,8 @@ describe('CalendarPage', () => {
     } as never);
     vi.mocked(useCalendarBoard).mockReturnValue({
       ...board,
+      editorMode: true,
+      canViewBoard: true,
       board: { events: [], conflicts: [], summary: { errorCount: 0, infoCount: 0, byKind: {} } },
     } as never);
 
@@ -158,6 +163,7 @@ describe('CalendarPage', () => {
 
     expect(useCalendarBoard).toHaveBeenCalledWith({
       canViewCalendar: true,
+      canEditCalendar: true,
       canViewProjects: false,
       canViewStaff: false,
       canViewEquipment: false,
@@ -167,9 +173,16 @@ describe('CalendarPage', () => {
       expect.any(String),
       false,
     );
-    expect(calendarMocks.schedulablePanelMounted).toBe(false);
-    expect(calendarMocks.staffPanelMounted).toBe(false);
-    expect((calendarMocks.dndContextProps as { disabled: boolean }).disabled).toBe(true);
+    expect(calendarMocks.schedulablePanelMounted).toBe(true);
+    expect(calendarMocks.staffPanelMounted).toBe(true);
+    expect((calendarMocks.dndContextProps as { disabled: boolean }).disabled).toBe(false);
+    expect(calendarMocks.eventEditorProps).toMatchObject({
+      canEdit: true,
+      canViewStaff: true,
+      canEditStaff: true,
+      canViewEquipment: true,
+      canEditEquipment: true,
+    });
   });
 
   it('allows read-only calendar users to open an event without enabling edits', () => {
@@ -191,17 +204,13 @@ describe('CalendarPage', () => {
       endDate: '2026-08-01',
       project: {
         id: 'project-1',
-        name: 'Project',
-        code: 'P-1',
-        image: null,
+        displayName: 'Project',
         status: 'active',
-        startDate: null,
-        endDate: null,
         color: null,
       },
       days: [{ date: '2026-08-01', startTime: null, endTime: null }],
-      staff: [],
-      equipment: [],
+      staff: [{ id: 'staff-1', displayName: 'Hidden person' }],
+      equipment: [{ id: 'equipment-1', displayName: 'Hidden equipment', quantity: 1 }],
     };
     vi.mocked(useCalendarBoard).mockReturnValue({
       ...board,
@@ -220,6 +229,56 @@ describe('CalendarPage', () => {
     act(() => monthGridProps.onSelectEvent(event));
 
     expect(calendarMocks.eventEditorProps).toMatchObject({ open: true, canEdit: false });
+    expect(calendarMocks.eventEditorProps).toMatchObject({
+      event: { staff: [], equipment: [] },
+    });
     expect((calendarMocks.dndContextProps as { disabled: boolean }).disabled).toBe(true);
+  });
+
+  it('opens the editor with the refetched event after materializing a derived range', async () => {
+    const project = {
+      id: 'project-1',
+      displayName: 'Project One',
+      status: 'active' as const,
+      startDate: '2026-08-03',
+      endDate: '2026-08-04',
+      hasEvents: false,
+    };
+    const refetchedEvent = {
+      id: 'event-derived',
+      projectId: 'project-1',
+      title: null,
+      notes: null,
+      startDate: '2026-08-03',
+      endDate: '2026-08-04',
+      project: { id: 'project-1', displayName: 'Project One' },
+      days: [
+        { date: '2026-08-03', startTime: null, endTime: null },
+        { date: '2026-08-04', startTime: null, endTime: null },
+      ],
+      staff: [],
+      equipment: [],
+    };
+    const materializeDerivedRange = vi.fn().mockResolvedValue(refetchedEvent);
+    vi.mocked(useCalendarBoard).mockReturnValue({
+      ...board,
+      projects: [project],
+      materializeDerivedRange,
+    } as never);
+    render(
+      <App>
+        <CalendarPage />
+      </App>,
+    );
+    const monthGridProps = calendarMocks.monthGridProps as {
+      onSelectDerived: (project: CalendarProjectOption) => void;
+    };
+
+    await act(async () => monthGridProps.onSelectDerived(project));
+
+    expect(materializeDerivedRange).toHaveBeenCalledWith(project, 0);
+    await waitFor(() =>
+      expect(calendarMocks.eventEditorProps).toMatchObject({ open: true, event: refetchedEvent }),
+    );
   });
 });

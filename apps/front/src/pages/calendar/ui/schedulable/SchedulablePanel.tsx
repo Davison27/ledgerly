@@ -3,7 +3,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { Empty, Flex, Input, Typography } from 'antd';
 import { SearchOutlined } from '@ant-design/icons';
 import { useTranslation } from 'react-i18next';
-import type { SchedulableProjectDto } from '@/entities/schedule-event';
+import type { CalendarProjectOption } from '../../model/calendarEditorData';
 import type { ProjectDragData } from '../../model/dragData';
 import { SchedulableProjectCard } from '../projectCard/SchedulableProjectCard';
 import styles from './SchedulablePanel.module.css';
@@ -11,7 +11,7 @@ import styles from './SchedulablePanel.module.css';
 const { Text } = Typography;
 
 interface SchedulableProjectItemProps {
-  project: SchedulableProjectDto;
+  project: CalendarProjectOption;
   color: string;
 }
 
@@ -29,7 +29,7 @@ function SchedulableProjectItem({ project, color }: SchedulableProjectItemProps)
 }
 
 export interface SchedulablePanelProps {
-  projects: SchedulableProjectDto[];
+  projects: CalendarProjectOption[];
   colorForProject: (projectId: string, color: string | null) => string;
 }
 
@@ -40,8 +40,8 @@ export function SchedulablePanel({ projects, colorForProject }: SchedulablePanel
   const filtered = projects.filter(
     (project) =>
       !search.trim() ||
-      project.name.toLowerCase().includes(search.trim().toLowerCase()) ||
-      project.code.toLowerCase().includes(search.trim().toLowerCase()),
+      project.displayName.toLowerCase().includes(search.trim().toLowerCase()) ||
+      (project.code?.toLowerCase().includes(search.trim().toLowerCase()) ?? false),
   );
 
   return (
@@ -64,7 +64,7 @@ export function SchedulablePanel({ projects, colorForProject }: SchedulablePanel
             <SchedulableProjectItem
               key={project.id}
               project={project}
-              color={colorForProject(project.id, project.color)}
+              color={colorForProject(project.id, project.color ?? null)}
             />
           ))
         )}

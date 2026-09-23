@@ -12,7 +12,7 @@ export interface CalendarDragPreviewProps {
 }
 
 function eventLabel(data: Extract<CalendarDragData, { kind: 'event' }>): string {
-  return data.event.title?.trim() || data.event.project.name;
+  return data.event.title?.trim() || data.event.project.displayName;
 }
 
 export function CalendarDragPreview({ data, colorForProject }: CalendarDragPreviewProps) {
@@ -23,13 +23,13 @@ export function CalendarDragPreview({ data, colorForProject }: CalendarDragPrevi
         return (
           <SchedulableProjectCard
             project={data.project}
-            color={colorForProject(data.project.id, data.project.color)}
+            color={colorForProject(data.project.id, data.project.color ?? null)}
           />
         );
       case 'staff':
-        return <StaffPanelCard staffMember={data.staffMember} />;
+        return <StaffPanelCard staffMember={{ id: data.staffMemberId, displayName: data.name }} />;
       case 'event': {
-        const color = colorForProject(data.event.projectId, data.event.project.color);
+        const color = colorForProject(data.event.projectId, data.event.project.color ?? null);
         return (
           <div className={styles.eventPreview} style={{ borderInlineStartColor: color }}>
             <Text className={styles.eventLabel}>{eventLabel(data)}</Text>

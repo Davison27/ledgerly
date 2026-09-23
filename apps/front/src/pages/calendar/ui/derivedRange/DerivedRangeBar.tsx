@@ -1,17 +1,17 @@
 import { useDraggable } from '@dnd-kit/core';
 import { Tag, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { SchedulableProjectDto } from '@/entities/schedule-event';
+import type { CalendarProjectOption } from '../../model/calendarEditorData';
 import type { DerivedProjectDragData } from '../../model/dragData';
 import styles from './DerivedRangeBar.module.css';
 
 const { Text } = Typography;
 
 export interface DerivedRangeBarProps {
-  project: SchedulableProjectDto;
+  project: CalendarProjectOption;
   rowKey: string;
   color: string;
-  onSelect: (project: SchedulableProjectDto) => void;
+  onSelect: (project: CalendarProjectOption) => void;
 }
 
 export function DerivedRangeBar({ project, rowKey, color, onSelect }: DerivedRangeBarProps) {
@@ -33,7 +33,7 @@ export function DerivedRangeBar({ project, rowKey, color, onSelect }: DerivedRan
       style={{ borderColor: color }}
     >
       <Text ellipsis className={styles.label} style={{ color }}>
-        {project.name}
+        {project.displayName}
       </Text>
       <Tag className={styles.badge}>{t('calendar.derived.badge')}</Tag>
     </div>

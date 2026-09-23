@@ -3,10 +3,10 @@ import type { CSSProperties } from 'react';
 import dayjs from 'dayjs';
 import { Flex, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import type { TaxDeadlineDto } from '@/entities/tax-compliance';
 import type { ConflictIndex } from '../../model/conflictIndex';
 import type { LaneItem } from '../../model/lanes';
+import type { CalendarEvent, CalendarProjectOption } from '../../model/calendarEditorData';
 import {
   buildTimedSegments,
   HOUR_GUTTER_WIDTH,
@@ -24,14 +24,14 @@ const WEEKDAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
 export interface WeekGridProps {
   cursor: string;
   items: LaneItem[];
-  eventsById: Map<string, ScheduleEventDto>;
+  eventsById: Map<string, CalendarEvent>;
   deadlinesById: Map<string, TaxDeadlineDto>;
-  projectsById: Map<string, SchedulableProjectDto>;
+  projectsById: Map<string, CalendarProjectOption>;
   conflictIndex: ConflictIndex;
   colorForProject: (projectId: string, color: string | null) => string;
-  onSelectEvent: (event: ScheduleEventDto) => void;
+  onSelectEvent: (event: CalendarEvent) => void;
   onSelectTaxDeadline: (deadline: TaxDeadlineDto) => void;
-  onSelectDerived: (project: SchedulableProjectDto) => void;
+  onSelectDerived: (project: CalendarProjectOption) => void;
 }
 
 export function WeekGrid({

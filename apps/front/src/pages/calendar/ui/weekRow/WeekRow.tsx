@@ -1,7 +1,6 @@
 import { useMemo, type ReactNode } from 'react';
 import { Popover, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
-import type { SchedulableProjectDto, ScheduleEventDto } from '@/entities/schedule-event';
 import {
   formatTaxDeadlineTitle,
   type TaxDeadlineDto,
@@ -9,6 +8,7 @@ import {
 import type { ConflictIndex } from '../../model/conflictIndex';
 import { conflictsForEventInRange } from '../../model/conflictIndex';
 import { WEEK_BAR_HEIGHT } from '../../model/eventDensity';
+import type { CalendarEvent, CalendarProjectOption } from '../../model/calendarEditorData';
 import { layoutWeek, type CalendarBar, type LaneItem } from '../../model/lanes';
 import { DayCell } from '../dayCell/DayCell';
 import { EventBar } from '../eventBar/EventBar';
@@ -33,33 +33,33 @@ export interface WeekRowProps {
   dayHeaders: ReactNode[];
   mutedDays?: boolean[];
   items: LaneItem[];
-  eventsById: Map<string, ScheduleEventDto>;
+  eventsById: Map<string, CalendarEvent>;
   deadlinesById: Map<string, TaxDeadlineDto>;
-  projectsById: Map<string, SchedulableProjectDto>;
+  projectsById: Map<string, CalendarProjectOption>;
   conflictIndex: ConflictIndex;
   colorForProject: (projectId: string, color: string | null) => string;
   variant: CalendarRowVariant;
-  onSelectEvent: (event: ScheduleEventDto) => void;
+  onSelectEvent: (event: CalendarEvent) => void;
   onSelectTaxDeadline: (deadline: TaxDeadlineDto) => void;
-  onSelectDerived: (project: SchedulableProjectDto) => void;
+  onSelectDerived: (project: CalendarProjectOption) => void;
 }
 
 function barLabel(
   bar: CalendarBar,
-  eventsById: Map<string, ScheduleEventDto>,
+  eventsById: Map<string, CalendarEvent>,
   deadlinesById: Map<string, TaxDeadlineDto>,
-  projectsById: Map<string, SchedulableProjectDto>,
+  projectsById: Map<string, CalendarProjectOption>,
   formatDeadlineTitle: (deadline: TaxDeadlineDto) => string,
 ): string {
   if (bar.kind === 'event') {
     const event = eventsById.get(bar.eventId ?? '');
-    return event ? event.title?.trim() || event.project.name : '';
+    return event ? event.title?.trim() || event.project.displayName : '';
   }
   if (bar.kind === 'tax') {
     const deadline = deadlinesById.get(bar.taxDeadlineId ?? '');
     return deadline ? `${formatDeadlineTitle(deadline)} · ${deadline.projectName}` : '';
   }
-  return projectsById.get(bar.projectId)?.name ?? '';
+  return projectsById.get(bar.projectId)?.displayName ?? '';
 }
 
 export function WeekRow({
@@ -140,7 +140,7 @@ export function WeekRow({
                   ownsEndHandle={bar.ownsEndHandle}
                   span={bar.span}
                   variant={variant}
-                  color={colorForProject(bar.projectId, event.project.color)}
+                  color={colorForProject(bar.projectId, event.project.color ?? null)}
                   conflicts={conflictsForEventInRange(
                     conflictIndex,
                     bar.eventId ?? '',
@@ -154,7 +154,7 @@ export function WeekRow({
                 <DerivedRangeBar
                   project={project}
                   rowKey={rowKey}
-                  color={colorForProject(bar.projectId, project.color)}
+                  color={colorForProject(bar.projectId, project.color ?? null)}
                   onSelect={onSelectDerived}
                 />
               )}

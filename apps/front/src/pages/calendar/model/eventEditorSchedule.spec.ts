@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import type { ScheduleEventDto } from '@/entities/schedule-event';
+import type { CalendarEvent } from './calendarEditorData';
 import { eventScheduleShape, expandScheduleToDays } from './eventEditorSchedule';
 
-function event(overrides: Partial<ScheduleEventDto> = {}): ScheduleEventDto {
+function event(overrides: Partial<CalendarEvent> = {}): CalendarEvent {
   return {
     id: 'event-1',
     projectId: 'project-1',
@@ -12,12 +12,8 @@ function event(overrides: Partial<ScheduleEventDto> = {}): ScheduleEventDto {
     endDate: '2026-03-03',
     project: {
       id: 'project-1',
-      name: 'Project',
-      code: 'PRJ-1',
-      image: null,
+      displayName: 'Project',
       status: 'active',
-      startDate: '2026-03-01',
-      endDate: '2026-03-05',
       color: null,
     },
     days: [

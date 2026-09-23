@@ -23,9 +23,12 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
-import type { ScheduleEventDto, UpdateScheduleEventPayload } from '@/entities/schedule-event';
-import type { EquipmentDto } from '@/entities/equipment';
-import type { StaffMemberDto } from '@/entities/staff-member';
+import type { UpdateScheduleEventPayload } from '@/entities/schedule-event';
+import type {
+  CalendarEquipmentOption,
+  CalendarEvent,
+  CalendarStaffOption,
+} from '../../model/calendarEditorData';
 import { SPACE } from '@/shared/config/theme';
 import {
   MAX_BLOCK_DAYS,
@@ -61,9 +64,9 @@ interface EventEditorFormValues {
 
 export interface EventEditorModalProps {
   open: boolean;
-  event: ScheduleEventDto | null;
-  staffMembers: StaffMemberDto[];
-  equipment: EquipmentDto[];
+  event: CalendarEvent | null;
+  staffMembers: CalendarStaffOption[];
+  equipment: CalendarEquipmentOption[];
   canEdit: boolean;
   canViewStaff: boolean;
   canEditStaff: boolean;
@@ -118,7 +121,7 @@ export function EventEditorModal({
         endTime: shape.endTime ? dayjs(shape.endTime, 'HH:mm') : undefined,
         staffMemberIds: event.staff.map((staffMember) => staffMember.id),
         equipment: event.equipment.map((equipment) => ({
-          equipmentId: equipment.equipmentId,
+          equipmentId: equipment.id,
           quantity: equipment.quantity,
         })),
       });
@@ -170,7 +173,7 @@ export function EventEditorModal({
                 quantity: equipment.quantity!,
               }))
             : event.equipment.map((equipment) => ({
-                equipmentId: equipment.equipmentId,
+                equipmentId: equipment.id,
                 quantity: equipment.quantity,
               })),
         };
@@ -189,10 +192,23 @@ export function EventEditorModal({
     void onDelete(event.id);
   };
 
-  const equipmentLabel = (equipment: EquipmentDto) =>
-    equipment.stock === 0
-      ? `${equipment.name} (${t('equipment.stockUnset')})`
-      : `${equipment.name} (${equipment.stock})`;
+  const equipmentLabel = (equipment: CalendarEquipmentOption) => {
+    if (equipment.stock === undefined) return equipment.displayName;
+    return equipment.stock === 0
+      ? `${equipment.displayName} (${t('equipment.stockUnset')})`
+      : `${equipment.displayName} (${equipment.stock})`;
+  };
+
+  const staffOptions = Array.from(
+    new Map(
+      [...staffMembers, ...(event?.staff ?? [])].map((staffMember) => [staffMember.id, staffMember]),
+    ).values(),
+  );
+  const equipmentOptions = Array.from(
+    new Map(
+      [...equipment, ...(event?.equipment ?? [])].map((item) => [item.id, item]),
+    ).values(),
+  );
 
   return (
     <Modal
@@ -367,9 +383,9 @@ export function EventEditorModal({
                 allowClear
                 disabled={!canEditStaff}
                 placeholder={t('calendar.editor.placeholders.staff')}
-                options={staffMembers.map((staffMember) => ({
+                options={staffOptions.map((staffMember) => ({
                   value: staffMember.id,
-                  label: `${staffMember.firstName} ${staffMember.lastName}`,
+                  label: staffMember.displayName,
                 }))}
               />
             </Form.Item>
@@ -410,7 +426,7 @@ export function EventEditorModal({
                                 .toLowerCase()
                                 .includes(input.toLowerCase())
                             }
-                            options={equipment.map((equipment) => ({
+                            options={equipmentOptions.map((equipment) => ({
                               value: equipment.id,
                               label: equipmentLabel(equipment),
                             }))}
