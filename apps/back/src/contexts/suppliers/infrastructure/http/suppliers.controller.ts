@@ -21,6 +21,8 @@ import { SupplierResponse } from './supplier.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
 import { UnarchiveSupplierUseCase } from '../../application/unarchive-supplier/unarchive-supplier.use-case';
+import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
 
 @RequiresAccess('suppliers', 'view')
 @Controller('suppliers')
@@ -35,10 +37,12 @@ export class SuppliersController {
   ) {}
 
   @Get()
-  async list(): Promise<SupplierSummaryResponse[]> {
+  async list(@CurrentMember() member: WorkspaceMember): Promise<SupplierSummaryResponse[]> {
     const suppliers = await this.listSuppliersUseCase.execute();
 
-    return suppliers.map((supplier) => SupplierSummaryResponse.fromSummary(supplier));
+    return suppliers.map((supplier) =>
+      SupplierSummaryResponse.fromSummary(supplier, member.canAccess('documents', 'view')),
+    );
   }
 
   @RequiresAccess('suppliers', 'edit')

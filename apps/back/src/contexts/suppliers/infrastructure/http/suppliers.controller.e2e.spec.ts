@@ -1,4 +1,5 @@
 import type { Server } from 'http';
+import type { NextFunction, Request, Response } from 'express';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import request from 'supertest';
@@ -47,6 +48,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
   let updateExecute: jest.Mock;
   let deleteExecute: jest.Mock;
   let unarchiveExecute: jest.Mock;
+  let documentViewAccess = true;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildSupplierSummary()]));
@@ -73,6 +75,14 @@ describe('SuppliersController (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use((request: Request, _response: Response, next: NextFunction) => {
+      Object.assign(request, {
+        member: {
+          canAccess: (module: string) => module !== 'documents' || documentViewAccess,
+        },
+      });
+      next();
+    });
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
@@ -86,6 +96,7 @@ describe('SuppliersController (HTTP, no DB)', () => {
     updateExecute.mockClear();
     deleteExecute.mockClear();
     unarchiveExecute.mockClear();
+    documentViewAccess = true;
   });
 
   afterAll(async () => {
@@ -112,6 +123,26 @@ describe('SuppliersController (HTTP, no DB)', () => {
         },
       ]);
       expect(listExecute).toHaveBeenCalledTimes(1);
+    });
+
+    it('omits document aggregates without Documents view while preserving supplier data', async () => {
+      documentViewAccess = false;
+      listExecute.mockResolvedValueOnce([
+        buildSupplierSummary({
+          documentCount: 4,
+          spend: [{ currency: 'EUR', total: 1250 }],
+        }),
+      ]);
+
+      const response = await request(httpServer).get('/suppliers');
+
+      expect(response.status).toBe(200);
+      const body = response.body as Array<Record<string, unknown>>;
+      expect(body).toEqual([
+        expect.objectContaining({ id: 'supplier-1', name: 'Acme SL' }),
+      ]);
+      expect(body[0]).not.toHaveProperty('documentCount');
+      expect(body[0]).not.toHaveProperty('spend');
     });
   });
 

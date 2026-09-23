@@ -10,10 +10,13 @@ export class SupplierSummaryResponse {
   iban: string | null;
   notes: string | null;
   archivedAt?: string;
-  documentCount: number;
-  spend: SupplierSummary['spend'];
+  documentCount?: number;
+  spend?: SupplierSummary['spend'];
 
-  static fromSummary(summary: SupplierSummary): SupplierSummaryResponse {
+  static fromSummary(
+    summary: SupplierSummary,
+    includeDocumentAggregates: boolean,
+  ): SupplierSummaryResponse {
     const response = new SupplierSummaryResponse();
 
     response.id = summary.id;
@@ -27,8 +30,10 @@ export class SupplierSummaryResponse {
     if (summary.archivedAt !== undefined && summary.archivedAt !== null) {
       response.archivedAt = summary.archivedAt;
     }
-    response.documentCount = summary.documentCount;
-    response.spend = summary.spend;
+    if (includeDocumentAggregates) {
+      response.documentCount = summary.documentCount;
+      response.spend = summary.spend;
+    }
 
     return response;
   }
