@@ -8,7 +8,6 @@ import {
   DashboardDataProvider,
   DashboardDocumentRow,
   DashboardProjectRow,
-  DashboardProjectSummary,
   DashboardLeaseExpenseRow,
 } from '../../domain/dashboard-data-provider.port';
 
@@ -37,12 +36,6 @@ export class RepositoryDashboardDataProvider implements DashboardDataProvider {
       taxAmount: row.taxAmount,
       direction: row.direction,
     }));
-  }
-
-  async findAllProjectSummaries(): Promise<DashboardProjectSummary[]> {
-    const summaries = await this.projectRepository.findAllSummaries();
-
-    return summaries.map((summary) => ({ id: summary.id, name: summary.name }));
   }
 
   findAllProjectRows(): Promise<DashboardProjectRow[]> {

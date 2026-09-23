@@ -1,27 +1,30 @@
 import { GetCompanyDashboardUseCase } from './get-company-dashboard.use-case';
+import type { DashboardAccessSnapshot } from './get-company-dashboard.use-case';
 import {
   DashboardDataProvider,
   DashboardDocumentRow,
   DashboardProjectRow,
-  DashboardProjectSummary,
   DashboardLeaseExpenseRow,
 } from '../../domain/dashboard-data-provider.port';
 import { SystemClock } from '../../../../shared/infrastructure/system-clock';
 
+const fullAccess: DashboardAccessSnapshot = {
+  projects: true,
+  documents: true,
+  suppliers: true,
+  staff: true,
+  equipment: true,
+};
+
 class FakeDashboardDataProvider implements DashboardDataProvider {
   constructor(
     private readonly rows: DashboardDocumentRow[],
-    private readonly summaries: DashboardProjectSummary[],
     private readonly projectRows: DashboardProjectRow[] = [],
     private readonly leaseExpenses: DashboardLeaseExpenseRow[] = [],
   ) {}
 
   findAllDocumentRows(): Promise<DashboardDocumentRow[]> {
     return Promise.resolve(this.rows);
-  }
-
-  findAllProjectSummaries(): Promise<DashboardProjectSummary[]> {
-    return Promise.resolve(this.summaries);
   }
 
   findAllProjectRows(): Promise<DashboardProjectRow[]> {
@@ -45,14 +48,6 @@ function buildRow(overrides: Partial<DashboardDocumentRow> = {}): DashboardDocum
     dueDate: null,
     taxAmount: null,
     direction: 'income',
-    ...overrides,
-  };
-}
-
-function buildSummary(overrides: Partial<DashboardProjectSummary> = {}): DashboardProjectSummary {
-  return {
-    id: 'project-1',
-    name: 'Project One',
     ...overrides,
   };
 }
@@ -85,7 +80,7 @@ describe('GetCompanyDashboardUseCase', () => {
       new SystemClock(),
     );
 
-    const result = await useCase.execute();
+    const result = await useCase.execute(fullAccess);
 
     expect(result).toEqual({
       year: 2026,
@@ -144,13 +139,16 @@ describe('GetCompanyDashboardUseCase', () => {
       buildRow({ type: 'payroll', direction: 'expense', amount: 300, month: 1, status: 'pending', projectId: 'p1', issuerName: 'Employee', date: '2026-01-20' }),
       buildRow({ type: 'tax', direction: 'expense', amount: 100, month: 2, status: 'overdue', projectId: 'p2', issuerName: null, date: '2026-02-01' }),
     ];
-    const summaries = [buildSummary({ id: 'p1', name: 'Project One' }), buildSummary({ id: 'p2', name: 'Project Two' })];
+    const projectRows = [
+      buildProjectDashboardRow({ id: 'p1', name: 'Project One' }),
+      buildProjectDashboardRow({ id: 'p2', name: 'Project Two' }),
+    ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDashboardDataProvider(rows, summaries),
+      new FakeDashboardDataProvider(rows, projectRows),
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.year).toBe(2026);
     expect(result.projectCount).toBe(2);
@@ -197,7 +195,7 @@ describe('GetCompanyDashboardUseCase', () => {
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.overdueCount).toBe(1);
     expect(result.pendingCount).toBe(0);
@@ -213,11 +211,11 @@ describe('GetCompanyDashboardUseCase', () => {
       buildRow({ amount: 200, month: 12, date: '2024-12-31' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDashboardDataProvider(rows, [buildSummary()]),
+      new FakeDashboardDataProvider(rows, [buildProjectDashboardRow()]),
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.totalDocuments).toBe(1);
     expect(result.income).toBe(1000);
@@ -236,7 +234,7 @@ describe('GetCompanyDashboardUseCase', () => {
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2021);
+    const result = await useCase.execute(fullAccess, 2021);
 
     expect(result.availableYears).toEqual([2026, 2023, 2021]);
   });
@@ -248,7 +246,7 @@ describe('GetCompanyDashboardUseCase', () => {
       new SystemClock(),
     );
 
-    const result = await useCase.execute();
+    const result = await useCase.execute(fullAccess);
 
     expect(result.year).toBe(2026);
   });
@@ -266,7 +264,7 @@ describe('GetCompanyDashboardUseCase', () => {
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.previousYear).toEqual({
       year: 2025,
@@ -291,11 +289,11 @@ describe('GetCompanyDashboardUseCase', () => {
       buildRow({ issuerName: 'Issuer H', amount: 10 }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDashboardDataProvider(rows, [buildSummary()]),
+      new FakeDashboardDataProvider(rows, [buildProjectDashboardRow()]),
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.topIssuers).toHaveLength(7);
     expect(result.topIssuers.slice(0, 6).map((issuer) => issuer.key)).toEqual([
@@ -316,16 +314,16 @@ describe('GetCompanyDashboardUseCase', () => {
       buildRow({ issuerName: null, amount: 20, projectId: 'p-small' }),
       buildRow({ issuerName: 'Big Client', amount: 900, projectId: 'p-big' }),
     ];
-    const summaries = [
-      buildSummary({ id: 'p-small', name: 'Small Project' }),
-      buildSummary({ id: 'p-big', name: 'Big Project' }),
+    const projectRows = [
+      buildProjectDashboardRow({ id: 'p-small', name: 'Small Project' }),
+      buildProjectDashboardRow({ id: 'p-big', name: 'Big Project' }),
     ];
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDashboardDataProvider(rows, summaries),
+      new FakeDashboardDataProvider(rows, projectRows),
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.topIssuers).toEqual([
       { key: 'Big Client', name: 'Big Client', total: 900 },
@@ -342,13 +340,13 @@ describe('GetCompanyDashboardUseCase', () => {
     const rows: DashboardDocumentRow[] = Array.from({ length: 6 }, (_, i) =>
       buildRow({ projectId: `p${i}`, amount: (i + 1) * 100 }),
     );
-    const summaries = Array.from({ length: 6 }, (_, i) => buildSummary({ id: `p${i}`, name: `Project ${i}` }));
+    const projectRows = Array.from({ length: 6 }, (_, i) => buildProjectDashboardRow({ id: `p${i}`, name: `Project ${i}` }));
     const useCase = new GetCompanyDashboardUseCase(
-      new FakeDashboardDataProvider(rows, summaries),
+      new FakeDashboardDataProvider(rows, projectRows),
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.topProjects).toHaveLength(5);
     expect(result.topProjects.map((p) => p.id)).toEqual(['p5', 'p4', 'p3', 'p2', 'p1']);
@@ -364,22 +362,17 @@ describe('GetCompanyDashboardUseCase', () => {
         buildRow({ projectId: 'p2', type: 'tax', direction: 'expense', amount: 900, date: '2026-04-01' }),
         buildRow({ projectId: 'p3', type: 'invoice', amount: 50, date: '2025-04-01' }),
       ];
-      const summaries = [
-        buildSummary({ id: 'p1', name: 'Project One' }),
-        buildSummary({ id: 'p2', name: 'Project Two' }),
-        buildSummary({ id: 'p3', name: 'Project Three' }),
-      ];
       const projectRows = [
         buildProjectDashboardRow({ id: 'p1', name: 'Project One', budget: 1000, currency: 'EUR' }),
         buildProjectDashboardRow({ id: 'p2', name: 'Project Two', budget: null, currency: 'USD' }),
         buildProjectDashboardRow({ id: 'p3', name: 'Project Three', budget: 300, currency: 'EUR' }),
       ];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDashboardDataProvider(rows, summaries, projectRows),
+        new FakeDashboardDataProvider(rows, projectRows),
         new SystemClock(),
       );
 
-      const result = await useCase.execute(2026);
+      const result = await useCase.execute(fullAccess, 2026);
 
       expect(result.budgetVsActual).toEqual([
         { projectId: 'p2', name: 'Project Two', currency: 'USD', budget: null, income: 0, expenses: 900, consumptionPct: null },
@@ -392,11 +385,11 @@ describe('GetCompanyDashboardUseCase', () => {
       mockToday('2026-07-18T12:00:00.000Z');
       const projectRows = [buildProjectDashboardRow({ id: 'idle', budget: null })];
       const useCase = new GetCompanyDashboardUseCase(
-        new FakeDashboardDataProvider([], [], projectRows),
+        new FakeDashboardDataProvider([], projectRows),
         new SystemClock(),
       );
 
-      const result = await useCase.execute(2026);
+      const result = await useCase.execute(fullAccess, 2026);
 
       expect(result.budgetVsActual).toEqual([]);
     });
@@ -417,7 +410,7 @@ describe('GetCompanyDashboardUseCase', () => {
         new SystemClock(),
       );
 
-      const result = await useCase.execute(2026);
+      const result = await useCase.execute(fullAccess, 2026);
 
       expect(result.vatByQuarter).toEqual([
         { quarter: 1, outputVat: 210, inputVat: 50, balance: 160 },
@@ -446,7 +439,7 @@ describe('GetCompanyDashboardUseCase', () => {
         new SystemClock(),
       );
 
-      const result = await useCase.execute(2026);
+      const result = await useCase.execute(fullAccess, 2026);
 
       expect(result.cashflowForecast.overdue).toEqual({ inflow: 500, outflow: 150, net: 350 });
       expect(result.cashflowForecast.months).toEqual([
@@ -469,7 +462,7 @@ describe('GetCompanyDashboardUseCase', () => {
         new SystemClock(),
       );
 
-      const result = await useCase.execute(2021);
+      const result = await useCase.execute(fullAccess, 2021);
 
       expect(result.cashflowForecast.months[0]).toEqual({ month: '2026-08', inflow: 40, outflow: 0, net: 40 });
     });
@@ -505,7 +498,7 @@ describe('GetCompanyDashboardUseCase', () => {
         new SystemClock(),
       );
 
-      const result = await useCase.execute(2026);
+      const result = await useCase.execute(fullAccess, 2026);
 
       expect(result.income).toBe(1000);
       expect(result.expenses).toBe(400);
@@ -519,18 +512,147 @@ describe('GetCompanyDashboardUseCase', () => {
     const useCase = new GetCompanyDashboardUseCase(
       new FakeDashboardDataProvider(
         [buildRow({ projectId: 'project-1', amount: 1000, date: '2026-01-15', month: 1 })],
-        [buildSummary()],
         [buildProjectDashboardRow({ budget: 1000 })],
         [{ projectId: 'project-1', amount: 250, date: '2026-03-10' }],
       ),
       new SystemClock(),
     );
 
-    const result = await useCase.execute(2026);
+    const result = await useCase.execute(fullAccess, 2026);
 
     expect(result.expenses).toBe(250);
     expect(result.profit).toBe(750);
     expect(result.monthlyExpenses[2]).toBe(250);
     expect(result.budgetVsActual[0]).toMatchObject({ projectId: 'project-1', expenses: 250, consumptionPct: 0.25 });
+  });
+
+  it('omits every project-linked aggregate when Projects access is denied', async () => {
+    mockToday('2026-07-18T12:00:00.000Z');
+    const provider = new FakeDashboardDataProvider(
+      [buildRow({ amount: 900, date: '2023-03-01' })],
+      [buildProjectDashboardRow()],
+      [{ projectId: 'project-1', amount: 250, date: '2024-03-10' }],
+    );
+    const findDocuments = jest.spyOn(provider, 'findAllDocumentRows');
+    const findProjects = jest.spyOn(provider, 'findAllProjectRows');
+    const findLeaseExpenses = jest.spyOn(provider, 'findAllLeaseExpenseRows');
+    const useCase = new GetCompanyDashboardUseCase(provider, new SystemClock());
+
+    const result = await useCase.execute({
+      projects: false,
+      documents: true,
+      suppliers: true,
+      staff: true,
+      equipment: true,
+    });
+
+    expect(findDocuments).not.toHaveBeenCalled();
+    expect(findProjects).not.toHaveBeenCalled();
+    expect(findLeaseExpenses).not.toHaveBeenCalled();
+    expect(result.availableYears).toEqual([2026]);
+    expect(result.projectCount).toBe(0);
+    expect(result.totalDocuments).toBe(0);
+    expect(result.income).toBe(0);
+    expect(result.expenses).toBe(0);
+    expect(result.topIssuers).toEqual([]);
+    expect(result.topProjects).toEqual([]);
+    expect(result.budgetVsActual).toEqual([]);
+  });
+
+  it('omits document aggregates when Documents access is denied', async () => {
+    mockToday('2026-07-18T12:00:00.000Z');
+    const provider = new FakeDashboardDataProvider(
+      [buildRow({ amount: 900 })],
+      [buildProjectDashboardRow({ budget: 1000 })],
+      [{ projectId: 'project-1', amount: 250, date: '2026-03-10' }],
+    );
+    const findDocuments = jest.spyOn(provider, 'findAllDocumentRows');
+    const findLeaseExpenses = jest.spyOn(provider, 'findAllLeaseExpenseRows');
+    const useCase = new GetCompanyDashboardUseCase(provider, new SystemClock());
+
+    const result = await useCase.execute({
+      projects: true,
+      documents: false,
+      suppliers: true,
+      staff: true,
+      equipment: false,
+    });
+
+    expect(findDocuments).not.toHaveBeenCalled();
+    expect(findLeaseExpenses).not.toHaveBeenCalled();
+    expect(result.projectCount).toBe(1);
+    expect(result.totalDocuments).toBe(0);
+    expect(result.income).toBe(0);
+    expect(result.expenses).toBe(0);
+    expect(result.topIssuers).toEqual([]);
+    expect(result.topProjects).toEqual([]);
+    expect(result.budgetVsActual).toEqual([
+      {
+        projectId: 'project-1',
+        name: 'Project One',
+        currency: 'EUR',
+        budget: 1000,
+        income: 0,
+        expenses: 0,
+        consumptionPct: 0,
+      },
+    ]);
+  });
+
+  it('omits lease expense aggregates when Equipment access is denied', async () => {
+    mockToday('2026-07-18T12:00:00.000Z');
+    const provider = new FakeDashboardDataProvider(
+      [buildRow({ amount: 900 })],
+      [buildProjectDashboardRow({ budget: 1000 })],
+      [{ projectId: 'project-1', amount: 250, date: '2024-03-10' }],
+    );
+    const findLeaseExpenses = jest.spyOn(provider, 'findAllLeaseExpenseRows');
+    const useCase = new GetCompanyDashboardUseCase(provider, new SystemClock());
+
+    const result = await useCase.execute({
+      projects: true,
+      documents: true,
+      suppliers: true,
+      staff: true,
+      equipment: false,
+    });
+
+    expect(findLeaseExpenses).not.toHaveBeenCalled();
+    expect(result.availableYears).toEqual([2026]);
+    expect(result.totalDocuments).toBe(1);
+    expect(result.income).toBe(900);
+    expect(result.expenses).toBe(0);
+    expect(result.budgetVsActual[0]).toMatchObject({ expenses: 0, consumptionPct: 0 });
+  });
+
+  it('omits invoice and payroll metrics when their linked sections are denied', async () => {
+    mockToday('2026-07-18T12:00:00.000Z');
+    const provider = new FakeDashboardDataProvider(
+      [
+        buildRow({ type: 'invoice', amount: 900, issuerName: 'Hidden supplier', date: '2024-03-01' }),
+        buildRow({ type: 'payroll', amount: 700, issuerName: 'Hidden employee', date: '2025-03-01' }),
+        buildRow({ type: 'tax', amount: 100, issuerName: 'Tax authority', direction: 'expense' }),
+      ],
+      [buildProjectDashboardRow()],
+    );
+    const useCase = new GetCompanyDashboardUseCase(provider, new SystemClock());
+
+    const result = await useCase.execute({
+      projects: true,
+      documents: true,
+      suppliers: false,
+      staff: false,
+      equipment: false,
+    });
+
+    expect(result.availableYears).toEqual([2026]);
+    expect(result.totalDocuments).toBe(1);
+    expect(result.income).toBe(0);
+    expect(result.expenses).toBe(100);
+    expect(result.categoryTotals).toEqual({ invoice: 0, payroll: 0, tax: 100 });
+    expect(result.topIssuers).toEqual([{ key: 'Tax authority', name: 'Tax authority', total: 100 }]);
+    expect(result.topProjects).toEqual([
+      { id: 'project-1', name: 'Project One', documentCount: 1, total: 100 },
+    ]);
   });
 });

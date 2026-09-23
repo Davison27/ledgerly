@@ -1,11 +1,41 @@
 import type { Server } from 'http';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
+import { MemberEmail } from '../../../auth/domain/value-objects/member-email';
+import { PermissionMatrix } from '../../../auth/domain/value-objects/permission-matrix';
+import type { PermissionMatrixPrimitives } from '../../../auth/domain/value-objects/permission-matrix';
+import { WorkspaceMember } from '../../../auth/domain/workspace-member';
 import { DashboardController } from './dashboard.controller';
 import { GetCompanyDashboardUseCase } from '../../application/get-company-dashboard/get-company-dashboard.use-case';
 import { CompanyDashboard } from '../../domain/company-dashboard';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
+
+type RequestWithMember = Request & { member?: WorkspaceMember };
+
+function dashboardMember(permissionChanges: Partial<PermissionMatrixPrimitives> = {}): WorkspaceMember {
+  return WorkspaceMember.create({
+    id: 'member-1',
+    email: MemberEmail.create('member@ledgerly.dev'),
+    name: 'Member',
+    role: 'member',
+    permissions: PermissionMatrix.create({
+      dashboard: 'view',
+      projects: 'view',
+      calendar: 'none',
+      documents: 'view',
+      suppliers: 'view',
+      equipment: 'view',
+      staff: 'view',
+      ...permissionChanges,
+    }),
+    status: 'active',
+    isFounder: false,
+    invitedAt: new Date('2026-01-01T00:00:00.000Z'),
+    joinedAt: new Date('2026-01-01T00:00:00.000Z'),
+  });
+}
 
 function buildDashboard(overrides: Partial<CompanyDashboard> = {}): CompanyDashboard {
   return {
@@ -73,6 +103,7 @@ describe('DashboardController (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
   let getExecute: jest.Mock;
+  let currentMember = dashboardMember();
 
   beforeAll(async () => {
     getExecute = jest.fn(() => Promise.resolve(buildDashboard()));
@@ -83,6 +114,10 @@ describe('DashboardController (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use((request: Request, _response: Response, next: NextFunction) => {
+      (request as RequestWithMember).member = currentMember;
+      next();
+    });
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
@@ -91,6 +126,7 @@ describe('DashboardController (HTTP, no DB)', () => {
 
   afterEach(() => {
     getExecute.mockClear();
+    currentMember = dashboardMember();
   });
 
   afterAll(async () => {
@@ -104,14 +140,32 @@ describe('DashboardController (HTTP, no DB)', () => {
       expect(response.status).toBe(200);
       expect(response.body).toEqual(buildDashboard());
       expect(getExecute).toHaveBeenCalledTimes(1);
-      expect(getExecute).toHaveBeenCalledWith(undefined);
+      expect(getExecute).toHaveBeenCalledWith(
+        { projects: true, documents: true, suppliers: true, staff: true, equipment: true },
+        undefined,
+      );
     });
 
     it('passes the year query param through to the use case as a number', async () => {
       const response = await request(httpServer).get('/dashboard?year=2024');
 
       expect(response.status).toBe(200);
-      expect(getExecute).toHaveBeenCalledWith(2024);
+      expect(getExecute).toHaveBeenCalledWith(
+        { projects: true, documents: true, suppliers: true, staff: true, equipment: true },
+        2024,
+      );
+    });
+
+    it('passes only the allowed contributing sections to the dashboard use case', async () => {
+      currentMember = dashboardMember({ projects: 'none', suppliers: 'none', staff: 'none', equipment: 'none' });
+
+      const response = await request(httpServer).get('/dashboard');
+
+      expect(response.status).toBe(200);
+      expect(getExecute).toHaveBeenCalledWith(
+        { projects: false, documents: true, suppliers: false, staff: false, equipment: false },
+        undefined,
+      );
     });
 
     it('rejects a non-integer year query param', async () => {

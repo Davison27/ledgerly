@@ -33,6 +33,14 @@ interface HeadlineTotals {
   totalDocuments: number;
 }
 
+export interface DashboardAccessSnapshot {
+  projects: boolean;
+  documents: boolean;
+  suppliers: boolean;
+  staff: boolean;
+  equipment: boolean;
+}
+
 function yearOf(date: string): number {
   return Number(date.slice(0, 4));
 }
@@ -196,16 +204,21 @@ export class GetCompanyDashboardUseCase {
     @Inject(CLOCK) private readonly clock: Clock,
   ) {}
 
-  async execute(year?: number): Promise<CompanyDashboard> {
+  async execute(accessSnapshot: DashboardAccessSnapshot, year?: number): Promise<CompanyDashboard> {
     const today = this.clock.now();
     const selectedYear = year ?? today.getFullYear();
+    const canReadProjects = accessSnapshot.projects;
+    const canReadDocuments = canReadProjects && accessSnapshot.documents;
+    const canReadEquipment = canReadProjects && accessSnapshot.equipment;
 
-    const [rows, summaries, projectRows, leaseExpenses] = await Promise.all([
-      this.dashboardDataProvider.findAllDocumentRows(),
-      this.dashboardDataProvider.findAllProjectSummaries(),
-      this.dashboardDataProvider.findAllProjectRows(),
-      this.dashboardDataProvider.findAllLeaseExpenseRows(),
+    const [documentRows, projectRows, leaseExpenses] = await Promise.all([
+      canReadDocuments ? this.dashboardDataProvider.findAllDocumentRows() : Promise.resolve([]),
+      canReadProjects ? this.dashboardDataProvider.findAllProjectRows() : Promise.resolve([]),
+      canReadEquipment ? this.dashboardDataProvider.findAllLeaseExpenseRows() : Promise.resolve([]),
     ]);
+    const rows = documentRows.filter(
+      (row) => (row.type !== 'invoice' || accessSnapshot.suppliers) && (row.type !== 'payroll' || accessSnapshot.staff),
+    );
 
     const yearRows = rows.filter((row) => yearOf(row.date) === selectedYear);
     const previousYearRows = rows.filter((row) => yearOf(row.date) === selectedYear - 1);
@@ -288,7 +301,7 @@ export class GetCompanyDashboardUseCase {
       });
     }
 
-    const projectNameById = new Map(summaries.map((project) => [project.id, project.name]));
+    const projectNameById = new Map(projectRows.map((project) => [project.id, project.name]));
     const topProjects: TopProject[] = Array.from(projectTotals.entries())
       .map(([id, { documentCount, total }]) => ({
         id,
@@ -309,7 +322,7 @@ export class GetCompanyDashboardUseCase {
     return {
       year: selectedYear,
       availableYears: computeAvailableYears(rows, leaseExpenses, today),
-      projectCount: summaries.length,
+      projectCount: projectRows.length,
       totalDocuments: yearRows.length,
       income,
       expenses,
