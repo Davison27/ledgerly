@@ -3,6 +3,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Header,
   HttpCode,
@@ -115,6 +116,7 @@ export class DocumentsController {
     @UploadedFile() file?: Express.Multer.File,
   ): Promise<DocumentResponse> {
     const dto = await this.parseCreateDocumentPayload(payload);
+    this.assertSupplierView(member, dto.supplierId);
 
     if (file && !isValidPdfFile(file)) {
       throw new BadRequestException('file must be a PDF');
@@ -291,7 +293,10 @@ export class DocumentsController {
     @Param('projectId') projectId: string,
     @Param('id') id: string,
     @Body() dto: UpdateDocumentDto,
+    @CurrentMember() member: WorkspaceMember,
   ): Promise<DocumentResponse> {
+    this.assertSupplierView(member, dto.supplierId);
+
     const updated = await this.updateDocumentUseCase.execute({
       id,
       projectId,
@@ -317,6 +322,12 @@ export class DocumentsController {
     await this.recordEditFeedback(updated, dto);
 
     return DocumentResponse.fromDomain(updated);
+  }
+
+  private assertSupplierView(member: WorkspaceMember, supplierId: string | null | undefined): void {
+    if (supplierId !== undefined && supplierId !== null && !member.canAccess('suppliers', 'view')) {
+      throw new ForbiddenException();
+    }
   }
 
   private async recordEditFeedback(updated: Document, dto: UpdateDocumentDto): Promise<void> {

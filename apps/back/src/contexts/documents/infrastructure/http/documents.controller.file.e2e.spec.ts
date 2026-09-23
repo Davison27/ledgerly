@@ -47,6 +47,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock<Promise<void>, [RecordExtractionFeedbackCommand]>;
   let recordOutcomeExecute: jest.Mock<Promise<void>, [RecordExtractionOutcomeCommand]>;
+  let supplierViewAccess = true;
 
   beforeAll(async () => {
     createExecute = jest.fn((command: CreateDocumentCommand) =>
@@ -101,7 +102,12 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
     app = moduleRef.createNestApplication();
     app.use(
       (request: Request, _response: Response, next: NextFunction) => {
-        Object.assign(request, { member: { getId: () => 'member-1' } });
+        Object.assign(request, {
+          member: {
+            getId: () => 'member-1',
+            canAccess: (module: string) => module !== 'suppliers' || supplierViewAccess,
+          },
+        });
         next();
       },
     );
@@ -116,6 +122,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
     getFileExecute.mockClear();
     recordFeedbackExecute.mockClear();
     recordOutcomeExecute.mockClear();
+    supplierViewAccess = true;
   });
 
   afterAll(async () => {
@@ -199,6 +206,22 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
 
       const command = createExecute.mock.calls[0][0];
       expect(command.supplierId).toBe(supplierId);
+    });
+
+    it('returns 403 and does not create when supplier view access is missing', async () => {
+      supplierViewAccess = false;
+      const response = await request(httpServer)
+        .post('/projects/p1/documents')
+        .field(
+          'payload',
+          JSON.stringify({
+            ...BASE_PAYLOAD,
+            supplierId: '11111111-1111-4111-8111-111111111111',
+          }),
+        );
+
+      expect(response.status).toBe(403);
+      expect(createExecute).not.toHaveBeenCalled();
     });
 
     it('creates a document without a supplier and reports supplierId: null', async () => {

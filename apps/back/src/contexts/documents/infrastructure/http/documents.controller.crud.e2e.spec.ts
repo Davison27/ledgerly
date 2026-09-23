@@ -43,6 +43,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   let deleteExecute: jest.Mock<Promise<void>, [DeleteDocumentCommand]>;
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock;
+  let supplierViewAccess = true;
 
   beforeAll(async () => {
     listPageExecute = jest.fn().mockResolvedValue({
@@ -83,7 +84,12 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     app = moduleRef.createNestApplication();
     app.use(
       (request: Request, _response: Response, next: NextFunction) => {
-        Object.assign(request, { member: { getId: () => 'member-1' } });
+        Object.assign(request, {
+          member: {
+            getId: () => 'member-1',
+            canAccess: (module: string) => module !== 'suppliers' || supplierViewAccess,
+          },
+        });
         next();
       },
     );
@@ -100,6 +106,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     deleteExecute.mockClear();
     getFileExecute.mockClear();
     recordFeedbackExecute.mockClear();
+    supplierViewAccess = true;
   });
 
   afterAll(async () => {
@@ -150,6 +157,30 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   });
 
   describe('PATCH /projects/:projectId/documents/:id', () => {
+    it('requires supplier view access when assigning a supplier', async () => {
+      supplierViewAccess = false;
+
+      const response = await request(httpServer)
+        .patch('/projects/p1/documents/doc-1')
+        .send({ supplierId: '11111111-1111-4111-8111-111111111111' });
+
+      expect(response.status).toBe(403);
+      expect(updateExecute).not.toHaveBeenCalled();
+    });
+
+    it('allows supplier unassignment without supplier view access', async () => {
+      supplierViewAccess = false;
+
+      const response = await request(httpServer)
+        .patch('/projects/p1/documents/doc-1')
+        .send({ supplierId: null });
+
+      expect(response.status).toBe(200);
+      expect(updateExecute).toHaveBeenCalledWith(
+        expect.objectContaining({ supplierId: null }),
+      );
+    });
+
     it('returns 200 with the updated document when the payload is valid', async () => {
       const response = await request(httpServer)
         .patch('/projects/p1/documents/doc-1')
