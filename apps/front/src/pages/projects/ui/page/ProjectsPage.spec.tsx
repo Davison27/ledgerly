@@ -10,8 +10,14 @@ import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
 import { ProjectsPage } from './ProjectsPage';
 
+vi.mock('@tanstack/react-router', () => ({
+  Link: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string }) => (
+    <a href={to} className={className}>{children}</a>
+  ),
+  useNavigate: vi.fn(),
+  useParams: vi.fn(),
+}));
 vi.mock('@tanstack/react-query', () => ({ useQuery: vi.fn(), useQueryClient: vi.fn() }));
-vi.mock('@tanstack/react-router', () => ({ useNavigate: vi.fn(), useParams: vi.fn() }));
 vi.mock('@/entities/project', () => ({
   projectQueries: { list: vi.fn(), all: ['projects'] },
   addProject: vi.fn(),
@@ -28,10 +34,22 @@ vi.mock('@/entities/client', () => ({
 }));
 vi.mock('@/entities/document', () => ({ documentQueries: { all: ['documents'] } }));
 vi.mock('@/entities/workspace-member', () => ({ useWorkspaceAccess: vi.fn() }));
-vi.mock('@/shared/lib/theme-mode/ThemeModeProvider', () => ({ useThemeMode: vi.fn() }));
-vi.mock('@/shared/ui/PageContainer', () => ({ PageContainer: ({ children }: { children: React.ReactNode }) => <main>{children}</main> }));
-vi.mock('@/shared/ui/PageHeader', () => ({ PageHeader: ({ title, actions }: { title: React.ReactNode; actions?: React.ReactNode }) => <header><h1>{title}</h1>{actions}</header> }));
-vi.mock('@/shared/ui/EmptyHint', () => ({ EmptyHint: ({ title, action }: { title: React.ReactNode; action?: React.ReactNode }) => <section><p>{title}</p>{action}</section> }));
+vi.mock('@/shared/lib/theme-mode/ThemeModeProvider', () => ({
+  useThemeMode: vi.fn(),
+}));
+vi.mock('@/shared/ui/PageContainer', () => ({
+  PageContainer: ({ children }: { children: React.ReactNode }) => <main>{children}</main>,
+}));
+vi.mock('@/shared/ui/PageHeader', () => ({
+  PageHeader: ({ title, actions }: { title: React.ReactNode; actions?: React.ReactNode }) => (
+    <header><h1>{title}</h1>{actions}</header>
+  ),
+}));
+vi.mock('@/shared/ui/EmptyHint', () => ({
+  EmptyHint: ({ title, action }: { title: React.ReactNode; action?: React.ReactNode }) => (
+    <section><p>{title}</p>{action}</section>
+  ),
+}));
 vi.mock('../card/ProjectCard', () => ({
   ProjectCard: ({
     project,
@@ -50,7 +68,9 @@ vi.mock('../card/ProjectCard', () => ({
     </div>
   ),
 }));
-vi.mock('../form/ProjectFormModal', () => ({ ProjectFormModal: ({ open }: { open: boolean }) => open ? <div role="dialog">formulario</div> : null }));
+vi.mock('../form/ProjectFormModal', () => ({
+  ProjectFormModal: ({ open }: { open: boolean }) => open ? <div role="dialog">formulario</div> : null,
+}));
 
 describe('ProjectsPage', () => {
   const navigate = vi.fn();
@@ -58,6 +78,7 @@ describe('ProjectsPage', () => {
   beforeEach(() => {
     vi.mocked(useNavigate).mockReturnValue(navigate as never);
     vi.mocked(useParams).mockReturnValue({} as never);
+    vi.mocked(useQuery).mockReset();
     vi.mocked(useQueryClient).mockReturnValue({} as never);
     vi.mocked(useThemeMode).mockReturnValue({ mode: 'light' } as never);
     vi.mocked(useWorkspaceAccess).mockReturnValue({ canAccess: () => true } as never);
@@ -109,7 +130,7 @@ describe('ProjectsPage', () => {
     expect(invalidateQueries).toHaveBeenCalledWith({ queryKey: ['projects'] });
   });
 
-  it('loads a client-scoped list and exposes a hierarchy back action', async () => {
+  it('loads a client-scoped list and shows the companies link above the project title', async () => {
     vi.mocked(useParams).mockReturnValue({ clientId: 'client-1' } as never);
     vi.mocked(clientQueries.detail).mockReturnValue({ queryKey: ['clients', 'detail', 'client-1'] } as never);
     vi.mocked(projectQueries.list).mockImplementation((clientId?: string) => ({
@@ -126,11 +147,11 @@ describe('ProjectsPage', () => {
     render(<ProjectsPage />);
 
     expect(projectQueries.list).toHaveBeenCalledWith('client-1');
-    expect(screen.getByRole('button', { name: 'Volver a empresas' })).toBeInTheDocument();
-    expect(screen.getByText('Proyectos · Acme')).toBeInTheDocument();
-
-    await userEvent.setup().click(screen.getByRole('button', { name: 'Volver a empresas' }));
-    expect(navigate).toHaveBeenCalledWith({ to: '/companies' });
+    const backLink = screen.getByRole('link', { name: 'Empresas' });
+    const title = screen.getByRole('heading', { name: 'Proyectos · Acme' });
+    expect(backLink).toHaveAttribute('href', '/companies');
+    expect(backLink).not.toContainElement(title);
+    expect(backLink.nextElementSibling).toContainElement(title);
   });
 
   it('keeps creation unavailable for archived client history', () => {

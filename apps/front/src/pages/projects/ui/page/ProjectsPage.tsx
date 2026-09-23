@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, useParams } from '@tanstack/react-router';
+import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { App, Button, Card, Flex, Skeleton, Switch } from 'antd';
 import { ArrowLeftOutlined, PlusOutlined, ProjectOutlined } from '@ant-design/icons';
@@ -66,6 +66,16 @@ export function ProjectsPage() {
   const visibleProjectList = visibleProjects(projects ?? [], showArchived);
   const clientArchived = Boolean(parentClient?.archivedAt);
   const canCreate = canEdit && (!isScoped || (Boolean(parentClient) && !clientArchived));
+  const companyBackLink = isScoped ? (
+    <Link to="/companies" className={styles.backLink}>
+      <ArrowLeftOutlined aria-hidden="true" />
+      <span>{t('nav.companies')}</span>
+    </Link>
+  ) : null;
+  const pageTitle =
+    isScoped && parentClient && !parentClientLoadError
+      ? `${t('projects.title')} · ${parentClient.name}`
+      : t('projects.title');
 
   const invalidateProjectViews = async (projectId?: string, oldClientId?: string, newClientId?: string) => {
     const scopedClientIds = [...new Set([oldClientId, newClientId].filter((id): id is string => Boolean(id)))];
@@ -168,28 +178,15 @@ export function ProjectsPage() {
 
   if (isScoped && parentClientLoadError) {
     return (
-        <PageContainer>
-          <PageHeader
-            title={(
-              <Flex align="center" gap={8}>
-                <Button
-                  type="text"
-                  icon={<ArrowLeftOutlined />}
-                  onClick={() => void navigate({ to: '/companies' })}
-                  aria-label={t('companies.back')}
-                >
-                  {t('companies.back')}
-                </Button>
-                <span>{t('projects.title')}</span>
-              </Flex>
-            )}
-          />
-          <EmptyHint
-            icon={<ProjectOutlined />}
-            title={t('companies.notFound')}
-          />
-        </PageContainer>
-      );
+      <PageContainer>
+        {companyBackLink}
+        <PageHeader title={t('projects.title')} />
+        <EmptyHint
+          icon={<ProjectOutlined />}
+          title={t('companies.notFound')}
+        />
+      </PageContainer>
+    );
   }
 
   if (isScoped && parentClientLoading) {
@@ -206,22 +203,9 @@ export function ProjectsPage() {
 
   return (
     <PageContainer>
+      {companyBackLink}
       <PageHeader
-        title={(
-          <Flex align="center" gap={8}>
-            {isScoped ? (
-              <Button
-                type="text"
-                icon={<ArrowLeftOutlined />}
-                onClick={() => void navigate({ to: '/companies' })}
-                aria-label={t('companies.back')}
-              >
-                {t('companies.back')}
-              </Button>
-            ) : null}
-            <span>{isScoped && parentClient ? `${t('projects.title')} · ${parentClient.name}` : t('projects.title')}</span>
-          </Flex>
-        )}
+        title={pageTitle}
         subtitle={isScoped ? t('projects.subtitle') : t('projects.subtitle')}
         actions={
           canCreate ? (

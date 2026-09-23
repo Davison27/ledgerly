@@ -4,6 +4,23 @@
   gap: var(--lg-space-lg);
 }
 
+.backLink {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  gap: var(--lg-space-xs);
+  margin-bottom: var(--lg-space-xs);
+  color: var(--ant-color-text-secondary);
+  font-size: var(--lg-font-size-sm);
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.backLink:hover,
+.backLink:focus-visible {
+  color: var(--ant-color-primary);
+}
+
 .filters {
   margin-bottom: var(--lg-space-lg);
 }
