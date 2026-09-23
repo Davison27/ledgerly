@@ -9,6 +9,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
+import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
 import { ListStaffMembersUseCase } from '../../application/list-staff-members/list-staff-members.use-case';
 import { GetStaffMemberUseCase } from '../../application/get-staff-member/get-staff-member.use-case';
 import { CreateStaffMemberUseCase } from '../../application/create-staff-member/create-staff-member.use-case';
@@ -21,6 +22,10 @@ import { StaffMemberSummaryResponse } from './staff-member-summary.response';
 import { DeletionOutcomeResponse } from '../../../../shared/infrastructure/http/deletion-outcome.response';
 import { UnarchiveOutcomeResponse } from '../../../../shared/infrastructure/http/unarchive-outcome.response';
 import { UnarchiveStaffMemberUseCase } from '../../application/unarchive-staff-member/unarchive-staff-member.use-case';
+
+interface StaffListAccess {
+  canAccess(module: 'documents', level: 'view'): boolean;
+}
 
 @RequiresAccess('staff', 'view')
 @Controller('staff')
@@ -35,10 +40,14 @@ export class StaffController {
   ) {}
 
   @Get()
-  async list(): Promise<StaffMemberSummaryResponse[]> {
+  async list(@CurrentMember() member: StaffListAccess): Promise<StaffMemberSummaryResponse[]> {
     const staffMembers = await this.listStaffMembersUseCase.execute();
 
-    return staffMembers.map((staffMember) => StaffMemberSummaryResponse.fromSummary(staffMember));
+    const includeDocumentSummary = member.canAccess('documents', 'view');
+
+    return staffMembers.map((staffMember) =>
+      StaffMemberSummaryResponse.fromSummary(staffMember, includeDocumentSummary),
+    );
   }
 
   @RequiresAccess('staff', 'edit')

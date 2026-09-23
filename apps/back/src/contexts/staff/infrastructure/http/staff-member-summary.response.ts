@@ -12,11 +12,14 @@ export class StaffMemberSummaryResponse {
   endDate: string | null;
   notes: string | null;
   archivedAt?: string;
-  documentCount: number;
-  earliestExpiryDate: string | null;
-  documentStatus: StaffMemberSummary['documentStatus'];
+  documentCount?: number;
+  earliestExpiryDate?: string | null;
+  documentStatus?: StaffMemberSummary['documentStatus'];
 
-  static fromSummary(summary: StaffMemberSummary): StaffMemberSummaryResponse {
+  static fromSummary(
+    summary: StaffMemberSummary,
+    includeDocumentSummary: boolean,
+  ): StaffMemberSummaryResponse {
     const response = new StaffMemberSummaryResponse();
 
     response.id = summary.id;
@@ -32,9 +35,11 @@ export class StaffMemberSummaryResponse {
     if (summary.archivedAt !== undefined && summary.archivedAt !== null) {
       response.archivedAt = summary.archivedAt;
     }
-    response.documentCount = summary.documentCount;
-    response.earliestExpiryDate = summary.earliestExpiryDate;
-    response.documentStatus = summary.documentStatus;
+    if (includeDocumentSummary) {
+      response.documentCount = summary.documentCount;
+      response.earliestExpiryDate = summary.earliestExpiryDate;
+      response.documentStatus = summary.documentStatus;
+    }
 
     return response;
   }
