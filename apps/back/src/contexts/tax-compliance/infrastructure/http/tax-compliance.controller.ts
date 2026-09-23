@@ -1,5 +1,6 @@
 import { Body, Controller, Get, Param, Patch, Post, Query } from '@nestjs/common';
 import { Authenticated } from '../../../../shared/infrastructure/http/access/authenticated.decorator';
+import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
 import { RequiresAccess } from '../../../../shared/infrastructure/http/access/requires-access.decorator';
 import { RequiresAdmin } from '../../../../shared/infrastructure/http/access/requires-admin.decorator';
 import { GetTaxClientProfileUseCase } from '../../application/get-tax-client-profile.use-case';
@@ -15,6 +16,10 @@ import { UpdateTaxComplianceSettingsDto } from './dtos/update-tax-compliance-set
 import { ListTaxSourceStatesUseCase } from '../../application/list-tax-source-states.use-case';
 import { RefreshTaxSourcesUseCase } from '../../application/refresh-tax-sources.use-case';
 import { ReviewTaxSourceUseCase } from '../../application/review-tax-source.use-case';
+
+interface TaxCalendarMemberAccess {
+  canAccess(module: 'projects', level: 'view'): boolean;
+}
 
 @Authenticated()
 @Controller('tax-compliance')
@@ -33,6 +38,7 @@ export class TaxComplianceController {
   ) {}
 
   @Get('settings')
+  @RequiresAdmin()
   async settings() {
     return this.getSettingsUseCase.execute();
   }
@@ -99,11 +105,14 @@ export class TaxComplianceController {
 
   @RequiresAccess('calendar', 'view')
   @Get('calendar')
-  calendar(@Query() query: ListTaxDeadlinesQueryDto) {
+  calendar(
+    @Query() query: ListTaxDeadlinesQueryDto,
+    @CurrentMember() member: TaxCalendarMemberAccess,
+  ) {
     return this.listDeadlinesUseCase.execute({
       from: query.from,
       to: query.to,
       projectId: query.projectId,
-    });
+    }, { projects: member.canAccess('projects', 'view') });
   }
 }

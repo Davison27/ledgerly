@@ -20,6 +20,10 @@ export interface ListTaxDeadlinesQuery {
   projectId?: string;
 }
 
+export interface ListTaxDeadlinesAccess {
+  projects: boolean;
+}
+
 @Injectable()
 export class ListTaxDeadlinesUseCase {
   constructor(
@@ -31,12 +35,17 @@ export class ListTaxDeadlinesUseCase {
     private readonly deadlineRepository: TaxDeadlineRepository,
   ) {}
 
-  async execute(query: ListTaxDeadlinesQuery): Promise<TaxDeadlineView[]> {
+  async execute(
+    query: ListTaxDeadlinesQuery,
+    access: ListTaxDeadlinesAccess,
+  ): Promise<TaxDeadlineView[]> {
     assertDateRangeWithinDays(
       query.from,
       query.to,
       getListLimit('MAX_CALENDAR_RANGE_DAYS', 366),
     );
+    if (!access.projects) return [];
+
     const settings = await this.settingsRepository.find();
     if (!settings?.enabled) return [];
 

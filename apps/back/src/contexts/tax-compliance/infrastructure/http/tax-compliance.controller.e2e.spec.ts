@@ -1,8 +1,14 @@
 import type { Server } from 'http';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import { TaxComplianceController } from './tax-compliance.controller';
+import {
+  ACCESS_REQUIREMENT_KEY,
+  accessRequirementsFromMetadata,
+} from '../../../../shared/infrastructure/http/access/access-requirement';
+import type { AccessRequirement } from '../../../../shared/infrastructure/http/access/access-requirement';
 import { GetTaxClientProfileUseCase } from '../../application/get-tax-client-profile.use-case';
 import { GetTaxComplianceSettingsUseCase } from '../../application/get-tax-compliance-settings.use-case';
 import { ListTaxClientProfilesUseCase } from '../../application/list-tax-client-profiles.use-case';
@@ -16,6 +22,20 @@ import { UpdateTaxComplianceSettingsUseCase } from '../../application/update-tax
 import type { TaxDeadlineView } from '../../domain/tax-deadline';
 import type { TaxObligationDefinition } from '../../domain/tax-obligation-catalog';
 import type { TaxSourceStateView } from '../../domain/tax-source-state';
+
+interface RequestWithTaxCalendarMember extends Request {
+  member?: {
+    canAccess(module: 'projects', level: 'view'): boolean;
+  };
+}
+
+function accessRequirementsFor(method: string): readonly AccessRequirement[] {
+  const handler: unknown = Object.getOwnPropertyDescriptor(TaxComplianceController.prototype, method)?.value;
+  if (typeof handler !== 'function') return [];
+
+  const metadata: unknown = Reflect.getMetadata(ACCESS_REQUIREMENT_KEY, handler);
+  return accessRequirementsFromMetadata(metadata) ?? [];
+}
 
 const catalogEntry: TaxObligationDefinition = {
   key: 'es-aeat-model-303-quarterly',
@@ -74,10 +94,14 @@ describe('TaxComplianceController (HTTP, no DB)', () => {
   let catalogExecute: jest.Mock;
   let calendarExecute: jest.Mock;
   let sourcesExecute: jest.Mock;
+  let projectsVisible: boolean;
 
   beforeAll(async () => {
+    projectsVisible = true;
     catalogExecute = jest.fn(() => [catalogEntry]);
-    calendarExecute = jest.fn(() => Promise.resolve([deadline]));
+    calendarExecute = jest.fn((_query, access: { projects: boolean }) =>
+      Promise.resolve(access.projects ? [deadline] : []),
+    );
     sourcesExecute = jest.fn(() => Promise.resolve([source]));
 
     const moduleRef = await Test.createTestingModule({
@@ -97,6 +121,12 @@ describe('TaxComplianceController (HTTP, no DB)', () => {
     }).compile();
 
     app = moduleRef.createNestApplication();
+    app.use((incoming: Request, _response: Response, next: NextFunction) => {
+      (incoming as RequestWithTaxCalendarMember).member = {
+        canAccess: () => projectsVisible,
+      };
+      next();
+    });
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
     await app.init();
     httpServer = app.getHttpServer() as Server;
@@ -106,10 +136,28 @@ describe('TaxComplianceController (HTTP, no DB)', () => {
     catalogExecute.mockClear();
     calendarExecute.mockClear();
     sourcesExecute.mockClear();
+    projectsVisible = true;
   });
 
   afterAll(async () => {
     await app.close();
+  });
+
+  it('requires calendar access before listing tax deadlines', () => {
+    const requirements = accessRequirementsFor('calendar');
+
+    expect(requirements).toEqual(
+      expect.arrayContaining([
+        { kind: 'access', module: 'calendar', level: 'view' },
+      ]),
+    );
+    expect(requirements).not.toContainEqual({ kind: 'access', module: 'projects', level: 'view' });
+  });
+
+  it('keeps both tax compliance settings endpoints administrator-only', () => {
+    for (const method of ['settings', 'updateSettings']) {
+      expect(accessRequirementsFor(method)).toContainEqual({ kind: 'admin' });
+    }
   });
 
   it('returns the machine-only catalog contract', async () => {
@@ -152,8 +200,26 @@ describe('TaxComplianceController (HTTP, no DB)', () => {
         'status',
       ].sort(),
     );
-    expect(calendarExecute).toHaveBeenCalledWith({ from: '2026-01-01', to: '2026-12-31', projectId: undefined });
+    expect(calendarExecute).toHaveBeenCalledWith(
+      { from: '2026-01-01', to: '2026-12-31', projectId: undefined },
+      { projects: true },
+    );
     expect(catalogExecute).not.toHaveBeenCalled();
+  });
+
+  it('omits tax deadlines when projects are not visible', async () => {
+    projectsVisible = false;
+
+    const result = await app.get(TaxComplianceController).calendar(
+      { from: '2026-01-01', to: '2026-12-31' },
+      { canAccess: () => projectsVisible },
+    );
+
+    expect(result).toEqual([]);
+    expect(calendarExecute).toHaveBeenCalledWith(
+      { from: '2026-01-01', to: '2026-12-31', projectId: undefined },
+      { projects: false },
+    );
   });
 
   it('returns source state without the persisted label', async () => {
