@@ -56,6 +56,7 @@ export class EquipmentDocumentsController {
   ) {}
 
   @Get()
+  @RequiresAccess('documents', 'view')
   async list(@Param('equipmentId') equipmentId: string): Promise<EquipmentDocumentResponse[]> {
     const documents = await this.listEquipmentDocumentsUseCase.execute(equipmentId);
 
@@ -63,6 +64,7 @@ export class EquipmentDocumentsController {
   }
 
   @RequiresAccess('equipment', 'edit')
+  @RequiresAccess('documents', 'edit')
   @Post()
   @Throttle({ default: { limit: 20, ttl: 60_000 } })
   @UseInterceptors(
@@ -111,6 +113,7 @@ export class EquipmentDocumentsController {
   }
 
   @RequiresAccess('equipment', 'edit')
+  @RequiresAccess('documents', 'edit')
   @Patch(':documentId')
   async update(
     @Param('equipmentId') equipmentId: string,
@@ -130,6 +133,7 @@ export class EquipmentDocumentsController {
   }
 
   @Get(':documentId/file')
+  @RequiresAccess('documents', 'view')
   async getFile(
     @Param('equipmentId') equipmentId: string,
     @Param('documentId') documentId: string,
@@ -151,6 +155,7 @@ export class EquipmentDocumentsController {
   }
 
   @RequiresAccess('equipment', 'edit')
+  @RequiresAccess('documents', 'edit')
   @Delete(':documentId')
   @HttpCode(204)
   async remove(
