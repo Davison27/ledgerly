@@ -2,6 +2,23 @@
 
 Review the complete Ledgerly release history.
 
+## 1.2.0 — 2026-09-23
+
+Released on: 2026-09-23
+
+### Added
+
+- **Member section permissions** — Choose which Ledgerly sections each member can access and whether they can view or make changes.
+- **Workspace setup waiting state** — Members see a waiting screen while an administrator configures the workspace.
+
+### Changed
+
+- **Administrator and member roles** — Separate full workspace administration from the section permissions assigned to each member.
+
+### Security
+
+- **Scoped member data** — Limit linked project, document, schedule, dashboard, and notification data to the sections each member can access.
+
 ## 1.1.0 — 2026-09-22
 
 Released on: 2026-09-22

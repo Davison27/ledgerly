@@ -20,11 +20,11 @@ describe('ChangelogPage', () => {
     );
 
     const release = screen.getByRole('article', { name: releaseNotes.releases[0].version });
-    expect(within(release).getByText('Release history')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Changelog', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Review the complete Ledgerly release history.')).toBeInTheDocument();
+    expect(screen.getByText('Release history')).toBeInTheDocument();
     expect(
-      within(release).getByText(
-        'Review versioned Ledgerly changes and acknowledge each release once.',
-      ),
+      screen.getByText('Review versioned Ledgerly changes and acknowledge each release once.'),
     ).toBeInTheDocument();
     expect(within(release).getByRole('heading', { name: 'Added', level: 4 })).toBeInTheDocument();
     expect(within(release).getByRole('heading', { name: 'Changed', level: 4 })).toBeInTheDocument();
@@ -40,14 +40,14 @@ describe('ChangelogPage', () => {
     render(<ChangelogPage />);
 
     expect(screen.getByRole('heading', { name: 'Registro de cambios', level: 2 })).toBeInTheDocument();
+    expect(screen.getByText('Consulta el historial completo de versiones de Ledgerly.')).toBeInTheDocument();
     expect(screen.getByText('Historial de versiones')).toBeInTheDocument();
     expect(
-      screen.getByText(
-        'Consulta los cambios versionados de Ledgerly y confirma cada versión una sola vez.',
-      ),
+      screen.getByText('Consulta los cambios versionados de Ledgerly y confirma cada versión una sola vez.'),
     ).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Añadido', level: 4 })).toBeInTheDocument();
-    expect(screen.getByText(/^Publicado el /)).toHaveTextContent(
+    const release = screen.getByRole('article', { name: releaseNotes.releases[0].version });
+    expect(within(release).getByRole('heading', { name: 'Añadido', level: 4 })).toBeInTheDocument();
+    expect(within(release).getByText(/^Publicado el /)).toHaveTextContent(
       formatDate(releaseNotes.releases[0].date, 'es'),
     );
   });

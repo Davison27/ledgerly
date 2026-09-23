@@ -66,7 +66,7 @@ describe('ReleaseNoticeDialog', () => {
     });
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'Added' })).toBeInTheDocument();
-    expect(screen.getByText('Release history')).toBeInTheDocument();
+    expect(screen.getByText('This release includes the following improvements.')).toBeInTheDocument();
   });
 
   it('keeps release actions outside the keyboard-scrollable changelog list', async () => {
@@ -97,7 +97,7 @@ describe('ReleaseNoticeDialog', () => {
     renderReleaseNotice();
 
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText('Historial de versiones')).toBeInTheDocument();
+    expect(screen.getByText('Esta versión incluye las siguientes mejoras.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Aceptar' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ver el registro completo' })).toBeInTheDocument();
   });
@@ -184,6 +184,8 @@ describe('ReleaseNoticeDialog', () => {
       'We could not check whether you have seen this release. Try again.',
     );
     fireEvent.click(screen.getByRole('button', { name: 'Try again' }));
-    expect(await screen.findByText('Release history')).toBeInTheDocument();
+    expect(
+      await screen.findByText('This release includes the following improvements.'),
+    ).toBeInTheDocument();
   });
 });

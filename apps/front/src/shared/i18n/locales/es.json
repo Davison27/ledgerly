@@ -2363,6 +2363,26 @@
       "security": "Seguridad"
     },
     "releases": {
+      "v1_2_0": {
+        "entries": {
+          "member-section-permissions": {
+            "title": "Permisos por sección",
+            "description": "Elige a qué secciones de Ledgerly puede acceder cada miembro y si puede consultarlas o modificarlas."
+          },
+          "workspace-configuration-waiting-state": {
+            "title": "Espera durante la configuración del espacio",
+            "description": "Los miembros ven una pantalla de espera mientras un administrador configura el espacio de trabajo."
+          },
+          "administrator-and-member-roles": {
+            "title": "Roles de administrador y miembro",
+            "description": "Separa la administración completa del espacio de los permisos por sección asignados a cada miembro."
+          },
+          "scoped-member-data": {
+            "title": "Datos limitados por permisos",
+            "description": "Limita los datos vinculados de proyectos, documentos, calendario, panel y notificaciones a las secciones permitidas para cada miembro."
+          }
+        }
+      },
       "v1_1_0": {
         "entries": {
           "contracting-company-hierarchy": {

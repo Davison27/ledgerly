@@ -2359,6 +2359,26 @@
       "security": "Security"
     },
     "releases": {
+      "v1_2_0": {
+        "entries": {
+          "member-section-permissions": {
+            "title": "Member section permissions",
+            "description": "Choose which Ledgerly sections each member can access and whether they can view or make changes."
+          },
+          "workspace-configuration-waiting-state": {
+            "title": "Workspace setup waiting state",
+            "description": "Members see a waiting screen while an administrator configures the workspace."
+          },
+          "administrator-and-member-roles": {
+            "title": "Administrator and member roles",
+            "description": "Separate full workspace administration from the section permissions assigned to each member."
+          },
+          "scoped-member-data": {
+            "title": "Scoped member data",
+            "description": "Limit linked project, document, schedule, dashboard, and notification data to the sections each member can access."
+          }
+        }
+      },
       "v1_1_0": {
         "entries": {
           "contracting-company-hierarchy": {
