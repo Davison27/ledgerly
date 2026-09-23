@@ -134,8 +134,16 @@ describe('CreateReleaseNoteAcknowledgements1730000012000', () => {
     expect(rows).toEqual([{ workspaceMemberId: secondMemberId, releaseVersion: '1.1.0' }]);
   });
 
-  it('reverts and reapplies only the acknowledgement table', async () => {
-    await dataSource.undoLastMigration({ transaction: 'each' });
+  it('reverts and reapplies the acknowledgement table without undoing later migrations', async () => {
+    const migration = new CreateReleaseNoteAcknowledgements1730000012000();
+    const downQueryRunner = dataSource.createQueryRunner();
+    await downQueryRunner.connect();
+
+    try {
+      await migration.down(downQueryRunner);
+    } finally {
+      await downQueryRunner.release();
+    }
 
     const tableRows: Array<{ tableName: string }> = await dataSource.query(
       `SELECT table_name AS "tableName" FROM information_schema.tables
@@ -145,7 +153,14 @@ describe('CreateReleaseNoteAcknowledgements1730000012000', () => {
 
     expect(tableRows).toEqual([{ tableName: 'workspace_members' }]);
 
-    await dataSource.runMigrations({ transaction: 'each' });
+    const upQueryRunner = dataSource.createQueryRunner();
+    await upQueryRunner.connect();
+
+    try {
+      await migration.up(upQueryRunner);
+    } finally {
+      await upQueryRunner.release();
+    }
 
     const restored: Array<{ tableName: string }> = await dataSource.query(
       `SELECT table_name AS "tableName" FROM information_schema.tables
