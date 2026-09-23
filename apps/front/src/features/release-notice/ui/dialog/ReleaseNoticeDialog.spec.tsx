@@ -1,7 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { currentReleaseVersion } from '@/entities/release-note';
+import {
+  currentReleaseVersion,
+  getCategorizedReleaseEntries,
+  releaseNotes,
+} from '@/entities/release-note';
 import i18n from '@/shared/i18n';
 import { ReleaseNoticeDialog } from './ReleaseNoticeDialog';
 
@@ -43,6 +47,25 @@ function renderReleaseNotice(onViewChangelog = vi.fn()) {
   return { ...rendered, client };
 }
 
+function getCurrentRelease() {
+  const release = releaseNotes.releases.find(({ version }) => version === currentReleaseVersion);
+  if (!release) throw new Error('Current release is missing from the registry');
+  return release;
+}
+
+function getCurrentReleaseCategories() {
+  return getCategorizedReleaseEntries(getCurrentRelease().entries).map(({ category }) =>
+    i18n.t(`releaseNotes.categories.${category}`),
+  );
+}
+
+function getCurrentReleaseEntryTitles() {
+  const versionKey = currentReleaseVersion.replaceAll('.', '_');
+  return getCurrentRelease().entries.map(({ id }) =>
+    i18n.t(`releaseNotes.releases.v${versionKey}.entries.${id}.title`),
+  );
+}
+
 describe('ReleaseNoticeDialog', () => {
   beforeEach(async () => {
     apiMocks.getAcknowledgement.mockReset();
@@ -65,7 +88,12 @@ describe('ReleaseNoticeDialog', () => {
       response.resolve({ acknowledged: false, acknowledgedAt: null });
     });
     expect(await screen.findByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Added' })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent),
+    ).toEqual(getCurrentReleaseCategories());
+    for (const title of getCurrentReleaseEntryTitles()) {
+      expect(screen.getByText(title)).toBeInTheDocument();
+    }
     expect(screen.getByText('This release includes the following improvements.')).toBeInTheDocument();
   });
 
@@ -87,7 +115,12 @@ describe('ReleaseNoticeDialog', () => {
     expect(body).not.toContainElement(viewChangelog);
     expect(body).not.toContainElement(acknowledge);
     expect(scrollRegion).toHaveAttribute('tabindex', '0');
-    expect(scrollRegion).toContainElement(screen.getByText('Added'));
+    for (const category of getCurrentReleaseCategories()) {
+      expect(scrollRegion).toContainElement(screen.getByText(category));
+    }
+    for (const title of getCurrentReleaseEntryTitles()) {
+      expect(scrollRegion).toContainElement(screen.getByText(title));
+    }
     expect(body).toContainElement(screen.getByText(currentReleaseVersion));
   });
 
@@ -100,6 +133,12 @@ describe('ReleaseNoticeDialog', () => {
     expect(screen.getByText('Esta versión incluye las siguientes mejoras.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Aceptar' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Ver el registro completo' })).toBeInTheDocument();
+    expect(
+      screen.getAllByRole('heading', { level: 2 }).map((heading) => heading.textContent),
+    ).toEqual(getCurrentReleaseCategories());
+    for (const title of getCurrentReleaseEntryTitles()) {
+      expect(screen.getByText(title)).toBeInTheDocument();
+    }
   });
 
   it('stays open after Escape and mask clicks and has no close icon', async () => {

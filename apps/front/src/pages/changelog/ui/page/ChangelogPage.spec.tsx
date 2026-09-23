@@ -2,8 +2,31 @@ import { render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import i18n from '@/shared/i18n';
 import { formatDate } from '@/shared/lib/dates';
-import { releaseNotes } from '@/entities/release-note';
+import {
+  currentReleaseVersion,
+  getCategorizedReleaseEntries,
+  releaseNotes,
+} from '@/entities/release-note';
 import { ChangelogPage } from './ChangelogPage';
+
+function getCurrentRelease() {
+  const release = releaseNotes.releases.find(({ version }) => version === currentReleaseVersion);
+  if (!release) throw new Error('Current release is missing from the registry');
+  return release;
+}
+
+function getLocalizedCurrentReleaseCategories() {
+  return getCategorizedReleaseEntries(getCurrentRelease().entries).map(({ category }) =>
+    i18n.t(`releaseNotes.categories.${category}`),
+  );
+}
+
+function getLocalizedCurrentReleaseEntryTitles() {
+  const versionKey = currentReleaseVersion.replaceAll('.', '_');
+  return getCurrentRelease().entries.map(({ id }) =>
+    i18n.t(`releaseNotes.releases.v${versionKey}.entries.${id}.title`),
+  );
+}
 
 describe('ChangelogPage', () => {
   afterEach(async () => {
@@ -19,20 +42,23 @@ describe('ChangelogPage', () => {
       releaseNotes.releases.map((release) => release.version),
     );
 
-    const release = screen.getByRole('article', { name: releaseNotes.releases[0].version });
+    const currentRelease = getCurrentRelease();
+    const release = screen.getByRole('article', { name: currentRelease.version });
     expect(screen.getByRole('heading', { name: 'Changelog', level: 2 })).toBeInTheDocument();
     expect(screen.getByText('Review the complete Ledgerly release history.')).toBeInTheDocument();
     expect(screen.getByText('Release history')).toBeInTheDocument();
     expect(
       screen.getByText('Review versioned Ledgerly changes and acknowledge each release once.'),
     ).toBeInTheDocument();
-    expect(within(release).getByRole('heading', { name: 'Added', level: 4 })).toBeInTheDocument();
-    expect(within(release).getByRole('heading', { name: 'Changed', level: 4 })).toBeInTheDocument();
-    expect(within(release).getByRole('heading', { name: 'Security', level: 4 })).toBeInTheDocument();
-    expect(within(release).queryByRole('heading', { name: 'Fixed', level: 4 })).not.toBeInTheDocument();
+    expect(
+      within(release).getAllByRole('heading', { level: 4 }).map((heading) => heading.textContent),
+    ).toEqual(getLocalizedCurrentReleaseCategories());
     expect(within(release).getByText(/^Released on /)).toHaveTextContent(
-      formatDate(releaseNotes.releases[0].date, 'en'),
+      formatDate(currentRelease.date, 'en'),
     );
+    for (const title of getLocalizedCurrentReleaseEntryTitles()) {
+      expect(within(release).getByText(title)).toBeInTheDocument();
+    }
   });
 
   it('uses Spanish release text and date formatting', async () => {
@@ -45,10 +71,16 @@ describe('ChangelogPage', () => {
     expect(
       screen.getByText('Consulta los cambios versionados de Ledgerly y confirma cada versión una sola vez.'),
     ).toBeInTheDocument();
-    const release = screen.getByRole('article', { name: releaseNotes.releases[0].version });
-    expect(within(release).getByRole('heading', { name: 'Añadido', level: 4 })).toBeInTheDocument();
+    const currentRelease = getCurrentRelease();
+    const release = screen.getByRole('article', { name: currentRelease.version });
+    expect(
+      within(release).getAllByRole('heading', { level: 4 }).map((heading) => heading.textContent),
+    ).toEqual(getLocalizedCurrentReleaseCategories());
     expect(within(release).getByText(/^Publicado el /)).toHaveTextContent(
-      formatDate(releaseNotes.releases[0].date, 'es'),
+      formatDate(currentRelease.date, 'es'),
     );
+    for (const title of getLocalizedCurrentReleaseEntryTitles()) {
+      expect(within(release).getByText(title)).toBeInTheDocument();
+    }
   });
 });
