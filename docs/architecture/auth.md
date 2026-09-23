@@ -15,25 +15,28 @@ is in `apps/front/src/entities/session/`, `apps/front/src/pages/login/`, and
 ## Default deny
 
 `AccessGuard` is the global NestJS guard. A route must explicitly declare one
-of `@Public()`, `@Authenticated()`, `@RequiresAdmin()`,
+or more of `@Public()`, `@Authenticated()`, `@RequiresAdmin()`,
 `@RequiresAccess(module, level)`, or `@RequiresNotificationAccess()`. A route
-without one of those declarations is rejected with `403` before session
+without an access declaration is rejected with `403` before session
 resolution.
 
 ```ts
-const requirement = this.reflector.getAllAndOverride<AccessRequirement | undefined>(
+const requirementMetadata = this.reflector.getAllAndMerge<AccessRequirement[]>(
   ACCESS_REQUIREMENT_KEY,
   [context.getHandler(), context.getClass()],
 );
+const requirements = accessRequirementsFromMetadata(requirementMetadata);
 
-if (!requirement) {
+if (requirements === null) {
   throw new ForbiddenException();
 }
 ```
 
 This makes a missing decorator visible as an immediate failure instead of a
-silent data exposure. Method metadata overrides class metadata, so write
-routes can require a higher permission than their controller default.
+silent data exposure. Class and method requirements are combined and every
+requirement must pass. Stacked module requirements therefore express
+conjunctions; a nested write can require `edit` on both its parent section and
+its resource section.
 
 ## HTTP boundary
 
@@ -129,8 +132,9 @@ application access.
 - Every protected request re-evaluates membership and permissions, so disabling
   a member takes effect on their next request.
 
-Changing a member's permissions or status persists the membership change and
-revokes that member's Better Auth sessions through `BetterAuthSessionRevoker`.
+Changing a member's role, permissions, or status persists the membership change
+and revokes that member's Better Auth sessions through
+`BetterAuthSessionRevoker`.
 Removing a member disables and persists the membership before attempting
 best-effort session revocation. The disabled membership is denied by
 `AccessGuard` immediately, even if revocation has a transient failure. The row,
@@ -140,12 +144,42 @@ means that reinviting the same email follows the existing duplicate-member
 conflict path; only the existing status-update flow can reactivate that same
 member and preserve its UUID and document history. Neither path relies on
 cookie expiry to remove application access. See
-`docs/architecture/workspace.md` for the permission matrix and member
+`docs/architecture/workspace.md` for the role, permission matrix, and member
 management rules.
+
+## Roles and section authorization
+
+`WorkspaceMember` stores an explicit `admin` or `member` role independently
+from its permission matrix. An administrator bypasses every section grant;
+changing the administrator's matrix does not reduce that access. A member is
+authorized by the configured matrix, whose levels are `none`, `view`, and
+`edit`. The dashboard is read-only and rejects `edit`.
+
+`AccessGuard` applies the requirements attached to a route. A module `view`
+requirement permits reads, and `edit` permits writes. For nested resources,
+all relevant grants are required: project documents need both Projects and
+Documents, staff documents need Staff and Documents, and schedule reads need
+Calendar and Projects plus the applicable Staff or Equipment grant for linked
+data. The same conjunction applies to writes at the `edit` level. Frontend
+navigation and controls mirror these rules for usability but do not replace
+server authorization.
+
+Company-profile settings, workspace-member management, integrations, and tax
+compliance settings are administrator-only. Contracting companies and
+projects use the Projects grant; the singleton company profile remains
+separate. Extraction hints use Documents access. Changelog and notification
+surfaces remain available to active members, with notification records and
+actions scoped to the sections the member can view.
+
+When the company singleton has not been configured, administrators may enter
+onboarding. Members see a waiting-for-configuration state and cannot enter
+onboarding or company settings. The member-facing shell uses the public
+branding response and does not infer that a forbidden settings request means
+the singleton is absent.
 
 The `equipment` permission covers both the Equipment catalogue and nested
 Equipment PDFs. `view` permits `GET /api/equipment`, document listing, and file
-download. `edit` is required for Equipment creation, updates, deletion, and
+download; `edit` is required for Equipment creation, updates, deletion, and
 document upload, metadata update, or deletion. Nested document operations
 resolve both `equipmentId` and `documentId` so a document cannot be read or
 mutated through a different parent Equipment record.

@@ -31,18 +31,41 @@ the router validation, `WorkspaceTab`, and the settings menu together.
 
 ## Members and access
 
-`WorkspaceMemberDto` contains a permission matrix for the application modules and
-three levels: `none`, `view`, and `edit`. Roles are presets over that matrix:
-`admin`, `editor`, and `viewer`. `resolveRole()` derives the displayed role
-from the matrix; a non-matching matrix is `custom`. Do not store a separately
-editable role that can drift from the permissions.
+`WorkspaceMemberDto` contains an explicit `admin` or `member` role and a
+permission matrix for the application modules. Roles are independent of grants:
+administrators always have full access, while member access is determined by
+the matrix. Do not infer administrator status from a full member matrix or
+allow matrix changes to reduce administrator access.
 
-The dashboard is view-only, so `moduleSupportsEdit()` rejects `edit` for that
-module and `fillMatrix()` preserves that invariant. The UI uses the same
-client helpers for interaction, while the backend remains authoritative.
-Equipment permissions cover the catalogue and its nested PDF documents:
-`view` permits listing and downloading, while `edit` permits catalogue and
-document mutations.
+Members have independent `none`, `view`, or `edit` levels for Dashboard,
+Projects, Calendar, Documents, Suppliers, Equipment, and Staff. Dashboard is
+read-only and rejects `edit`. New invitations keep the existing view-only
+matrix by default, which an administrator can change before sending the
+invitation. The migration from the previous role model preserves each
+non-admin member's effective matrix while mapping them to `member`.
+
+`none` hides a section and denies its direct route and API operations. `view`
+permits authorized reads without mutations; `edit` permits the section's
+existing create, update, archive, upload, extraction, assignment, and delete
+operations. The frontend mirrors these limits for navigation and controls,
+while the backend enforces them on every request. Role, permission, and status
+changes revoke the affected member's sessions. Members cannot change their own
+access, and the last active administrator cannot be demoted or disabled.
+
+Projects covers both the contracting-company directory and its projects; it
+does not cover the singleton company profile, which is administrator-only.
+Nested resources require grants on both the containing section and the
+resource section. For example, project documents require Projects and
+Documents, staff documents require Staff and Documents, and staff schedules
+require Staff, Calendar, and Projects for event reads. Reads require `view`
+on each section; mutations require `edit` on each section. Equipment access
+covers both the catalogue and its nested PDFs, with the same parent/resource
+rule for document listing, download, upload, metadata changes, and deletion.
+
+Extraction hints follow Documents access. Dashboard summaries omit data from
+denied contributing sections. Notifications and the changelog remain available
+to active members; notification records, counts, actions, and destinations are
+limited to resources whose owning sections the member can view.
 
 The member panel prevents a user from changing their own access and prevents
 removing the last administrator. The backend enforces the corresponding rules

@@ -111,6 +111,43 @@ collide. The backend applies a client filter through the owning project rather
 than a document client column. Client and project selections therefore retain
 project-based document navigation while allowing archived-client history.
 
+## Access-aware reads
+
+Frontend query hooks use `useWorkspaceAccess` to avoid requesting sections a
+member cannot view, and route guards prevent direct navigation to those
+sections. These checks are usability and cache-safety measures, not an
+authorization boundary; the backend's default-deny `AccessGuard` remains
+authoritative. It combines class and method requirements, so stacked
+`@RequiresAccess` declarations require every listed grant.
+
+Nested data needs the view grant for both its parent and resource section.
+Project documents require Projects and Documents; staff documents require
+Staff and Documents. Global document listing is limited to project-linked
+records the member may see. Duplicate checks require Projects and Documents
+view, while document mutations require both edit grants. Equipment PDFs follow
+the Equipment and Documents rule where they are exposed as project documents.
+
+The global Dashboard endpoint requires Dashboard view, then scopes each
+contributing query: project aggregates require Projects, document aggregates
+require Projects and Documents, equipment lease data requires Projects and
+Equipment, and invoice/payroll-derived values are omitted without Suppliers or
+Staff view respectively. Project Dashboard tabs additionally require Projects
+and Dashboard; the page only requests document- or equipment-derived data when
+the member can also view that source section.
+
+Schedule board and event reads require Calendar and Projects view. Results
+include Staff- or Equipment-linked details only when the member can view the
+corresponding section; schedule writes require Calendar and Projects edit plus
+edit access for linked Staff or Equipment resources affected by the operation.
+Tax-compliance calendar entries follow Calendar and Projects view.
+
+Notification queries pass the active member's section grants into the owning
+repository. Visibility is applied before page totals and unread counts are
+computed, and mark-read, resolve, and mark-all operations are restricted to
+visible records. The frontend also suppresses links and actions whose target
+sections are not visible. This keeps navigation and aggregates from revealing
+records merely because another section is accessible.
+
 ## Mutations and invalidation
 
 Existing form and delete handlers remain `async` functions with their local
