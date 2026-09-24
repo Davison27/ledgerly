@@ -207,7 +207,7 @@ describe('AppModule authorization route policy', () => {
     const discoveredRoutes = discoverAuthorizationRoutes();
 
     expect(discoveredRoutes).toEqual(authorizationRoutePolicies);
-    expect(discoveredRoutes).toHaveLength(105);
+    expect(discoveredRoutes).toHaveLength(114);
     expect(discoveredRoutes.every((route) => route.public || route.access !== null)).toBe(true);
   });
 
@@ -216,7 +216,7 @@ describe('AppModule authorization route policy', () => {
     const reviewedRoutes = authorizationRouteResourceInputPolicies.map(({ method, path }) => ({ method, path }));
 
     expect(reviewedRoutes).toEqual(discoveredRoutes.map(({ method, path }) => ({ method, path })));
-    expect(authorizationRouteResourceInputPolicies).toHaveLength(105);
+    expect(authorizationRouteResourceInputPolicies).toHaveLength(114);
   });
 
   it('keeps the resource-input handoff inventory complete', () => {
@@ -230,8 +230,38 @@ describe('AppModule authorization route policy', () => {
     }));
 
     expect(sortByRoute(reviewedInventory)).toEqual(sortByRoute(handoffInventory));
-    expect(authorizationResourceParameterHandoffs).toHaveLength(62);
-    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(89);
+    expect(authorizationResourceParameterHandoffs).toHaveLength(69);
+    expect(authorizationRouteResourceInputPolicies.flatMap((route) => route.resourceInputs)).toHaveLength(98);
+  });
+
+  it('classifies every project checklist route with its reviewed access requirements and path inputs', () => {
+    expect(authorizationRoutePolicies).toEqual(
+      expect.arrayContaining([
+        { method: 'GET', path: '/project-checklist-templates', public: false, access: { kind: 'access', module: 'planning', level: 'view' } },
+        { method: 'GET', path: '/project-checklist-templates/:id', public: false, access: { kind: 'access', module: 'planning', level: 'view' } },
+        { method: 'POST', path: '/project-checklist-templates', public: false, access: { kind: 'access', module: 'planning', level: 'edit' } },
+        { method: 'PUT', path: '/project-checklist-templates/:id', public: false, access: { kind: 'access', module: 'planning', level: 'edit' } },
+        { method: 'DELETE', path: '/project-checklist-templates/:id', public: false, access: { kind: 'access', module: 'planning', level: 'edit' } },
+        { method: 'GET', path: '/projects/:projectId/checklist', public: false, access: [{ kind: 'access', module: 'planning', level: 'view' }, { kind: 'access', module: 'projects', level: 'view' }] },
+        { method: 'POST', path: '/projects/:projectId/checklist/items', public: false, access: [{ kind: 'access', module: 'planning', level: 'edit' }, { kind: 'access', module: 'projects', level: 'edit' }] },
+        { method: 'PATCH', path: '/projects/:projectId/checklist/items/:itemId', public: false, access: [{ kind: 'access', module: 'planning', level: 'edit' }, { kind: 'access', module: 'projects', level: 'edit' }] },
+        { method: 'DELETE', path: '/projects/:projectId/checklist/items/:itemId', public: false, access: [{ kind: 'access', module: 'planning', level: 'edit' }, { kind: 'access', module: 'projects', level: 'edit' }] },
+      ]),
+    );
+
+    expect(authorizationRouteResourceInputPolicies).toEqual(
+      expect.arrayContaining([
+        { method: 'GET', path: '/project-checklist-templates', resourceInputs: [] },
+        { method: 'GET', path: '/project-checklist-templates/:id', resourceInputs: [{ location: 'path', key: 'id' }] },
+        { method: 'POST', path: '/project-checklist-templates', resourceInputs: [] },
+        { method: 'PUT', path: '/project-checklist-templates/:id', resourceInputs: [{ location: 'path', key: 'id' }] },
+        { method: 'DELETE', path: '/project-checklist-templates/:id', resourceInputs: [{ location: 'path', key: 'id' }] },
+        { method: 'GET', path: '/projects/:projectId/checklist', resourceInputs: [{ location: 'path', key: 'projectId' }] },
+        { method: 'POST', path: '/projects/:projectId/checklist/items', resourceInputs: [{ location: 'path', key: 'projectId' }] },
+        { method: 'PATCH', path: '/projects/:projectId/checklist/items/:itemId', resourceInputs: [{ location: 'path', key: 'projectId' }, { location: 'path', key: 'itemId' }] },
+        { method: 'DELETE', path: '/projects/:projectId/checklist/items/:itemId', resourceInputs: [{ location: 'path', key: 'projectId' }, { location: 'path', key: 'itemId' }] },
+      ]),
+    );
   });
 
   it('does not treat editor board date range selectors as resource identifiers', () => {

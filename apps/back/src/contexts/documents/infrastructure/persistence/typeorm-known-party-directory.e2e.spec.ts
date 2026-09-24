@@ -15,6 +15,8 @@ import { RequireProjectClient1730000011000 } from '../../../../database/migratio
 import { CreateReleaseNoteAcknowledgements1730000012000 } from '../../../../database/migrations/1730000012000-CreateReleaseNoteAcknowledgements';
 import { ConvertWorkspaceMemberRoles1730000013000 } from '../../../../database/migrations/1730000013000-ConvertWorkspaceMemberRoles';
 import { AddInvoiceHintIssuerTaxId1730000014000 } from '../../../../database/migrations/1730000014000-AddInvoiceHintIssuerTaxId';
+import { AddPlanningPermission1730000015000 } from '../../../../database/migrations/1730000015000-AddPlanningPermission';
+import { AddProjectChecklists1730000016000 } from '../../../../database/migrations/1730000016000-AddProjectChecklists';
 import { TypeOrmKnownPartyDirectory } from './typeorm-known-party-directory';
 
 describe('TypeOrmKnownPartyDirectory (PostgreSQL)', () => {
@@ -49,6 +51,8 @@ describe('TypeOrmKnownPartyDirectory (PostgreSQL)', () => {
         CreateReleaseNoteAcknowledgements1730000012000,
         ConvertWorkspaceMemberRoles1730000013000,
         AddInvoiceHintIssuerTaxId1730000014000,
+        AddPlanningPermission1730000015000,
+        AddProjectChecklists1730000016000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },

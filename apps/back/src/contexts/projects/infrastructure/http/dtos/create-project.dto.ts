@@ -72,4 +72,8 @@ export class CreateProjectDto {
   @IsOptional()
   @IsIn(PROJECT_COLORS)
   color?: ProjectColor | null;
+
+  @IsOptional()
+  @IsUUID()
+  checklistTemplateId?: string;
 }

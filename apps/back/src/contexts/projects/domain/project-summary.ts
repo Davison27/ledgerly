@@ -11,5 +11,9 @@ export interface ProjectSummary {
   pendingCount: number;
   image: string | null;
   color: string | null;
+  planningEnabled?: boolean;
+  checklistAssigned?: boolean;
+  checklistCompletedCount?: number;
+  checklistTotalCount?: number;
   status?: ProjectStatus;
 }

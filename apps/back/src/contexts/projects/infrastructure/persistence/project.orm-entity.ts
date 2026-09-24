@@ -76,4 +76,7 @@ export class ProjectOrmEntity {
 
   @Column({ type: 'varchar', length: 20, nullable: true })
   color: string | null;
+
+  @Column({ name: 'planning_enabled', type: 'boolean', default: false })
+  planningEnabled: boolean;
 }

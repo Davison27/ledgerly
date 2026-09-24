@@ -84,9 +84,12 @@ class SequentialIdGenerator implements IdGenerator {
 }
 
 class InMemoryProjectClientLifecycleCoordinator implements ProjectClientLifecycleCoordinator {
+  lastChecklistTemplateId: string | undefined;
+
   constructor(private readonly repository: InMemoryProjectRepository) {}
 
-  saveProjectForActiveClient(project: Project): Promise<void> {
+  saveProjectForActiveClient(project: Project, checklistTemplateId?: string): Promise<void> {
+    this.lastChecklistTemplateId = checklistTemplateId;
     return this.repository.save(project);
   }
 
@@ -134,6 +137,7 @@ describe('CreateProjectUseCase', () => {
     });
 
     expect(project.image).toBeNull();
+    expect(project.planningEnabled).toBe(false);
   });
 
   it('rejects a missing client before checking project persistence', async () => {
@@ -153,6 +157,24 @@ describe('CreateProjectUseCase', () => {
       }),
     ).rejects.toBeInstanceOf(InvalidValueException);
     await expect(repository.findByCode('ACME-003')).resolves.toBeNull();
+  });
+
+  it('enables planning and forwards the selected checklist template', async () => {
+    const repository = new InMemoryProjectRepository();
+    const coordinator = new InMemoryProjectClientLifecycleCoordinator(repository);
+    const useCase = new CreateProjectUseCase(repository, new SequentialIdGenerator(), coordinator);
+    const checklistTemplateId = 'template-1';
+
+    const project = await useCase.execute({
+      name: 'Planned Project',
+      code: 'PLAN-001',
+      type: 'construction',
+      clientId: 'client-1',
+      checklistTemplateId,
+    });
+
+    expect(project.planningEnabled).toBe(true);
+    expect(coordinator.lastChecklistTemplateId).toBe(checklistTemplateId);
   });
 
 });

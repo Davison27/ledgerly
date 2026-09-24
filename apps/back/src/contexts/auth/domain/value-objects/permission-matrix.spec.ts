@@ -28,6 +28,22 @@ describe('PermissionMatrix', () => {
     expect(() => PermissionMatrix.create(matrix)).toThrow(InvalidValueException);
   });
 
+  it('rejects an invalid planning level', () => {
+    const matrix = { ...fullMatrix('view'), planning: 'write' };
+
+    expect(() => PermissionMatrix.create(matrix)).toThrow(InvalidValueException);
+  });
+
+  it('defaults a missing planning permission to none', () => {
+    const matrix = fullMatrix('view');
+    delete matrix.planning;
+
+    expect(PermissionMatrix.create(matrix).toPrimitives()).toEqual({
+      ...matrix,
+      planning: 'none',
+    });
+  });
+
   it('rejects dashboard set to edit', () => {
     const matrix = { ...fullMatrix('edit'), dashboard: 'edit' };
 
@@ -43,6 +59,7 @@ describe('PermissionMatrix', () => {
       suppliers: 'edit',
       equipment: 'edit',
       staff: 'edit',
+      planning: 'edit',
     });
   });
 

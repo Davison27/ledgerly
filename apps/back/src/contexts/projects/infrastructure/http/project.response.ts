@@ -5,6 +5,7 @@ import { ProjectCurrency } from '../../domain/project-currency';
 import { ProjectColor } from '../../domain/project-color';
 import { Client } from '../../domain/client';
 import { ClientResponse } from './client.response';
+import { ProjectSummary } from '../../domain/project-summary';
 
 export class ProjectResponse {
   id: string;
@@ -23,8 +24,17 @@ export class ProjectResponse {
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
+  planningEnabled: boolean;
+  checklistAssigned?: boolean;
+  checklistCompletedCount?: number;
+  checklistTotalCount?: number;
 
-  static fromDomain(project: Project, client: Client | null = null): ProjectResponse {
+  static fromDomain(
+    project: Project,
+    client: Client | null = null,
+    summary?: ProjectSummary | null,
+    includeChecklistAssignment = false,
+  ): ProjectResponse {
     const response = new ProjectResponse();
     const primitives = project.toPrimitives();
 
@@ -44,6 +54,14 @@ export class ProjectResponse {
     response.manager = primitives.manager;
     response.image = primitives.image;
     response.color = primitives.color;
+    response.planningEnabled = primitives.planningEnabled ?? false;
+    if (includeChecklistAssignment && summary?.checklistAssigned !== undefined) {
+      response.checklistAssigned = summary.checklistAssigned;
+    }
+    if (primitives.planningEnabled && summary?.planningEnabled) {
+      response.checklistCompletedCount = summary.checklistCompletedCount ?? 0;
+      response.checklistTotalCount = summary.checklistTotalCount ?? 0;
+    }
 
     return response;
   }

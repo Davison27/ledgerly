@@ -23,6 +23,7 @@ export class ProjectMapper {
       manager: orm.manager,
       image,
       color: orm.color as ProjectColor | null,
+      planningEnabled: orm.planningEnabled ?? false,
     });
   }
 
@@ -44,6 +45,7 @@ export class ProjectMapper {
     orm.currency = primitives.currency;
     orm.manager = primitives.manager;
     orm.color = primitives.color;
+    orm.planningEnabled = primitives.planningEnabled ?? false;
 
     return orm;
   }

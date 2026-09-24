@@ -12,6 +12,8 @@ import { NormalizeTaxIdsAndEnforceUniqueness1730000008000 } from '../../../../da
 import { PreserveWorkspaceMemberAuditIdentity1730000009000 } from '../../../../database/migrations/1730000009000-PreserveWorkspaceMemberAuditIdentity';
 import { RemoveProjectFiscalYear1730000010000 } from '../../../../database/migrations/1730000010000-RemoveProjectFiscalYear';
 import { RequireProjectClient1730000011000 } from '../../../../database/migrations/1730000011000-RequireProjectClient';
+import { AddPlanningPermission1730000015000 } from '../../../../database/migrations/1730000015000-AddPlanningPermission';
+import { AddProjectChecklists1730000016000 } from '../../../../database/migrations/1730000016000-AddProjectChecklists';
 import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto/stored-file-cipher';
 import { DeleteProjectUseCase } from '../../../projects/application/delete-project/delete-project.use-case';
 import { DeleteStaffMemberUseCase } from '../../../staff/application/delete-staff-member/delete-staff-member.use-case';
@@ -67,6 +69,8 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
         PreserveWorkspaceMemberAuditIdentity1730000009000,
         RemoveProjectFiscalYear1730000010000,
         RequireProjectClient1730000011000,
+        AddPlanningPermission1730000015000,
+        AddProjectChecklists1730000016000,
       ],
       migrationsTransactionMode: 'each',
       extra: { max: 1, options: `-c search_path=${schema},public` },

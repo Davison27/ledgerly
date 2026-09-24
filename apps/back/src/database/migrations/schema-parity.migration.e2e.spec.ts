@@ -16,6 +16,8 @@ import { RequireProjectClient1730000011000 } from './1730000011000-RequireProjec
 import { CreateReleaseNoteAcknowledgements1730000012000 } from './1730000012000-CreateReleaseNoteAcknowledgements';
 import { ConvertWorkspaceMemberRoles1730000013000 } from './1730000013000-ConvertWorkspaceMemberRoles';
 import { AddInvoiceHintIssuerTaxId1730000014000 } from './1730000014000-AddInvoiceHintIssuerTaxId';
+import { AddPlanningPermission1730000015000 } from './1730000015000-AddPlanningPermission';
+import { AddProjectChecklists1730000016000 } from './1730000016000-AddProjectChecklists';
 
 const migrations: Array<new () => MigrationInterface> = [
   InitialLedgerlySchema1730000000000,
@@ -33,6 +35,8 @@ const migrations: Array<new () => MigrationInterface> = [
   CreateReleaseNoteAcknowledgements1730000012000,
   ConvertWorkspaceMemberRoles1730000013000,
   AddInvoiceHintIssuerTaxId1730000014000,
+  AddPlanningPermission1730000015000,
+  AddProjectChecklists1730000016000,
 ];
 
 const encryptedChecks = [

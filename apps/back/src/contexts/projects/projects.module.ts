@@ -33,10 +33,44 @@ import { CreateClientUseCase } from './application/create-client/create-client.u
 import { UpdateClientUseCase } from './application/update-client/update-client.use-case';
 import { DeleteClientUseCase } from './application/delete-client/delete-client.use-case';
 import { UnarchiveClientUseCase } from './application/unarchive-client/unarchive-client.use-case';
+import { ProjectChecklistTemplateOrmEntity } from './infrastructure/persistence/project-checklist-template.orm-entity';
+import { ProjectChecklistTemplateItemOrmEntity } from './infrastructure/persistence/project-checklist-template-item.orm-entity';
+import { ProjectChecklistOrmEntity } from './infrastructure/persistence/project-checklist.orm-entity';
+import { ProjectChecklistItemOrmEntity } from './infrastructure/persistence/project-checklist-item.orm-entity';
+import { ProjectChecklistTemplatesController } from './infrastructure/http/project-checklist-templates.controller';
+import { ProjectChecklistController } from './infrastructure/http/project-checklist.controller';
+import { PROJECT_CHECKLIST_TEMPLATE_REPOSITORY } from './domain/project-checklist-template.repository';
+import { TypeOrmProjectChecklistTemplateRepository } from './infrastructure/persistence/typeorm-project-checklist-template.repository';
+import { PROJECT_CHECKLIST_REPOSITORY } from './domain/project-checklist.repository';
+import { TypeOrmProjectChecklistRepository } from './infrastructure/persistence/typeorm-project-checklist.repository';
+import { ListChecklistTemplatesUseCase } from './application/list-checklist-templates/list-checklist-templates.use-case';
+import { GetChecklistTemplateUseCase } from './application/get-checklist-template/get-checklist-template.use-case';
+import { CreateChecklistTemplateUseCase } from './application/create-checklist-template/create-checklist-template.use-case';
+import { UpdateChecklistTemplateUseCase } from './application/update-checklist-template/update-checklist-template.use-case';
+import { DeleteChecklistTemplateUseCase } from './application/delete-checklist-template/delete-checklist-template.use-case';
+import { GetProjectChecklistUseCase } from './application/get-project-checklist/get-project-checklist.use-case';
+import { AddProjectChecklistItemUseCase } from './application/add-project-checklist-item/add-project-checklist-item.use-case';
+import { UpdateProjectChecklistItemUseCase } from './application/update-project-checklist-item/update-project-checklist-item.use-case';
+import { DeleteProjectChecklistItemUseCase } from './application/delete-project-checklist-item/delete-project-checklist-item.use-case';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([ProjectOrmEntity, ProjectEquipmentOrmEntity, ProjectEquipmentLeaseExpenseOrmEntity, ClientOrmEntity]), EquipmentModule],
-  controllers: [ProjectsController, ProjectEquipmentController, ClientsController],
+  imports: [TypeOrmModule.forFeature([
+    ProjectOrmEntity,
+    ProjectEquipmentOrmEntity,
+    ProjectEquipmentLeaseExpenseOrmEntity,
+    ClientOrmEntity,
+    ProjectChecklistTemplateOrmEntity,
+    ProjectChecklistTemplateItemOrmEntity,
+    ProjectChecklistOrmEntity,
+    ProjectChecklistItemOrmEntity,
+  ]), EquipmentModule],
+  controllers: [
+    ProjectsController,
+    ProjectEquipmentController,
+    ClientsController,
+    ProjectChecklistTemplatesController,
+    ProjectChecklistController,
+  ],
   providers: [
     ListProjectsUseCase,
     GetProjectUseCase,
@@ -51,7 +85,18 @@ import { UnarchiveClientUseCase } from './application/unarchive-client/unarchive
     DeleteClientUseCase,
     UnarchiveClientUseCase,
     ProjectEquipmentUseCase,
+    ListChecklistTemplatesUseCase,
+    GetChecklistTemplateUseCase,
+    CreateChecklistTemplateUseCase,
+    UpdateChecklistTemplateUseCase,
+    DeleteChecklistTemplateUseCase,
+    GetProjectChecklistUseCase,
+    AddProjectChecklistItemUseCase,
+    UpdateProjectChecklistItemUseCase,
+    DeleteProjectChecklistItemUseCase,
     { provide: PROJECT_REPOSITORY, useClass: TypeOrmProjectRepository },
+    { provide: PROJECT_CHECKLIST_TEMPLATE_REPOSITORY, useClass: TypeOrmProjectChecklistTemplateRepository },
+    { provide: PROJECT_CHECKLIST_REPOSITORY, useClass: TypeOrmProjectChecklistRepository },
     { provide: PROJECT_PHYSICAL_DOCUMENT_REFERENCE_COUNTER, useClass: TypeOrmProjectPhysicalDocumentReferenceCounter },
     { provide: PROJECT_EQUIPMENT_REPOSITORY, useClass: TypeOrmProjectEquipmentRepository },
     { provide: PROJECT_FINANCIALS_PROVIDER, useClass: TypeOrmProjectFinancialsProvider },

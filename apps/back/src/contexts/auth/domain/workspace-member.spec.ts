@@ -121,6 +121,7 @@ describe('WorkspaceMember', () => {
 
     expect(administrator.isAdmin()).toBe(true);
     expect(administrator.canAccess('documents', 'edit')).toBe(true);
+    expect(administrator.canAccess('planning', 'edit')).toBe(true);
   });
 
   it('keeps the member role independent from full section grants', () => {

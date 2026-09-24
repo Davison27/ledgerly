@@ -15,6 +15,7 @@ import { CLOCK } from '../../../../shared/domain/clock.port';
 import { AccessGuard } from '../../../../shared/infrastructure/http/access/access.guard';
 import { ProjectsController } from '../../../projects/infrastructure/http/projects.controller';
 import { CLIENT_REPOSITORY } from '../../../projects/domain/client.repository';
+import { PROJECT_REPOSITORY } from '../../../projects/domain/project.repository';
 import { ListProjectsUseCase } from '../../../projects/application/list-projects/list-projects.use-case';
 import { GetProjectUseCase } from '../../../projects/application/get-project/get-project.use-case';
 import { CreateProjectUseCase } from '../../../projects/application/create-project/create-project.use-case';
@@ -144,6 +145,7 @@ describe('schedule authorization HTTP integration', () => {
         { provide: DeleteProjectUseCase, useValue: { execute: jest.fn() } },
         { provide: UnarchiveProjectUseCase, useValue: { execute: jest.fn() } },
         { provide: CLIENT_REPOSITORY, useValue: { findById: jest.fn() } },
+        { provide: PROJECT_REPOSITORY, useValue: { findSummaryById: jest.fn() } },
         { provide: ListStaffMembersUseCase, useValue: { execute: jest.fn() } },
         { provide: GetStaffMemberUseCase, useValue: { execute: jest.fn() } },
         { provide: CreateStaffMemberUseCase, useValue: { execute: jest.fn() } },

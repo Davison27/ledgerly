@@ -19,6 +19,9 @@ function pathResourceInputs(path: string): AuthorizationResourceInput[] {
 
 const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonly AuthorizationResourceInput[]>> = {
   'GET /company/documents': [{ location: 'query', key: 'typeId' }],
+  'GET /project-checklist-templates': [],
+  'GET /project-checklist-templates/:id': [],
+  'GET /projects/:projectId/checklist': [],
   'GET /documents': [
     { location: 'query', key: 'projectId' },
     { location: 'query', key: 'clientId' },
@@ -36,6 +39,7 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
   'GET /staff/:staffMemberId/documents': [{ location: 'query', key: 'typeId' }],
   'GET /tax-compliance/calendar': [{ location: 'query', key: 'projectId' }],
   'PATCH /projects/:projectId/documents/:id': [{ location: 'body', key: 'supplierId' }],
+  'PATCH /projects/:projectId/checklist/items/:itemId': [],
   'PATCH /projects/:id': [{ location: 'body', key: 'clientId' }],
   'PATCH /schedule/events/:id': [
     { location: 'body', key: 'projectId' },
@@ -43,6 +47,8 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
     { location: 'body', key: 'equipment[].equipmentId' },
   ],
   'POST /projects/:projectId/documents': [{ location: 'body', key: 'payload.supplierId' }],
+  'POST /project-checklist-templates': [],
+  'POST /projects/:projectId/checklist/items': [],
   'POST /company/documents': [{ location: 'body', key: 'payload.typeId' }],
   'POST /projects/:projectId/equipment': [{ location: 'body', key: 'equipmentId' }],
   'POST /projects': [{ location: 'body', key: 'clientId' }],
@@ -51,6 +57,9 @@ const reviewedQueryAndBodyResourceInputsByRoute: Readonly<Record<string, readonl
     { location: 'body', key: 'staffMemberIds[]' },
     { location: 'body', key: 'equipment[].equipmentId' },
   ],
+  'DELETE /project-checklist-templates/:id': [],
+  'DELETE /projects/:projectId/checklist/items/:itemId': [],
+  'PUT /project-checklist-templates/:id': [],
 };
 
 export const authorizationRouteResourceInputPolicies: readonly AuthorizationRouteResourceInputPolicy[] =

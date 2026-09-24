@@ -66,6 +66,7 @@ export interface ProjectPrimitives {
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
+  planningEnabled?: boolean;
 }
 
 interface ProjectProps {
@@ -84,6 +85,7 @@ interface ProjectProps {
   manager: string | null;
   image: string | null;
   color: ProjectColor | null;
+  planningEnabled: boolean;
 }
 
 export class Project {
@@ -102,6 +104,7 @@ export class Project {
   private manager_: string | null;
   private image_: string | null;
   private color_: ProjectColor | null;
+  private planningEnabled_: boolean;
 
   private constructor(props: ProjectProps) {
     this.id_ = props.id;
@@ -119,6 +122,7 @@ export class Project {
     this.manager_ = props.manager;
     this.image_ = props.image;
     this.color_ = props.color;
+    this.planningEnabled_ = props.planningEnabled;
   }
 
   static create(params: ProjectPrimitives): Project {
@@ -147,6 +151,7 @@ export class Project {
       manager: params.manager,
       image: params.image,
       color: params.color,
+      planningEnabled: params.planningEnabled ?? false,
     });
   }
 
@@ -214,6 +219,10 @@ export class Project {
     this.color_ = color;
   }
 
+  changePlanningEnabled(enabled: boolean): void {
+    this.planningEnabled_ = enabled;
+  }
+
   get id(): string {
     return this.id_;
   }
@@ -274,6 +283,10 @@ export class Project {
     return this.color_;
   }
 
+  get planningEnabled(): boolean {
+    return this.planningEnabled_;
+  }
+
   toPrimitives(): ProjectPrimitives {
     return {
       id: this.id_,
@@ -291,6 +304,7 @@ export class Project {
       manager: this.manager_,
       image: this.image_,
       color: this.color_,
+      planningEnabled: this.planningEnabled_,
     };
   }
 }

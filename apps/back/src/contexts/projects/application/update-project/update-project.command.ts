@@ -19,4 +19,6 @@ export interface UpdateProjectCommand {
   manager?: string | null;
   image?: string | null;
   color?: ProjectColor | null;
+  planningEnabled?: boolean;
+  checklistTemplateId?: string;
 }

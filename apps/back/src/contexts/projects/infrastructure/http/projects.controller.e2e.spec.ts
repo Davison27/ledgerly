@@ -16,13 +16,14 @@ import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectNotFoundException } from '../../domain/errors/project-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 import { CLIENT_REPOSITORY } from '../../domain/client.repository';
+import { PROJECT_REPOSITORY } from '../../domain/project.repository';
 import { InvalidValueException } from '../../../../shared/domain/invalid-value.exception';
 
 const image = `data:image/png;base64,${Buffer.from('89504e470d0a1a0a00000000', 'hex').toString('base64')}`;
 const clientId = '00000000-0000-4000-8000-000000000001';
 
 function buildProject(
-  overrides: Partial<CreateProjectCommand> & { id?: string } = {},
+  overrides: Partial<CreateProjectCommand> & { id?: string; planningEnabled?: boolean } = {},
 ): Project {
   const params: ProjectPrimitives = {
     id: overrides.id ?? 'project-1',
@@ -40,6 +41,7 @@ function buildProject(
     manager: overrides.manager ?? null,
     image: overrides.image ?? null,
     color: overrides.color ?? null,
+    planningEnabled: overrides.planningEnabled ?? false,
   };
 
   return Project.create(params);
@@ -54,6 +56,10 @@ function buildSummary(overrides: Partial<ProjectSummary> = {}): ProjectSummary {
     financials: overrides.financials ?? [],
     documentCount: overrides.documentCount ?? 0,
     pendingCount: overrides.pendingCount ?? 0,
+    planningEnabled: overrides.planningEnabled ?? false,
+    checklistAssigned: overrides.checklistAssigned,
+    checklistCompletedCount: overrides.checklistCompletedCount ?? 0,
+    checklistTotalCount: overrides.checklistTotalCount ?? 0,
     image: overrides.image ?? null,
     color: overrides.color ?? null,
   };
@@ -70,6 +76,8 @@ describe('ProjectsController (HTTP, no DB)', () => {
   let unarchiveExecute: jest.Mock;
   let documentViewAccess = true;
   let equipmentViewAccess = true;
+  let planningViewAccess = true;
+  let planningEditAccess = true;
 
   beforeAll(async () => {
     listExecute = jest.fn(() => Promise.resolve([buildSummary()]));
@@ -93,6 +101,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         { provide: DeleteProjectUseCase, useValue: { execute: deleteExecute } },
         { provide: UnarchiveProjectUseCase, useValue: { execute: unarchiveExecute } },
         { provide: CLIENT_REPOSITORY, useValue: { findById: jest.fn().mockResolvedValue(null) } },
+        { provide: PROJECT_REPOSITORY, useValue: { findSummaryById: jest.fn().mockImplementation((id: string) => Promise.resolve(buildSummary({ id, planningEnabled: true }))) } },
       ],
     }).compile();
 
@@ -100,12 +109,13 @@ describe('ProjectsController (HTTP, no DB)', () => {
     app.use((request: Request, _response: Response, next: NextFunction) => {
       Object.assign(request, {
         member: {
-          canAccess: (module: string) =>
-            module === 'documents'
-              ? documentViewAccess
-              : module === 'equipment'
-                ? equipmentViewAccess
-                : true,
+          canAccess: (module: string, level: string) => {
+            if (module === 'documents') return documentViewAccess;
+            if (module === 'equipment') return equipmentViewAccess;
+            if (module === 'planning' && level === 'view') return planningViewAccess;
+            if (module === 'planning' && level === 'edit') return planningEditAccess;
+            return true;
+          },
         },
       });
       next();
@@ -125,6 +135,8 @@ describe('ProjectsController (HTTP, no DB)', () => {
     unarchiveExecute.mockClear();
     documentViewAccess = true;
     equipmentViewAccess = true;
+    planningViewAccess = true;
+    planningEditAccess = true;
   });
 
   afterAll(async () => {
@@ -204,6 +216,28 @@ describe('ProjectsController (HTTP, no DB)', () => {
       expect(response.body).toMatchObject([{ color: 'terracotta' }]);
     });
 
+    it('returns planning counts only when enabled and the member can view planning', async () => {
+      listExecute.mockResolvedValueOnce([buildSummary({
+        planningEnabled: true,
+        checklistCompletedCount: 2,
+        checklistTotalCount: 5,
+      })]);
+      const allowed = await request(httpServer).get('/projects');
+      const allowedBody = allowed.body as unknown as Array<Record<string, unknown>>;
+      expect(allowedBody[0]).toMatchObject({ checklistCompletedCount: 2, checklistTotalCount: 5 });
+
+      planningViewAccess = false;
+      listExecute.mockResolvedValueOnce([buildSummary({
+        planningEnabled: true,
+        checklistCompletedCount: 2,
+        checklistTotalCount: 5,
+      })]);
+      const denied = await request(httpServer).get('/projects');
+      const deniedBody = denied.body as unknown as Array<Record<string, unknown>>;
+      expect(deniedBody[0]).not.toHaveProperty('checklistCompletedCount');
+      expect(deniedBody[0]).not.toHaveProperty('checklistTotalCount');
+    });
+
     it('passes the optional client filter to the list use case', async () => {
       const response = await request(httpServer).get(`/projects?clientId=${clientId}`);
 
@@ -259,6 +293,22 @@ describe('ProjectsController (HTTP, no DB)', () => {
       expect(response.status).toBe(400);
       expect(createExecute).not.toHaveBeenCalled();
     });
+
+    it('requires planning edit to assign a checklist template', async () => {
+      planningEditAccess = false;
+      const response = await request(httpServer)
+        .post('/projects')
+        .send({
+          name: 'Planned Project',
+          code: 'PLAN-001',
+          type: 'construction',
+          clientId,
+          checklistTemplateId: '00000000-0000-4000-8000-000000000002',
+        });
+
+      expect(response.status).toBe(403);
+      expect(createExecute).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /projects/:id', () => {
@@ -282,6 +332,24 @@ describe('ProjectsController (HTTP, no DB)', () => {
       expect(response.body).not.toHaveProperty('documentCount');
       expect(response.body).not.toHaveProperty('pendingCount');
       expect(getExecute).toHaveBeenCalledWith('project-1');
+    });
+
+    it('includes checklist counts for planning viewers only when the project is enabled', async () => {
+      getExecute.mockResolvedValueOnce(buildProject({ id: 'project-1', planningEnabled: true }));
+      const allowed = await request(httpServer).get('/projects/project-1');
+      expect(allowed.body).toMatchObject({ checklistCompletedCount: 0, checklistTotalCount: 0 });
+
+      planningViewAccess = false;
+      getExecute.mockResolvedValueOnce(buildProject({ id: 'project-1', planningEnabled: true }));
+      const denied = await request(httpServer).get('/projects/project-1');
+      expect(denied.body).not.toHaveProperty('checklistCompletedCount');
+      expect(denied.body).not.toHaveProperty('checklistTotalCount');
+
+      planningViewAccess = true;
+      getExecute.mockResolvedValueOnce(buildProject({ id: 'project-1', planningEnabled: false }));
+      const disabled = await request(httpServer).get('/projects/project-1');
+      expect(disabled.body).not.toHaveProperty('checklistCompletedCount');
+      expect(disabled.body).not.toHaveProperty('checklistTotalCount');
     });
 
     it('returns 404 when the project is not found', async () => {

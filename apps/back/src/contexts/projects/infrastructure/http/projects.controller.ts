@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   Inject,
@@ -26,9 +27,11 @@ import { UnarchiveProjectUseCase } from '../../application/unarchive-project/una
 import { CLIENT_REPOSITORY, ClientRepository } from '../../domain/client.repository';
 import { ListProjectsQueryDto } from './dtos/list-projects.query.dto';
 import { CurrentMember } from '../../../../shared/infrastructure/http/access/current-member.decorator';
+import { PROJECT_REPOSITORY, ProjectRepository } from '../../domain/project.repository';
+import { Project } from '../../domain/project';
 
 interface ProjectListMemberAccess {
-  canAccess(module: 'documents' | 'equipment', level: 'view'): boolean;
+  canAccess(module: 'documents' | 'equipment' | 'planning', level: 'view' | 'edit'): boolean;
 }
 
 @RequiresAccess('projects', 'view')
@@ -42,6 +45,7 @@ export class ProjectsController {
     private readonly deleteProjectUseCase: DeleteProjectUseCase,
     private readonly unarchiveProjectUseCase: UnarchiveProjectUseCase,
     @Inject(CLIENT_REPOSITORY) private readonly clientRepository: ClientRepository,
+    @Inject(PROJECT_REPOSITORY) private readonly projectRepository: ProjectRepository,
   ) {}
 
   @Get()
@@ -52,16 +56,23 @@ export class ProjectsController {
     const summaries = await this.listProjectsUseCase.execute(query.clientId);
     const includeDocumentAggregates = member.canAccess('documents', 'view');
     const includeFinancials = includeDocumentAggregates && member.canAccess('equipment', 'view');
+    const includePlanningProgress = member.canAccess('planning', 'view');
 
     return summaries.map((summary) =>
-      ProjectSummaryResponse.fromSummary(summary, includeDocumentAggregates, includeFinancials),
+      ProjectSummaryResponse.fromSummary(summary, includeDocumentAggregates, includeFinancials, includePlanningProgress),
     );
   }
 
   @RequiresAccess('projects', 'edit')
   @Post()
   @HttpCode(201)
-  async create(@Body() dto: CreateProjectDto): Promise<ProjectResponse> {
+  async create(
+    @Body() dto: CreateProjectDto,
+    @CurrentMember() member: ProjectListMemberAccess,
+  ): Promise<ProjectResponse> {
+    if (dto.checklistTemplateId !== undefined && !member.canAccess('planning', 'edit')) {
+      throw new ForbiddenException();
+    }
     const project = await this.createProjectUseCase.execute({
       name: dto.name,
       code: dto.code,
@@ -77,16 +88,29 @@ export class ProjectsController {
       manager: dto.manager,
       image: dto.image,
       color: dto.color,
+      checklistTemplateId: dto.checklistTemplateId,
     });
 
-    return ProjectResponse.fromDomain(project, await this.resolveClient(project.clientId));
+    return ProjectResponse.fromDomain(
+      project,
+      await this.resolveClient(project.clientId),
+      await this.findPlanningSummary(project, member),
+    );
   }
 
   @Get(':id')
-  async get(@Param('id') id: string): Promise<ProjectResponse> {
+  async get(
+    @Param('id') id: string,
+    @CurrentMember() member: ProjectListMemberAccess,
+  ): Promise<ProjectResponse> {
     const project = await this.getProjectUseCase.execute(id);
 
-    return ProjectResponse.fromDomain(project, await this.resolveClient(project.clientId));
+    return ProjectResponse.fromDomain(
+      project,
+      await this.resolveClient(project.clientId),
+      await this.findProjectDetailSummary(project, member),
+      true,
+    );
   }
 
   @RequiresAccess('projects', 'edit')
@@ -94,7 +118,12 @@ export class ProjectsController {
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateProjectDto,
+    @CurrentMember() member: ProjectListMemberAccess,
   ): Promise<ProjectResponse> {
+    if ((dto.planningEnabled !== undefined || dto.checklistTemplateId !== undefined) &&
+      !member.canAccess('planning', 'edit')) {
+      throw new ForbiddenException();
+    }
     const project = await this.updateProjectUseCase.execute({
       id,
       name: dto.name,
@@ -111,9 +140,15 @@ export class ProjectsController {
       manager: dto.manager,
       image: dto.image,
       color: dto.color,
+      planningEnabled: dto.planningEnabled,
+      checklistTemplateId: dto.checklistTemplateId,
     });
 
-    return ProjectResponse.fromDomain(project, await this.resolveClient(project.clientId));
+    return ProjectResponse.fromDomain(
+      project,
+      await this.resolveClient(project.clientId),
+      await this.findPlanningSummary(project, member),
+    );
   }
 
   @RequiresAccess('projects', 'edit')
@@ -134,5 +169,15 @@ export class ProjectsController {
 
   private resolveClient(clientId: string) {
     return this.clientRepository.findById(clientId);
+  }
+
+  private async findPlanningSummary(project: Project, member: ProjectListMemberAccess) {
+    if (!project.planningEnabled || !member.canAccess('planning', 'view')) return null;
+    return this.projectRepository.findSummaryById(project.id);
+  }
+
+  private async findProjectDetailSummary(project: Project, member: ProjectListMemberAccess) {
+    if (!member.canAccess('planning', 'view')) return null;
+    return this.projectRepository.findSummaryById(project.id);
   }
 }

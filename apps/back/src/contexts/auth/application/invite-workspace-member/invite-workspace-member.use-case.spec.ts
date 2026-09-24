@@ -104,6 +104,23 @@ describe('InviteWorkspaceMemberUseCase', () => {
     expect(repository.members).toHaveLength(1);
   });
 
+  it('defaults missing planning access to none for a newly invited member', async () => {
+    const repository = new InMemoryWorkspaceMemberRepository();
+    const useCase = buildUseCase(repository);
+    const permissions = viewerPermissions();
+    delete permissions.planning;
+
+    const member = await useCase.execute({
+      name: 'Jane Doe',
+      email: 'jane@ledgerly.dev',
+      role: 'member',
+      permissions,
+    });
+
+    expect(member.getPermissions().levelFor('planning')).toBe('none');
+    expect(member.canAccess('planning', 'view')).toBe(false);
+  });
+
   it('rejects an email that already belongs to another member', async () => {
     const repository = new InMemoryWorkspaceMemberRepository();
     const useCase = buildUseCase(repository);

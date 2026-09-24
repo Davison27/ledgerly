@@ -54,9 +54,10 @@ export class CreateProjectUseCase {
       manager: command.manager ?? null,
       image: command.image ?? null,
       color: command.color ?? null,
+      planningEnabled: command.checklistTemplateId !== undefined,
     });
 
-    await this.projectClientLifecycleCoordinator.saveProjectForActiveClient(project);
+    await this.projectClientLifecycleCoordinator.saveProjectForActiveClient(project, command.checklistTemplateId);
 
     return project;
   }

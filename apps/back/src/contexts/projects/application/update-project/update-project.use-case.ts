@@ -34,6 +34,11 @@ export class UpdateProjectUseCase {
     }
 
     const parentChanged = command.clientId !== undefined && command.clientId !== project.clientId;
+    const planningChanged = command.planningEnabled !== undefined || command.checklistTemplateId !== undefined;
+
+    if (command.checklistTemplateId !== undefined && command.planningEnabled !== true) {
+      throw new InvalidValueException('A checklist template can only be assigned when planning is enabled');
+    }
 
     if (command.code !== undefined && command.code !== project.code) {
       const existing = await this.projectRepository.findByCode(command.code);
@@ -99,8 +104,12 @@ export class UpdateProjectUseCase {
       project.changeColor(command.color);
     }
 
-    if (parentChanged) {
-      await this.projectClientLifecycleCoordinator.saveProjectForActiveClient(project);
+    if (command.planningEnabled !== undefined) {
+      project.changePlanningEnabled(command.planningEnabled);
+    }
+
+    if (parentChanged || planningChanged) {
+      await this.projectClientLifecycleCoordinator.saveProjectForActiveClient(project, command.checklistTemplateId);
     } else {
       await this.projectRepository.save(project);
     }

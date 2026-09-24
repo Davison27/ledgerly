@@ -77,11 +77,13 @@ class InMemoryProjectRepository implements ProjectRepository {
 
 class InMemoryProjectClientLifecycleCoordinator implements ProjectClientLifecycleCoordinator {
   saveCalls = 0;
+  lastChecklistTemplateId: string | undefined;
 
   constructor(private readonly repository: InMemoryProjectRepository) {}
 
-  saveProjectForActiveClient(project: Project): Promise<void> {
+  saveProjectForActiveClient(project: Project, checklistTemplateId?: string): Promise<void> {
     this.saveCalls += 1;
+    this.lastChecklistTemplateId = checklistTemplateId;
     return this.repository.save(project);
   }
 
@@ -218,5 +220,36 @@ describe('UpdateProjectUseCase', () => {
     );
     expect((await repository.findById('project-1'))?.clientId).toBe('client-1');
     expect(coordinator.saveCalls).toBe(0);
+  });
+
+  it('uses the lifecycle transaction when planning is first enabled with a template', async () => {
+    const repository = new InMemoryProjectRepository();
+    await repository.save(buildProject());
+    const coordinator = new InMemoryProjectClientLifecycleCoordinator(repository);
+    const useCase = new UpdateProjectUseCase(repository, coordinator);
+    const checklistTemplateId = 'template-1';
+
+    const project = await useCase.execute({
+      id: 'project-1',
+      planningEnabled: true,
+      checklistTemplateId,
+    });
+
+    expect(project.planningEnabled).toBe(true);
+    expect(coordinator.saveCalls).toBe(1);
+    expect(coordinator.lastChecklistTemplateId).toBe(checklistTemplateId);
+  });
+
+  it('keeps checklist assignment out of settings updates without planning enabled', async () => {
+    const repository = new InMemoryProjectRepository();
+    await repository.save(buildProject());
+    const coordinator = new InMemoryProjectClientLifecycleCoordinator(repository);
+    const useCase = new UpdateProjectUseCase(repository, coordinator);
+
+    await expect(useCase.execute({ id: 'project-1', checklistTemplateId: 'template-1' })).rejects.toBeInstanceOf(
+      InvalidValueException,
+    );
+    expect(coordinator.saveCalls).toBe(0);
+    expect((await repository.findById('project-1'))?.planningEnabled).toBe(false);
   });
 });

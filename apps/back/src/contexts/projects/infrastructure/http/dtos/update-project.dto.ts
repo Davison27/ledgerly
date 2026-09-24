@@ -1,6 +1,7 @@
 import {
   IsIn,
   IsNotEmpty,
+  IsBoolean,
   IsNumber,
   IsOptional,
   IsString,
@@ -77,4 +78,12 @@ export class UpdateProjectDto {
   @IsOptional()
   @IsIn(PROJECT_COLORS)
   color?: ProjectColor | null;
+
+  @IsOptional()
+  @IsBoolean()
+  planningEnabled?: boolean;
+
+  @IsOptional()
+  @IsUUID()
+  checklistTemplateId?: string;
 }

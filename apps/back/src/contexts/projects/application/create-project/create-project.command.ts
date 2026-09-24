@@ -18,4 +18,5 @@ export interface CreateProjectCommand {
   manager?: string | null;
   image?: string | null;
   color?: ProjectColor | null;
+  checklistTemplateId?: string;
 }

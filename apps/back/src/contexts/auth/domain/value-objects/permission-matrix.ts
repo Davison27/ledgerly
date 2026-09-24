@@ -8,6 +8,7 @@ export const WORKSPACE_MODULES = [
   'suppliers',
   'equipment',
   'staff',
+  'planning',
 ] as const;
 
 export type WorkspaceModule = (typeof WORKSPACE_MODULES)[number];
@@ -41,10 +42,14 @@ export class PermissionMatrix {
 
   static create(value: Record<string, unknown>): PermissionMatrix {
     const keys = Object.keys(value);
+    const legacyModules = WORKSPACE_MODULES.filter((module) => module !== 'planning');
+    const isLegacyMatrix =
+      keys.length === legacyModules.length && legacyModules.every((module) => keys.includes(module));
 
     if (
-      keys.length !== WORKSPACE_MODULES.length ||
-      !WORKSPACE_MODULES.every((module) => keys.includes(module))
+      !isLegacyMatrix &&
+      (keys.length !== WORKSPACE_MODULES.length ||
+        !WORKSPACE_MODULES.every((module) => keys.includes(module)))
     ) {
       throw new InvalidValueException(
         'permission matrix must declare exactly the workspace modules',
@@ -52,7 +57,8 @@ export class PermissionMatrix {
     }
 
     for (const module of WORKSPACE_MODULES) {
-      if (!isPermissionLevel(value[module])) {
+      const level = module === 'planning' && value[module] === undefined ? 'none' : value[module];
+      if (!isPermissionLevel(level)) {
         throw new InvalidValueException(
           `permission level for ${module} must be none, view or edit`,
         );
@@ -63,7 +69,7 @@ export class PermissionMatrix {
       throw new InvalidValueException('dashboard does not support edit');
     }
 
-    return new PermissionMatrix({ ...(value as PermissionMatrixPrimitives) });
+    return new PermissionMatrix({ ...value, planning: value.planning ?? 'none' } as PermissionMatrixPrimitives);
   }
 
   levelFor(module: WorkspaceModule): PermissionLevel {

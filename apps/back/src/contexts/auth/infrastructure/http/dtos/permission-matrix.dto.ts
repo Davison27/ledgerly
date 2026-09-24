@@ -1,4 +1,4 @@
-import { IsIn } from 'class-validator';
+import { IsIn, IsOptional } from 'class-validator';
 
 const PERMISSION_LEVELS = ['none', 'view', 'edit'] as const;
 
@@ -24,4 +24,8 @@ export class PermissionMatrixDto {
 
   @IsIn(PERMISSION_LEVELS)
   staff: 'none' | 'view' | 'edit';
+
+  @IsOptional()
+  @IsIn(PERMISSION_LEVELS)
+  planning?: 'none' | 'view' | 'edit';
 }
