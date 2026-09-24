@@ -1,0 +1,33 @@
+{
+  "description": "The printed issuer name differs from the stored supplier name, and the tax ID is printed without ES while the supplier is stored with ES.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Comercial Rapido SL" },
+        { "x": 50, "y": 784, "text": "CIF: B28374650" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-1000" },
+        { "x": 50, "y": 704, "text": "Fecha: 18/11/2026" },
+        { "x": 50, "y": 672, "text": "BASE IMPONIBLE: 200,00 EUR" },
+        { "x": 50, "y": 656, "text": "IVA 21%: 42,00 EUR" },
+        { "x": 50, "y": 640, "text": "TOTAL: 242,00 EUR" }
+      ]
+    }
+  ],
+  "context": {
+    "suppliers": [
+      { "name": "Comercial Rapido y Distribucion SL", "taxId": "ESB28374650" }
+    ]
+  },
+  "expected": {
+    "issuerName": "Comercial Rapido y Distribucion SL",
+    "issuerTaxId": "ESB28374650",
+    "invoiceNumber": "FA-2026-1000",
+    "date": "2026-11-18",
+    "amount": 242,
+    "taxBase": 200,
+    "taxRate": 21,
+    "taxAmount": 42
+  }
+}

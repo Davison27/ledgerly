@@ -1,0 +1,33 @@
+{
+  "description": "The company's own CIF appears in the client block; the expected issuer is the other party.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Suministros y Materiales del Ebro SL" },
+        { "x": 50, "y": 784, "text": "CIF: B64738297" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0700" },
+        { "x": 50, "y": 704, "text": "Fecha: 22/09/2026" },
+        { "x": 50, "y": 672, "text": "Cliente: Ledgerly ERP SL" },
+        { "x": 50, "y": 656, "text": "CIF cliente: A99988875" },
+        { "x": 50, "y": 624, "text": "BASE IMPONIBLE: 400,00 EUR" },
+        { "x": 50, "y": 608, "text": "IVA 21%: 84,00 EUR" },
+        { "x": 50, "y": 592, "text": "TOTAL: 484,00 EUR" }
+      ]
+    }
+  ],
+  "context": {
+    "companyTaxId": "A99988875"
+  },
+  "expected": {
+    "issuerName": "Suministros y Materiales del Ebro SL",
+    "issuerTaxId": "B64738297",
+    "invoiceNumber": "FA-2026-0700",
+    "date": "2026-09-22",
+    "amount": 484,
+    "taxBase": 400,
+    "taxRate": 21,
+    "taxAmount": 84
+  }
+}

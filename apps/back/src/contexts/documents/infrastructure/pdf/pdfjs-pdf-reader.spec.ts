@@ -1,9 +1,18 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { PdfjsPdfReader } from './pdfjs-pdf-reader';
+import { writeMinimalPdf, MinimalPdfPage } from './__fixtures__/minimal-pdf-writer';
 
 function loadFixture(name: string): Buffer {
   return readFileSync(join(__dirname, '__fixtures__', name));
+}
+
+function loadCorpusFixturePages(name: string): MinimalPdfPage[] {
+  const raw = readFileSync(
+    join(__dirname, '../../application/extract-invoice/__fixtures__/invoice-corpus', name),
+    'utf8',
+  );
+  return (JSON.parse(raw) as { pages: MinimalPdfPage[] }).pages;
 }
 
 describe('PdfjsPdfReader', () => {
@@ -39,5 +48,25 @@ describe('PdfjsPdfReader', () => {
 
     expect(result.text.trim()).toBe('');
     expect(result.attachments).toEqual([]);
+  });
+
+  it('keeps label and value columns apart in the layout-aware lines', async () => {
+    const pages = loadCorpusFixturePages('label-value-columns.json');
+    const buffer = writeMinimalPdf(pages);
+
+    const result = await reader.read(buffer);
+
+    const lines = result.lines ?? [];
+    const totalLine = lines.find((line) => line.cells.some((cell) => cell.text.includes('TOTAL A PAGAR')));
+    expect(totalLine).toBeDefined();
+    expect(totalLine?.cells.map((cell) => cell.text)).toEqual(
+      expect.arrayContaining(['TOTAL A PAGAR', '1.590,00']),
+    );
+    expect(totalLine?.cells.some((cell) => cell.text.includes('TOTAL A PAGAR') && cell.text.includes('1.590,00'))).toBe(
+      false,
+    );
+
+    const baseAmountLine = lines.find((line) => line.cells.some((cell) => cell.text.includes('1.500,00')));
+    expect(baseAmountLine?.cells.some((cell) => cell.text.includes('20/05/2026'))).toBe(false);
   });
 });

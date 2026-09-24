@@ -1,0 +1,40 @@
+{
+  "description": "The orchestrator's repro, emitted in content-stream (column) order rather than visual reading order.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 780, "text": "ACME SOLUCIONES SL" },
+        { "x": 50, "y": 765, "text": "CIF: B12345674" },
+        { "x": 50, "y": 750, "text": "C/ Mayor 1, Madrid" },
+        { "x": 50, "y": 700, "text": "Base imponible" },
+        { "x": 50, "y": 685, "text": "IVA 21%" },
+        { "x": 50, "y": 670, "text": "IRPF 15%" },
+        { "x": 50, "y": 655, "text": "TOTAL A PAGAR" },
+        { "x": 350, "y": 780, "text": "Cliente:" },
+        { "x": 350, "y": 765, "text": "Margest ERP SL" },
+        { "x": 350, "y": 750, "text": "NIF: B99887762" },
+        { "x": 350, "y": 720, "text": "Factura" },
+        { "x": 420, "y": 720, "text": "F-2024/12" },
+        { "x": 350, "y": 705, "text": "Fecha" },
+        { "x": 420, "y": 705, "text": "15/03/2024" },
+        { "x": 200, "y": 700, "text": "1.500,00" },
+        { "x": 200, "y": 685, "text": "315,00" },
+        { "x": 200, "y": 670, "text": "-225,00" },
+        { "x": 200, "y": 655, "text": "1.590,00" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "ACME SOLUCIONES SL",
+    "issuerTaxId": "B12345674",
+    "invoiceNumber": "F-2024/12",
+    "date": "2024-03-15",
+    "amount": 1590,
+    "taxBase": 1500,
+    "taxRate": 21,
+    "taxAmount": 315,
+    "irpfRate": 15,
+    "irpfAmount": 225
+  }
+}

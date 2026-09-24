@@ -1,0 +1,29 @@
+{
+  "description": "Issuer VAT number printed with the ES prefix; the expected value is the canonical national ID (without ES).",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Transportes del Levante SL" },
+        { "x": 50, "y": 784, "text": "VAT: ESB55566673" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0600" },
+        { "x": 50, "y": 704, "text": "Fecha: 03/09/2026" },
+        { "x": 50, "y": 672, "text": "BASE IMPONIBLE: 800,00 EUR" },
+        { "x": 50, "y": 656, "text": "IVA 21%: 168,00 EUR" },
+        { "x": 50, "y": 640, "text": "TOTAL: 968,00 EUR" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Transportes del Levante SL",
+    "issuerTaxId": "B55566673",
+    "invoiceNumber": "FA-2026-0600",
+    "date": "2026-09-03",
+    "amount": 968,
+    "taxBase": 800,
+    "taxRate": 21,
+    "taxAmount": 168
+  }
+}

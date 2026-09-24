@@ -1,7 +1,10 @@
 import { DocumentCurrency } from '../document-currency';
 import { InvoiceFields } from './invoice-fields';
-import { extractSpanishMonthNameDate, normaliseDate } from './invoice-date';
-import { extractSpanishMoneyAmounts, parseSpanishNumber } from './spanish-number';
+import { extractSpanishMonthNameDate, isPlausibleInvoiceDate, normaliseDate } from './invoice-date';
+import { parseSpanishNumber } from './spanish-number';
+import { canonicalSpanishTaxId, findSpanishTaxIds } from './tax-id';
+import { findLabelledValues, linesFromText } from './text-lines';
+import { PdfTextCell, PdfTextLine } from './pdf-reader.port';
 import type { ExtractionWarningCode } from './extraction-warning-code';
 
 export interface HeuristicExtraction {
@@ -9,251 +12,294 @@ export interface HeuristicExtraction {
   warnings: ExtractionWarningCode[];
 }
 
-const CIF_NIF_TOKEN = /\b([A-Z]-?\d{7}[0-9A-J]|\d{8}-?[A-Z])\b/i;
+export interface HeuristicContext {
+  excludedTaxIds?: string[];
+}
+
 const CUSTOMER_LABEL = /\b(cliente|comprador|destinatario|receptor)\b/i;
 const CLIENT_PROXIMITY_CAP = 20;
-const CLIENT_NAME_EXCLUSION_WINDOW = 2;
+const CLIENT_BLOCK_LOOKAHEAD_LINES = 6;
+const ISSUER_NAME_SEARCH_WINDOW = 5;
+const HORIZONTAL_PROXIMITY_HEIGHT_MULTIPLIER = 2;
 
 const DATE_VALUE = /(\d{1,2}[/.-]\d{1,2}[/.-]\d{4}|\d{4}-\d{2}-\d{2})/;
-const FECHA_LABEL = /\bfecha\b/i;
+const FECHA_LABEL = /\bfecha\b(?!\s*(de\s+)?vencimiento)/i;
 const VENCIMIENTO_LABEL = /vencimiento/i;
 const DATE_RANGE_LINE = /\d{1,2}\s*-\s*\d{1,2}\s*[/.-]\s*\d{1,2}\s*[/.-]\s*\d{4}/;
-const DATE_LABEL_PROXIMITY_WINDOW = 2;
 
-const INVOICE_NUMBER_PATTERNS: RegExp[] = [
-  /n[uú]mero\s+de\s+factura\s*:?\s*([A-Za-z0-9][\w\-/.]*)/i,
-  /factura\s*n[º°o.]{0,3}\s*:?\s*([A-Za-z0-9][\w\-/.]*)/i,
-  /n[º°o.]{0,3}\s*factura\s*:?\s*([A-Za-z0-9][\w\-/.]*)/i,
-  /\bfactura\b\s*:?\s*([A-Za-z0-9][\w\-/.]*)/i,
-];
+const INVOICE_NUMBER_LABEL =
+  /n[uú]mero\s+de\s+factura|factura\s*n[º°o.]{0,3}|n[º°o.]{0,3}\s*factura|\bfactura\b/i;
 
-const TOTAL_LABEL = /\btotal\b/i;
-const SUBTOTAL_LABEL = /\bsubtotal\b/i;
+const TOTAL_LABEL_P3 = /total\s+a\s+pagar|l[ií]quido\s+a\s+percibir|importe\s+a\s+pagar|total\s+a\s+abonar/i;
+const TOTAL_LABEL_P2 = /total\s+factura|importe\s+total|total\s+con\s+iva|total\s+eur|total\s*€/i;
+const TOTAL_LABEL_P1 = /\btotal\b(?!\s*\(?(bruto|base|iva|sin|antes))/i;
 const BASE_IMPONIBLE_LABEL = /base\s+imponible/i;
 const IVA_LABEL = /\biva\b/i;
-const IVA_RATE = /iva[^%\d]{0,15}(\d{1,2}(?:[.,]\d+)?)\s*%/i;
 const IRPF_LABEL = /\b(irpf|retenci[oó]n(?:es)?)\b/i;
-const IRPF_RATE = /(?:irpf|retenci[oó]n(?:es)?)[^%\d]{0,15}(\d{1,2}(?:[.,]\d+)?)\s*%/i;
-const RATE_TOKEN = /\d{1,2}(?:[.,]\d+)?\s*%/;
+const RATE_TOKEN = /\d{1,2}(?:[.,]\d+)?\s*%/g;
+const RATE_VALUE = /(\d{1,2}(?:[.,]\d+)?)\s*%/;
 
-const AMOUNT_TOKEN = /\d{1,3}(?:\.\d{3})*(?:,\d{1,2})?|\d+(?:,\d{1,2})?|\d+\.\d{1,2}/g;
+const MONEY_VALUE =
+  /-?\d{1,3}(?:\.\d{3})*,\d{2}(?!\d)(?!\s*%)|-?\d+\.\d{2}(?!\d)(?!\s*%)|(?:€|EUR)\s*-?\d+(?!\d)|-?\d+(?!\d)\s*(?:€|EUR)/gi;
 
 const NON_ISSUER_LINE = /^(factura|fecha|cif|nif|n[ºo]\.?|n[uú]mero|cliente|total|subtotal|base|iva|concepto)\b/i;
 const STARTS_LOWERCASE = /^[a-záéíóúñü]/;
+const POSTCODE_LINE = /^\d{5}\b/;
+const ADDRESS_CONTACT_TOKENS = /\b(calle|c\/|avda|avenida|plaza|tel|tlf|email|www|@)\b/i;
+const LEGAL_FORM_SUFFIX = /\b(S\.?\s?L\.?\s?U?|S\.?\s?A\.?\s?U?|S\.?\s?COOP|S\.?\s?L\.?\s?L|C\.?\s?B\.?)\b/i;
 
-interface TaxIdOccurrence {
-  index: number;
-  value: string;
+function cellKey(lineIndex: number, cellIndex: number): string {
+  return `${lineIndex}:${cellIndex}`;
 }
 
-function lastAmountInLine(line: string, excludeRate = false): number | null {
-  const withoutRate = excludeRate ? line.replace(RATE_TOKEN, '') : line;
-  const matches = withoutRate.match(AMOUNT_TOKEN);
-  if (!matches || matches.length === 0) {
-    return null;
-  }
-  return parseSpanishNumber(matches[matches.length - 1]);
+function cellsOverlapHorizontally(label: PdfTextCell, candidate: PdfTextCell, labelHeight: number): boolean {
+  const withinProximity = Math.abs(candidate.x - label.x) <= labelHeight * HORIZONTAL_PROXIMITY_HEIGHT_MULTIPLIER;
+  const labelEnd = label.x + label.width;
+  const candidateEnd = candidate.x + candidate.width;
+  const rangesOverlap = candidate.x <= labelEnd && candidateEnd >= label.x;
+  return withinProximity || rangesOverlap;
 }
 
-function detectCurrency(text: string): DocumentCurrency | undefined {
-  if (/EUR|€/.test(text)) return 'EUR';
-  if (/USD|\$/.test(text)) return 'USD';
-  if (/GBP|£/.test(text)) return 'GBP';
+function detectCurrency(lines: PdfTextLine[]): DocumentCurrency | undefined {
+  const flatText = lines.flatMap((line) => line.cells.map((cell) => cell.text)).join(' ');
+  if (/EUR|€/.test(flatText)) return 'EUR';
+  if (/USD|\$/.test(flatText)) return 'USD';
+  if (/GBP|£/.test(flatText)) return 'GBP';
   return undefined;
 }
 
-function findAllTaxIds(lines: string[]): TaxIdOccurrence[] {
-  const found: TaxIdOccurrence[] = [];
-  lines.forEach((line, index) => {
-    const match = CIF_NIF_TOKEN.exec(line);
-    if (match) {
-      found.push({ index, value: match[1].toUpperCase().replace(/-/g, '') });
-    }
+function parseMoneyToken(raw: string): number | undefined {
+  const cleaned = raw.replace(/€|EUR/gi, '').trim();
+  return parseSpanishNumber(cleaned) ?? undefined;
+}
+
+function findMoneyAmounts(text: string): number[] {
+  const matches = text.match(MONEY_VALUE) ?? [];
+  return matches.map(parseMoneyToken).filter((value): value is number => value != null);
+}
+
+function lastMoneyAmount(text: string, excludeRate = false): number | undefined {
+  const source = excludeRate ? text.replace(RATE_TOKEN, '') : text;
+  const amounts = findMoneyAmounts(source);
+  return amounts.length > 0 ? amounts[amounts.length - 1] : undefined;
+}
+
+function parseRateValue(cellText: string): number | undefined {
+  const match = RATE_VALUE.exec(cellText);
+  return match ? (parseSpanishNumber(match[1]) ?? undefined) : undefined;
+}
+
+function parseInvoiceNumberValue(cellText: string): string | undefined {
+  const trimmed = cellText.replace(/^[\s:.-]+/, '');
+  const match = /^([A-Za-z0-9][\w\-/.]*)/.exec(trimmed);
+  if (!match) return undefined;
+  const token = match[1].replace(/[.,;]+$/, '');
+  return /\d/.test(token) ? token : undefined;
+}
+
+function parseDateCellValue(cellText: string): string | undefined {
+  if (DATE_RANGE_LINE.test(cellText)) return undefined;
+
+  const monthNameDate = extractSpanishMonthNameDate(cellText);
+  if (monthNameDate && isPlausibleInvoiceDate(monthNameDate)) return monthNameDate;
+
+  const numericMatch = DATE_VALUE.exec(cellText);
+  if (numericMatch) {
+    const normalised = normaliseDate(numericMatch[1]);
+    if (normalised && isPlausibleInvoiceDate(normalised)) return normalised;
+  }
+  return undefined;
+}
+
+interface TaxIdCellMatch {
+  value: string;
+  lineIndex: number;
+  cellIndex: number;
+  checksumValid: boolean;
+}
+
+function findAllTaxIdCells(lines: PdfTextLine[]): TaxIdCellMatch[] {
+  const found: TaxIdCellMatch[] = [];
+  lines.forEach((line, lineIndex) => {
+    line.cells.forEach((cell, cellIndex) => {
+      for (const match of findSpanishTaxIds(cell.text)) {
+        found.push({ value: match.value, lineIndex, cellIndex, checksumValid: match.checksumValid });
+      }
+    });
   });
   return found;
 }
 
-function findClienteLineIndexes(lines: string[]): number[] {
-  const indexes: number[] = [];
-  lines.forEach((line, index) => {
-    if (CUSTOMER_LABEL.test(line)) indexes.push(index);
+function computeClientBlockCells(lines: PdfTextLine[], useDistanceFallback: boolean): Set<string> {
+  const blocked = new Set<string>();
+
+  if (useDistanceFallback) {
+    const clienteLineIndexes: number[] = [];
+    lines.forEach((line, lineIndex) => {
+      if (CUSTOMER_LABEL.test(line.cells[0]?.text ?? '')) clienteLineIndexes.push(lineIndex);
+    });
+    if (clienteLineIndexes.length === 0) return blocked;
+
+    const taxIdCells = findAllTaxIdCells(lines);
+    let nearest: { lineIndex: number; cellIndex: number; distance: number } | undefined;
+    for (const cell of taxIdCells) {
+      const distance = Math.min(...clienteLineIndexes.map((ci) => Math.abs(cell.lineIndex - ci)));
+      if (!nearest || distance < nearest.distance) {
+        nearest = { lineIndex: cell.lineIndex, cellIndex: cell.cellIndex, distance };
+      }
+    }
+    if (nearest && nearest.distance <= CLIENT_PROXIMITY_CAP) {
+      blocked.add(cellKey(nearest.lineIndex, nearest.cellIndex));
+    }
+    return blocked;
+  }
+
+  lines.forEach((line, lineIndex) => {
+    line.cells.forEach((cell, cellIndex) => {
+      if (!CUSTOMER_LABEL.test(cell.text)) return;
+      blocked.add(cellKey(lineIndex, cellIndex));
+
+      for (
+        let belowIndex = lineIndex + 1;
+        belowIndex <= lineIndex + CLIENT_BLOCK_LOOKAHEAD_LINES && belowIndex < lines.length;
+        belowIndex++
+      ) {
+        const belowLine = lines[belowIndex];
+        if (belowLine.page !== line.page) break;
+        belowLine.cells.forEach((belowCell, belowCellIndex) => {
+          if (cellsOverlapHorizontally(cell, belowCell, line.height)) {
+            blocked.add(cellKey(belowIndex, belowCellIndex));
+          }
+        });
+      }
+    });
   });
-  return indexes;
+
+  return blocked;
 }
 
 function extractIssuerTaxId(
-  lines: string[],
-  clienteLineIndexes: number[],
-): { value: string; lineIndex: number } | undefined {
-  const taxIds = findAllTaxIds(lines);
-  if (taxIds.length === 0) return undefined;
+  lines: PdfTextLine[],
+  useDistanceFallback: boolean,
+  excludedTaxIds: string[],
+): { value: string; lineIndex: number; cellIndex: number } | undefined {
+  const allTaxIds = findAllTaxIdCells(lines);
+  if (allTaxIds.length === 0) return undefined;
 
-  let clientTaxIdValue: string | undefined;
-  if (clienteLineIndexes.length > 0) {
-    let minDistance = Infinity;
-    for (const taxId of taxIds) {
-      const distance = Math.min(...clienteLineIndexes.map((ci) => Math.abs(taxId.index - ci)));
-      if (distance < minDistance) {
-        minDistance = distance;
-        clientTaxIdValue = taxId.value;
-      }
-    }
-    if (minDistance > CLIENT_PROXIMITY_CAP) {
-      clientTaxIdValue = undefined;
-    }
-  }
+  const blockedCells = computeClientBlockCells(lines, useDistanceFallback);
+  const excluded = new Set(excludedTaxIds.map((taxId) => canonicalSpanishTaxId(taxId)));
 
-  const nonClient = taxIds.find((taxId) => taxId.value !== clientTaxIdValue);
-  return nonClient ? { value: nonClient.value, lineIndex: nonClient.index } : undefined;
+  const candidates = allTaxIds.filter(
+    (candidate) => !blockedCells.has(cellKey(candidate.lineIndex, candidate.cellIndex)) && !excluded.has(candidate.value),
+  );
+  if (candidates.length === 0) return undefined;
+
+  const chosen = candidates.find((candidate) => candidate.checksumValid) ?? candidates[0];
+  return { value: chosen.value, lineIndex: chosen.lineIndex, cellIndex: chosen.cellIndex };
 }
 
-function extractInvoiceNumber(lines: string[]): string | undefined {
+function extractInvoiceNumber(lines: PdfTextLine[]): string | undefined {
+  const matches = findLabelledValues(lines, INVOICE_NUMBER_LABEL, parseInvoiceNumberValue);
+  return matches[0]?.value;
+}
+
+function extractDate(lines: PdfTextLine[]): string | undefined {
+  const labelled = findLabelledValues(lines, FECHA_LABEL, parseDateCellValue);
+  if (labelled.length > 0) return labelled[0].value;
+
   for (const line of lines) {
-    for (const pattern of INVOICE_NUMBER_PATTERNS) {
-      const match = pattern.exec(line);
-      if (match) {
-        const token = match[1].replace(/[.,;]+$/, '').trim();
-        if (/\d/.test(token)) {
-          return token;
-        }
-      }
+    for (const cell of line.cells) {
+      const value = parseDateCellValue(cell.text);
+      if (value) return value;
     }
   }
   return undefined;
 }
 
-interface DateCandidate {
-  index: number;
-  value: string;
+function extractDueDate(lines: PdfTextLine[]): string | undefined {
+  const matches = findLabelledValues(lines, VENCIMIENTO_LABEL, parseDateCellValue);
+  return matches[0]?.value;
 }
 
-function collectDateCandidates(lines: string[]): DateCandidate[] {
-  const candidates: DateCandidate[] = [];
-  lines.forEach((line, index) => {
-    if (DATE_RANGE_LINE.test(line)) return;
+interface TotalCandidate {
+  value: number;
+  priority: number;
+  page: number;
+  lineIndex: number;
+}
 
-    const monthNameDate = extractSpanishMonthNameDate(line);
-    if (monthNameDate) {
-      candidates.push({ index, value: monthNameDate });
-      return;
-    }
+function findLabelledValuesOnSameRow<T>(
+  lines: PdfTextLine[],
+  label: RegExp,
+  parse: (cellText: string) => T | undefined,
+): { value: T; lineIndex: number; cellIndex: number }[] {
+  const results: { value: T; lineIndex: number; cellIndex: number }[] = [];
 
-    const numericMatch = DATE_VALUE.exec(line);
-    if (numericMatch) {
-      const normalised = normaliseDate(numericMatch[1]);
-      if (normalised) {
-        candidates.push({ index, value: normalised });
+  lines.forEach((line, lineIndex) => {
+    line.cells.forEach((cell, cellIndex) => {
+      const match = label.exec(cell.text);
+      if (!match) return;
+
+      const remainder = cell.text.slice(match.index + match[0].length);
+      const inlineValue = parse(remainder);
+      if (inlineValue !== undefined) {
+        results.push({ value: inlineValue, lineIndex, cellIndex });
+        return;
       }
-    }
+
+      for (let index = cellIndex + 1; index < line.cells.length; index++) {
+        const value = parse(line.cells[index].text);
+        if (value !== undefined) {
+          results.push({ value, lineIndex, cellIndex });
+          break;
+        }
+      }
+    });
   });
+
+  return results;
+}
+
+function collectTotalCandidates(lines: PdfTextLine[], useDistanceFallback: boolean): TotalCandidate[] {
+  const candidates: TotalCandidate[] = [];
+  const priorities: [RegExp, number][] = [
+    [TOTAL_LABEL_P3, 3],
+    [TOTAL_LABEL_P2, 2],
+    [TOTAL_LABEL_P1, 1],
+  ];
+  const search = useDistanceFallback ? findLabelledValuesOnSameRow : findLabelledValues;
+
+  for (const [pattern, priority] of priorities) {
+    for (const match of search(lines, pattern, (cellText) => lastMoneyAmount(cellText))) {
+      candidates.push({ value: match.value, priority, page: lines[match.lineIndex].page, lineIndex: match.lineIndex });
+    }
+  }
+
   return candidates;
 }
 
-function extractDate(lines: string[]): string | undefined {
-  const candidates = collectDateCandidates(lines);
+function extractTotal(lines: PdfTextLine[], useDistanceFallback: boolean): number | undefined {
+  const candidates = collectTotalCandidates(lines, useDistanceFallback);
   if (candidates.length === 0) return undefined;
 
-  const labelIndexes: number[] = [];
-  lines.forEach((line, index) => {
-    if (FECHA_LABEL.test(line) && !VENCIMIENTO_LABEL.test(line)) labelIndexes.push(index);
-  });
+  const bestPriority = Math.max(...candidates.map((candidate) => candidate.priority));
+  const atBestPriority = candidates.filter((candidate) => candidate.priority === bestPriority);
 
-  if (labelIndexes.length > 0) {
-    let best: { value: string; distance: number } | undefined;
-    for (const candidate of candidates) {
-      const distance = Math.min(...labelIndexes.map((li) => Math.abs(candidate.index - li)));
-      if (distance <= DATE_LABEL_PROXIMITY_WINDOW && (best == null || distance < best.distance)) {
-        best = { value: candidate.value, distance };
-      }
-    }
-    if (best) return best.value;
-  }
-
-  return candidates[0].value;
+  return atBestPriority.reduce((latest, candidate) =>
+    candidate.page > latest.page || (candidate.page === latest.page && candidate.lineIndex > latest.lineIndex)
+      ? candidate
+      : latest,
+  ).value;
 }
 
-function extractDueDate(lines: string[]): string | undefined {
-  for (const line of lines) {
-    if (!VENCIMIENTO_LABEL.test(line)) {
-      continue;
-    }
-    const match = DATE_VALUE.exec(line);
-    if (match) {
-      const normalised = normaliseDate(match[1]);
-      if (normalised) {
-        return normalised;
-      }
-    }
-  }
-  return undefined;
+function extractLabelledTaxBase(lines: PdfTextLine[]): number | undefined {
+  const matches = findLabelledValues(lines, BASE_IMPONIBLE_LABEL, (cellText) => lastMoneyAmount(cellText));
+  return matches[0]?.value;
 }
 
-function extractLabelledTotal(lines: string[]): number | undefined {
-  let best: number | undefined;
-  for (const line of lines) {
-    if (!TOTAL_LABEL.test(line) || SUBTOTAL_LABEL.test(line)) {
-      continue;
-    }
-    const value = lastAmountInLine(line);
-    if (value != null && (best == null || value > best)) {
-      best = value;
-    }
-  }
-  return best;
-}
-
-function extractTotal(lines: string[], text: string): number | undefined {
-  const labelled = extractLabelledTotal(lines);
-  if (labelled != null) return labelled;
-
-  const amounts = extractSpanishMoneyAmounts(text).filter((value) => value >= 0);
-  if (amounts.length === 0) return undefined;
-  return Math.max(...amounts);
-}
-
-function extractLabelledTaxBase(lines: string[]): number | undefined {
-  for (const line of lines) {
-    if (!BASE_IMPONIBLE_LABEL.test(line)) {
-      continue;
-    }
-    const value = lastAmountInLine(line);
-    if (value != null) {
-      return value;
-    }
-  }
-  return undefined;
-}
-
-function extractLabelledTax(lines: string[]): { taxRate?: number; taxAmount?: number } {
-  for (const line of lines) {
-    if (!IVA_LABEL.test(line)) {
-      continue;
-    }
-    const rateMatch = IVA_RATE.exec(line);
-    const taxRate = rateMatch ? (parseSpanishNumber(rateMatch[1]) ?? undefined) : undefined;
-    const taxAmount = lastAmountInLine(line, true) ?? undefined;
-
-    if (taxRate != null || taxAmount != null) {
-      return { taxRate, taxAmount };
-    }
-  }
-  return {};
-}
-
-function extractLabelledIrpf(lines: string[]): { irpfRate?: number; irpfAmount?: number } {
-  for (const line of lines) {
-    if (!IRPF_LABEL.test(line)) {
-      continue;
-    }
-    const rateMatch = IRPF_RATE.exec(line);
-    const irpfRate = rateMatch ? (parseSpanishNumber(rateMatch[1]) ?? undefined) : undefined;
-    const irpfAmount = lastAmountInLine(line, true) ?? undefined;
-
-    if (irpfRate != null || irpfAmount != null) {
-      return { irpfRate, irpfAmount };
-    }
-  }
-  return {};
+function collectMoneyAmounts(lines: PdfTextLine[]): number[] {
+  const flatText = lines.flatMap((line) => line.cells.map((cell) => cell.text)).join('\n');
+  return findMoneyAmounts(flatText).filter((value) => value > 0);
 }
 
 function findTaxRatioPair(
@@ -285,60 +331,98 @@ function findTaxRatioPair(
   return preferred ?? fallback;
 }
 
+function extractLabelledTax(lines: PdfTextLine[]): { taxRate?: number; taxAmount?: number } {
+  const rateMatches = findLabelledValues(lines, IVA_LABEL, parseRateValue);
+  const amountMatches = findLabelledValues(lines, IVA_LABEL, (cellText) => lastMoneyAmount(cellText, true));
+  return { taxRate: rateMatches[0]?.value, taxAmount: amountMatches[0]?.value };
+}
+
+function extractLabelledIrpf(lines: PdfTextLine[]): { irpfRate?: number; irpfAmount?: number } {
+  const rateMatches = findLabelledValues(lines, IRPF_LABEL, parseRateValue);
+  const amountMatches = findLabelledValues(lines, IRPF_LABEL, (cellText) => lastMoneyAmount(cellText, true));
+  const irpfAmount = amountMatches[0] ? Math.abs(amountMatches[0].value) : undefined;
+  return { irpfRate: rateMatches[0]?.value, irpfAmount };
+}
+
+function isMostlyDigits(text: string): boolean {
+  const digitCount = (text.match(/\d/g) ?? []).length;
+  return text.length > 0 && digitCount / text.length > 0.5;
+}
+
+function isPlausibleIssuerCellText(text: string): boolean {
+  const trimmed = text.trim();
+  if (trimmed.length < 3) return false;
+  if (NON_ISSUER_LINE.test(trimmed)) return false;
+  if (DATE_VALUE.test(trimmed)) return false;
+  if (findSpanishTaxIds(trimmed).length > 0) return false;
+  if (findMoneyAmounts(trimmed).length > 0) return false;
+  if (POSTCODE_LINE.test(trimmed)) return false;
+  if (ADDRESS_CONTACT_TOKENS.test(trimmed)) return false;
+  if (isMostlyDigits(trimmed)) return false;
+  if (STARTS_LOWERCASE.test(trimmed)) return false;
+  return true;
+}
+
 function extractIssuerName(
-  lines: string[],
-  issuerTaxIdLineIndex: number | undefined,
-  clienteLineIndexes: number[],
+  lines: PdfTextLine[],
+  issuerTaxIdRef: { lineIndex: number; cellIndex: number } | undefined,
+  blockedCells: Set<string>,
 ): string | undefined {
-  const isClientProximate = (index: number) =>
-    clienteLineIndexes.some((ci) => Math.abs(index - ci) <= CLIENT_NAME_EXCLUSION_WINDOW);
+  const isPlausible = (lineIndex: number, cellIndex: number): boolean =>
+    !blockedCells.has(cellKey(lineIndex, cellIndex)) && isPlausibleIssuerCellText(lines[lineIndex].cells[cellIndex].text);
 
-  const isPlausibleIssuerLine = (index: number): boolean => {
-    const line = lines[index];
-    if (line.length < 3) return false;
-    if (NON_ISSUER_LINE.test(line)) return false;
-    if (DATE_VALUE.test(line)) return false;
-    if (CIF_NIF_TOKEN.test(line)) return false;
-    if (/\d/.test(line)) return false;
-    if (STARTS_LOWERCASE.test(line)) return false;
-    if (isClientProximate(index)) return false;
-    return true;
-  };
-
-  if (issuerTaxIdLineIndex != null) {
-    for (let distance = 0; distance <= 5; distance++) {
-      const before = issuerTaxIdLineIndex - distance;
-      if (before >= 0 && isPlausibleIssuerLine(before)) {
-        return lines[before];
+  if (issuerTaxIdRef) {
+    const nearby: { lineIndex: number; cellIndex: number }[] = [];
+    for (let distance = 0; distance <= ISSUER_NAME_SEARCH_WINDOW; distance++) {
+      const before = issuerTaxIdRef.lineIndex - distance;
+      if (before >= 0) {
+        lines[before].cells.forEach((_, cellIndex) => {
+          if (isPlausible(before, cellIndex)) nearby.push({ lineIndex: before, cellIndex });
+        });
       }
       if (distance > 0) {
-        const after = issuerTaxIdLineIndex + distance;
-        if (after < lines.length && isPlausibleIssuerLine(after)) {
-          return lines[after];
+        const after = issuerTaxIdRef.lineIndex + distance;
+        if (after < lines.length) {
+          lines[after].cells.forEach((_, cellIndex) => {
+            if (isPlausible(after, cellIndex)) nearby.push({ lineIndex: after, cellIndex });
+          });
         }
       }
+
+      const withLegalForm = nearby.find((ref) => LEGAL_FORM_SUFFIX.test(lines[ref.lineIndex].cells[ref.cellIndex].text));
+      if (withLegalForm) return lines[withLegalForm.lineIndex].cells[withLegalForm.cellIndex].text.trim();
+    }
+    if (nearby.length > 0) return lines[nearby[0].lineIndex].cells[nearby[0].cellIndex].text.trim();
+  }
+
+  const page1Lines = lines.filter((line) => line.page === 1);
+  const topThirdBoundary = Math.max(1, Math.ceil(page1Lines.length / 3));
+  for (let lineIndex = 0; lineIndex < lines.length && lineIndex < topThirdBoundary; lineIndex++) {
+    if (lines[lineIndex].page !== 1) continue;
+    for (let cellIndex = 0; cellIndex < lines[lineIndex].cells.length; cellIndex++) {
+      if (isPlausible(lineIndex, cellIndex)) return lines[lineIndex].cells[cellIndex].text.trim();
     }
   }
 
-  for (let index = 0; index < lines.length; index++) {
-    if (isPlausibleIssuerLine(index)) {
-      return lines[index];
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    for (let cellIndex = 0; cellIndex < lines[lineIndex].cells.length; cellIndex++) {
+      if (isPlausible(lineIndex, cellIndex)) return lines[lineIndex].cells[cellIndex].text.trim();
     }
   }
   return undefined;
 }
 
-export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
-  const lines = text
-    .split('\n')
-    .map((line) => line.trim())
-    .filter((line) => line.length > 0);
+export function extractInvoiceHeuristics(
+  input: string | PdfTextLine[],
+  context: HeuristicContext = {},
+): HeuristicExtraction {
+  const useDistanceFallback = typeof input === 'string';
+  const lines = useDistanceFallback ? linesFromText(input) : input;
 
   const warnings: ExtractionWarningCode[] = [];
+  const excludedTaxIds = context.excludedTaxIds ?? [];
 
-  const clienteLineIndexes = findClienteLineIndexes(lines);
-
-  const issuer = extractIssuerTaxId(lines, clienteLineIndexes);
+  const issuer = extractIssuerTaxId(lines, useDistanceFallback, excludedTaxIds);
   const issuerTaxId = issuer?.value;
   if (!issuerTaxId) warnings.push('missing_issuer_tax_id');
 
@@ -350,7 +434,7 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
 
   const dueDate = extractDueDate(lines);
 
-  const amount = extractTotal(lines, text);
+  const amount = extractTotal(lines, useDistanceFallback);
   if (amount == null) warnings.push('missing_total_amount');
 
   let taxBase = extractLabelledTaxBase(lines);
@@ -359,11 +443,10 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
   let taxAmount = labelledTax.taxAmount;
 
   if (taxRate != null && (taxBase == null || taxAmount == null)) {
-    const amounts = extractSpanishMoneyAmounts(text).filter((value) => value > 0);
-    const pair = findTaxRatioPair(amounts, taxRate, amount);
+    const pair = findTaxRatioPair(collectMoneyAmounts(lines), taxRate, amount);
     if (pair) {
-      if (taxBase == null) taxBase = pair.taxBase;
-      if (taxAmount == null) taxAmount = pair.taxAmount;
+      taxBase = pair.taxBase;
+      taxAmount = pair.taxAmount;
     }
   }
 
@@ -371,10 +454,11 @@ export function extractInvoiceHeuristics(text: string): HeuristicExtraction {
   const irpfRate = labelledIrpf.irpfRate;
   const irpfAmount = labelledIrpf.irpfAmount;
 
-  const currency = detectCurrency(text) ?? (amount != null ? 'EUR' : undefined);
+  const currency = detectCurrency(lines) ?? (amount != null ? 'EUR' : undefined);
 
   const hasOtherEvidence = issuerTaxId != null || invoiceNumber != null || date != null || amount != null;
-  const issuerName = hasOtherEvidence ? extractIssuerName(lines, issuer?.lineIndex, clienteLineIndexes) : undefined;
+  const blockedCells = computeClientBlockCells(lines, useDistanceFallback);
+  const issuerName = hasOtherEvidence ? extractIssuerName(lines, issuer, blockedCells) : undefined;
   if (!issuerName) warnings.push('missing_issuer_name');
 
   const fields: InvoiceFields = {};

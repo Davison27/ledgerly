@@ -1,14 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PDF_READER, PdfReader } from '../../domain/extraction/pdf-reader.port';
 import { tryParseStructuredInvoice } from '../../domain/extraction/structured-invoice';
-import { extractInvoiceHeuristics } from '../../domain/extraction/invoice-heuristics';
-import { applyHints } from '../../domain/extraction/hints/hint-anchor';
+import { extractHeuristicInvoice } from '../../domain/extraction/heuristic-invoice';
 import { LEARNABLE_FIELDS, LearnableField } from '../../domain/extraction/hints/invoice-hint';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
-import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { normaliseTaxId } from '../../domain/extraction/tax-id';
 import { InvoiceFields } from '../../domain/extraction/invoice-fields';
-import { computeHeuristicConfidence } from '../../domain/extraction/quality/heuristic-confidence';
 import {
   ExtractionOutcomeConfidence,
   ExtractionOutcomeSource,
@@ -57,7 +54,8 @@ export class RecordExtractionOutcomeUseCase {
   ) {}
 
   async execute(command: RecordExtractionOutcomeCommand): Promise<void> {
-    const { text, attachments } = await this.pdfReader.read(command.fileBuffer);
+    const readResult = await this.pdfReader.read(command.fileBuffer);
+    const { text, attachments } = readResult;
 
     const structured = tryParseStructuredInvoice(attachments);
     if (structured) {
@@ -69,28 +67,11 @@ export class RecordExtractionOutcomeUseCase {
       return;
     }
 
-    const { fields: base } = extractInvoiceHeuristics(text);
-    const shown = await this.applyLearnedHints(base, command.submitted, text);
+    const { fields: shown, confidence } = await extractHeuristicInvoice(readResult, this.hintRepository, {
+      name: command.submitted.issuerName,
+    });
 
-    await this.record('heuristic', computeHeuristicConfidence(shown), command.submitted, shown);
-  }
-
-  private async applyLearnedHints(
-    base: InvoiceFields,
-    submitted: InvoiceFields,
-    text: string,
-  ): Promise<InvoiceFields> {
-    const issuerName = submitted.issuerName ?? base.issuerName;
-    if (!issuerName || issuerName.trim().length === 0) {
-      return base;
-    }
-
-    const hints = await this.hintRepository.findByIssuer(normaliseIssuerName(issuerName));
-    if (hints.length === 0) {
-      return base;
-    }
-
-    return applyHints(base, hints, text);
+    await this.record('heuristic', confidence, command.submitted, shown);
   }
 
   private async record(

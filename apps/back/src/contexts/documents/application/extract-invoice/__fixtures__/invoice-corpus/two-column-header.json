@@ -1,0 +1,31 @@
+{
+  "description": "Two-column header: issuer block at x=50, client block at x=330, on the same rows.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Suministros Industriales del Norte SL" },
+        { "x": 330, "y": 800, "text": "Cliente" },
+        { "x": 50, "y": 784, "text": "CIF: B12345674" },
+        { "x": 330, "y": 784, "text": "NIF: 87654321X" },
+        { "x": 330, "y": 768, "text": "Ledgerly ERP SL" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0100" },
+        { "x": 50, "y": 704, "text": "Fecha: 10/04/2026" },
+        { "x": 50, "y": 672, "text": "BASE IMPONIBLE: 900,00 EUR" },
+        { "x": 50, "y": 656, "text": "IVA 21%: 189,00 EUR" },
+        { "x": 50, "y": 640, "text": "TOTAL: 1.089,00 EUR" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Suministros Industriales del Norte SL",
+    "issuerTaxId": "B12345674",
+    "invoiceNumber": "FA-2026-0100",
+    "date": "2026-04-10",
+    "amount": 1089,
+    "taxBase": 900,
+    "taxRate": 21,
+    "taxAmount": 189
+  }
+}

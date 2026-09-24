@@ -1,0 +1,35 @@
+{
+  "description": "Label-first single-column layout, one field per line, like the current heuristic fixture.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Suministros Industriales del Norte SL" },
+        { "x": 50, "y": 784, "text": "CIF: B12345674" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0088" },
+        { "x": 50, "y": 704, "text": "Fecha: 15/03/2026" },
+        { "x": 50, "y": 688, "text": "Fecha de vencimiento: 14/04/2026" },
+        { "x": 50, "y": 656, "text": "Cliente: Ledgerly ERP SL" },
+        { "x": 50, "y": 640, "text": "CIF cliente: 87654321X" },
+        { "x": 50, "y": 608, "text": "Concepto            Cantidad   Precio   Importe" },
+        { "x": 50, "y": 592, "text": "Servicios de consultoria  10   100,00   1.000,00" },
+        { "x": 50, "y": 560, "text": "BASE IMPONIBLE: 1.000,00 EUR" },
+        { "x": 50, "y": 544, "text": "IVA 21%: 210,00 EUR" },
+        { "x": 50, "y": 528, "text": "TOTAL: 1.210,00 EUR" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Suministros Industriales del Norte SL",
+    "issuerTaxId": "B12345674",
+    "invoiceNumber": "FA-2026-0088",
+    "date": "2026-03-15",
+    "dueDate": "2026-04-14",
+    "amount": 1210,
+    "taxBase": 1000,
+    "taxRate": 21,
+    "taxAmount": 210
+  }
+}

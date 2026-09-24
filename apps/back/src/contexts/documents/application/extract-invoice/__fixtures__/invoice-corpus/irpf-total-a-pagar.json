@@ -1,0 +1,33 @@
+{
+  "description": "IRPF invoice where 'Total factura' is larger than 'Total a pagar'.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Estudio Juridico Ribera y Asociados SL" },
+        { "x": 50, "y": 784, "text": "CIF: B32165490" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0400" },
+        { "x": 50, "y": 704, "text": "Fecha: 05/07/2026" },
+        { "x": 50, "y": 672, "text": "BASE IMPONIBLE: 2.000,00 EUR" },
+        { "x": 50, "y": 656, "text": "IVA 21%: 420,00 EUR" },
+        { "x": 50, "y": 640, "text": "Total factura 2.420,00" },
+        { "x": 50, "y": 624, "text": "Retencion IRPF 15% -300,00" },
+        { "x": 50, "y": 608, "text": "Total a pagar 2.120,00" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Estudio Juridico Ribera y Asociados SL",
+    "issuerTaxId": "B32165490",
+    "invoiceNumber": "FA-2026-0400",
+    "date": "2026-07-05",
+    "amount": 2120,
+    "taxBase": 2000,
+    "taxRate": 21,
+    "taxAmount": 420,
+    "irpfRate": 15,
+    "irpfAmount": 300
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "description": "Table rows with quantity, year, and postcode integers, then labelled totals.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Tecnologia Aplicada del Sur SA" },
+        { "x": 50, "y": 784, "text": "CIF: A87654323" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0300" },
+        { "x": 50, "y": 704, "text": "Fecha: 15/06/2026" },
+        { "x": 50, "y": 672, "text": "Concepto            Cantidad   Ano   Precio   Importe" },
+        { "x": 50, "y": 656, "text": "Licencia software        3   2026   200,00   600,00" },
+        { "x": 50, "y": 624, "text": "BASE IMPONIBLE: 600,00 EUR" },
+        { "x": 50, "y": 608, "text": "IVA 21%: 126,00 EUR" },
+        { "x": 50, "y": 592, "text": "TOTAL: 726,00 EUR" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Tecnologia Aplicada del Sur SA",
+    "issuerTaxId": "A87654323",
+    "invoiceNumber": "FA-2026-0300",
+    "date": "2026-06-15",
+    "amount": 726,
+    "taxBase": 600,
+    "taxRate": 21,
+    "taxAmount": 126
+  }
+}

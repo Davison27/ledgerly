@@ -1,0 +1,30 @@
+{
+  "description": "Labels at x=50, amounts at x=200, header at x=350-420. Items are emitted column by column (the orchestrator's repro).",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 760, "text": "Base imponible" },
+        { "x": 50, "y": 744, "text": "IVA 21%" },
+        { "x": 50, "y": 728, "text": "IRPF 15%" },
+        { "x": 50, "y": 712, "text": "TOTAL A PAGAR" },
+        { "x": 200, "y": 760, "text": "1.500,00" },
+        { "x": 200, "y": 744, "text": "315,00" },
+        { "x": 200, "y": 728, "text": "-225,00" },
+        { "x": 200, "y": 712, "text": "1.590,00" },
+        { "x": 350, "y": 800, "text": "Factura: FV-2026-0200" },
+        { "x": 420, "y": 800, "text": "Fecha: 20/05/2026" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "invoiceNumber": "FV-2026-0200",
+    "date": "2026-05-20",
+    "amount": 1590,
+    "taxBase": 1500,
+    "taxRate": 21,
+    "taxAmount": 315,
+    "irpfRate": 15,
+    "irpfAmount": 225
+  }
+}

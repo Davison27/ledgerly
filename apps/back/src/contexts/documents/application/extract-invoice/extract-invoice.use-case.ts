@@ -2,10 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { PDF_READER, PdfAttachment, PdfReader } from '../../domain/extraction/pdf-reader.port';
 import { InvoiceFields } from '../../domain/extraction/invoice-fields';
 import { tryParseStructuredInvoice } from '../../domain/extraction/structured-invoice';
-import { extractInvoiceHeuristics } from '../../domain/extraction/invoice-heuristics';
-import { applyHints } from '../../domain/extraction/hints/hint-anchor';
+import { extractHeuristicInvoice } from '../../domain/extraction/heuristic-invoice';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
-import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
 import {
   DOMAIN_EVENT_PUBLISHER,
@@ -22,12 +20,6 @@ function buildSuggestedName(fields: InvoiceFields): string | undefined {
   );
 
   return parts.length > 0 ? parts.join(' - ') : undefined;
-}
-
-function computeHeuristicConfidence(fields: InvoiceFields): ExtractionConfidence {
-  const hasSupportingField = fields.issuerTaxId != null || fields.invoiceNumber != null || fields.date != null;
-
-  return fields.amount != null && hasSupportingField ? 'partial' : 'low';
 }
 
 function buildResult(
@@ -75,23 +67,9 @@ export class ExtractInvoiceUseCase {
       throw new PdfNoTextLayerException();
     }
 
-    const { fields, warnings } = extractInvoiceHeuristics(text);
-    const improvedFields = await this.applyLearnedHints(fields, text);
+    const { fields, warnings, confidence } = await extractHeuristicInvoice(readResult, this.hintRepository);
 
-    return buildResult('heuristic', computeHeuristicConfidence(improvedFields), improvedFields, warnings);
-  }
-
-  private async applyLearnedHints(fields: InvoiceFields, text: string): Promise<InvoiceFields> {
-    if (!fields.issuerName || fields.issuerName.trim().length === 0) {
-      return fields;
-    }
-
-    const hints = await this.hintRepository.findByIssuer(normaliseIssuerName(fields.issuerName));
-    if (hints.length === 0) {
-      return fields;
-    }
-
-    return applyHints(fields, hints, text);
+    return buildResult('heuristic', confidence, fields, warnings);
   }
 
   private tryStructuredExtraction(attachments: PdfAttachment[]): ExtractedInvoiceResult | null {

@@ -1,0 +1,35 @@
+{
+  "description": "Multi-page invoice with the header on page 1 and the totals on page 2, plus 'Pagina 1 de 2' page-number noise.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Instalaciones Electricas del Cantabrico SL" },
+        { "x": 50, "y": 784, "text": "CIF: B19283746" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0800" },
+        { "x": 50, "y": 704, "text": "Fecha: 11/10/2026" },
+        { "x": 50, "y": 60, "text": "Pagina 1 de 2" }
+      ]
+    },
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Pagina 2 de 2" },
+        { "x": 50, "y": 768, "text": "BASE IMPONIBLE: 300,00 EUR" },
+        { "x": 50, "y": 752, "text": "IVA 21%: 63,00 EUR" },
+        { "x": 50, "y": 736, "text": "TOTAL: 363,00 EUR" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Instalaciones Electricas del Cantabrico SL",
+    "issuerTaxId": "B19283746",
+    "invoiceNumber": "FA-2026-0800",
+    "date": "2026-10-11",
+    "amount": 363,
+    "taxBase": 300,
+    "taxRate": 21,
+    "taxAmount": 63
+  }
+}

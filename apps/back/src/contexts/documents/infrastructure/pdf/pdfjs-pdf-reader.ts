@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PdfAttachment, PdfReadResult, PdfReader } from '../../domain/extraction/pdf-reader.port';
+import { PdfAttachment, PdfReadResult, PdfReader, PdfTextLine } from '../../domain/extraction/pdf-reader.port';
 import { PdfPageLimitExceededException } from '../../domain/errors/pdf-page-limit-exceeded.exception';
+import { buildPageLines, PositionedTextItem } from './pdf-text-layout';
 
 // eslint-disable-next-line @typescript-eslint/no-implied-eval
 const dynamicImport = new Function('specifier', 'return import(specifier)') as (
@@ -11,6 +12,9 @@ const dynamicImport = new Function('specifier', 'return import(specifier)') as (
 interface PdfJsTextItem {
   str: string;
   hasEOL: boolean;
+  transform: number[];
+  width: number;
+  height: number;
 }
 
 interface PdfJsTextContent {
@@ -61,40 +65,48 @@ export class PdfjsPdfReader implements PdfReader {
       throw new PdfPageLimitExceededException(document.numPages, maxPages);
     }
 
-    const text = await this.readText(document);
+    const { text, lines } = await this.readLayout(document);
     const attachments = await this.readAttachments(document);
 
-    return { text, attachments, pageCount: document.numPages };
+    return { text, attachments, pageCount: document.numPages, lines };
   }
 
-  private async readText(document: PdfJsDocument): Promise<string> {
-    let text = '';
+  private async readLayout(document: PdfJsDocument): Promise<{ text: string; lines: PdfTextLine[] }> {
     const maxBytes = this.config?.get<number>('PDF_MAX_EXTRACTED_TEXT_BYTES', 2 * 1024 * 1024) ?? 2 * 1024 * 1024;
+
+    let text = '';
+    let bytes = 0;
+    const lines: PdfTextLine[] = [];
 
     for (let pageNumber = 1; pageNumber <= document.numPages; pageNumber += 1) {
       const page = await document.getPage(pageNumber);
       const content = await page.getTextContent();
 
-      let line = '';
-      for (const item of content.items) {
-        line += item.str;
-        if (Buffer.byteLength(`${text}${line}`, 'utf8') >= maxBytes) {
-          return Buffer.from(`${text}${line}`, 'utf8').subarray(0, maxBytes).toString('utf8');
+      const items: PositionedTextItem[] = content.items.map((item) => ({
+        str: item.str,
+        x: item.transform[4],
+        y: item.transform[5],
+        width: item.width,
+        height: item.height,
+      }));
+
+      for (const line of buildPageLines(pageNumber, items)) {
+        const lineText = line.cells.map((cell) => cell.text).join('\t');
+        const chunk = lines.length === 0 ? lineText : `\n${lineText}`;
+        const chunkBytes = Buffer.byteLength(chunk, 'utf8');
+
+        if (bytes + chunkBytes >= maxBytes) {
+          text += Buffer.from(chunk, 'utf8').subarray(0, maxBytes - bytes).toString('utf8');
+          return { text, lines };
         }
-        if (item.hasEOL) {
-          text += `${line}\n`;
-          line = '';
-        }
-      }
-      if (line.length > 0) {
-        text += `${line}\n`;
-      }
-      if (Buffer.byteLength(text, 'utf8') >= maxBytes) {
-        return Buffer.from(text, 'utf8').subarray(0, maxBytes).toString('utf8');
+
+        text += chunk;
+        bytes += chunkBytes;
+        lines.push(line);
       }
     }
 
-    return text;
+    return { text, lines };
   }
 
   private async readAttachments(document: PdfJsDocument): Promise<PdfAttachment[]> {

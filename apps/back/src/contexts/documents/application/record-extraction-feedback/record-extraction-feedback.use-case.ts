@@ -1,8 +1,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PDF_READER, PdfReader } from '../../domain/extraction/pdf-reader.port';
 import { tryParseStructuredInvoice } from '../../domain/extraction/structured-invoice';
-import { extractInvoiceHeuristics } from '../../domain/extraction/invoice-heuristics';
-import { applyHints, deriveHint } from '../../domain/extraction/hints/hint-anchor';
+import { extractHeuristicInvoice } from '../../domain/extraction/heuristic-invoice';
+import { deriveHint } from '../../domain/extraction/hints/hint-anchor';
 import { LEARNABLE_FIELDS, LearnableField } from '../../domain/extraction/hints/invoice-hint';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
 import { normaliseTaxId } from '../../domain/extraction/tax-id';
@@ -30,7 +30,8 @@ export class RecordExtractionFeedbackUseCase {
   ) {}
 
   async execute(command: RecordExtractionFeedbackCommand): Promise<void> {
-    const { text, attachments } = await this.pdfReader.read(command.fileBuffer);
+    const readResult = await this.pdfReader.read(command.fileBuffer);
+    const { text, attachments } = readResult;
 
     if (tryParseStructuredInvoice(attachments)) {
       return;
@@ -40,16 +41,15 @@ export class RecordExtractionFeedbackUseCase {
       return;
     }
 
-    const { fields: base } = extractInvoiceHeuristics(text);
+    const { fields: shown } = await extractHeuristicInvoice(readResult, this.hintRepository, {
+      name: command.submitted.issuerName,
+    });
 
-    const issuerName = command.submitted.issuerName ?? base.issuerName;
+    const issuerName = command.submitted.issuerName ?? shown.issuerName;
     if (!issuerName || issuerName.trim().length === 0) {
       return;
     }
     const key = normaliseIssuerName(issuerName);
-
-    const existingHints = await this.hintRepository.findByIssuer(key);
-    const shown = applyHints(base, existingHints, text);
 
     for (const field of LEARNABLE_FIELDS) {
       const submittedValue = command.submitted[field];

@@ -1,0 +1,31 @@
+{
+  "description": "A totals table whose header row (Base imponible | IVA | Total) has the values on the row below.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Ferreteria Industrial Atlantico SL" },
+        { "x": 50, "y": 784, "text": "CIF: A56473820" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0900" },
+        { "x": 50, "y": 704, "text": "Fecha: 02/11/2026" },
+        { "x": 50, "y": 672, "text": "Base imponible" },
+        { "x": 200, "y": 672, "text": "IVA" },
+        { "x": 350, "y": 672, "text": "Total" },
+        { "x": 50, "y": 656, "text": "500,00" },
+        { "x": 200, "y": 656, "text": "105,00" },
+        { "x": 350, "y": 656, "text": "605,00" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Ferreteria Industrial Atlantico SL",
+    "issuerTaxId": "A56473820",
+    "invoiceNumber": "FA-2026-0900",
+    "date": "2026-11-02",
+    "amount": 605,
+    "taxBase": 500,
+    "taxAmount": 105
+  }
+}

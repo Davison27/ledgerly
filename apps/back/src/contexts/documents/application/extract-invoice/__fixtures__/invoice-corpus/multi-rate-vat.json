@@ -1,0 +1,30 @@
+{
+  "description": "VAT at both 10% and 21%, each with its own base and VAT line.",
+  "pages": [
+    {
+      "items": [
+        { "x": 50, "y": 800, "text": "Panaderia y Pasteleria El Horno SL" },
+        { "x": 50, "y": 784, "text": "CIF: A11122231" },
+        { "x": 50, "y": 768, "text": "Calle Mayor 12, 28001 Madrid" },
+        { "x": 50, "y": 736, "text": "FACTURA" },
+        { "x": 50, "y": 720, "text": "Numero de factura: FA-2026-0500" },
+        { "x": 50, "y": 704, "text": "Fecha: 12/08/2026" },
+        { "x": 50, "y": 672, "text": "Base imponible 10%: 500,00 EUR" },
+        { "x": 50, "y": 656, "text": "IVA 10%: 50,00 EUR" },
+        { "x": 50, "y": 640, "text": "Base imponible 21%: 1.000,00 EUR" },
+        { "x": 50, "y": 624, "text": "IVA 21%: 210,00 EUR" },
+        { "x": 50, "y": 608, "text": "TOTAL: 1.760,00 EUR" }
+      ]
+    }
+  ],
+  "context": {},
+  "expected": {
+    "issuerName": "Panaderia y Pasteleria El Horno SL",
+    "issuerTaxId": "A11122231",
+    "invoiceNumber": "FA-2026-0500",
+    "date": "2026-08-12",
+    "amount": 1760,
+    "taxBase": 1500,
+    "taxAmount": 260
+  }
+}
