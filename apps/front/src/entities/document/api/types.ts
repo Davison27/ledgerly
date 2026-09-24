@@ -9,7 +9,9 @@ export type ExtractionWarningCode =
   | 'missing_invoice_number'
   | 'missing_invoice_date'
   | 'missing_total_amount'
-  | 'missing_issuer_name';
+  | 'missing_issuer_name'
+  | 'amounts_inconsistent'
+  | 'multiple_tax_rates';
 
 export interface DocumentDto {
   id: string;

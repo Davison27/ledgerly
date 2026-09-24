@@ -1407,7 +1407,9 @@
             "missing_invoice_number": "Falta el número de factura.",
             "missing_invoice_date": "Falta la fecha de la factura.",
             "missing_total_amount": "Falta el importe total.",
-            "missing_issuer_name": "Falta el nombre del emisor."
+            "missing_issuer_name": "Falta el nombre del emisor.",
+            "amounts_inconsistent": "Los importes extraídos no cuadran. Revisa la base, el IVA, la retención y el total.",
+            "multiple_tax_rates": "La factura tiene varios tipos de IVA; la base y el IVA son totales y el tipo queda vacío."
           }
         },
         "duplicate": {

@@ -1403,7 +1403,9 @@
             "missing_invoice_number": "The invoice number is missing.",
             "missing_invoice_date": "The invoice date is missing.",
             "missing_total_amount": "The total amount is missing.",
-            "missing_issuer_name": "The issuer name is missing."
+            "missing_issuer_name": "The issuer name is missing.",
+            "amounts_inconsistent": "The extracted amounts do not add up. Check the base, VAT, withholding and total.",
+            "multiple_tax_rates": "The invoice has several VAT rates; base and VAT are totals and the rate is left empty."
           }
         },
         "duplicate": {

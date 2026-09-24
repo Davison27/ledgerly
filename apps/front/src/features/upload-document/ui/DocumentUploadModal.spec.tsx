@@ -298,7 +298,7 @@ describe('DocumentUploadModal', () => {
     selectPdf();
     extraction.resolve({
       ...extractionResult,
-      warnings: ['missing_invoice_number', 'missing_total_amount'],
+      warnings: ['missing_invoice_number', 'missing_total_amount', 'amounts_inconsistent', 'multiple_tax_rates'],
     });
 
     await waitFor(() => {
@@ -308,6 +308,14 @@ describe('DocumentUploadModal', () => {
     await user.hover(screen.getByText('Confianza alta'));
     expect(await screen.findByText('Falta el número de factura.')).toBeInTheDocument();
     expect(await screen.findByText('Falta el importe total.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('Los importes extraídos no cuadran. Revisa la base, el IVA, la retención y el total.'),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByText(
+        'La factura tiene varios tipos de IVA; la base y el IVA son totales y el tipo queda vacío.',
+      ),
+    ).toBeInTheDocument();
   });
 
   it.each([
