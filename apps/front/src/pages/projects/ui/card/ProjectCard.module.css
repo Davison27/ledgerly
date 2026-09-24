@@ -111,6 +111,7 @@
 .statusRow {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--lg-space-sm);
   margin-top: auto;
   padding-top: var(--lg-space-lg);
@@ -119,7 +120,8 @@
 }
 
 .documentSummary,
-.margin {
+.margin,
+.planningSummary {
   display: inline-flex;
   align-items: center;
   gap: var(--lg-space-xs);
@@ -138,4 +140,18 @@
 .margin {
   margin-left: auto;
   font-weight: 600;
+}
+
+.planningSummary {
+  min-width: 0;
+}
+
+.progressTrack {
+  width: 56px;
+  flex: none;
+}
+
+.progressBar {
+  width: 100%;
+  margin: 0;
 }

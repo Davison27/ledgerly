@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Avatar, Button, Dropdown, Flex, Layout, Menu, Tooltip, Typography } from 'antd';
 import {
   CalendarOutlined,
+  CheckSquareOutlined,
   DashboardOutlined,
   DownOutlined,
   FileTextOutlined,
@@ -41,7 +42,8 @@ type NavKey =
   | 'documents'
   | 'suppliers'
   | 'equipment'
-  | 'staff';
+  | 'staff'
+  | 'planning';
 
 const navModule: Record<NavKey, WorkspaceModuleDto> = {
   dashboard: 'dashboard',
@@ -51,6 +53,7 @@ const navModule: Record<NavKey, WorkspaceModuleDto> = {
   suppliers: 'suppliers',
   equipment: 'equipment',
   staff: 'staff',
+  planning: 'planning',
 };
 
 function getSelectedKey(pathname: string): NavKey | undefined {
@@ -61,6 +64,7 @@ function getSelectedKey(pathname: string): NavKey | undefined {
   if (pathname.startsWith('/suppliers')) return 'suppliers';
   if (pathname.startsWith('/equipment')) return 'equipment';
   if (pathname.startsWith('/staff')) return 'staff';
+  if (pathname.startsWith('/planning')) return 'planning';
   return undefined;
 }
 
@@ -155,6 +159,12 @@ export function AppSider({
         icon: <IdcardOutlined />,
         label: t('nav.staff'),
         onClick: () => void navigate({ to: '/staff' }),
+      },
+      {
+        key: 'planning' satisfies NavKey,
+        icon: <CheckSquareOutlined />,
+        label: t('nav.planning'),
+        onClick: () => void navigate({ to: '/planning' }),
       },
     ],
     [t, navigate],

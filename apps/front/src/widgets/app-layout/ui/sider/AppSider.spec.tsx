@@ -7,7 +7,7 @@ import { AppSider } from './AppSider';
 const siderMocks = vi.hoisted(() => ({
   pathname: '/dashboard',
   role: 'member',
-  modules: ['dashboard', 'projects', 'calendar', 'documents', 'suppliers', 'equipment', 'staff'],
+  modules: ['dashboard', 'projects', 'calendar', 'documents', 'suppliers', 'equipment', 'staff', 'planning'],
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -50,7 +50,7 @@ describe('AppSider release link', () => {
   beforeEach(() => {
     siderMocks.pathname = '/dashboard';
     siderMocks.role = 'member';
-    siderMocks.modules = ['dashboard', 'projects', 'calendar', 'documents', 'suppliers', 'equipment', 'staff'];
+    siderMocks.modules = ['dashboard', 'projects', 'calendar', 'documents', 'suppliers', 'equipment', 'staff', 'planning'];
   });
 
   it('shows the current Ledgerly version in the expanded sidebar', () => {
@@ -93,5 +93,14 @@ describe('AppSider release link', () => {
     expect(screen.getByText('Panel')).toBeInTheDocument();
     expect(screen.getByText('Empresas')).toBeInTheDocument();
     expect(screen.getByText('Calendario')).toBeInTheDocument();
+  });
+
+  it('shows Planning only when the member has planning view access', () => {
+    siderMocks.modules = ['planning'];
+
+    render(<AppSider collapsed={false} onCollapse={vi.fn()} />);
+
+    expect(screen.getByText('Planificación')).toBeInTheDocument();
+    expect(screen.queryByText('Empresas')).not.toBeInTheDocument();
   });
 });

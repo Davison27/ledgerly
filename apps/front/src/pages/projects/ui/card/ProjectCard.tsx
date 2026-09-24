@@ -1,6 +1,6 @@
 import type { CSSProperties, MouseEvent } from 'react';
 import { Link } from '@tanstack/react-router';
-import { App, Avatar, Button, Card, Dropdown, type MenuProps, Typography } from 'antd';
+import { App, Avatar, Button, Card, Dropdown, Progress, type MenuProps, Typography } from 'antd';
 import {
   DeleteOutlined,
   EditOutlined,
@@ -54,6 +54,11 @@ export function ProjectCard({
   const currency = project.currency ?? 'EUR';
   const archived = project.status === 'archived';
   const canViewDocuments = canAccess('documents', 'view');
+  const hasPlanningSummary = Boolean(
+    project.checklistCompletedCount !== undefined
+    && project.checklistTotalCount !== undefined
+    && canAccess('planning', 'view'),
+  );
   const hasDocumentSummary = canViewDocuments && project.documentCount !== undefined;
   const hasFinancialSummary =
     canViewDocuments && canAccess('equipment', 'view') && project.financials !== undefined;
@@ -78,6 +83,11 @@ export function ProjectCard({
           ? colors.expense
           : undefined;
   const cardStyle = { '--project-accent': color } as CSSProperties;
+  const checklistCompleted = project.checklistCompletedCount ?? 0;
+  const checklistTotal = project.checklistTotalCount ?? 0;
+  const checklistProgress = checklistTotal > 0
+    ? Math.min(100, (checklistCompleted / checklistTotal) * 100)
+    : 0;
 
   const handleOpen = () => onOpen(project);
 
@@ -217,7 +227,7 @@ export function ProjectCard({
         </>
       )}
 
-      {(hasDocumentSummary || hasFinancialSummary) && (
+      {(hasDocumentSummary || hasFinancialSummary || hasPlanningSummary) && (
         <div className={styles.statusRow}>
           {hasDocumentSummary && (
             <span className={styles.documentSummary}>
@@ -247,6 +257,29 @@ export function ProjectCard({
               <SemanticTag tone="neutral">+{otherCurrencies.length}</SemanticTag>
             </span>
           ) : null}
+          {hasPlanningSummary && (
+            <span className={styles.planningSummary}>
+              <span
+                className={styles.progressTrack}
+                role="progressbar"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={checklistProgress}
+                aria-label={t('projects.planning.progress', {
+                  completed: checklistCompleted,
+                  total: checklistTotal,
+                })}
+              >
+                <Progress percent={checklistProgress} showInfo={false} size="small" className={styles.progressBar} />
+              </span>
+              <span>
+                {t('projects.planning.progress', {
+                  completed: checklistCompleted,
+                  total: checklistTotal,
+                })}
+              </span>
+            </span>
+          )}
         </div>
       )}
     </Card>

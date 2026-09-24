@@ -6,6 +6,7 @@ import {
   get,
   patch,
   post,
+  put,
   setSigningOut,
   setUnauthorizedHandler,
 } from './httpClient';
@@ -80,6 +81,28 @@ describe('httpClient', () => {
       name: 'Updated',
     });
     await expect(del('/projects/project-1')).resolves.toBeUndefined();
+  });
+
+  it('sends PUT requests through the shared JSON and CSRF handling', async () => {
+    document.cookie = 'lg_csrf=csrf-token';
+    const fetchMock = vi.fn().mockResolvedValue(response({ name: 'Opening' }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await put('/project-checklist-templates/template-1', { name: 'Opening' });
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      'http://localhost:3005/api/project-checklist-templates/template-1',
+      expect.objectContaining({
+        method: 'PUT',
+        credentials: 'include',
+        body: JSON.stringify({ name: 'Opening' }),
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          'X-CSRF-Token': 'csrf-token',
+        }),
+      }),
+    );
   });
 
   it('raises ApiError with the server message and invokes the unauthorized handler', async () => {

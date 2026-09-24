@@ -6,7 +6,7 @@ import type { Project } from '@/entities/project';
 import { ProjectCard } from './ProjectCard';
 
 const mocks = vi.hoisted(() => ({
-  allowedModules: [] as string[],
+  allowedPermissions: [] as string[],
 }));
 
 vi.mock('@tanstack/react-router', () => ({
@@ -15,7 +15,7 @@ vi.mock('@tanstack/react-router', () => ({
 
 vi.mock('@/entities/workspace-member', () => ({
   useWorkspaceAccess: () => ({
-    canAccess: (module: string) => mocks.allowedModules.includes(module),
+    canAccess: (module: string, action: string) => mocks.allowedPermissions.includes(`${module}:${action}`),
   }),
 }));
 
@@ -51,11 +51,11 @@ function renderCard(overrides: Partial<Project> = {}) {
 
 describe('ProjectCard summary access', () => {
   beforeEach(() => {
-    mocks.allowedModules = ['documents', 'equipment'];
+    mocks.allowedPermissions = ['documents:view', 'equipment:view'];
   });
 
   it('hides document counts and financials without Documents view', () => {
-    mocks.allowedModules = ['equipment'];
+    mocks.allowedPermissions = ['equipment:view'];
     const { container } = renderCard();
 
     expect(container).not.toHaveTextContent('4 documentos');
@@ -66,7 +66,7 @@ describe('ProjectCard summary access', () => {
   });
 
   it('shows document counts but hides financials without Equipment view', () => {
-    mocks.allowedModules = ['documents'];
+    mocks.allowedPermissions = ['documents:view'];
     renderCard();
 
     expect(screen.getByText('4')).toBeInTheDocument();
@@ -97,5 +97,57 @@ describe('ProjectCard summary access', () => {
     expect(container).not.toHaveTextContent('documentos');
     expect(screen.queryByText('Beneficio neto')).not.toBeInTheDocument();
     expect(screen.queryByText('Ingresos')).not.toBeInTheDocument();
+  });
+
+  it('shows checklist progress only when returned counts and Planning view access are present', () => {
+    mocks.allowedPermissions = ['planning:view'];
+    const { rerender } = renderCard({
+      checklistCompletedCount: 1,
+      checklistTotalCount: 2,
+    });
+
+    expect(screen.getByText('1 de 2 completados')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: '1 de 2 completados' })).toHaveAttribute('aria-valuenow', '50');
+
+    rerender(
+      <App>
+        <ProjectCard
+          project={{ ...project, checklistCompletedCount: undefined, checklistTotalCount: undefined }}
+          color="#1677ff"
+          canEdit={false}
+          onOpen={vi.fn()}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onUnarchive={vi.fn()}
+        />
+      </App>,
+    );
+
+    expect(screen.queryByText('1 de 2 completados')).not.toBeInTheDocument();
+
+    mocks.allowedPermissions = [];
+    rerender(
+      <App>
+        <ProjectCard
+          project={{ ...project, checklistCompletedCount: 1, checklistTotalCount: 2 }}
+          color="#1677ff"
+          canEdit={false}
+          onOpen={vi.fn()}
+          onEdit={vi.fn()}
+          onDelete={vi.fn()}
+          onUnarchive={vi.fn()}
+        />
+      </App>,
+    );
+
+    expect(screen.queryByText('1 de 2 completados')).not.toBeInTheDocument();
+  });
+
+  it('renders empty checklist progress as zero without dividing by zero', () => {
+    mocks.allowedPermissions = ['planning:view'];
+    renderCard({ checklistCompletedCount: 0, checklistTotalCount: 0 });
+
+    expect(screen.getByText('0 de 0 completados')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: '0 de 0 completados' })).toHaveAttribute('aria-valuenow', '0');
   });
 });

@@ -9,7 +9,11 @@ import { DetailPageHeader } from '@/shared/ui/DetailPageHeader';
 import { EmptyHint } from '@/shared/ui/EmptyHint';
 import { resolveProjectColor } from '@/shared/lib/palette';
 import { useThemeMode } from '@/shared/lib/theme-mode/ThemeModeProvider';
-import { useProjectDetailSection, type ProjectDetailSection } from '../../model/useProjectDetailSection';
+import {
+  getAllowedProjectDetailSections,
+  useProjectDetailSection,
+  type ProjectDetailSection,
+} from '../../model/useProjectDetailSection';
 import { projectClientProjectsPath } from '../../model/projectHierarchy';
 import { DocumentsSection } from '../documents/DocumentsSection';
 import { DashboardSection } from '../dashboard/DashboardSection';
@@ -18,6 +22,8 @@ import { SettingsSection } from '../settings/SettingsSection';
 import { ProjectEquipmentSection } from '../equipment/ProjectEquipmentSection';
 import { useProjectFinancialSummary } from '../../model/useProjectFinancialSummary';
 import { ProjectSummaryStrip } from '../projectSummary/ProjectSummaryStrip';
+import { ChecklistProgressSummary } from '../checklistProgress/ChecklistProgressSummary';
+import { ChecklistSection } from '../checklist/ChecklistSection';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import styles from './ProjectDetailPage.module.css';
 
@@ -34,13 +40,7 @@ export function ProjectDetailPage() {
   const canViewDocuments = canAccess('documents', 'view');
   const canViewEquipment = canAccess('equipment', 'view');
   const canViewDashboard = canAccess('dashboard', 'view');
-  const allowedSections: ProjectDetailSection[] = [
-    ...(canViewProject && canViewDocuments ? ['documents' as const] : []),
-    ...(canViewProject && canViewEquipment ? ['equipment' as const] : []),
-    ...(canViewProject && canViewDashboard ? ['dashboard' as const] : []),
-    ...(canViewProject && canAccess('calendar', 'view') ? ['schedule' as const] : []),
-    ...(canViewProject ? ['settings' as const] : []),
-  ];
+  const canViewPlanning = canAccess('planning', 'view');
   const {
     data: project,
     isPending,
@@ -49,6 +49,17 @@ export function ProjectDetailPage() {
     ...projectQueries.detail(projectId ?? ''),
     enabled: Boolean(projectId) && canViewProject,
   });
+  const allowedSections = getAllowedProjectDetailSections(
+    {
+      projects: canViewProject,
+      documents: canViewDocuments,
+      equipment: canViewEquipment,
+      dashboard: canViewDashboard,
+      calendar: canAccess('calendar', 'view'),
+      planning: canViewPlanning,
+    },
+    project?.planningEnabled ?? false,
+  );
   const { mode } = useThemeMode();
   const isDark = mode === 'dark';
   const financialSummary = useProjectFinancialSummary(
@@ -98,6 +109,7 @@ export function ProjectDetailPage() {
 
   const labels: Record<ProjectDetailSection, string> = {
     documents: t('projects.sections.documents'),
+    checklist: t('projects.sections.checklist'),
     equipment: t('projects.sections.equipment'),
     dashboard: t('projects.sections.dashboard'),
     schedule: t('projects.sections.schedule'),
@@ -129,20 +141,26 @@ export function ProjectDetailPage() {
         }
       />
 
-      {canViewDashboard && (
+      {canViewDashboard ? (
         <ProjectSummaryStrip
           project={project}
           data={financialSummary.data}
           isFinancialsPending={financialSummary.isPending}
           isFinancialsError={financialSummary.isError}
           showFinancials={canViewDocuments && canViewEquipment}
+          showChecklistProgress={Boolean(project.planningEnabled && canViewPlanning)}
         />
+      ) : (
+        project.planningEnabled && canViewPlanning && (
+          <ChecklistProgressSummary project={project} standalone />
+        )
       )}
 
       <div className={styles.content}>
         {section === 'documents' && (
           <DocumentsSection project={project} color={token.colorPrimary} />
         )}
+        {section === 'checklist' && <ChecklistSection project={project} />}
         {section === 'equipment' && <ProjectEquipmentSection project={project} color={token.colorPrimary} />}
         {section === 'dashboard' && (
           <DashboardSection

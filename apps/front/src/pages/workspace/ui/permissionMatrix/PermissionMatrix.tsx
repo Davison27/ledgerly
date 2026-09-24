@@ -3,6 +3,7 @@ import { Button, Dropdown, Flex, Segmented, Typography } from 'antd';
 import type { MenuProps } from 'antd';
 import {
   CalendarOutlined,
+  CheckSquareOutlined,
   DashboardOutlined,
   DownOutlined,
   FileTextOutlined,
@@ -34,6 +35,7 @@ const MODULE_ICONS: Record<WorkspaceModuleDto, ReactNode> = {
   suppliers: <TeamOutlined />,
   equipment: <ToolOutlined />,
   staff: <IdcardOutlined />,
+  planning: <CheckSquareOutlined />,
 };
 
 export interface PermissionMatrixProps {

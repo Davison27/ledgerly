@@ -7,6 +7,7 @@ import { Amount } from '@/shared/ui/Amount';
 import { Numeric } from '@/shared/ui/Numeric';
 import { SemanticTag, type SemanticTone } from '@/shared/ui/SemanticTag';
 import type { DashboardData } from '@/widgets/dashboard-charts';
+import { ChecklistProgressSummary } from '../checklistProgress/ChecklistProgressSummary';
 import styles from './ProjectSummaryStrip.module.css';
 
 const { Text } = Typography;
@@ -24,6 +25,7 @@ interface ProjectSummaryStripProps {
   isFinancialsPending: boolean;
   isFinancialsError: boolean;
   showFinancials: boolean;
+  showChecklistProgress: boolean;
 }
 
 export function ProjectSummaryStrip({
@@ -32,6 +34,7 @@ export function ProjectSummaryStrip({
   isFinancialsPending,
   isFinancialsError,
   showFinancials,
+  showChecklistProgress,
 }: ProjectSummaryStripProps) {
   const { t, i18n } = useTranslation();
   const currency = project.currency ?? 'EUR';
@@ -42,7 +45,6 @@ export function ProjectSummaryStrip({
     style: 'percent',
     maximumFractionDigits: 0,
   }).format(data.margin);
-
   return (
     <div className={styles.strip}>
       <SummaryCell label={t('projects.form.fields.status')}>
@@ -74,6 +76,9 @@ export function ProjectSummaryStrip({
       <SummaryCell label={t('projects.summary.dates')}>
         <Numeric>{dates}</Numeric>
       </SummaryCell>
+      {showChecklistProgress && (
+        <ChecklistProgressSummary project={project} />
+      )}
     </div>
   );
 }

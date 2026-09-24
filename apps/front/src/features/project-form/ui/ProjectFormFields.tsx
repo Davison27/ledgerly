@@ -49,6 +49,7 @@ export interface ProjectFormFieldValues {
   currency?: ProjectCurrency;
   manager?: string;
   color?: ProjectColorToken;
+  checklistTemplateId?: string;
 }
 
 interface ProjectColorPickerProps {

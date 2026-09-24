@@ -15,16 +15,19 @@ describe('workspace permissions', () => {
     const matrix = matrixForRole('admin');
 
     expect(matrix.dashboard).toBe('view');
+    expect(matrix.planning).toBe('edit');
     expect(Object.values(matrix).filter((level) => level === 'edit')).toHaveLength(
       WORKSPACE_MODULES.length - 1,
     );
     expect(hasModuleAccess('admin', emptyMatrix(), 'staff', 'edit')).toBe(true);
   });
 
-  it('uses view-only permissions as the member invitation default', () => {
+  it('uses view-only permissions for existing modules and denies planning by default', () => {
     const matrix = matrixForRole('member');
 
-    expect(Object.values(matrix)).toEqual(Array(WORKSPACE_MODULES.length).fill('view'));
+    expect(matrix.planning).toBe('none');
+    expect(Object.entries(matrix).filter(([module]) => module !== 'planning').map(([, level]) => level))
+      .toEqual(Array(WORKSPACE_MODULES.length - 1).fill('view'));
     expect(hasModuleAccess('member', emptyMatrix(), 'projects', 'view')).toBe(false);
   });
 

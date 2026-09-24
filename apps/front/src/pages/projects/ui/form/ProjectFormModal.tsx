@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
-import { App, Form, Modal } from 'antd';
-import { useQueryClient } from '@tanstack/react-query';
+import { App, Form, Modal, Select, Switch } from 'antd';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import { parentClientError } from '@/entities/client';
 import type { Project, ProjectFormValues } from '@/entities/project';
+import { projectChecklistQueries } from '@/entities/project-checklist';
+import { useWorkspaceAccess } from '@/entities/workspace-member';
 import {
   parentClientErrorMessageKey,
   ProjectFormFields,
@@ -35,10 +37,23 @@ export function ProjectFormModal({
   const queryClient = useQueryClient();
   const [form] = Form.useForm<ProjectFormFieldValues>();
   const [image, setImage] = useState<string | null | undefined>(undefined);
+  const [planningEnabled, setPlanningEnabled] = useState(false);
   const isEdit = Boolean(project);
+  const { canAccess } = useWorkspaceAccess();
+  const canConfigurePlanning = !isEdit && canAccess('projects', 'edit') && canAccess('planning', 'edit');
+  const canViewPlanning = canAccess('planning', 'view');
+  const {
+    data: templates = [],
+    isPending: templatesPending,
+    isError: templatesError,
+  } = useQuery({
+    ...projectChecklistQueries.templates(),
+    enabled: open && canConfigurePlanning && canViewPlanning,
+  });
 
   useEffect(() => {
     if (!open) return;
+    setPlanningEnabled(false);
 
     if (project) {
       form.setFieldsValue({
@@ -68,6 +83,7 @@ export function ProjectFormModal({
   const handleCancel = () => {
     form.resetFields();
     setImage(undefined);
+    setPlanningEnabled(false);
     onCancel();
   };
 
@@ -105,12 +121,14 @@ export function ProjectFormModal({
       startDate: startDate ? startDate.format('YYYY-MM-DD') : undefined,
       endDate: endDate ? endDate.format('YYYY-MM-DD') : undefined,
       image,
+      ...(!isEdit && planningEnabled ? { checklistTemplateId: values.checklistTemplateId } : {}),
     } as ProjectFormValues;
 
     try {
       await onSubmit(payload);
       form.resetFields();
       setImage(undefined);
+      setPlanningEnabled(false);
     } catch (error) {
       if (await handleParentClientError(error)) return;
       void message.error(t(isEdit ? 'projects.form.updateError' : 'projects.form.createError'));
@@ -144,6 +162,35 @@ export function ProjectFormModal({
           lockedClientId={!project ? scopedClientId : undefined}
           lockedClientName={!project ? scopedClientName : undefined}
         />
+        {canConfigurePlanning && (
+          <>
+            <Form.Item label={t('projects.planning.enable')}>
+              <Switch
+                aria-label={t('projects.planning.enable')}
+                checked={planningEnabled}
+                onChange={(enabled) => {
+                  setPlanningEnabled(enabled);
+                  if (!enabled) form.setFieldValue('checklistTemplateId', undefined);
+                }}
+              />
+            </Form.Item>
+            {planningEnabled && (
+              <Form.Item
+                name="checklistTemplateId"
+                label={t('projects.planning.template')}
+                rules={[{ required: true, message: t('projects.planning.templateRequired') }]}
+                help={templatesError ? t('projects.planning.templatesLoadError') : undefined}
+              >
+                <Select
+                  aria-label={t('projects.planning.template')}
+                  loading={templatesPending}
+                  optionFilterProp="label"
+                  options={templates.map((template) => ({ value: template.id, label: template.name }))}
+                />
+              </Form.Item>
+            )}
+          </>
+        )}
       </Form>
     </Modal>
   );

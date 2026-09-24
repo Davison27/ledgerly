@@ -552,12 +552,48 @@
     "documents": "Documentos",
     "suppliers": "Proveedores",
     "equipment": "Equipos",
-    "staff": "Personal"
+    "staff": "Personal",
+    "planning": "Planificación"
   },
   "sider": {
     "collapse": "Contraer menú",
     "expand": "Expandir menú",
     "workspace": "Ir al espacio de trabajo"
+  },
+  "planning": {
+    "title": "Planificación",
+    "description": "Crea listas reutilizables para planificar proyectos.",
+    "createTemplate": "Nueva lista",
+    "createTitle": "Crear lista",
+    "editTitle": "Editar lista",
+    "name": "Nombre de la lista",
+    "items": "Elementos de la lista",
+    "itemLabel": "Elemento {{position}}",
+    "addItem": "Añadir elemento",
+    "moveItemUp": "Subir elemento {{position}}",
+    "moveItemDown": "Bajar elemento {{position}}",
+    "removeItem": "Quitar elemento {{position}}",
+    "noItems": "Esta lista todavía no tiene elementos.",
+    "empty": "Todavía no se ha creado ninguna lista.",
+    "loadError": "No se han podido cargar las listas.",
+    "retry": "Intentar de nuevo",
+    "created": "Lista creada.",
+    "updated": "Lista actualizada.",
+    "deleted": "Lista eliminada.",
+    "saveError": "No se ha podido guardar la lista.",
+    "deleteError": "No se ha podido eliminar la lista.",
+    "editTemplate": "Editar lista: {{name}}",
+    "deleteTemplate": "Eliminar lista: {{name}}",
+    "deleteConfirm": {
+      "title": "¿Eliminar esta lista?",
+      "content": "Los proyectos que ya la usan conservarán su copia."
+    },
+    "validation": {
+      "nameRequired": "Escribe un nombre para la lista.",
+      "nameTooLong": "El nombre no puede superar los 120 caracteres.",
+      "itemRequired": "Escribe el texto del elemento.",
+      "itemTooLong": "El elemento no puede superar los 500 caracteres."
+    }
   },
   "dashboard": {
     "title": "Panel",
@@ -1217,6 +1253,35 @@
       "margin": "Margen",
       "dates": "Fechas previstas"
     },
+    "planning": {
+      "title": "Checklist de planificación",
+      "enable": "Activar lista de planificación",
+      "template": "Plantilla de checklist",
+      "templateRequired": "Selecciona una plantilla",
+      "templatesEmpty": "No hay plantillas de checklist disponibles.",
+      "templatesLoadError": "No se han podido cargar las plantillas de checklist.",
+      "savePlanning": "Activar checklist",
+      "settingsEnabled": "Checklist de planificación activado",
+      "settingsDisabled": "Checklist de planificación desactivado",
+      "settingsSaveError": "No se ha podido guardar la configuración de planificación.",
+      "loadError": "No se ha podido cargar el checklist del proyecto.",
+      "empty": "Este proyecto no tiene checks.",
+      "itemText": "Elemento del checklist",
+      "itemPlaceholder": "Añadir una tarea del proyecto",
+      "itemRequired": "Escribe un elemento para el checklist.",
+      "addItem": "Añadir elemento",
+      "addError": "No se ha podido añadir el elemento al checklist.",
+      "editItem": "Editar elemento",
+      "saveItem": "Guardar elemento",
+      "updateError": "No se ha podido actualizar el elemento del checklist.",
+      "deleteItem": "Eliminar elemento",
+      "deleteError": "No se ha podido eliminar el elemento del checklist.",
+      "moveUp": "Mover elemento arriba",
+      "moveDown": "Mover elemento abajo",
+      "markCompleted": "Marcar {{item}} como completado",
+      "markIncomplete": "Marcar {{item}} como pendiente",
+      "progress": "{{completed}} de {{total}} completados"
+    },
     "deleted": "Proyecto eliminado",
     "archived": "Proyecto archivado",
     "unarchived": "Proyecto desarchivado",
@@ -1232,6 +1297,7 @@
       "equipment": "Equipos",
       "dashboard": "Panel",
       "schedule": "Calendario",
+      "checklist": "Checklist",
       "settings": "Configuración"
     },
     "schedule": {

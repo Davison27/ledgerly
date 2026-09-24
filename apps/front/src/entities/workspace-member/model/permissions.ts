@@ -34,7 +34,7 @@ export function emptyMatrix(): PermissionMatrixDto {
 
 export function matrixForRole(role: WorkspaceRoleDto): PermissionMatrixDto {
   if (role === 'admin') return buildMatrix((module) => (module === 'dashboard' ? 'view' : 'edit'));
-  return buildMatrix(() => 'view');
+  return buildMatrix((module) => (module === 'planning' ? 'none' : 'view'));
 }
 
 export function fillMatrix(level: PermissionLevelDto): PermissionMatrixDto {

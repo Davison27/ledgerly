@@ -11,6 +11,7 @@ import type {
   ProjectFinancialsDto,
   ProjectSummaryDto,
   UpdateProjectPayload,
+  UpdateProjectPlanningPayload,
 } from '../api/types';
 import { mapClient } from '@/entities/client/@x/project';
 import type { Client } from '@/entities/client/@x/project';
@@ -58,14 +59,20 @@ export interface Project {
   manager?: string;
   image?: string | null;
   color?: ProjectColorToken;
+  planningEnabled?: boolean;
+  checklistAssigned?: boolean;
+  checklistCompletedCount?: number;
+  checklistTotalCount?: number;
 }
 
 export type ProjectFormValues = Omit<
   Project,
   'id' | 'documentCount' | 'pendingCount' | 'financials' | 'client' | 'clientId'
-> & { clientId: string };
+> & { clientId: string; checklistTemplateId?: string };
 
-export type ProjectUpdateValues = Partial<ProjectFormValues>;
+export type ProjectUpdateValues = Partial<
+  Omit<ProjectFormValues, 'checklistTemplateId' | 'planningEnabled'>
+>;
 
 function mapProjectFinancials(dto: ProjectFinancialsDto): ProjectFinancials {
   return {
@@ -89,6 +96,11 @@ function mapProjectSummary(dto: ProjectSummaryDto): Project {
     image: dto.image ?? undefined,
     color: dto.color ?? undefined,
     status: dto.status,
+    ...(dto.planningEnabled === undefined ? {} : { planningEnabled: dto.planningEnabled }),
+    ...(dto.checklistCompletedCount === undefined
+      ? {}
+      : { checklistCompletedCount: dto.checklistCompletedCount }),
+    ...(dto.checklistTotalCount === undefined ? {} : { checklistTotalCount: dto.checklistTotalCount }),
   };
 }
 
@@ -112,6 +124,12 @@ function mapProject(dto: ProjectDto): Project {
     manager: dto.manager ?? undefined,
     image: dto.image ?? undefined,
     color: dto.color ?? undefined,
+    planningEnabled: dto.planningEnabled ?? false,
+    ...(dto.checklistAssigned === undefined ? {} : { checklistAssigned: dto.checklistAssigned }),
+    ...(dto.checklistCompletedCount === undefined
+      ? {}
+      : { checklistCompletedCount: dto.checklistCompletedCount }),
+    ...(dto.checklistTotalCount === undefined ? {} : { checklistTotalCount: dto.checklistTotalCount }),
   };
 }
 
@@ -141,6 +159,7 @@ export async function addProject(values: ProjectFormValues): Promise<Project> {
     manager: values.manager,
     image: values.image,
     color: values.color,
+    ...(values.checklistTemplateId ? { checklistTemplateId: values.checklistTemplateId } : {}),
   };
   const dto = await createProject(payload);
   return mapProject(dto);
@@ -167,6 +186,14 @@ export async function updateProject(
     color: values.color,
   };
   const dto = await updateProjectRequest(projectId, payload);
+  return mapProject(dto);
+}
+
+export async function updateProjectPlanning(
+  projectId: string,
+  values: UpdateProjectPlanningPayload,
+): Promise<Project> {
+  const dto = await updateProjectRequest(projectId, values);
   return mapProject(dto);
 }
 

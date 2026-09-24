@@ -91,6 +91,14 @@ export function patch<T>(path: string, payload?: unknown): Promise<T> {
   });
 }
 
+export function put<T>(path: string, payload?: unknown): Promise<T> {
+  return request<T>(path, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: payload === undefined ? undefined : JSON.stringify(payload),
+  });
+}
+
 export function del<T>(path: string): Promise<T> {
   return request<T>(path, { method: 'DELETE' });
 }

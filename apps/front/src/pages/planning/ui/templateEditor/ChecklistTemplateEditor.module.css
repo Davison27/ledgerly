@@ -1,0 +1,13 @@
+.itemsEditor {
+  margin-top: 12px;
+}
+
+.itemRow {
+  width: 100%;
+}
+
+.itemField {
+  flex: 1;
+  min-width: 0;
+  margin-bottom: 0;
+}

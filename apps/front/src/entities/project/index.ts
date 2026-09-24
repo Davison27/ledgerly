@@ -12,6 +12,7 @@ export {
   fetchProject,
   addProject,
   updateProject,
+  updateProjectPlanning,
   removeProject,
 } from './model/project';
 export type {
@@ -24,4 +25,5 @@ export type {
   ProjectUpdateValues,
   ProjectColorToken,
 } from './model/project';
+export type { UpdateProjectPlanningPayload } from './api/types';
 export { projectQueries } from './api/project.queries';

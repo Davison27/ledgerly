@@ -15,7 +15,18 @@ import {
   listTaxObligations,
   listTaxSourceStates,
 } from './tax-compliance/api/tax-compliance.api';
-import { del, get, patch, post } from '@/shared/api/httpClient';
+import {
+  addProjectChecklistItem,
+  createProjectChecklistTemplate,
+  deleteProjectChecklistItem,
+  deleteProjectChecklistTemplate,
+  getProjectChecklist,
+  getProjectChecklistTemplate,
+  listProjectChecklistTemplates,
+  updateProjectChecklistItem,
+  updateProjectChecklistTemplate,
+} from './project-checklist/api/project-checklist.api';
+import { del, get, patch, post, put } from '@/shared/api/httpClient';
 
 vi.mock('@/shared/api/httpClient', () => ({
   API_URL: 'https://api.ledgerly.test',
@@ -41,6 +52,7 @@ vi.mock('@/shared/api/httpClient', () => ({
   get: vi.fn(),
   patch: vi.fn(),
   post: vi.fn(),
+  put: vi.fn(),
 }));
 
 describe('frontend API contracts', () => {
@@ -50,6 +62,7 @@ describe('frontend API contracts', () => {
     vi.mocked(post).mockResolvedValue({} as never);
     vi.mocked(patch).mockResolvedValue({} as never);
     vi.mocked(del).mockResolvedValue(undefined);
+    vi.mocked(put).mockResolvedValue({} as never);
   });
 
   it('serializes document filters, pagination and duplicate checks into backend routes', async () => {
@@ -125,6 +138,61 @@ describe('frontend API contracts', () => {
       '/tax-compliance/calendar?from=2026-01-01&to=2026-12-31',
     );
     expect(get).toHaveBeenNthCalledWith(3, '/tax-compliance/sources');
+  });
+
+  it('maps checklist templates and uses the template and project checklist routes', async () => {
+    const template = {
+      id: 'template-1',
+      name: 'Opening',
+      items: [
+        { id: 'item-2', text: 'Second', position: 1 },
+        { id: 'item-1', text: 'First', position: 0 },
+      ],
+    };
+    const checklist = {
+      projectId: 'project-1',
+      name: 'Opening',
+      items: [{ id: 'item-1', text: 'First', position: 0, completed: false }],
+    };
+    vi.mocked(get)
+      .mockResolvedValueOnce([template] as never)
+      .mockResolvedValueOnce(template as never)
+      .mockResolvedValueOnce(checklist as never);
+    vi.mocked(post)
+      .mockResolvedValueOnce(template as never)
+      .mockResolvedValueOnce(checklist as never);
+    vi.mocked(put).mockResolvedValueOnce(template as never);
+    vi.mocked(patch).mockResolvedValueOnce(checklist as never);
+
+    const templates = await listProjectChecklistTemplates();
+    await getProjectChecklistTemplate('template-1');
+    await createProjectChecklistTemplate({ name: 'Closing', items: ['Lock up'] });
+    await updateProjectChecklistTemplate('template-1', { name: 'Opening', items: ['Check'] });
+    await deleteProjectChecklistTemplate('template-1');
+    await getProjectChecklist('project-1');
+    await addProjectChecklistItem('project-1', 'Check the site');
+    await updateProjectChecklistItem('project-1', 'item-1', { completed: true, position: 2 });
+    await deleteProjectChecklistItem('project-1', 'item-1');
+
+    expect(templates[0]?.items.map(({ text }) => text)).toEqual(['First', 'Second']);
+    expect(get).toHaveBeenNthCalledWith(1, '/project-checklist-templates');
+    expect(get).toHaveBeenNthCalledWith(2, '/project-checklist-templates/template-1');
+    expect(post).toHaveBeenCalledWith('/project-checklist-templates', {
+      name: 'Closing',
+      items: ['Lock up'],
+    });
+    expect(put).toHaveBeenCalledWith('/project-checklist-templates/template-1', {
+      name: 'Opening',
+      items: ['Check'],
+    });
+    expect(del).toHaveBeenCalledWith('/project-checklist-templates/template-1');
+    expect(get).toHaveBeenNthCalledWith(3, '/projects/project-1/checklist');
+    expect(post).toHaveBeenCalledWith('/projects/project-1/checklist/items', { text: 'Check the site' });
+    expect(patch).toHaveBeenCalledWith('/projects/project-1/checklist/items/item-1', {
+      completed: true,
+      position: 2,
+    });
+    expect(del).toHaveBeenCalledWith('/projects/project-1/checklist/items/item-1');
   });
 
   it('uploads invoice extraction with credentials, CSRF, progress and upload completion reporting', async () => {

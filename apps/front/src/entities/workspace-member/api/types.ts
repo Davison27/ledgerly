@@ -6,6 +6,7 @@ export const WORKSPACE_MODULES = [
   'suppliers',
   'equipment',
   'staff',
+  'planning',
 ] as const;
 export type WorkspaceModuleDto = (typeof WORKSPACE_MODULES)[number];
 export type PermissionLevelDto = 'none' | 'view' | 'edit';

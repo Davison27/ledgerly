@@ -32,6 +32,9 @@ export interface ProjectSummaryDto {
   image?: string | null;
   color?: ProjectColorToken | null;
   status?: ProjectStatusDto;
+  planningEnabled?: boolean;
+  checklistCompletedCount?: number;
+  checklistTotalCount?: number;
 }
 
 export type ProjectDeletionOutcome = 'deleted' | 'archived';
@@ -61,6 +64,10 @@ export interface ProjectDto {
   manager?: string | null;
   image?: string | null;
   color?: ProjectColorToken | null;
+  planningEnabled?: boolean;
+  checklistAssigned?: boolean;
+  checklistCompletedCount?: number;
+  checklistTotalCount?: number;
 }
 
 export interface CreateProjectPayload {
@@ -78,6 +85,7 @@ export interface CreateProjectPayload {
   manager?: string;
   image?: string | null;
   color?: ProjectColorToken;
+  checklistTemplateId?: string;
 }
 
 export interface UpdateProjectPayload {
@@ -95,4 +103,11 @@ export interface UpdateProjectPayload {
   manager?: string;
   image?: string | null;
   color?: ProjectColorToken;
+  planningEnabled?: boolean;
+  checklistTemplateId?: string;
+}
+
+export interface UpdateProjectPlanningPayload {
+  planningEnabled: boolean;
+  checklistTemplateId?: string;
 }

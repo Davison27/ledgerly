@@ -548,12 +548,48 @@
     "documents": "Documents",
     "suppliers": "Suppliers",
     "equipment": "Equipment",
-    "staff": "Staff"
+    "staff": "Staff",
+    "planning": "Planning"
   },
   "sider": {
     "collapse": "Collapse menu",
     "expand": "Expand menu",
     "workspace": "Go to the workspace"
+  },
+  "planning": {
+    "title": "Planning",
+    "description": "Create reusable checklists for project planning.",
+    "createTemplate": "New checklist",
+    "createTitle": "Create checklist",
+    "editTitle": "Edit checklist",
+    "name": "Checklist name",
+    "items": "Checklist items",
+    "itemLabel": "Item {{position}}",
+    "addItem": "Add item",
+    "moveItemUp": "Move item {{position}} up",
+    "moveItemDown": "Move item {{position}} down",
+    "removeItem": "Remove item {{position}}",
+    "noItems": "This checklist has no items yet.",
+    "empty": "No checklists have been created yet.",
+    "loadError": "Checklists could not be loaded.",
+    "retry": "Try again",
+    "created": "Checklist created.",
+    "updated": "Checklist updated.",
+    "deleted": "Checklist deleted.",
+    "saveError": "Checklist could not be saved.",
+    "deleteError": "Checklist could not be deleted.",
+    "editTemplate": "Edit checklist: {{name}}",
+    "deleteTemplate": "Delete checklist: {{name}}",
+    "deleteConfirm": {
+      "title": "Delete this checklist?",
+      "content": "Projects that already use it keep their copied checklist."
+    },
+    "validation": {
+      "nameRequired": "Enter a checklist name.",
+      "nameTooLong": "The name must be 120 characters or fewer.",
+      "itemRequired": "Enter item text.",
+      "itemTooLong": "The item must be 500 characters or fewer."
+    }
   },
   "dashboard": {
     "title": "Dashboard",
@@ -1213,6 +1249,35 @@
       "margin": "Margin",
       "dates": "Planned dates"
     },
+    "planning": {
+      "title": "Planning checklist",
+      "enable": "Enable planning checklist",
+      "template": "Checklist template",
+      "templateRequired": "Choose a checklist template",
+      "templatesEmpty": "No checklist templates are available.",
+      "templatesLoadError": "Checklist templates could not be loaded.",
+      "savePlanning": "Enable checklist",
+      "settingsEnabled": "Planning checklist enabled",
+      "settingsDisabled": "Planning checklist disabled",
+      "settingsSaveError": "Planning settings could not be saved.",
+      "loadError": "The project checklist could not be loaded.",
+      "empty": "This project has no checklist items.",
+      "itemText": "Checklist item",
+      "itemPlaceholder": "Add a project task",
+      "itemRequired": "Enter a checklist item.",
+      "addItem": "Add item",
+      "addError": "The checklist item could not be added.",
+      "editItem": "Edit item",
+      "saveItem": "Save item",
+      "updateError": "The checklist item could not be updated.",
+      "deleteItem": "Delete item",
+      "deleteError": "The checklist item could not be deleted.",
+      "moveUp": "Move item up",
+      "moveDown": "Move item down",
+      "markCompleted": "Mark {{item}} as complete",
+      "markIncomplete": "Mark {{item}} as incomplete",
+      "progress": "{{completed}} of {{total}} completed"
+    },
     "deleted": "Project deleted",
     "archived": "Project archived",
     "unarchived": "Project unarchived",
@@ -1228,6 +1293,7 @@
       "equipment": "Equipment",
       "dashboard": "Dashboard",
       "schedule": "Calendar",
+      "checklist": "Checklist",
       "settings": "Settings"
     },
     "schedule": {

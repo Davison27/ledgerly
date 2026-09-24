@@ -55,6 +55,9 @@ describe('project view model', () => {
         pendingCount: 1,
         image: null,
         color: null,
+        planningEnabled: true,
+        checklistCompletedCount: 2,
+        checklistTotalCount: 5,
       },
     ]);
 
@@ -69,6 +72,9 @@ describe('project view model', () => {
         pendingCount: 1,
         image: undefined,
         color: undefined,
+        planningEnabled: true,
+        checklistCompletedCount: 2,
+        checklistTotalCount: 5,
       },
     ]);
   });
@@ -104,6 +110,8 @@ describe('project view model', () => {
       currency: null,
       image: null,
       color: null,
+      planningEnabled: false,
+      checklistAssigned: true,
     });
 
     const project = await fetchProject('project-1');
@@ -127,6 +135,8 @@ describe('project view model', () => {
       manager: undefined,
       image: undefined,
       color: undefined,
+      planningEnabled: false,
+      checklistAssigned: true,
     });
   });
 
@@ -206,5 +216,36 @@ describe('project view model', () => {
     const payload = vi.mocked(updateProjectRequest).mock.calls[0]?.[1];
     expect(payload).not.toHaveProperty('clientId');
     expect(payload).toMatchObject({ name: 'Updated project' });
+  });
+
+  it('sends a selected checklist template only through project creation', async () => {
+    vi.mocked(createProject).mockResolvedValue({
+      id: 'project-1',
+      name: 'Project One',
+      code: 'P-001',
+      type: 'client',
+      status: 'active',
+      clientId: 'client-1',
+      client: null,
+    });
+    vi.mocked(updateProjectRequest).mockResolvedValue({
+      id: 'project-1',
+      name: 'Project One',
+      code: 'P-001',
+      type: 'client',
+      status: 'active',
+      clientId: 'client-1',
+      client: null,
+    });
+
+    await addProject({ ...values, checklistTemplateId: 'template-1' });
+    await updateProject('project-1', { name: 'Project One' });
+
+    expect(createProject).toHaveBeenCalledWith(expect.objectContaining({
+      checklistTemplateId: 'template-1',
+    }));
+    const updatePayload = vi.mocked(updateProjectRequest).mock.calls[0]?.[1];
+    expect(updatePayload).not.toHaveProperty('checklistTemplateId');
+    expect(updatePayload).not.toHaveProperty('planningEnabled');
   });
 });

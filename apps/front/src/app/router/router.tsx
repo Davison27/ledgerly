@@ -62,7 +62,8 @@ type HomeRoute =
   | '/documents'
   | '/suppliers'
   | '/equipment'
-  | '/staff';
+  | '/staff'
+  | '/planning';
 
 function getHomeRoute(
   canAccess: (module: WorkspaceModuleDto, level: 'view') => boolean,
@@ -74,6 +75,7 @@ function getHomeRoute(
   if (canAccess('suppliers', 'view')) return '/suppliers';
   if (canAccess('equipment', 'view')) return '/equipment';
   if (canAccess('staff', 'view')) return '/staff';
+  if (canAccess('planning', 'view')) return '/planning';
   return null;
 }
 
@@ -140,6 +142,7 @@ function AdminAccessGuard({ children }: { children: ReactNode }) {
 
 export const projectSectionModules: Record<ProjectDetailSection, readonly WorkspaceModuleDto[]> = {
   documents: ['projects', 'documents'],
+  checklist: ['projects', 'planning'],
   equipment: ['projects', 'equipment'],
   dashboard: ['projects', 'dashboard'],
   schedule: ['projects', 'calendar'],
@@ -148,6 +151,7 @@ export const projectSectionModules: Record<ProjectDetailSection, readonly Worksp
 
 const projectSectionOrder: readonly ProjectDetailSection[] = [
   'documents',
+  'checklist',
   'equipment',
   'dashboard',
   'schedule',
@@ -279,6 +283,7 @@ const EquipmentPage = withRouteFallback(lazy(() => import('@/pages/equipment').t
 const StaffPage = withRouteFallback(lazy(() => import('@/pages/staff').then(({ StaffPage }) => ({ default: StaffPage }))));
 const StaffMemberDetailPage = withRouteFallback(lazy(() => import('@/pages/staff-detail').then(({ StaffMemberDetailPage }) => ({ default: StaffMemberDetailPage }))));
 const WorkspacePage = withRouteFallback(lazy(() => import('@/pages/workspace').then(({ WorkspacePage }) => ({ default: WorkspacePage }))));
+const PlanningPage = withRouteFallback(lazy(() => import('@/pages/planning').then(({ PlanningPage }) => ({ default: PlanningPage }))));
 const ChangelogPage = withRouteFallback(lazy(() => import('@/pages/changelog').then(({ ChangelogPage }) => ({ default: ChangelogPage }))));
 
 const rootRoute = createRootRoute({ component: RootLayout });
@@ -345,6 +350,7 @@ const projectDetailRoute = createRoute({
   path: '/projects/$projectId',
   validateSearch: (search: Record<string, unknown>): { section?: ProjectDetailSection } => ({
     section:
+      search.section === 'checklist' ||
       search.section === 'equipment' ||
       search.section === 'dashboard' ||
       search.section === 'schedule' ||
@@ -421,6 +427,12 @@ const workspaceRoute = createRoute({
   component: () => <AdminAccessGuard><WorkspacePage /></AdminAccessGuard>,
 });
 
+const planningRoute = createRoute({
+  getParentRoute: () => appLayoutRoute,
+  path: '/planning',
+  component: () => <SectionAccessGuard modules={['planning']}><PlanningPage /></SectionAccessGuard>,
+});
+
 const changelogRoute = createRoute({
   getParentRoute: () => appLayoutRoute,
   path: '/changelog',
@@ -444,6 +456,7 @@ const routeTree = rootRoute.addChildren([
     staffRoute,
     staffMemberDetailRoute,
     workspaceRoute,
+    planningRoute,
     changelogRoute,
   ]),
 ]);

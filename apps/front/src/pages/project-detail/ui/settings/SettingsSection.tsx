@@ -1,12 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { App, Button, Flex, Form, Skeleton, Typography } from 'antd';
+import { Alert, App, Button, Divider, Flex, Form, Select, Skeleton, Switch, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useTranslation } from 'react-i18next';
 import type { ProjectSectionProps } from '../../model/types';
 import { clientQueries, parentClientError } from '@/entities/client';
 import { documentQueries } from '@/entities/document';
-import { projectQueries, updateProject, type ProjectFormValues } from '@/entities/project';
+import {
+  projectQueries,
+  updateProject,
+  updateProjectPlanning,
+  type ProjectFormValues,
+} from '@/entities/project';
+import { projectChecklistQueries } from '@/entities/project-checklist';
 import { ApiError } from '@/shared/api/httpClient';
 import { useWorkspaceAccess } from '@/entities/workspace-member';
 import { PageContainer } from '@/shared/ui/PageContainer';
@@ -27,12 +33,33 @@ export function SettingsSection({ project }: ProjectSectionProps) {
   const [form] = Form.useForm<ProjectFormFieldValues>();
   const [image, setImage] = useState<string | null | undefined>(undefined);
   const [saving, setSaving] = useState(false);
+  const [planningSaving, setPlanningSaving] = useState(false);
+  const [firstActivationRequested, setFirstActivationRequested] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>();
   const { canAccess } = useWorkspaceAccess();
   const canEdit = canAccess('projects', 'edit');
+  const canViewPlanning = canAccess('planning', 'view');
+  const canEditPlanning = canEdit && canAccess('planning', 'edit');
 
   const { data: fullProject, isPending: loading, isError } = useQuery(
     projectQueries.detail(project.id),
   );
+  const {
+    isError: checklistError,
+  } = useQuery({
+    ...projectChecklistQueries.project(project.id),
+    enabled: canViewPlanning && Boolean(fullProject?.planningEnabled),
+    retry: false,
+  });
+  const checklistAssigned = Boolean(fullProject?.checklistAssigned);
+  const {
+    data: templates = [],
+    isPending: templatesPending,
+    isError: templatesError,
+  } = useQuery({
+    ...projectChecklistQueries.templates(),
+    enabled: canEditPlanning && canViewPlanning && firstActivationRequested && !checklistAssigned,
+  });
 
   useEffect(() => {
     if (isError) {
@@ -113,6 +140,47 @@ export function SettingsSection({ project }: ProjectSectionProps) {
     }
   };
 
+  const refreshPlanningViews = async (planningEnabled: boolean) => {
+    const invalidations = [
+      queryClient.invalidateQueries({ queryKey: projectQueries.all }),
+      queryClient.invalidateQueries({ queryKey: projectQueries.detail(project.id).queryKey }),
+    ];
+    if (planningEnabled) {
+      invalidations.push(
+        queryClient.invalidateQueries({ queryKey: projectChecklistQueries.project(project.id).queryKey }),
+      );
+    }
+    await Promise.all(invalidations);
+  };
+
+  const savePlanning = async (planningEnabled: boolean, checklistTemplateId?: string) => {
+    setPlanningSaving(true);
+    try {
+      await updateProjectPlanning(project.id, {
+        planningEnabled,
+        ...(checklistTemplateId ? { checklistTemplateId } : {}),
+      });
+      await refreshPlanningViews(planningEnabled);
+      setFirstActivationRequested(false);
+      setSelectedTemplateId(undefined);
+      void message.success(t(planningEnabled ? 'projects.planning.settingsEnabled' : 'projects.planning.settingsDisabled'));
+    } catch {
+      void message.error(t('projects.planning.settingsSaveError'));
+    } finally {
+      setPlanningSaving(false);
+    }
+  };
+
+  const handlePlanningToggle = (enabled: boolean) => {
+    if (!canEditPlanning || planningSaving) return;
+    if (checklistAssigned) {
+      void savePlanning(enabled);
+      return;
+    }
+    setFirstActivationRequested(enabled);
+    if (!enabled) setSelectedTemplateId(undefined);
+  };
+
   if (loading || !fullProject) {
     return (
       <PageContainer>
@@ -138,6 +206,51 @@ export function SettingsSection({ project }: ProjectSectionProps) {
           currentClient={fullProject.client ?? null}
         />
       </Form>
+      {canViewPlanning && (
+        <section aria-labelledby="project-planning-heading">
+          <Divider />
+          <Title level={5} id="project-planning-heading">{t('projects.planning.title')}</Title>
+          {fullProject.planningEnabled && checklistError && (
+            <Alert type="error" showIcon title={t('projects.planning.loadError')} />
+          )}
+          <Flex vertical gap={12}>
+            <Flex align="center" justify="space-between">
+              <Typography.Text>{t('projects.planning.enable')}</Typography.Text>
+              <Switch
+                aria-label={t('projects.planning.enable')}
+                checked={Boolean(fullProject.planningEnabled) || (!checklistAssigned && firstActivationRequested)}
+                disabled={!canEditPlanning || planningSaving}
+                loading={planningSaving}
+                onChange={handlePlanningToggle}
+              />
+            </Flex>
+            {!checklistAssigned && firstActivationRequested && canEditPlanning && (
+              <Flex vertical gap={8}>
+                <Select
+                  aria-label={t('projects.planning.template')}
+                  value={selectedTemplateId}
+                  onChange={setSelectedTemplateId}
+                  loading={templatesPending}
+                  optionFilterProp="label"
+                  notFoundContent={t('projects.planning.templatesEmpty')}
+                  options={templates.map((template) => ({ value: template.id, label: template.name }))}
+                />
+                {templatesError && (
+                  <Typography.Text type="danger">{t('projects.planning.templatesLoadError')}</Typography.Text>
+                )}
+                <Button
+                  type="primary"
+                  loading={planningSaving}
+                  disabled={!selectedTemplateId || templatesPending || templatesError}
+                  onClick={() => void savePlanning(true, selectedTemplateId)}
+                >
+                  {t('projects.planning.savePlanning')}
+                </Button>
+              </Flex>
+            )}
+          </Flex>
+        </section>
+      )}
     </PageContainer>
   );
 }

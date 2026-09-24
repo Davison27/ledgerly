@@ -1,9 +1,39 @@
 import { useNavigate, useSearch } from '@tanstack/react-router';
 
-export type ProjectDetailSection = 'documents' | 'equipment' | 'dashboard' | 'schedule' | 'settings';
+export type ProjectDetailSection =
+  | 'documents'
+  | 'checklist'
+  | 'equipment'
+  | 'dashboard'
+  | 'schedule'
+  | 'settings';
+
+export interface ProjectDetailSectionAccess {
+  projects: boolean;
+  documents: boolean;
+  equipment: boolean;
+  dashboard: boolean;
+  calendar: boolean;
+  planning: boolean;
+}
+
+export function getAllowedProjectDetailSections(
+  access: ProjectDetailSectionAccess,
+  planningEnabled: boolean,
+): ProjectDetailSection[] {
+  return [
+    ...(access.projects && access.documents ? ['documents' as const] : []),
+    ...(access.projects && planningEnabled && access.planning ? ['checklist' as const] : []),
+    ...(access.projects && access.equipment ? ['equipment' as const] : []),
+    ...(access.projects && access.dashboard ? ['dashboard' as const] : []),
+    ...(access.projects && access.calendar ? ['schedule' as const] : []),
+    ...(access.projects ? ['settings' as const] : []),
+  ];
+}
 
 const PROJECT_DETAIL_SECTIONS: readonly ProjectDetailSection[] = [
   'documents',
+  'checklist',
   'equipment',
   'dashboard',
   'schedule',
