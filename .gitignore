@@ -37,12 +37,16 @@ coverage/
 !.claude/skills/arquitectura-frontend/**
 !.claude/skills/arquitectura-hexagonal/
 !.claude/skills/arquitectura-hexagonal/**
+!.claude/skills/codegraph/
+!.claude/skills/codegraph/**
 .claude/settings.local.json
 .agents/*
 !.agents/skills/
 .agents/skills/*
 !.agents/skills/arquitectura-hexagonal
 !.agents/skills/arquitectura-frontend
+!.agents/skills/codegraph
+!.agents/skills/codegraph/**
 
 # Editor / OS
 .DS_Store

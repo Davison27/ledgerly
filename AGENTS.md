@@ -35,6 +35,23 @@ relays questions and results. Continue an existing subagent by ID instead of
 starting an equivalent cold agent. Escalate real blockers with concrete
 options, and summarize subagent reports before presenting them to David.
 
+## CodeGraph context workflow
+
+For indexed source code, query CodeGraph before searching or opening files.
+Prefer the `codegraph_explore` MCP tool; use `codegraph explore` or
+`codegraph context` when MCP is unavailable. Treat returned source as already
+read. Read files directly for unindexed material such as plans, docs, and
+configuration, or to resolve a specific gap or stale result. Check freshness
+with `codegraph status`; use `codegraph sync` for incremental refresh when
+needed and reserve full indexing for repair.
+
+Every implementation unit must include a `CodeGraph handoff` with exact paths
+and symbols, relevant behavior and contracts, flow and callers, affected tests,
+and known gaps or stale-source caveats. The orchestrator copies the unit and
+its handoff into each delegated task. Validators, implementers, and QA start
+from that handoff and make focused CodeGraph follow-ups only to resolve real
+gaps. CodeGraph does not replace build, test, typecheck, or lint verification.
+
 Use `$arquitectura-hexagonal` before work in `apps/back` and
 `$arquitectura-frontend` before work in `apps/front`.
 

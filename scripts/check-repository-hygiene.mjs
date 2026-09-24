@@ -39,6 +39,8 @@ const allowedSharedSkills = new Set([
   '.agents/skills/arquitectura-hexagonal',
   '.claude/skills/arquitectura-frontend/SKILL.md',
   '.claude/skills/arquitectura-hexagonal/SKILL.md',
+  '.agents/skills/codegraph/SKILL.md',
+  '.claude/skills/codegraph/SKILL.md',
 ]);
 
 const forbiddenRepositoryFiles = existingRepositoryFiles.filter((file) => {
