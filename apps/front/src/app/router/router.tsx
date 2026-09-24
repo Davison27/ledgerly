@@ -1,6 +1,7 @@
-import { lazy, Suspense, useEffect, useState, type ComponentType, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType, type ReactNode } from 'react';
 import { createRootRoute, createRoute, createRouter, Link, Navigate, useParams, useSearch } from '@tanstack/react-router';
 import { Flex, Result, Spin } from 'antd';
+import { useIsFetching } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 
 import { AppShell } from './AppShell';
@@ -22,21 +23,8 @@ interface LoginSearch {
 
 const ROUTE_FALLBACK_DELAY_MS = 120;
 
-export function RouteFallback() {
+function RouteLoadingIndicator() {
   const { t } = useTranslation();
-  const [isVisible, setIsVisible] = useState(false);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setIsVisible(true);
-    }, ROUTE_FALLBACK_DELAY_MS);
-
-    return () => {
-      window.clearTimeout(timeout);
-    };
-  }, []);
-
-  if (!isVisible) return null;
 
   return (
     <Flex className={styles.fallback} align="center" justify="center">
@@ -46,6 +34,25 @@ export function RouteFallback() {
       </Flex>
     </Flex>
   );
+}
+
+export function RouteFallback({ onVisible }: { onVisible?: () => void } = {}) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsVisible(true);
+      onVisible?.();
+    }, ROUTE_FALLBACK_DELAY_MS);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [onVisible]);
+
+  if (!isVisible) return null;
+
+  return <RouteLoadingIndicator />;
 }
 
 type HomeRoute =
@@ -210,11 +217,51 @@ function StaffDetailAccessGuard() {
   );
 }
 
+function RouteContent({
+  Component,
+  onMounted,
+}: {
+  Component: ComponentType;
+  onMounted: () => void;
+}) {
+  useEffect(() => {
+    onMounted();
+  }, [onMounted]);
+
+  return <Component />;
+}
+
 function withRouteFallback(Component: ComponentType) {
   return function LazyRoute() {
+    const pendingInitialQueries = useIsFetching({
+      predicate: (query) => query.state.data === undefined && query.state.fetchStatus === 'fetching',
+    });
+    const [loaderShown, setLoaderShown] = useState(false);
+    const [contentMounted, setContentMounted] = useState(false);
+    const [contentReady, setContentReady] = useState(false);
+    const markLoaderShown = useCallback(() => setLoaderShown(true), []);
+    const markContentMounted = useCallback(() => setContentMounted(true), []);
+
+    useEffect(() => {
+      if (!loaderShown || !contentMounted || contentReady || pendingInitialQueries > 0) return;
+
+      const timeout = window.setTimeout(() => {
+        setContentReady(true);
+      }, ROUTE_FALLBACK_DELAY_MS);
+
+      return () => {
+        window.clearTimeout(timeout);
+      };
+    }, [contentMounted, contentReady, loaderShown, pendingInitialQueries]);
+
+    const keepLoader = loaderShown && !contentReady;
+
     return (
-      <Suspense fallback={<RouteFallback />}>
-        <Component />
+      <Suspense fallback={<RouteFallback onVisible={markLoaderShown} />}>
+        <div hidden={keepLoader}>
+          <RouteContent Component={Component} onMounted={markContentMounted} />
+        </div>
+        {keepLoader && <RouteLoadingIndicator />}
       </Suspense>
     );
   };
