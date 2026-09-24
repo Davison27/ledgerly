@@ -2427,6 +2427,14 @@
       "security": "Security"
     },
     "releases": {
+      "v1_4_0": {
+        "entries": {
+          "project-planning-checklists": {
+            "title": "Project planning checklists",
+            "description": "Create reusable checklist templates, enable Planning when creating or configuring a project, customize its independent checklist, and track completion with section permissions."
+          }
+        }
+      },
       "v1_3_0": {
         "entries": {
           "calendar-schedule-editing": {

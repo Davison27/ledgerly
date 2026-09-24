@@ -2,6 +2,14 @@
 
 Review the complete Ledgerly release history.
 
+## 1.4.0 — 2026-09-24
+
+Released on: 2026-09-24
+
+### Added
+
+- **Project planning checklists** — Create reusable checklist templates, enable Planning when creating or configuring a project, customize its independent checklist, and track completion with section permissions.
+
 ## 1.3.0 — 2026-09-23
 
 Released on: 2026-09-23

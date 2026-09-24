@@ -2431,6 +2431,14 @@
       "security": "Seguridad"
     },
     "releases": {
+      "v1_4_0": {
+        "entries": {
+          "project-planning-checklists": {
+            "title": "Checklists de planificación de proyectos",
+            "description": "Crea plantillas reutilizables, activa Planificación al crear o configurar un proyecto, adapta su checklist independiente y consulta el progreso según los permisos de la sección."
+          }
+        }
+      },
       "v1_3_0": {
         "entries": {
           "calendar-schedule-editing": {

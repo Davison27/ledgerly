@@ -94,10 +94,11 @@ test('requires one-to-one localized entry coverage', () => {
 
 test('prepares one incomplete next release and refuses to overwrite it', () => {
   const paths = createRepositoryCopy();
-  assert.equal(prepareRelease({ root: paths.root, bump: 'patch', date: '2026-10-01' }), '1.1.1');
-  assert.equal(readJson(paths.packageManifest).version, '1.1.1');
-  assert.equal(readJson(paths.frontManifest).version, '1.1.1');
-  assert.equal(readJson(paths.backManifest).version, '1.1.1');
+  const nextVersion = calculateNextVersion(readJson(paths.packageManifest).version, 'patch');
+  assert.equal(prepareRelease({ root: paths.root, bump: 'patch', date: '2026-10-01' }), nextVersion);
+  assert.equal(readJson(paths.packageManifest).version, nextVersion);
+  assert.equal(readJson(paths.frontManifest).version, nextVersion);
+  assert.equal(readJson(paths.backManifest).version, nextVersion);
   assert.deepEqual(readJson(paths.registry).releases[0].entries, []);
   assert.throws(
     () => prepareRelease({ root: paths.root, bump: 'patch', date: '2026-10-02' }),
