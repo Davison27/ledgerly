@@ -91,6 +91,23 @@ export function normaliseAnyDate(raw: string | null | undefined): string | null 
   return normaliseCompactDate(raw) ?? normaliseDate(raw);
 }
 
+const PLAUSIBLE_ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export function isPlausibleInvoiceDate(iso: string): boolean {
+  const match = PLAUSIBLE_ISO_DATE.exec(iso);
+  if (!match) {
+    return false;
+  }
+
+  const [, year, month, day] = match;
+  const yearNum = Number(year);
+  if (yearNum < 2000 || yearNum > 2099) {
+    return false;
+  }
+
+  return isValidCalendarDate(yearNum, Number(month), Number(day));
+}
+
 export function extractSpanishMonthNameDate(text: string): string | null {
   const match = SPANISH_MONTH_NAME_DATE.exec(text);
   if (!match) {
