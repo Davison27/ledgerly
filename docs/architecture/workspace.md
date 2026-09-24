@@ -38,11 +38,15 @@ the matrix. Do not infer administrator status from a full member matrix or
 allow matrix changes to reduce administrator access.
 
 Members have independent `none`, `view`, or `edit` levels for Dashboard,
-Projects, Calendar, Documents, Suppliers, Equipment, and Staff. Dashboard is
-read-only and rejects `edit`. New invitations keep the existing view-only
-matrix by default, which an administrator can change before sending the
-invitation. The migration from the previous role model preserves each
+Projects, Calendar, Documents, Suppliers, Equipment, Staff, and Planning.
+Dashboard is read-only and rejects `edit`. New invitations keep the existing
+view-only matrix by default, which an administrator can change before sending
+the invitation. The migration from the previous role model preserves each
 non-admin member's effective matrix while mapping them to `member`.
+
+Planning is a top-level section for global project checklist templates. Project
+checklists also require the matching Projects grant; see
+`docs/architecture/project-planning.md`.
 
 `none` hides a section and denies its direct route and API operations. `view`
 permits authorized reads without mutations; `edit` permits the section's
