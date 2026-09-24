@@ -17,6 +17,7 @@ import { MalwareDetectedException } from '../../../../shared/domain/errors/malwa
 import { MalwareScannerUnavailableException } from '../../../../shared/domain/errors/malware-scanner-unavailable.exception';
 import { PDF_READER, PdfReadResult } from '../../domain/extraction/pdf-reader.port';
 import { INVOICE_HINT_REPOSITORY } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KNOWN_PARTY_DIRECTORY } from '../../domain/extraction/known-party-directory.port';
 import { DOMAIN_EVENT_PUBLISHER } from '../../../../shared/domain/domain-event-publisher.port';
 import { MemberEmail } from '../../../auth/domain/value-objects/member-email';
 import { PermissionMatrix } from '../../../auth/domain/value-objects/permission-matrix';
@@ -103,7 +104,14 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
         { provide: CheckDocumentDuplicateUseCase, useValue: { execute: duplicateCheckExecute } },
         ExtractInvoiceUseCase,
         { provide: PDF_READER, useValue: { read: readExecute } },
-        { provide: INVOICE_HINT_REPOSITORY, useValue: { findByIssuer: () => Promise.resolve([]) } },
+        {
+          provide: INVOICE_HINT_REPOSITORY,
+          useValue: { findByIssuer: () => Promise.resolve([]), findByIssuerTaxId: () => Promise.resolve([]) },
+        },
+        {
+          provide: KNOWN_PARTY_DIRECTORY,
+          useValue: { findCompanyTaxId: () => Promise.resolve(null), findActiveSupplierByTaxId: () => Promise.resolve(null) },
+        },
         { provide: DOMAIN_EVENT_PUBLISHER, useValue: { publish: () => Promise.resolve(), register: () => {} } },
         { provide: MALWARE_SCANNER, useValue: { scan: scanExecute } },
       ],

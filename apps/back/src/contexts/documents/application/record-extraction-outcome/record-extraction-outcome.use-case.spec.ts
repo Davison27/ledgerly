@@ -2,6 +2,7 @@ import { RecordExtractionOutcomeUseCase } from './record-extraction-outcome.use-
 import { PdfReader, PdfReadResult } from '../../domain/extraction/pdf-reader.port';
 import { InvoiceHint } from '../../domain/extraction/hints/invoice-hint';
 import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
 import {
   ExtractionOutcomeRepository,
 } from '../../domain/extraction/quality/extraction-outcome.repository';
@@ -25,6 +26,10 @@ class InMemoryHintRepository implements InvoiceHintRepository {
 
   findByIssuer(issuerName: string): Promise<InvoiceHint[]> {
     return Promise.resolve(this.hints.filter((hint) => hint.issuerName === issuerName));
+  }
+
+  findByIssuerTaxId(issuerTaxId: string): Promise<InvoiceHint[]> {
+    return Promise.resolve(this.hints.filter((hint) => hint.issuerTaxId === issuerTaxId));
   }
 
   findAll(): Promise<InvoiceHint[]> {
@@ -53,6 +58,11 @@ class InMemoryOutcomeRepository implements ExtractionOutcomeRepository {
   }
 }
 
+class NullPartyDirectory implements KnownPartyDirectory {
+  findCompanyTaxId = () => Promise.resolve(null);
+  findActiveSupplierByTaxId = () => Promise.resolve(null);
+}
+
 describe('RecordExtractionOutcomeUseCase', () => {
   it('records a high-confidence structured (Facturae) outcome and counts fields the user corrected', async () => {
     const pdfReader = new FakePdfReader({
@@ -61,7 +71,7 @@ describe('RecordExtractionOutcomeUseCase', () => {
     });
     const hintRepository = new InMemoryHintRepository();
     const outcomeRepository = new InMemoryOutcomeRepository();
-    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository);
+    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -86,7 +96,7 @@ describe('RecordExtractionOutcomeUseCase', () => {
     const pdfReader = new FakePdfReader({ text, attachments: [] });
     const hintRepository = new InMemoryHintRepository();
     const outcomeRepository = new InMemoryOutcomeRepository();
-    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository);
+    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -118,7 +128,7 @@ describe('RecordExtractionOutcomeUseCase', () => {
       },
     ]);
     const outcomeRepository = new InMemoryOutcomeRepository();
-    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository);
+    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -132,7 +142,7 @@ describe('RecordExtractionOutcomeUseCase', () => {
     const pdfReader = new FakePdfReader({ text: '   \n  ', attachments: [] });
     const hintRepository = new InMemoryHintRepository();
     const outcomeRepository = new InMemoryOutcomeRepository();
-    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository);
+    const useCase = new RecordExtractionOutcomeUseCase(pdfReader, hintRepository, outcomeRepository, new NullPartyDirectory());
 
     await useCase.execute({ fileBuffer: Buffer.from('fake-pdf'), submitted: { issuerName: 'Mi Empresa SL' } });
 

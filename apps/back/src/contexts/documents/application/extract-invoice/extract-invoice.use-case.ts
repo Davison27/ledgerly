@@ -4,6 +4,7 @@ import { InvoiceFields } from '../../domain/extraction/invoice-fields';
 import { tryParseStructuredInvoice } from '../../domain/extraction/structured-invoice';
 import { extractHeuristicInvoice } from '../../domain/extraction/heuristic-invoice';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KNOWN_PARTY_DIRECTORY, KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
 import {
   DOMAIN_EVENT_PUBLISHER,
@@ -48,6 +49,7 @@ export class ExtractInvoiceUseCase {
     @Inject(PDF_READER) private readonly pdfReader: PdfReader,
     @Inject(INVOICE_HINT_REPOSITORY) private readonly hintRepository: InvoiceHintRepository,
     @Inject(DOMAIN_EVENT_PUBLISHER) private readonly eventPublisher: DomainEventPublisher,
+    @Inject(KNOWN_PARTY_DIRECTORY) private readonly knownPartyDirectory: KnownPartyDirectory,
   ) {}
 
   async execute(command: ExtractInvoiceCommand): Promise<ExtractedInvoiceResult> {
@@ -67,7 +69,11 @@ export class ExtractInvoiceUseCase {
       throw new PdfNoTextLayerException();
     }
 
-    const { fields, warnings, confidence } = await extractHeuristicInvoice(readResult, this.hintRepository);
+    const { fields, warnings, confidence } = await extractHeuristicInvoice(
+      readResult,
+      this.hintRepository,
+      this.knownPartyDirectory,
+    );
 
     return buildResult('heuristic', confidence, fields, warnings);
   }

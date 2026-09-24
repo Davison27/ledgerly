@@ -5,6 +5,7 @@ import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.e
 import { FACTURAE_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturae-sample.xml';
 import { FACTURX_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturx-sample.xml';
 import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
 import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 import { InvoiceExtractionFailedEvent } from '../../domain/events/invoice-extraction-failed.event';
@@ -19,9 +20,15 @@ class FakePdfReader implements PdfReader {
 
 class NoHintsRepository implements InvoiceHintRepository {
   findByIssuer = () => Promise.resolve([]);
+  findByIssuerTaxId = () => Promise.resolve([]);
   findAll = () => Promise.resolve([]);
   upsert = () => Promise.resolve();
   delete = () => Promise.resolve(false);
+}
+
+class NullPartyDirectory implements KnownPartyDirectory {
+  findCompanyTaxId = () => Promise.resolve(null);
+  findActiveSupplierByTaxId = () => Promise.resolve(null);
 }
 
 class FakeDomainEventPublisher implements DomainEventPublisher {
@@ -48,6 +55,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new NoHintsRepository(),
       new FakeDomainEventPublisher(),
+      new NullPartyDirectory(),
     );
 
     const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
@@ -70,6 +78,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new NoHintsRepository(),
       new FakeDomainEventPublisher(),
+      new NullPartyDirectory(),
     );
 
     const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
@@ -88,6 +97,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new NoHintsRepository(),
       new FakeDomainEventPublisher(),
+      new NullPartyDirectory(),
     );
 
     const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
@@ -106,6 +116,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new NoHintsRepository(),
       new FakeDomainEventPublisher(),
+      new NullPartyDirectory(),
     );
 
     const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
@@ -123,6 +134,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new NoHintsRepository(),
       publisher,
+      new NullPartyDirectory(),
     );
 
     await expect(
@@ -143,6 +155,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new NoHintsRepository(),
       new FakeDomainEventPublisher(),
+      new NullPartyDirectory(),
     );
 
     const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));
@@ -169,6 +182,7 @@ describe('ExtractInvoiceUseCase', () => {
               ]
             : [],
         );
+      findByIssuerTaxId = () => Promise.resolve([]);
       findAll = () => Promise.resolve([]);
       upsert = () => Promise.resolve();
       delete = () => Promise.resolve(false);
@@ -181,6 +195,7 @@ describe('ExtractInvoiceUseCase', () => {
       }),
       new SingleHintRepository(),
       new FakeDomainEventPublisher(),
+      new NullPartyDirectory(),
     );
 
     const result = await useCase.execute(buildCommand(Buffer.from('fake-pdf')));

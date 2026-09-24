@@ -19,6 +19,7 @@ import { RecordExtractionFeedbackUseCase } from '../../application/record-extrac
 import { RecordExtractionOutcomeUseCase } from '../../application/record-extraction-outcome/record-extraction-outcome.use-case';
 import { PDF_READER, PdfReadResult, PdfReader } from '../../domain/extraction/pdf-reader.port';
 import { INVOICE_HINT_REPOSITORY } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KNOWN_PARTY_DIRECTORY } from '../../domain/extraction/known-party-directory.port';
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 import { DOMAIN_EVENT_PUBLISHER } from '../../../../shared/domain/domain-event-publisher.port';
@@ -55,7 +56,14 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
         { provide: ConfigService, useValue: new ConfigService() },
         ExtractInvoiceUseCase,
         { provide: PDF_READER, useClass: PdfjsPdfReader },
-        { provide: INVOICE_HINT_REPOSITORY, useValue: { findByIssuer: () => Promise.resolve([]) } },
+        {
+          provide: INVOICE_HINT_REPOSITORY,
+          useValue: { findByIssuer: () => Promise.resolve([]), findByIssuerTaxId: () => Promise.resolve([]) },
+        },
+        {
+          provide: KNOWN_PARTY_DIRECTORY,
+          useValue: { findCompanyTaxId: () => Promise.resolve(null), findActiveSupplierByTaxId: () => Promise.resolve(null) },
+        },
         { provide: DOMAIN_EVENT_PUBLISHER, useValue: { publish: () => Promise.resolve(), register: () => {} } },
         { provide: MALWARE_SCANNER, useValue: { scan: scanExecute } },
       ],

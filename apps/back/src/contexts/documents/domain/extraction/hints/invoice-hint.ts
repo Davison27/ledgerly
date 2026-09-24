@@ -17,6 +17,7 @@ export type HintAnchorKind = 'inline' | 'preceding-line';
 export interface InvoiceHint {
   id: string;
   issuerName: string;
+  issuerTaxId?: string | null;
   field: LearnableField;
   anchorKind: HintAnchorKind;
   anchorLabel: string;

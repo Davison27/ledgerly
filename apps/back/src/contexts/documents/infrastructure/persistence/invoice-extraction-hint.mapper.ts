@@ -6,6 +6,7 @@ export class InvoiceExtractionHintMapper {
     return {
       id: orm.id,
       issuerName: orm.issuerName,
+      issuerTaxId: orm.issuerTaxId,
       field: orm.field as LearnableField,
       anchorKind: orm.anchorKind as HintAnchorKind,
       anchorLabel: orm.anchorLabel,

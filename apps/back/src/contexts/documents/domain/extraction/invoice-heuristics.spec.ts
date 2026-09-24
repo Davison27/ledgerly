@@ -141,4 +141,92 @@ describe('extractInvoiceHeuristics', () => {
     expect(fields.irpfRate).toBeUndefined();
     expect(fields.irpfAmount).toBeUndefined();
   });
+
+  it('drops a due date that is earlier than the invoice date', () => {
+    const text = [
+      'Suministros Industriales del Norte SL',
+      'CIF: B12345678',
+      'Fecha: 15/03/2026',
+      'Fecha de vencimiento: 01/01/2020',
+      'TOTAL: 100,00 EUR',
+    ].join('\n');
+
+    const { fields } = extractInvoiceHeuristics(text);
+
+    expect(fields.date).toBe('2026-03-15');
+    expect(fields.dueDate).toBeUndefined();
+  });
+
+  it('sums base and VAT across two rates, leaves taxRate empty, and warns about multiple rates', () => {
+    const text = [
+      'Panaderia y Pasteleria El Horno SL',
+      'CIF: B12345678',
+      'Factura numero de factura: FA-1',
+      'Fecha: 12/08/2026',
+      'Base imponible 10%: 500,00 EUR',
+      'IVA 10%: 50,00 EUR',
+      'Base imponible 21%: 1.000,00 EUR',
+      'IVA 21%: 210,00 EUR',
+      'TOTAL: 1.760,00 EUR',
+    ].join('\n');
+
+    const { fields, warnings } = extractInvoiceHeuristics(text);
+
+    expect(fields.taxBase).toBe(1500);
+    expect(fields.taxAmount).toBe(260);
+    expect(fields.taxRate).toBeUndefined();
+    expect(fields.amount).toBe(1760);
+    expect(warnings).toContain('multiple_tax_rates');
+  });
+
+  it('keeps the labelled total and warns when the amounts do not reconcile', () => {
+    const text = [
+      'Suministros Industriales del Norte SL',
+      'CIF: B12345678',
+      'BASE IMPONIBLE: 1.000,00 EUR',
+      'IVA 21%: 210,00 EUR',
+      'TOTAL: 9.999,00 EUR',
+    ].join('\n');
+
+    const { fields, warnings } = extractInvoiceHeuristics(text);
+
+    expect(fields.amount).toBe(9999);
+    expect(fields.taxBase).toBe(1000);
+    expect(fields.taxAmount).toBe(210);
+    expect(warnings).toContain('amounts_inconsistent');
+  });
+
+  it('excludes the company own tax id from the issuer candidates, even when it sits inside the client block', () => {
+    const text = [
+      'Suministros y Materiales del Ebro SL',
+      'CIF: B64738297',
+      'FACTURA',
+      'Numero de factura: FA-2026-0700',
+      'Fecha: 22/09/2026',
+      'Cliente: Ledgerly ERP SL',
+      'CIF cliente: A99988875',
+      'BASE IMPONIBLE: 400,00 EUR',
+      'IVA 21%: 84,00 EUR',
+      'TOTAL: 484,00 EUR',
+    ].join('\n');
+
+    const { fields } = extractInvoiceHeuristics(text, { excludedTaxIds: ['A99988875'] });
+
+    expect(fields.issuerTaxId).toBe('B64738297');
+    expect(fields.issuerName).toBe('Suministros y Materiales del Ebro SL');
+  });
+
+  it('never picks the excluded tax id as the issuer, nor a name from the same block', () => {
+    const text = [
+      'Ledgerly ERP SL',
+      'CIF: A99988875',
+      'Proveedor real: Suministros del Ebro SL',
+      'CIF proveedor: B64738297',
+      'TOTAL: 100,00 EUR',
+    ].join('\n');
+
+    const { fields } = extractInvoiceHeuristics(text, { excludedTaxIds: ['A99988875'] });
+
+    expect(fields.issuerTaxId).toBe('B64738297');
+  });
 });

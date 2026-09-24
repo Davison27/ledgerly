@@ -45,10 +45,10 @@ describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () =>
     expect(fields.taxRate).toBe(21);
     expect(fields.taxBase).toBe(500);
     expect(fields.taxAmount).toBeCloseTo(105);
-    expect(fields.amount).toBeUndefined();
+    expect(fields.amount).toBe(605);
     expect(fields.issuerTaxId).toBe('F00000002');
 
-    expect(warnings).toContain('missing_total_amount');
+    expect(warnings).not.toContain('missing_total_amount');
     expect(warnings).not.toContain('missing_invoice_date');
   });
 
@@ -92,7 +92,7 @@ describe('extractInvoiceHeuristics (column-separated / reversed layouts)', () =>
     expect(fields.issuerTaxId).toBe('00000000T');
 
     expect(fields.irpfRate).toBe(15);
-    expect(fields.irpfAmount).toBeUndefined();
+    expect(fields.irpfAmount).toBe(150);
 
     expect(warnings).toContain('missing_total_amount');
   });

@@ -17,6 +17,10 @@ class InMemoryInvoiceHintRepository implements InvoiceHintRepository {
     return Promise.resolve(this.hints.filter((hint) => hint.issuerName === issuerName));
   }
 
+  findByIssuerTaxId(issuerTaxId: string): Promise<InvoiceHint[]> {
+    return Promise.resolve(this.hints.filter((hint) => hint.issuerTaxId === issuerTaxId));
+  }
+
   findAll(): Promise<InvoiceHint[]> {
     this.findAllCalls += 1;
     return Promise.resolve([...this.hints]);

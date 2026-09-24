@@ -23,6 +23,12 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
     return orms.map((orm) => InvoiceExtractionHintMapper.toDomain(orm));
   }
 
+  async findByIssuerTaxId(issuerTaxId: string): Promise<InvoiceHint[]> {
+    const orms = await this.repository.find({ where: { issuerTaxId } });
+
+    return orms.map((orm) => InvoiceExtractionHintMapper.toDomain(orm));
+  }
+
   async findAll(): Promise<InvoiceHint[]> {
     const limit = getListLimit('MAX_LIST_ITEMS', 500);
     const orms = await this.repository.find({
@@ -52,9 +58,13 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
   }
 
   async upsert(hint: NewInvoiceHint): Promise<void> {
-    const existing = await this.repository.findOne({
-      where: { issuerName: hint.issuerName, field: hint.field },
-    });
+    const issuerTaxId = hint.issuerTaxId ?? null;
+
+    const existing =
+      (issuerTaxId
+        ? await this.repository.findOne({ where: { issuerTaxId, field: hint.field } })
+        : null) ??
+      (await this.repository.findOne({ where: { issuerName: hint.issuerName, field: hint.field } }));
 
     const now = new Date();
 
@@ -64,6 +74,8 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
         existing.anchorLabel === hint.anchorLabel &&
         existing.lineOffset === hint.lineOffset;
 
+      existing.issuerName = hint.issuerName;
+      existing.issuerTaxId = issuerTaxId ?? existing.issuerTaxId;
       existing.anchorKind = hint.anchorKind;
       existing.anchorLabel = hint.anchorLabel;
       existing.lineOffset = hint.lineOffset;
@@ -78,6 +90,7 @@ export class TypeOrmInvoiceHintRepository implements InvoiceHintRepository {
     const orm = new InvoiceExtractionHintOrmEntity();
     orm.id = this.idGenerator.generate();
     orm.issuerName = hint.issuerName;
+    orm.issuerTaxId = issuerTaxId;
     orm.field = hint.field;
     orm.anchorKind = hint.anchorKind;
     orm.anchorLabel = hint.anchorLabel;

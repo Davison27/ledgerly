@@ -4,6 +4,7 @@ import { tryParseStructuredInvoice } from '../../domain/extraction/structured-in
 import { extractHeuristicInvoice } from '../../domain/extraction/heuristic-invoice';
 import { LEARNABLE_FIELDS, LearnableField } from '../../domain/extraction/hints/invoice-hint';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KNOWN_PARTY_DIRECTORY, KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
 import { normaliseTaxId } from '../../domain/extraction/tax-id';
 import { InvoiceFields } from '../../domain/extraction/invoice-fields';
 import {
@@ -51,6 +52,7 @@ export class RecordExtractionOutcomeUseCase {
     @Inject(PDF_READER) private readonly pdfReader: PdfReader,
     @Inject(INVOICE_HINT_REPOSITORY) private readonly hintRepository: InvoiceHintRepository,
     @Inject(EXTRACTION_OUTCOME_REPOSITORY) private readonly outcomeRepository: ExtractionOutcomeRepository,
+    @Inject(KNOWN_PARTY_DIRECTORY) private readonly knownPartyDirectory: KnownPartyDirectory,
   ) {}
 
   async execute(command: RecordExtractionOutcomeCommand): Promise<void> {
@@ -67,8 +69,9 @@ export class RecordExtractionOutcomeUseCase {
       return;
     }
 
-    const { fields: shown, confidence } = await extractHeuristicInvoice(readResult, this.hintRepository, {
+    const { fields: shown, confidence } = await extractHeuristicInvoice(readResult, this.hintRepository, this.knownPartyDirectory, {
       name: command.submitted.issuerName,
+      taxId: command.submitted.issuerTaxId,
     });
 
     await this.record('heuristic', confidence, command.submitted, shown);

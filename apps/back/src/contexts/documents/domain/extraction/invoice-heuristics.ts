@@ -1,4 +1,5 @@
 import { DocumentCurrency } from '../document-currency';
+import { AmountCandidates, IrpfCandidate, VatLineCandidate, reconcileAmounts } from './amount-reconciliation';
 import { InvoiceFields } from './invoice-fields';
 import { extractSpanishMonthNameDate, isPlausibleInvoiceDate, normaliseDate } from './invoice-date';
 import { parseSpanishNumber } from './spanish-number';
@@ -186,16 +187,54 @@ function extractIssuerTaxId(
   const allTaxIds = findAllTaxIdCells(lines);
   if (allTaxIds.length === 0) return undefined;
 
-  const blockedCells = computeClientBlockCells(lines, useDistanceFallback);
   const excluded = new Set(excludedTaxIds.map((taxId) => canonicalSpanishTaxId(taxId)));
+  const knownExclusion = excluded.size > 0;
+  const blockedCells = computeClientBlockCells(lines, useDistanceFallback);
 
   const candidates = allTaxIds.filter(
-    (candidate) => !blockedCells.has(cellKey(candidate.lineIndex, candidate.cellIndex)) && !excluded.has(candidate.value),
+    (candidate) =>
+      !excluded.has(candidate.value) &&
+      (knownExclusion || !blockedCells.has(cellKey(candidate.lineIndex, candidate.cellIndex))),
   );
   if (candidates.length === 0) return undefined;
 
   const chosen = candidates.find((candidate) => candidate.checksumValid) ?? candidates[0];
   return { value: chosen.value, lineIndex: chosen.lineIndex, cellIndex: chosen.cellIndex };
+}
+
+function computeExcludedIdBlockCells(
+  lines: PdfTextLine[],
+  useDistanceFallback: boolean,
+  excludedTaxIds: string[],
+): Set<string> {
+  const blocked = new Set<string>();
+  if (excludedTaxIds.length === 0) return blocked;
+
+  const excluded = new Set(excludedTaxIds.map((taxId) => canonicalSpanishTaxId(taxId)));
+  const anchors = findAllTaxIdCells(lines).filter((candidate) => excluded.has(candidate.value));
+
+  for (const anchor of anchors) {
+    blocked.add(cellKey(anchor.lineIndex, anchor.cellIndex));
+    if (useDistanceFallback) continue;
+
+    const anchorLine = lines[anchor.lineIndex];
+    const anchorCell = anchorLine.cells[anchor.cellIndex];
+    for (
+      let belowIndex = anchor.lineIndex + 1;
+      belowIndex <= anchor.lineIndex + CLIENT_BLOCK_LOOKAHEAD_LINES && belowIndex < lines.length;
+      belowIndex++
+    ) {
+      const belowLine = lines[belowIndex];
+      if (belowLine.page !== anchorLine.page) break;
+      belowLine.cells.forEach((belowCell, belowCellIndex) => {
+        if (cellsOverlapHorizontally(anchorCell, belowCell, anchorLine.height)) {
+          blocked.add(cellKey(belowIndex, belowCellIndex));
+        }
+      });
+    }
+  }
+
+  return blocked;
 }
 
 function extractInvoiceNumber(lines: PdfTextLine[]): string | undefined {
@@ -299,36 +338,46 @@ function extractLabelledTaxBase(lines: PdfTextLine[]): number | undefined {
 
 function collectMoneyAmounts(lines: PdfTextLine[]): number[] {
   const flatText = lines.flatMap((line) => line.cells.map((cell) => cell.text)).join('\n');
-  return findMoneyAmounts(flatText).filter((value) => value > 0);
+  return findMoneyAmounts(flatText);
 }
 
-function findTaxRatioPair(
-  amounts: number[],
-  rate: number,
-  total: number | undefined,
-): { taxBase: number; taxAmount: number } | undefined {
-  const TOLERANCE = 0.02;
-  let preferred: { taxBase: number; taxAmount: number } | undefined;
-  let fallback: { taxBase: number; taxAmount: number } | undefined;
+function findLabelLineIndexes(lines: PdfTextLine[], label: RegExp): number[] {
+  const found: number[] = [];
+  lines.forEach((line, lineIndex) => {
+    if (line.cells.some((cell) => label.test(cell.text))) found.push(lineIndex);
+  });
+  return found;
+}
 
-  for (const base of amounts) {
-    if (base <= 0) continue;
-    const expected = (base * rate) / 100;
-    for (const candidate of amounts) {
-      if (candidate === base || candidate <= 0) continue;
-      if (Math.abs(expected - candidate) <= TOLERANCE) {
-        const pair = { taxBase: base, taxAmount: candidate };
-        const isTotal = total != null && Math.abs(base - total) <= 0.01;
-        if (!isTotal) {
-          if (!preferred) preferred = pair;
-        } else if (!fallback) {
-          fallback = pair;
-        }
-      }
-    }
+function buildVatLines(lines: PdfTextLine[]): { vatLines: VatLineCandidate[]; bases: number[] } {
+  const ivaLineIndexes = findLabelLineIndexes(lines, IVA_LABEL);
+  const rateByLine = new Map(findLabelledValues(lines, IVA_LABEL, parseRateValue).map((match) => [match.lineIndex, match.value]));
+  const amountByLine = new Map(
+    findLabelledValues(lines, IVA_LABEL, (cellText) => lastMoneyAmount(cellText, true)).map((match) => [
+      match.lineIndex,
+      match.value,
+    ]),
+  );
+
+  const baseMatches = findLabelledValues(lines, BASE_IMPONIBLE_LABEL, (cellText) => lastMoneyAmount(cellText));
+  const baseByRate = new Map<number, number>();
+  const bases: number[] = [];
+  for (const match of baseMatches) {
+    const rate = parseRateValue(lines[match.lineIndex].cells[match.cellIndex].text);
+    if (rate != null) baseByRate.set(rate, match.value);
+    else bases.push(match.value);
   }
 
-  return preferred ?? fallback;
+  const vatLines: VatLineCandidate[] = ivaLineIndexes.map((lineIndex) => {
+    const rate = rateByLine.get(lineIndex);
+    return {
+      rate,
+      amount: amountByLine.get(lineIndex),
+      base: rate != null ? baseByRate.get(rate) : undefined,
+    };
+  });
+
+  return { vatLines, bases };
 }
 
 function extractLabelledTax(lines: PdfTextLine[]): { taxRate?: number; taxAmount?: number } {
@@ -432,33 +481,56 @@ export function extractInvoiceHeuristics(
   const date = extractDate(lines);
   if (!date) warnings.push('missing_invoice_date');
 
-  const dueDate = extractDueDate(lines);
+  const rawDueDate = extractDueDate(lines);
+  const dueDate = rawDueDate && date && rawDueDate < date ? undefined : rawDueDate;
 
-  const amount = extractTotal(lines, useDistanceFallback);
-  if (amount == null) warnings.push('missing_total_amount');
+  const totalCandidates = collectTotalCandidates(lines, useDistanceFallback);
 
   let taxBase = extractLabelledTaxBase(lines);
   const labelledTax = extractLabelledTax(lines);
-  const taxRate = labelledTax.taxRate;
+  let taxRate = labelledTax.taxRate;
   let taxAmount = labelledTax.taxAmount;
 
-  if (taxRate != null && (taxBase == null || taxAmount == null)) {
-    const pair = findTaxRatioPair(collectMoneyAmounts(lines), taxRate, amount);
-    if (pair) {
-      taxBase = pair.taxBase;
-      taxAmount = pair.taxAmount;
-    }
+  const labelledIrpf = extractLabelledIrpf(lines);
+  let irpfRate = labelledIrpf.irpfRate;
+  let irpfAmount = labelledIrpf.irpfAmount;
+
+  let amount = extractTotal(lines, useDistanceFallback);
+
+  const { vatLines, bases } = buildVatLines(lines);
+  const irpfCandidate: IrpfCandidate | undefined =
+    irpfRate != null || irpfAmount != null ? { rate: irpfRate, amount: irpfAmount } : undefined;
+  const candidates: AmountCandidates = {
+    totals: totalCandidates.map((candidate) => ({ value: candidate.value, priority: candidate.priority })),
+    bases,
+    vatLines,
+    irpf: irpfCandidate,
+    pool: collectMoneyAmounts(lines),
+  };
+
+  const reconciled = reconcileAmounts(candidates);
+
+  if (reconciled && (reconciled.amount != null || totalCandidates.length === 0)) {
+    taxBase = reconciled.taxBase;
+    taxAmount = reconciled.taxAmount;
+    taxRate = reconciled.taxRate;
+    if (reconciled.irpfRate != null) irpfRate = reconciled.irpfRate;
+    if (reconciled.irpfAmount != null) irpfAmount = reconciled.irpfAmount;
+    if (reconciled.rates.length > 1) warnings.push('multiple_tax_rates');
+    if (reconciled.amount != null) amount = reconciled.amount;
+  } else if (totalCandidates.length > 0 && (taxBase != null || taxAmount != null)) {
+    warnings.push('amounts_inconsistent');
   }
 
-  const labelledIrpf = extractLabelledIrpf(lines);
-  const irpfRate = labelledIrpf.irpfRate;
-  const irpfAmount = labelledIrpf.irpfAmount;
+  if (amount == null) warnings.push('missing_total_amount');
 
   const currency = detectCurrency(lines) ?? (amount != null ? 'EUR' : undefined);
 
   const hasOtherEvidence = issuerTaxId != null || invoiceNumber != null || date != null || amount != null;
   const blockedCells = computeClientBlockCells(lines, useDistanceFallback);
-  const issuerName = hasOtherEvidence ? extractIssuerName(lines, issuer, blockedCells) : undefined;
+  const excludedIdBlockedCells = computeExcludedIdBlockCells(lines, useDistanceFallback, excludedTaxIds);
+  const nameBlockedCells = new Set([...blockedCells, ...excludedIdBlockedCells]);
+  const issuerName = hasOtherEvidence ? extractIssuerName(lines, issuer, nameBlockedCells) : undefined;
   if (!issuerName) warnings.push('missing_issuer_name');
 
   const fields: InvoiceFields = {};

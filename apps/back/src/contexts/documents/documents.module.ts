@@ -9,6 +9,7 @@ import { InvoiceExtractionHintOrmEntity } from './infrastructure/persistence/inv
 import { TypeOrmInvoiceHintRepository } from './infrastructure/persistence/typeorm-invoice-hint.repository';
 import { ExtractionOutcomeOrmEntity } from './infrastructure/persistence/extraction-outcome.orm-entity';
 import { TypeOrmExtractionOutcomeRepository } from './infrastructure/persistence/typeorm-extraction-outcome.repository';
+import { TypeOrmKnownPartyDirectory } from './infrastructure/persistence/typeorm-known-party-directory';
 import { DOCUMENT_REPOSITORY } from './domain/document.repository';
 import { PROJECT_EXISTENCE_CHECKER } from './domain/project-existence-checker.port';
 import { SUPPLIER_EXISTENCE_CHECKER } from './domain/supplier-existence-checker.port';
@@ -16,6 +17,7 @@ import { STAFF_MEMBER_EXISTENCE_CHECKER } from './domain/staff-member-existence-
 import { PDF_READER } from './domain/extraction/pdf-reader.port';
 import { INVOICE_HINT_REPOSITORY } from './domain/extraction/hints/invoice-hint.repository';
 import { EXTRACTION_OUTCOME_REPOSITORY } from './domain/extraction/quality/extraction-outcome.repository';
+import { KNOWN_PARTY_DIRECTORY } from './domain/extraction/known-party-directory.port';
 import { DocumentsController } from './infrastructure/http/documents.controller';
 import { DocumentsGlobalController } from './infrastructure/http/documents-global.controller';
 import { ExtractionHintsController } from './infrastructure/http/extraction-hints.controller';
@@ -78,6 +80,7 @@ import { ProjectRepositoryNameProvider } from './infrastructure/projects/project
     { provide: PDF_READER, useExisting: BoundedPdfReader },
     { provide: INVOICE_HINT_REPOSITORY, useClass: TypeOrmInvoiceHintRepository },
     { provide: EXTRACTION_OUTCOME_REPOSITORY, useClass: TypeOrmExtractionOutcomeRepository },
+    { provide: KNOWN_PARTY_DIRECTORY, useClass: TypeOrmKnownPartyDirectory },
   ],
   exports: [CreateDocumentUseCase, DeleteDocumentUseCase, CheckDocumentDuplicateUseCase],
 })

@@ -3,6 +3,8 @@ import { join } from 'path';
 import { ExtractInvoiceUseCase } from './extract-invoice.use-case';
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KnownParty, KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
+import { canonicalSpanishTaxId } from '../../domain/extraction/tax-id';
 import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 import { normalizeTaxId } from '../../../../shared/domain/tax-id';
@@ -62,9 +64,24 @@ interface CorpusBaseline {
 
 class NoHintsRepository implements InvoiceHintRepository {
   findByIssuer = () => Promise.resolve([]);
+  findByIssuerTaxId = () => Promise.resolve([]);
   findAll = () => Promise.resolve([]);
   upsert = () => Promise.resolve();
   delete = () => Promise.resolve(false);
+}
+
+class FakeKnownPartyDirectory implements KnownPartyDirectory {
+  constructor(private readonly context: CorpusFixtureContext) {}
+
+  findCompanyTaxId(): Promise<string | null> {
+    return Promise.resolve(this.context.companyTaxId ? canonicalSpanishTaxId(this.context.companyTaxId) : null);
+  }
+
+  findActiveSupplierByTaxId(canonicalTaxId: string): Promise<KnownParty | null> {
+    const suppliers = this.context.suppliers ?? [];
+    const match = suppliers.find((supplier) => canonicalSpanishTaxId(supplier.taxId) === canonicalTaxId);
+    return Promise.resolve(match ? { name: match.name, taxId: match.taxId } : null);
+  }
 }
 
 class FakeDomainEventPublisher implements DomainEventPublisher {
@@ -130,6 +147,7 @@ describe('Invoice extraction corpus (accuracy gate)', () => {
         new PdfjsPdfReader(),
         new NoHintsRepository(),
         new FakeDomainEventPublisher(),
+        new FakeKnownPartyDirectory(fixture.context ?? {}),
       );
 
       const fileBuffer = writeMinimalPdf(fixture.pages);

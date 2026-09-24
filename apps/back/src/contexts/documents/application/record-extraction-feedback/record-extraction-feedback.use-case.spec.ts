@@ -2,6 +2,7 @@ import { RecordExtractionFeedbackUseCase } from './record-extraction-feedback.us
 import { PdfReader, PdfReadResult } from '../../domain/extraction/pdf-reader.port';
 import { InvoiceHint } from '../../domain/extraction/hints/invoice-hint';
 import { InvoiceHintRepository, NewInvoiceHint } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
 import { FACTURAE_SAMPLE_XML } from '../../domain/extraction/__fixtures__/facturae-sample.xml';
 
 class FakePdfReader implements PdfReader {
@@ -22,6 +23,10 @@ class InMemoryHintRepository implements InvoiceHintRepository {
 
   findByIssuer(issuerName: string): Promise<InvoiceHint[]> {
     return Promise.resolve(this.hints.filter((hint) => hint.issuerName === issuerName));
+  }
+
+  findByIssuerTaxId(issuerTaxId: string): Promise<InvoiceHint[]> {
+    return Promise.resolve(this.hints.filter((hint) => hint.issuerTaxId === issuerTaxId));
   }
 
   findAll(): Promise<InvoiceHint[]> {
@@ -59,12 +64,17 @@ class InMemoryHintRepository implements InvoiceHintRepository {
   }
 }
 
+class NullPartyDirectory implements KnownPartyDirectory {
+  findCompanyTaxId = () => Promise.resolve(null);
+  findActiveSupplierByTaxId = () => Promise.resolve(null);
+}
+
 describe('RecordExtractionFeedbackUseCase', () => {
   it('learns a new hint from a corrected field on the first correction', async () => {
     const text = ['Mi Empresa SL', 'CIF: B12345678', 'Ref interna: REF-9', 'TOTAL: 100,00 EUR'].join('\n');
     const pdfReader = new FakePdfReader({ text, attachments: [] });
     const hintRepository = new InMemoryHintRepository();
-    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -79,7 +89,23 @@ describe('RecordExtractionFeedbackUseCase', () => {
       anchorLabel: 'Ref interna',
       sampleValue: 'REF-9',
       occurrences: 1,
+      issuerTaxId: 'B12345678',
     });
+  });
+
+  it('keys the learned hint by the submitted issuer tax id, canonicalised', async () => {
+    const text = ['Mi Empresa SL', 'CIF: B12345678', 'Ref interna: REF-9', 'TOTAL: 100,00 EUR'].join('\n');
+    const pdfReader = new FakePdfReader({ text, attachments: [] });
+    const hintRepository = new InMemoryHintRepository();
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
+
+    await useCase.execute({
+      fileBuffer: Buffer.from('fake-pdf'),
+      submitted: { issuerName: 'Mi Empresa SL', issuerTaxId: 'ES-B12345678', invoiceNumber: 'REF-9' },
+    });
+
+    const hints = await hintRepository.findByIssuer('MI EMPRESA SL');
+    expect(hints[0].issuerTaxId).toBe('B12345678');
   });
 
   it('replaces the anchor and resets occurrences when a later correction locates a different anchor', async () => {
@@ -98,7 +124,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
     ]);
     const text = ['Mi Empresa SL', 'CIF: B12345678', 'Codigo interno: REF-20', 'TOTAL: 100,00 EUR'].join('\n');
     const pdfReader = new FakePdfReader({ text, attachments: [] });
-    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -130,7 +156,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
         occurrences: 5,
       },
     ]);
-    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -147,7 +173,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
       attachments: [{ filename: 'facturae.xml', content: Buffer.from(FACTURAE_SAMPLE_XML, 'utf-8') }],
     });
     const hintRepository = new InMemoryHintRepository();
-    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
 
     await useCase.execute({
       fileBuffer: Buffer.from('fake-pdf'),
@@ -160,7 +186,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
   it('does nothing when there is no issuer name to key the memory by', async () => {
     const pdfReader = new FakePdfReader({ text: 'Unrelated text with no CIF at all.', attachments: [] });
     const hintRepository = new InMemoryHintRepository();
-    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
 
     await useCase.execute({ fileBuffer: Buffer.from('fake-pdf'), submitted: { invoiceNumber: 'F-1' } });
 
@@ -170,7 +196,7 @@ describe('RecordExtractionFeedbackUseCase', () => {
   it('never throws, even when the PDF has no usable text layer', async () => {
     const pdfReader = new FakePdfReader({ text: '   \n  ', attachments: [] });
     const hintRepository = new InMemoryHintRepository();
-    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository);
+    const useCase = new RecordExtractionFeedbackUseCase(pdfReader, hintRepository, new NullPartyDirectory());
 
     await expect(
       useCase.execute({ fileBuffer: Buffer.from('fake-pdf'), submitted: { issuerName: 'Mi Empresa SL' } }),

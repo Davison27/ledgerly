@@ -5,7 +5,8 @@ import { extractHeuristicInvoice } from '../../domain/extraction/heuristic-invoi
 import { deriveHint } from '../../domain/extraction/hints/hint-anchor';
 import { LEARNABLE_FIELDS, LearnableField } from '../../domain/extraction/hints/invoice-hint';
 import { INVOICE_HINT_REPOSITORY, InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
-import { normaliseTaxId } from '../../domain/extraction/tax-id';
+import { KNOWN_PARTY_DIRECTORY, KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
+import { canonicalSpanishTaxId, normaliseTaxId } from '../../domain/extraction/tax-id';
 import { normaliseIssuerName } from '../../domain/extraction/issuer-name';
 import { RecordExtractionFeedbackCommand } from './record-extraction-feedback.command';
 
@@ -27,6 +28,7 @@ export class RecordExtractionFeedbackUseCase {
   constructor(
     @Inject(PDF_READER) private readonly pdfReader: PdfReader,
     @Inject(INVOICE_HINT_REPOSITORY) private readonly hintRepository: InvoiceHintRepository,
+    @Inject(KNOWN_PARTY_DIRECTORY) private readonly knownPartyDirectory: KnownPartyDirectory,
   ) {}
 
   async execute(command: RecordExtractionFeedbackCommand): Promise<void> {
@@ -41,8 +43,9 @@ export class RecordExtractionFeedbackUseCase {
       return;
     }
 
-    const { fields: shown } = await extractHeuristicInvoice(readResult, this.hintRepository, {
+    const { fields: shown } = await extractHeuristicInvoice(readResult, this.hintRepository, this.knownPartyDirectory, {
       name: command.submitted.issuerName,
+      taxId: command.submitted.issuerTaxId,
     });
 
     const issuerName = command.submitted.issuerName ?? shown.issuerName;
@@ -50,6 +53,8 @@ export class RecordExtractionFeedbackUseCase {
       return;
     }
     const key = normaliseIssuerName(issuerName);
+    const keyTaxIdSource = command.submitted.issuerTaxId ?? shown.issuerTaxId;
+    const keyTaxId = keyTaxIdSource ? canonicalSpanishTaxId(keyTaxIdSource) : undefined;
 
     for (const field of LEARNABLE_FIELDS) {
       const submittedValue = command.submitted[field];
@@ -67,6 +72,7 @@ export class RecordExtractionFeedbackUseCase {
 
       await this.hintRepository.upsert({
         issuerName: key,
+        issuerTaxId: keyTaxId,
         field,
         anchorKind: derived.anchorKind,
         anchorLabel: derived.anchorLabel,

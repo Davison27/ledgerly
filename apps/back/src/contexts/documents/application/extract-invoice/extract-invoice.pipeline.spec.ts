@@ -5,6 +5,7 @@ import { ExtractInvoiceCommand } from './extract-invoice.command';
 import { PdfjsPdfReader } from '../../infrastructure/pdf/pdfjs-pdf-reader';
 import { PdfNoTextLayerException } from '../../domain/errors/pdf-no-text-layer.exception';
 import { InvoiceHintRepository } from '../../domain/extraction/hints/invoice-hint.repository';
+import { KnownPartyDirectory } from '../../domain/extraction/known-party-directory.port';
 import { DomainEvent } from '../../../../shared/domain/domain-event';
 import { DomainEventPublisher } from '../../../../shared/domain/domain-event-publisher.port';
 
@@ -19,9 +20,15 @@ function buildCommand(name: string): ExtractInvoiceCommand {
 
 class NoHintsRepository implements InvoiceHintRepository {
   findByIssuer = () => Promise.resolve([]);
+  findByIssuerTaxId = () => Promise.resolve([]);
   findAll = () => Promise.resolve([]);
   upsert = () => Promise.resolve();
   delete = () => Promise.resolve(false);
+}
+
+class NullPartyDirectory implements KnownPartyDirectory {
+  findCompanyTaxId = () => Promise.resolve(null);
+  findActiveSupplierByTaxId = () => Promise.resolve(null);
 }
 
 class FakeDomainEventPublisher implements DomainEventPublisher {
@@ -40,6 +47,7 @@ describe('ExtractInvoiceUseCase + PdfjsPdfReader (end-to-end, no DB/HTTP)', () =
     new PdfjsPdfReader(),
     new NoHintsRepository(),
     new FakeDomainEventPublisher(),
+    new NullPartyDirectory(),
   );
 
   it('extracts via the embedded Factur-X attachment for a real PDF', async () => {

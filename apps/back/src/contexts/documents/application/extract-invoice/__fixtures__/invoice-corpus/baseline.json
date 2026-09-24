@@ -1,14 +1,14 @@
 {
   "fields": {
-    "issuerName": 0.9090909090909091,
-    "issuerTaxId": 0.9090909090909091,
+    "issuerName": 1,
+    "issuerTaxId": 1,
     "invoiceNumber": 0.9166666666666666,
     "date": 1,
     "dueDate": 1,
     "amount": 1,
-    "taxBase": 0.9166666666666666,
+    "taxBase": 1,
     "taxRate": 1,
-    "taxAmount": 0.9166666666666666,
+    "taxAmount": 1,
     "irpfRate": 1,
     "irpfAmount": 1
   },

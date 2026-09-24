@@ -25,6 +25,10 @@ class StubHintRepository implements InvoiceHintRepository {
     return Promise.resolve(this.hints);
   }
 
+  findByIssuerTaxId(): Promise<InvoiceHint[]> {
+    return Promise.resolve(this.hints);
+  }
+
   findAll(): Promise<InvoiceHint[]> {
     return Promise.resolve(this.hints);
   }
