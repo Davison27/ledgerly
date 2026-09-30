@@ -26,6 +26,7 @@ import { DOMAIN_EVENT_PUBLISHER } from '../../../../shared/domain/domain-event-p
 import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
 import { MalwareDetectedException } from '../../../../shared/domain/errors/malware-detected.exception';
 import { MalwareScannerUnavailableException } from '../../../../shared/domain/errors/malware-scanner-unavailable.exception';
+import { MAX_PDF_FILE_SIZE_BYTES } from './pdf-file.validator';
 
 function loadFixture(name: string): Buffer {
   return readFileSync(join(__dirname, '../pdf/__fixtures__', name));
@@ -239,5 +240,53 @@ describe('DocumentsController /extract (HTTP, no DB)', () => {
       .attach('file', Buffer.from('not a pdf'), { filename: 'notes.txt', contentType: 'text/plain' });
 
     expect(response.status).toBe(400);
+  });
+
+  it('rejects extra fields before scanning or extracting', async () => {
+    const response = await request(httpServer)
+      .post('/projects/p1/documents/extract')
+      .attach('file', loadFixture('facturx-invoice.pdf'), { filename: 'invoice.pdf', contentType: 'application/pdf' })
+      .field('extra', 'value');
+
+    expect(response.status).toBe(400);
+    expect(scanExecute).not.toHaveBeenCalled();
+    expect(extractExecute).not.toHaveBeenCalled();
+  });
+
+  it('rejects extra files before scanning or extracting', async () => {
+    const invoice = loadFixture('facturx-invoice.pdf');
+    const response = await request(httpServer)
+      .post('/projects/p1/documents/extract')
+      .attach('file', invoice, { filename: 'invoice.pdf', contentType: 'application/pdf' })
+      .attach('file', invoice, { filename: 'second-invoice.pdf', contentType: 'application/pdf' });
+
+    expect(response.status).toBe(400);
+    expect(scanExecute).not.toHaveBeenCalled();
+    expect(extractExecute).not.toHaveBeenCalled();
+  });
+
+  it('rejects multipart requests with more than two parts before scanning or extracting', async () => {
+    const response = await request(httpServer)
+      .post('/projects/p1/documents/extract')
+      .attach('file', loadFixture('facturx-invoice.pdf'), { filename: 'invoice.pdf', contentType: 'application/pdf' })
+      .field('extra', 'value')
+      .field('another', 'value');
+
+    expect(response.status).toBe(400);
+    expect(scanExecute).not.toHaveBeenCalled();
+    expect(extractExecute).not.toHaveBeenCalled();
+  });
+
+  it('rejects oversized files before scanning or extracting', async () => {
+    const response = await request(httpServer)
+      .post('/projects/p1/documents/extract')
+      .attach('file', Buffer.alloc(MAX_PDF_FILE_SIZE_BYTES + 1), {
+        filename: 'oversized.pdf',
+        contentType: 'application/pdf',
+      });
+
+    expect(response.status).toBe(413);
+    expect(scanExecute).not.toHaveBeenCalled();
+    expect(extractExecute).not.toHaveBeenCalled();
   });
 });
