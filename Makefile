@@ -4,7 +4,6 @@ DEPLOY_ENV := deploy/.env
 DEPLOY_COMPOSE := docker compose -f deploy/docker-compose.yml --env-file $(DEPLOY_ENV)
 
 DEV_ENV_FILE := apps/back/.env
-DEV_ENV_EXAMPLE := apps/back/.env.example
 DEV_COMPOSE := docker compose --project-name ledgerly-dev -f apps/back/docker-compose.yml --env-file $(DEV_ENV_FILE)
 
 SERVICE ?=
@@ -116,10 +115,7 @@ up: $(DEV_PREREQ)
 ifeq ($(MODE),production)
 	$(COMPOSE) up -d --wait
 else
-	@if [ ! -f $(DEV_ENV_FILE) ]; then \
-		cp $(DEV_ENV_EXAMPLE) $(DEV_ENV_FILE); \
-		echo "✓ Created $(DEV_ENV_FILE) from .env.example"; \
-	fi
+	@node scripts/ensure-development-env.mjs
 	$(COMPOSE) up -d --wait
 endif
 
@@ -137,10 +133,7 @@ logs: $(DEV_PREREQ)
 
 dev: _check-tools
 	pnpm install
-	@if [ ! -f $(DEV_ENV_FILE) ]; then \
-		cp $(DEV_ENV_EXAMPLE) $(DEV_ENV_FILE); \
-		echo "✓ Created $(DEV_ENV_FILE) from .env.example"; \
-	fi
+	node scripts/ensure-development-env.mjs
 	$(DEV_COMPOSE) up -d --build postgres
 	$(DEV_COMPOSE) run --rm back node dist/database/migrate.js --mode=auto
 	$(DEV_COMPOSE) up -d --build --wait back
