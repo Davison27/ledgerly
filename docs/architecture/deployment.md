@@ -118,6 +118,17 @@ The installed Coolify and realtime services have no host port mappings for
 After a Coolify upgrade, confirm its generated Compose still has no host
 `ports:` entries for the `coolify` and `soketi` services.
 
+### Pangolin upstream TLS verification
+
+Keep Traefik's global `serversTransport.insecureSkipVerify` set to `false` so
+HTTPS upstreams require valid certificate chains and hostnames. The current
+Pangolin and Ledgerly upstreams use HTTP. If a future HTTP service uses HTTPS
+with a private CA, define a scoped `serversTransport` with explicit `rootCAs`,
+mount that CA read-only, and attach the transport only to that service. Do not
+disable verification globally. The TCP `serversTransports` for Proxy Protocol
+v1 and v2 are separate and do not change this HTTP policy. See the [Traefik
+HTTP ServersTransport reference](https://doc.traefik.io/traefik/reference/routing-configuration/http/load-balancing/serverstransport/).
+
 ### Coolify environment and persistence contract
 
 Coolify environment values replace `deploy/.env` for this route. Configure the
