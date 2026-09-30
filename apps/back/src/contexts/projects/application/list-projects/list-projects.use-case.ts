@@ -5,10 +5,7 @@ import {
 } from '../../domain/project-financials-provider.port';
 import { ProjectFinancialsRow, summarizeFinancials } from '../../domain/project-financials';
 import { ProjectSummary } from '../../domain/project-summary';
-import {
-  PROJECT_REPOSITORY,
-  ProjectRepository,
-} from '../../domain/project.repository';
+import { PROJECT_REPOSITORY, ProjectRepository } from '../../domain/project.repository';
 
 @Injectable()
 export class ListProjectsUseCase {
@@ -19,10 +16,10 @@ export class ListProjectsUseCase {
     private readonly projectFinancialsProvider: ProjectFinancialsProvider,
   ) {}
 
-  async execute(clientId?: string): Promise<ProjectSummary[]> {
+  async execute(clientId?: string, includePayroll = true): Promise<ProjectSummary[]> {
     const [summaries, financialRows] = await Promise.all([
-      this.projectRepository.findAllSummaries(clientId),
-      this.projectFinancialsProvider.findAll(),
+      this.projectRepository.findAllSummaries(clientId, includePayroll),
+      this.projectFinancialsProvider.findAll(includePayroll),
     ]);
     const rowsByProject = new Map<string, ProjectFinancialsRow[]>();
 

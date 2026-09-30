@@ -43,6 +43,7 @@ export class CheckDocumentDuplicateUseCase {
       issuerTaxId: query.issuerTaxId,
       invoiceNumber: query.invoiceNumber,
       amount: query.amount,
+      includePayroll: query.includePayroll,
     });
 
     const matches = this.filterCandidates(query, candidates);
@@ -78,6 +79,7 @@ export class CheckDocumentDuplicateUseCase {
         issuerTaxId: query.issuerTaxId,
         invoiceNumber: query.invoiceNumber,
         amount: query.amount,
+        includePayroll: query.includePayroll,
       },
       request,
     );

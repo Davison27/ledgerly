@@ -76,6 +76,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
   let unarchiveExecute: jest.Mock;
   let documentViewAccess = true;
   let equipmentViewAccess = true;
+  let staffViewAccess = true;
   let planningViewAccess = true;
   let planningEditAccess = true;
 
@@ -88,7 +89,9 @@ describe('ProjectsController (HTTP, no DB)', () => {
     updateExecute = jest.fn((command: { id: string } & Partial<CreateProjectCommand>) =>
       Promise.resolve(buildProject(command)),
     );
-    deleteExecute = jest.fn<Promise<'deleted' | 'archived'>, [string]>().mockResolvedValue('deleted');
+    deleteExecute = jest
+      .fn<Promise<'deleted' | 'archived'>, [string]>()
+      .mockResolvedValue('deleted');
     unarchiveExecute = jest.fn().mockResolvedValue(undefined);
 
     const moduleRef = await Test.createTestingModule({
@@ -101,7 +104,16 @@ describe('ProjectsController (HTTP, no DB)', () => {
         { provide: DeleteProjectUseCase, useValue: { execute: deleteExecute } },
         { provide: UnarchiveProjectUseCase, useValue: { execute: unarchiveExecute } },
         { provide: CLIENT_REPOSITORY, useValue: { findById: jest.fn().mockResolvedValue(null) } },
-        { provide: PROJECT_REPOSITORY, useValue: { findSummaryById: jest.fn().mockImplementation((id: string) => Promise.resolve(buildSummary({ id, planningEnabled: true }))) } },
+        {
+          provide: PROJECT_REPOSITORY,
+          useValue: {
+            findSummaryById: jest
+              .fn()
+              .mockImplementation((id: string) =>
+                Promise.resolve(buildSummary({ id, planningEnabled: true })),
+              ),
+          },
+        },
       ],
     }).compile();
 
@@ -112,6 +124,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
           canAccess: (module: string, level: string) => {
             if (module === 'documents') return documentViewAccess;
             if (module === 'equipment') return equipmentViewAccess;
+            if (module === 'staff') return staffViewAccess;
             if (module === 'planning' && level === 'view') return planningViewAccess;
             if (module === 'planning' && level === 'edit') return planningEditAccess;
             return true;
@@ -120,7 +133,9 @@ describe('ProjectsController (HTTP, no DB)', () => {
       });
       next();
     });
-    app.useGlobalPipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }));
+    app.useGlobalPipes(
+      new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true, transform: true }),
+    );
     app.useGlobalFilters(new DomainExceptionFilter());
     await app.init();
     httpServer = app.getHttpServer() as Server;
@@ -135,6 +150,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
     unarchiveExecute.mockClear();
     documentViewAccess = true;
     equipmentViewAccess = true;
+    staffViewAccess = true;
     planningViewAccess = true;
     planningEditAccess = true;
   });
@@ -163,6 +179,16 @@ describe('ProjectsController (HTTP, no DB)', () => {
           color: null,
         },
       ]);
+      expect(listExecute).toHaveBeenCalledWith(undefined, true);
+    });
+
+    it('passes staff visibility to the list use case', async () => {
+      staffViewAccess = false;
+
+      const response = await request(httpServer).get('/projects');
+
+      expect(response.status).toBe(200);
+      expect(listExecute).toHaveBeenCalledWith(undefined, false);
     });
 
     it('omits document-derived aggregates without Documents view', async () => {
@@ -171,9 +197,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         buildSummary({
           documentCount: 4,
           pendingCount: 2,
-          financials: [
-            { currency: 'EUR', income: 1000, expenses: 300, profit: 700, margin: 0.7 },
-          ],
+          financials: [{ currency: 'EUR', income: 1000, expenses: 300, profit: 700, margin: 0.7 }],
         }),
       ]);
 
@@ -193,9 +217,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         buildSummary({
           documentCount: 4,
           pendingCount: 2,
-          financials: [
-            { currency: 'EUR', income: 1000, expenses: 300, profit: 700, margin: 0.7 },
-          ],
+          financials: [{ currency: 'EUR', income: 1000, expenses: 300, profit: 700, margin: 0.7 }],
         }),
       ]);
 
@@ -217,21 +239,25 @@ describe('ProjectsController (HTTP, no DB)', () => {
     });
 
     it('returns planning counts only when enabled and the member can view planning', async () => {
-      listExecute.mockResolvedValueOnce([buildSummary({
-        planningEnabled: true,
-        checklistCompletedCount: 2,
-        checklistTotalCount: 5,
-      })]);
+      listExecute.mockResolvedValueOnce([
+        buildSummary({
+          planningEnabled: true,
+          checklistCompletedCount: 2,
+          checklistTotalCount: 5,
+        }),
+      ]);
       const allowed = await request(httpServer).get('/projects');
       const allowedBody = allowed.body as unknown as Array<Record<string, unknown>>;
       expect(allowedBody[0]).toMatchObject({ checklistCompletedCount: 2, checklistTotalCount: 5 });
 
       planningViewAccess = false;
-      listExecute.mockResolvedValueOnce([buildSummary({
-        planningEnabled: true,
-        checklistCompletedCount: 2,
-        checklistTotalCount: 5,
-      })]);
+      listExecute.mockResolvedValueOnce([
+        buildSummary({
+          planningEnabled: true,
+          checklistCompletedCount: 2,
+          checklistTotalCount: 5,
+        }),
+      ]);
       const denied = await request(httpServer).get('/projects');
       const deniedBody = denied.body as unknown as Array<Record<string, unknown>>;
       expect(deniedBody[0]).not.toHaveProperty('checklistCompletedCount');
@@ -242,7 +268,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
       const response = await request(httpServer).get(`/projects?clientId=${clientId}`);
 
       expect(response.status).toBe(200);
-      expect(listExecute).toHaveBeenCalledWith(clientId);
+      expect(listExecute).toHaveBeenCalledWith(clientId, true);
     });
 
     it('rejects malformed client filters', async () => {
@@ -255,15 +281,13 @@ describe('ProjectsController (HTTP, no DB)', () => {
 
   describe('POST /projects', () => {
     it('creates a project with an image and returns it in the full response', async () => {
-      const response = await request(httpServer)
-        .post('/projects')
-        .send({
-          name: 'Acme Project',
-          code: 'ACME-001',
-          type: 'construction',
-          clientId,
-          image,
-        });
+      const response = await request(httpServer).post('/projects').send({
+        name: 'Acme Project',
+        code: 'ACME-001',
+        type: 'construction',
+        clientId,
+        image,
+      });
 
       expect(response.status).toBe(201);
       expect(response.body).toMatchObject({
@@ -271,9 +295,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
         code: 'ACME-001',
         image,
       });
-      expect(createExecute).toHaveBeenCalledWith(
-        expect.objectContaining({ image, clientId }),
-      );
+      expect(createExecute).toHaveBeenCalledWith(expect.objectContaining({ image, clientId }));
     });
 
     it('rejects project creation without a client', async () => {
@@ -288,7 +310,12 @@ describe('ProjectsController (HTTP, no DB)', () => {
     it('rejects malformed project client identifiers', async () => {
       const response = await request(httpServer)
         .post('/projects')
-        .send({ name: 'Acme Project', code: 'ACME-003', type: 'construction', clientId: 'client-1' });
+        .send({
+          name: 'Acme Project',
+          code: 'ACME-003',
+          type: 'construction',
+          clientId: 'client-1',
+        });
 
       expect(response.status).toBe(400);
       expect(createExecute).not.toHaveBeenCalled();
@@ -296,15 +323,13 @@ describe('ProjectsController (HTTP, no DB)', () => {
 
     it('requires planning edit to assign a checklist template', async () => {
       planningEditAccess = false;
-      const response = await request(httpServer)
-        .post('/projects')
-        .send({
-          name: 'Planned Project',
-          code: 'PLAN-001',
-          type: 'construction',
-          clientId,
-          checklistTemplateId: '00000000-0000-4000-8000-000000000002',
-        });
+      const response = await request(httpServer).post('/projects').send({
+        name: 'Planned Project',
+        code: 'PLAN-001',
+        type: 'construction',
+        clientId,
+        checklistTemplateId: '00000000-0000-4000-8000-000000000002',
+      });
 
       expect(response.status).toBe(403);
       expect(createExecute).not.toHaveBeenCalled();
@@ -313,9 +338,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
 
   describe('GET /projects/:id', () => {
     it('returns the full project (not the summary shape)', async () => {
-      getExecute.mockResolvedValueOnce(
-        buildProject({ id: 'project-1', image }),
-      );
+      getExecute.mockResolvedValueOnce(buildProject({ id: 'project-1', image }));
 
       const response = await request(httpServer).get('/projects/project-1');
 
@@ -363,9 +386,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
 
   describe('PATCH /projects/:id', () => {
     it('updates the project image', async () => {
-      const response = await request(httpServer)
-        .patch('/projects/project-1')
-        .send({ image });
+      const response = await request(httpServer).patch('/projects/project-1').send({ image });
 
       expect(response.status).toBe(200);
       expect(updateExecute).toHaveBeenCalledWith(
@@ -375,9 +396,7 @@ describe('ProjectsController (HTTP, no DB)', () => {
     });
 
     it('clears the project image when the request explicitly sends null', async () => {
-      const response = await request(httpServer)
-        .patch('/projects/project-1')
-        .send({ image: null });
+      const response = await request(httpServer).patch('/projects/project-1').send({ image: null });
 
       expect(response.status).toBe(200);
       expect(updateExecute).toHaveBeenCalledWith(

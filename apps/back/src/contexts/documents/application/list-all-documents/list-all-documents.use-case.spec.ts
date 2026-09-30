@@ -152,6 +152,36 @@ describe('ListAllDocumentsUseCase', () => {
     expect(result.map((item) => item.id)).toEqual(['doc-newest', 'doc-middle', 'doc-oldest']);
   });
 
+  it('filters payroll before fallback pagination and totals', async () => {
+    const documentRepository = new FakeDocumentRepository([
+      buildRow({ id: 'payroll-1', type: 'payroll', staffMemberId: 'staff-1' }),
+      buildRow({ id: 'invoice-1', type: 'invoice' }),
+    ]);
+    const projectNameProvider = new FakeProjectNameProvider([buildSummary()]);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, projectNameProvider);
+
+    const result = await useCase.executePage({ includePayroll: false }, { page: 1, size: 1 });
+
+    expect(result).toMatchObject({
+      items: [expect.objectContaining({ id: 'invoice-1' })],
+      total: 1,
+      page: 1,
+      size: 1,
+    });
+  });
+
+  it('omits payroll from unpaged results when the server disables payroll access', async () => {
+    const documentRepository = new FakeDocumentRepository([
+      buildRow({ id: 'payroll-1', type: 'payroll', staffMemberId: 'staff-1' }),
+      buildRow({ id: 'invoice-1', type: 'invoice' }),
+    ]);
+    const useCase = new ListAllDocumentsUseCase(documentRepository, new FakeProjectNameProvider([buildSummary()]));
+
+    const result = await useCase.execute({ includePayroll: false });
+
+    expect(result.map((item) => item.id)).toEqual(['invoice-1']);
+  });
+
   it('maps every listing field onto the returned list item', async () => {
     const documentRepository = new FakeDocumentRepository([
       buildRow({

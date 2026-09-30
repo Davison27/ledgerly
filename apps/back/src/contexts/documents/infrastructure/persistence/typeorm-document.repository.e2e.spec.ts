@@ -18,6 +18,8 @@ import { createStoredFileCipher } from '../../../../shared/infrastructure/crypto
 import { DeleteProjectUseCase } from '../../../projects/application/delete-project/delete-project.use-case';
 import { DeleteStaffMemberUseCase } from '../../../staff/application/delete-staff-member/delete-staff-member.use-case';
 import { DeleteSupplierUseCase } from '../../../suppliers/application/delete-supplier/delete-supplier.use-case';
+import { CheckDocumentDuplicateUseCase } from '../../application/check-document-duplicate/check-document-duplicate.use-case';
+import { ProjectNameProvider } from '../../domain/project-name-provider.port';
 import { TypeOrmProjectFinancialsProvider } from '../../../projects/infrastructure/persistence/typeorm-project-financials-provider';
 import { DocumentOrmEntity } from './document.orm-entity';
 import { ProjectOrmEntity } from '../../../projects/infrastructure/persistence/project.orm-entity';
@@ -32,6 +34,7 @@ import { TypeOrmStaffPhysicalDocumentReferenceCounter } from '../../../staff/inf
 import { TypeOrmSupplierPhysicalDocumentReferenceCounter } from '../../../suppliers/infrastructure/persistence/typeorm-supplier-physical-document-reference-counter';
 import { TypeOrmSupplierRepository } from '../../../suppliers/infrastructure/persistence/typeorm-supplier.repository';
 import { TypeOrmDocumentRepository } from './typeorm-document.repository';
+import { CheckDuplicateDocumentDetector } from '../../../notifications/infrastructure/documents/check-duplicate-document-detector';
 
 describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
   let administrator: DataSource;
@@ -192,6 +195,109 @@ describe('TypeOrmDocumentRepository soft delete (PostgreSQL)', () => {
       pendingCount: 0,
     });
     await expect(financialsProvider.findAll()).resolves.toEqual([]);
+  });
+
+  it('filters payroll before document pages, duplicate totals, and project aggregates', async () => {
+    const projectId = randomUUID();
+    const clientId = randomUUID();
+    const staffMemberId = randomUUID();
+    const invoiceId = randomUUID();
+    const payrollId = randomUUID();
+    await insertClient(dataSource, clientId, 'B98765432');
+    await dataSource.query(
+      `INSERT INTO projects (id, name, code, type, currency, client_id) VALUES ($1, 'Payroll project', $2, 'construction', 'EUR', $3)`,
+      [projectId, `PROJECT-${projectId.slice(0, 8).toUpperCase()}`, clientId],
+    );
+    await dataSource.query(
+      `INSERT INTO staff_members (id, first_name, last_name) VALUES ($1, 'Payroll', 'Member')`,
+      [staffMemberId],
+    );
+
+    const entityRepository = dataSource.getRepository(DocumentOrmEntity);
+    await entityRepository.save(
+      entityRepository.create([
+        {
+          ...buildListingDocument(invoiceId, projectId, 'Invoice'),
+          amount: '100',
+          direction: 'income',
+          invoiceNumber: 'SHARED-1',
+          issuerName: 'Acme SL',
+          issuerTaxId: 'B12345678',
+        },
+        {
+          ...buildListingDocument(payrollId, projectId, 'Payroll'),
+          type: 'payroll',
+          staffMemberId,
+          amount: '100',
+          direction: 'expense',
+          invoiceNumber: 'SHARED-1',
+          issuerName: 'Acme SL',
+          issuerTaxId: 'B12345678',
+        },
+      ]),
+    );
+
+    const cipher = createStoredFileCipher({
+      activeVersion: 'v1',
+      keys: new Map([['v1', Buffer.alloc(32, 1)]]),
+    });
+    const documentRepository = new TypeOrmDocumentRepository(entityRepository, cipher);
+    const projectRepository = new TypeOrmProjectRepository(
+      dataSource.getRepository(ProjectOrmEntity),
+      cipher,
+    );
+    const financialsProvider = new TypeOrmProjectFinancialsProvider(dataSource);
+    const projectNameProvider: ProjectNameProvider = {
+      findAllNames: () => Promise.resolve([]),
+    };
+    const duplicateCheckUseCase = new CheckDocumentDuplicateUseCase(documentRepository, projectNameProvider);
+    const duplicateDetector = new CheckDuplicateDocumentDetector(duplicateCheckUseCase);
+
+    await expect(documentRepository.findByProject(projectId, { includePayroll: false })).resolves.toEqual([
+      expect.objectContaining({ id: invoiceId }),
+    ]);
+    await expect(
+      documentRepository.findPageByProject(projectId, { includePayroll: false }, { page: 1, size: 10 }),
+    ).resolves.toMatchObject({ items: [expect.objectContaining({ id: invoiceId })], total: 1 });
+    await expect(documentRepository.findAllForListing({ includePayroll: false })).resolves.toEqual([
+      expect.objectContaining({ id: invoiceId }),
+    ]);
+    await expect(
+      documentRepository.findPageForListing({ includePayroll: false }, { page: 1, size: 10 }),
+    ).resolves.toMatchObject({ items: [expect.objectContaining({ id: invoiceId })], total: 1 });
+    await expect(
+      documentRepository.findPossibleDuplicates({
+        invoiceNumber: 'SHARED-1',
+        amount: 100,
+        includePayroll: false,
+      }),
+    ).resolves.toEqual([expect.objectContaining({ id: invoiceId })]);
+    await expect(
+      documentRepository.findPagePossibleDuplicates(
+        { invoiceNumber: 'SHARED-1', amount: 100, includePayroll: false },
+        { page: 1, size: 10 },
+      ),
+    ).resolves.toMatchObject({ items: [expect.objectContaining({ id: invoiceId })], total: 1 });
+    await expect(
+      duplicateDetector.hasDuplicates({
+        documentId: invoiceId,
+        invoiceNumber: 'SHARED-1',
+        amount: 100,
+        issuerName: 'Acme SL',
+        issuerTaxId: 'B12345678',
+      }),
+    ).resolves.toBe(false);
+    const summaries = await projectRepository.findAllSummaries(undefined, false);
+    expect(summaries.find((summary) => summary.id === projectId)).toMatchObject({
+      documentCount: 1,
+      pendingCount: 1,
+    });
+    await expect(financialsProvider.findAll(false)).resolves.toEqual([
+      { projectId, currency: 'EUR', income: 100, expenses: 0 },
+    ]);
+    await expect(financialsProvider.findAll(true)).resolves.toEqual([
+      { projectId, currency: 'EUR', income: 100, expenses: 100 },
+    ]);
   });
 
   it('filters documents through active and archived project clients with deterministic conjunction semantics', async () => {

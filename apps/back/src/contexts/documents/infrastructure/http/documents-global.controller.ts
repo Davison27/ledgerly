@@ -42,6 +42,7 @@ export class DocumentsGlobalController {
   @Get('duplicate-check')
   async duplicateCheck(
     @Query() query: DuplicateCheckQueryDto,
+    @CurrentMember() member: WorkspaceMember,
   ): Promise<DocumentDuplicateCheckResponse> {
     const pageRequest = getOptionalPageRequest(query);
 
@@ -50,6 +51,7 @@ export class DocumentsGlobalController {
       issuerTaxId: query.issuerTaxId,
       invoiceNumber: query.invoiceNumber,
       amount: query.amount,
+      includePayroll: member.canAccess('staff', 'view'),
     };
 
     if (pageRequest) {
@@ -81,6 +83,7 @@ export class DocumentsGlobalController {
       projectId: query.projectId,
       supplierId: query.supplierId,
       staffMemberId: query.staffMemberId,
+      includePayroll: member.canAccess('staff', 'view'),
     };
     const pageRequest = getOptionalPageRequest(query);
 

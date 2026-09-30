@@ -20,6 +20,7 @@ import { RecordExtractionOutcomeCommand } from '../../application/record-extract
 import { CreateDocumentCommand } from '../../application/create-document/create-document.command';
 import { Document } from '../../domain/document';
 import { DocumentSupplierNotFoundException } from '../../domain/errors/document-supplier-not-found.exception';
+import { DocumentNotFoundException } from '../../domain/errors/document-not-found.exception';
 import { DomainExceptionFilter } from '../../../../shared/infrastructure/http/domain-exception.filter';
 import { MALWARE_SCANNER } from '../../../../shared/domain/malware-scanner.port';
 import {
@@ -44,10 +45,12 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
   let app: INestApplication;
   let httpServer: Server;
   let createExecute: jest.Mock<Promise<Document>, [CreateDocumentCommand]>;
+  let getDocumentExecute: jest.Mock;
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock<Promise<void>, [RecordExtractionFeedbackCommand]>;
   let recordOutcomeExecute: jest.Mock<Promise<void>, [RecordExtractionOutcomeCommand]>;
   let supplierViewAccess = true;
+  let staffAccess: 'none' | 'view' | 'edit' = 'none';
 
   beforeAll(async () => {
     createExecute = jest.fn((command: CreateDocumentCommand) =>
@@ -80,6 +83,16 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
     );
 
     getFileExecute = jest.fn();
+    getDocumentExecute = jest.fn((id: string, projectId: string) => Promise.resolve(Document.create({
+      id,
+      projectId,
+      name: 'Invoice',
+      type: 'invoice',
+      date: '2026-06-01',
+      amount: 100,
+      status: 'pending',
+      direction: 'expense',
+    })));
     recordFeedbackExecute = jest.fn<Promise<void>, [RecordExtractionFeedbackCommand]>().mockResolvedValue(undefined);
     recordOutcomeExecute = jest.fn<Promise<void>, [RecordExtractionOutcomeCommand]>().mockResolvedValue(undefined);
 
@@ -87,7 +100,7 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       controllers: [DocumentsController],
       providers: [
         { provide: ListDocumentsUseCase, useValue: {} },
-        { provide: GetDocumentUseCase, useValue: {} },
+        { provide: GetDocumentUseCase, useValue: { execute: getDocumentExecute } },
         { provide: CreateDocumentUseCase, useValue: { execute: createExecute } },
         { provide: UpdateDocumentUseCase, useValue: {} },
         { provide: DeleteDocumentUseCase, useValue: {} },
@@ -105,7 +118,11 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
         Object.assign(request, {
           member: {
             getId: () => 'member-1',
-            canAccess: (module: string) => module !== 'suppliers' || supplierViewAccess,
+            canAccess: (module: string, level: string) => {
+              if (module === 'suppliers') return supplierViewAccess;
+              if (module === 'staff') return staffAccess === 'edit' || (staffAccess === 'view' && level === 'view');
+              return true;
+            },
           },
         });
         next();
@@ -119,10 +136,12 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
 
   afterEach(() => {
     createExecute.mockClear();
+    getDocumentExecute.mockClear();
     getFileExecute.mockClear();
     recordFeedbackExecute.mockClear();
     recordOutcomeExecute.mockClear();
     supplierViewAccess = true;
+    staffAccess = 'none';
   });
 
   afterAll(async () => {
@@ -370,6 +389,34 @@ describe('DocumentsController file upload/download (HTTP, no DB)', () => {
       const response = await request(httpServer).get('/projects/p1/documents/doc-2/file');
 
       expect(response.status).toBe(404);
+    });
+
+    it('blocks payroll file reads before loading stored content without staff view access', async () => {
+      getDocumentExecute.mockResolvedValueOnce(Document.create({
+        id: 'doc-2',
+        projectId: 'p1',
+        name: 'Payroll',
+        type: 'payroll',
+        staffMemberId: 'staff-1',
+        date: '2026-06-01',
+        amount: 100,
+        status: 'pending',
+        direction: 'expense',
+      }));
+
+      const response = await request(httpServer).get('/projects/p1/documents/doc-2/file');
+
+      expect(response.status).toBe(403);
+      expect(getFileExecute).not.toHaveBeenCalled();
+    });
+
+    it('preserves not-found for payroll files requested through another project', async () => {
+      getDocumentExecute.mockRejectedValueOnce(new DocumentNotFoundException('doc-2'));
+
+      const response = await request(httpServer).get('/projects/other-project/documents/doc-2/file');
+
+      expect(response.status).toBe(404);
+      expect(getFileExecute).not.toHaveBeenCalled();
     });
   });
 });

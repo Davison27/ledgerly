@@ -13,6 +13,13 @@ export function notificationVisibilityCondition(
   const documents = canView(access.documents);
   const staff = canView(access.staff);
   const equipment = canView(access.equipment);
+  const linkedNonPayrollDocument = `EXISTS (
+        SELECT 1
+        FROM documents linked_document
+        WHERE linked_document.id = ${alias}.resource_id
+          AND linked_document.project_id = ${alias}.resource_project_id
+          AND linked_document.type IN ('invoice', 'tax')
+      )`;
   const hasFullScheduleAccess = access.staff !== 'none' && access.equipment !== 'none';
   const scheduleAssignments = hasFullScheduleAccess
     ? 'TRUE'
@@ -32,7 +39,7 @@ export function notificationVisibilityCondition(
       )`;
 
   return `(
-    (${alias}.resource_kind = 'document' AND ${projects} AND ${documents})
+    (${alias}.resource_kind = 'document' AND ${projects} AND ${documents} AND (${staff} OR ${linkedNonPayrollDocument}))
     OR (${alias}.resource_kind = 'staff_member' AND ${staff} AND ${documents})
     OR (${alias}.resource_kind = 'none' AND ${alias}.type = 'document_extraction_failed' AND ${documents})
     OR (

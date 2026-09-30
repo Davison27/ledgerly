@@ -42,6 +42,10 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
       .createQueryBuilder('document')
       .where('document.project_id = :projectId', { projectId });
 
+    if (filters.includePayroll === false) {
+      queryBuilder.andWhere("document.type <> 'payroll'");
+    }
+
     if (filters.search) {
       queryBuilder.andWhere('LOWER(document.name) LIKE :search', {
         search: `%${filters.search.toLowerCase()}%`,
@@ -278,12 +282,18 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
 
   async findPossibleDuplicates(criteria: DocumentDuplicateCriteria): Promise<DocumentDuplicateRow[]> {
     const limit = getListLimit('MAX_LIST_ITEMS', 500);
-    const orms = await this.repository
+    const queryBuilder = this.repository
       .createQueryBuilder('document')
       .where('LOWER(TRIM(document.invoice_number)) = :invoiceNumber', {
         invoiceNumber: criteria.invoiceNumber.trim().toLowerCase(),
       })
-      .andWhere('document.amount = :amount', { amount: criteria.amount })
+      .andWhere('document.amount = :amount', { amount: criteria.amount });
+
+    if (criteria.includePayroll === false) {
+      queryBuilder.andWhere("document.type <> 'payroll'");
+    }
+
+    const orms = await queryBuilder
       .orderBy('document.date', 'DESC')
       .addOrderBy('document.id', 'DESC')
       .take(limit + 1)
@@ -313,6 +323,10 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
         invoiceNumber: criteria.invoiceNumber.trim().toLowerCase(),
       })
       .andWhere('document.amount = :amount', { amount: criteria.amount });
+
+    if (criteria.includePayroll === false) {
+      queryBuilder.andWhere("document.type <> 'payroll'");
+    }
 
     const issuerConditions: string[] = [];
     const issuerParameters: Record<string, string> = {};
@@ -360,6 +374,10 @@ export class TypeOrmDocumentRepository implements DocumentRepository {
     filters: DocumentFilters,
   ): void {
     const listFilters = filters as DocumentListFilters;
+
+    if (filters.includePayroll === false) {
+      queryBuilder.andWhere("document.type <> 'payroll'");
+    }
 
     if (listFilters.clientId) {
       queryBuilder.andWhere(

@@ -7,11 +7,13 @@ import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.rep
 
 class InMemoryProjectRepository implements ProjectRepository {
   lastClientId: string | undefined;
+  lastIncludePayroll: boolean | undefined;
 
   constructor(private readonly summaries: ProjectSummary[]) {}
 
-  findAllSummaries(clientId?: string): Promise<ProjectSummary[]> {
+  findAllSummaries(clientId?: string, includePayroll?: boolean): Promise<ProjectSummary[]> {
     this.lastClientId = clientId;
+    this.lastIncludePayroll = includePayroll;
     return Promise.resolve(this.summaries);
   }
 
@@ -45,9 +47,12 @@ class InMemoryProjectRepository implements ProjectRepository {
 }
 
 class InMemoryProjectFinancialsProvider implements ProjectFinancialsProvider {
+  lastIncludePayroll: boolean | undefined;
+
   constructor(private readonly rows: ProjectFinancialsRow[]) {}
 
-  findAll(): Promise<ProjectFinancialsRow[]> {
+  findAll(includePayroll?: boolean): Promise<ProjectFinancialsRow[]> {
+    this.lastIncludePayroll = includePayroll;
     return Promise.resolve(this.rows);
   }
 }
@@ -79,6 +84,8 @@ describe('ListProjectsUseCase', () => {
 
     const result = await useCase.execute();
 
+    expect(projectRepository.lastIncludePayroll).toBe(true);
+    expect(financialsProvider.lastIncludePayroll).toBe(true);
     expect(result).toEqual([
       expect.objectContaining({
         id: 'project-1',
@@ -105,12 +112,12 @@ describe('ListProjectsUseCase', () => {
 
   it('forwards an optional client scope without changing summary composition', async () => {
     const projectRepository = new InMemoryProjectRepository([buildSummary()]);
-    const useCase = new ListProjectsUseCase(
-      projectRepository,
-      new InMemoryProjectFinancialsProvider([]),
-    );
+    const financialsProvider = new InMemoryProjectFinancialsProvider([]);
+    const useCase = new ListProjectsUseCase(projectRepository, financialsProvider);
 
-    await expect(useCase.execute('client-1')).resolves.toHaveLength(1);
+    await expect(useCase.execute('client-1', false)).resolves.toHaveLength(1);
     expect(projectRepository.lastClientId).toBe('client-1');
+    expect(projectRepository.lastIncludePayroll).toBe(false);
+    expect(financialsProvider.lastIncludePayroll).toBe(false);
   });
 });

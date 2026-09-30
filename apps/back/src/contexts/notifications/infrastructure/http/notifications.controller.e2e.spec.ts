@@ -175,6 +175,13 @@ describe('NotificationsController (HTTP, no DB)', () => {
       expect(response.status).toBe(400);
       expect(listExecute).not.toHaveBeenCalled();
     });
+
+    it('rejects client-supplied access levels', async () => {
+      const response = await request(httpServer).get('/notifications').query({ staff: 'view' });
+
+      expect(response.status).toBe(400);
+      expect(listExecute).not.toHaveBeenCalled();
+    });
   });
 
   describe('GET /notifications/unread-count', () => {

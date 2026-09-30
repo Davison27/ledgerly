@@ -13,7 +13,12 @@ describe('notificationVisibilityCondition', () => {
 
     const condition = notificationVisibilityCondition(access, 'notification');
 
-    expect(condition).toContain("notification.resource_kind = 'document' AND TRUE AND TRUE");
+    expect(condition).toContain(
+      "notification.resource_kind = 'document' AND TRUE AND TRUE AND (FALSE OR EXISTS (",
+    );
+    expect(condition).toContain('linked_document.id = notification.resource_id');
+    expect(condition).toContain('linked_document.project_id = notification.resource_project_id');
+    expect(condition).toContain("linked_document.type IN ('invoice', 'tax')");
     expect(condition).toContain("notification.resource_kind = 'staff_member' AND FALSE AND TRUE");
     expect(condition).toContain("notification.resource_kind = 'none' AND notification.type = 'document_extraction_failed' AND TRUE");
     expect(condition).toContain('schedule_event.project_id = notification.resource_project_id');
@@ -33,7 +38,25 @@ describe('notificationVisibilityCondition', () => {
     const condition = notificationVisibilityCondition(access, 'notifications');
 
     expect(condition).toContain("notifications.resource_kind = 'schedule_event'\n      AND TRUE\n      AND FALSE");
-    expect(condition).toContain("notifications.resource_kind = 'document' AND TRUE AND FALSE");
+    expect(condition).toContain(
+      "notifications.resource_kind = 'document' AND TRUE AND FALSE AND (TRUE OR EXISTS (",
+    );
     expect(condition).toContain("notifications.resource_kind = 'staff_member' AND TRUE AND FALSE");
+  });
+
+  it('preserves document visibility for members who can view staff', () => {
+    const access: NotificationAccessSnapshot = {
+      projects: 'view',
+      calendar: 'view',
+      documents: 'view',
+      staff: 'view',
+      equipment: 'none',
+    };
+
+    const condition = notificationVisibilityCondition(access, 'notification');
+
+    expect(condition).toContain(
+      "notification.resource_kind = 'document' AND TRUE AND TRUE AND (TRUE OR EXISTS (",
+    );
   });
 });

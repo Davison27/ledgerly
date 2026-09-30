@@ -15,6 +15,7 @@ export class CheckDuplicateDocumentDetector implements DocumentDuplicateDetector
       issuerTaxId: criteria.issuerTaxId,
       invoiceNumber: criteria.invoiceNumber,
       amount: criteria.amount,
+      includePayroll: false,
     });
 
     return matches.some((match) => match.id !== criteria.documentId);

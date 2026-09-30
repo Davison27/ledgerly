@@ -23,7 +23,8 @@ export class ListDocumentsUseCase {
       throw new DocumentProjectNotFoundException(query.projectId);
     }
 
-    return this.repository.findByProject(query.projectId, query.filters);
+    const documents = await this.repository.findByProject(query.projectId, query.filters);
+    return this.visibleDocuments(documents, query.filters.includePayroll);
   }
 
   async executePage(query: ListDocumentsQuery, request: PageRequest): Promise<Page<Document>> {
@@ -37,7 +38,10 @@ export class ListDocumentsUseCase {
       return this.repository.findPageByProject(query.projectId, query.filters, request);
     }
 
-    const documents = await this.repository.findByProject(query.projectId, query.filters);
+    const documents = this.visibleDocuments(
+      await this.repository.findByProject(query.projectId, query.filters),
+      query.filters.includePayroll,
+    );
     const start = (request.page - 1) * request.size;
 
     return {
@@ -46,5 +50,11 @@ export class ListDocumentsUseCase {
       page: request.page,
       size: request.size,
     };
+  }
+
+  private visibleDocuments(documents: Document[], includePayroll: boolean | undefined): Document[] {
+    return includePayroll === false
+      ? documents.filter((document) => document.getType() !== 'payroll')
+      : documents;
   }
 }

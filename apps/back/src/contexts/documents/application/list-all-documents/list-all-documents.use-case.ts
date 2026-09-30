@@ -22,9 +22,10 @@ export class ListAllDocumentsUseCase {
       this.projectNameProvider.findAllNames(),
     ]);
 
+    const visibleRows = this.visibleRows(rows, filters.includePayroll);
     const projectNameById = new Map(summaries.map((project) => [project.id, project.name]));
 
-    return rows.map((row) => this.toListItem(row, projectNameById));
+    return visibleRows.map((row) => this.toListItem(row, projectNameById));
   }
 
   async executePage(
@@ -50,7 +51,10 @@ export class ListAllDocumentsUseCase {
     filters: DocumentListFilters,
     request: PageRequest,
   ): Promise<Page<DocumentListRow>> {
-    const rows = await this.documentRepository.findAllForListing(filters);
+    const rows = this.visibleRows(
+      await this.documentRepository.findAllForListing(filters),
+      filters.includePayroll,
+    );
     const start = (request.page - 1) * request.size;
 
     return {
@@ -59,6 +63,10 @@ export class ListAllDocumentsUseCase {
       page: request.page,
       size: request.size,
     };
+  }
+
+  private visibleRows(rows: DocumentListRow[], includePayroll: boolean | undefined): DocumentListRow[] {
+    return includePayroll === false ? rows.filter((row) => row.type !== 'payroll') : rows;
   }
 
   private toListItem(

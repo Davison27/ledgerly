@@ -11,4 +11,5 @@ export interface DocumentFilters {
   dateTo?: string;
   amountMin?: number;
   amountMax?: number;
+  includePayroll?: boolean;
 }

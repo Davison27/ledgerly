@@ -183,6 +183,19 @@ describe('CheckDocumentDuplicateUseCase', () => {
       issuerTaxId: 'B12345678',
       invoiceNumber: 'INV-1',
       amount: 100,
+      includePayroll: undefined,
     });
+  });
+
+  it('forwards the server-owned payroll visibility filter to the repository', async () => {
+    const documentRepository = new FakeDocumentRepository([]);
+    const useCase = new CheckDocumentDuplicateUseCase(
+      documentRepository,
+      new FakeProjectNameProvider([]),
+    );
+
+    await useCase.execute({ invoiceNumber: 'INV-1', amount: 100, includePayroll: false });
+
+    expect(documentRepository.receivedCriteria?.includePayroll).toBe(false);
   });
 });

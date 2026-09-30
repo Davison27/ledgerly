@@ -59,7 +59,7 @@ function buildMatch(overrides: Partial<DocumentDuplicateMatch> = {}): DocumentDu
   };
 }
 
-function createMember(projects: 'none' | 'view'): WorkspaceMember {
+function createMember(projects: 'none' | 'view', staff: 'none' | 'view' | 'edit' = 'none'): WorkspaceMember {
   return WorkspaceMember.create({
     id: 'member-1',
     email: MemberEmail.create('member@example.com'),
@@ -72,7 +72,7 @@ function createMember(projects: 'none' | 'view'): WorkspaceMember {
       documents: 'view',
       suppliers: 'none',
       equipment: 'none',
-      staff: 'none',
+      staff,
     }),
     status: 'active',
     invitedAt: new Date('2026-01-01T00:00:00Z'),
@@ -207,6 +207,7 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
         projectId: 'project-1',
         supplierId: 'supplier-1',
         staffMemberId: 'staff-1',
+        includePayroll: false,
       });
     });
 
@@ -287,6 +288,23 @@ describe('DocumentsGlobalController (HTTP, no DB)', () => {
         issuerTaxId: 'B12345678',
         invoiceNumber: 'INV-1',
         amount: 100,
+        includePayroll: false,
+      });
+    });
+
+    it('includes payroll candidates when the member can view staff records', async () => {
+      member = createMember('view', 'view');
+
+      await request(httpServer)
+        .get('/documents/duplicate-check')
+        .query({ invoiceNumber: 'INV-1', amount: '100' });
+
+      expect(duplicateCheckExecute).toHaveBeenCalledWith({
+        issuerName: undefined,
+        issuerTaxId: undefined,
+        invoiceNumber: 'INV-1',
+        amount: 100,
+        includePayroll: true,
       });
     });
 

@@ -31,7 +31,10 @@ import { PROJECT_REPOSITORY, ProjectRepository } from '../../domain/project.repo
 import { Project } from '../../domain/project';
 
 interface ProjectListMemberAccess {
-  canAccess(module: 'documents' | 'equipment' | 'planning', level: 'view' | 'edit'): boolean;
+  canAccess(
+    module: 'documents' | 'equipment' | 'planning' | 'staff',
+    level: 'view' | 'edit',
+  ): boolean;
 }
 
 @RequiresAccess('projects', 'view')
@@ -53,13 +56,21 @@ export class ProjectsController {
     @CurrentMember() member: ProjectListMemberAccess,
     @Query() query: ListProjectsQueryDto = {},
   ): Promise<ProjectSummaryResponse[]> {
-    const summaries = await this.listProjectsUseCase.execute(query.clientId);
+    const summaries = await this.listProjectsUseCase.execute(
+      query.clientId,
+      member.canAccess('staff', 'view'),
+    );
     const includeDocumentAggregates = member.canAccess('documents', 'view');
     const includeFinancials = includeDocumentAggregates && member.canAccess('equipment', 'view');
     const includePlanningProgress = member.canAccess('planning', 'view');
 
     return summaries.map((summary) =>
-      ProjectSummaryResponse.fromSummary(summary, includeDocumentAggregates, includeFinancials, includePlanningProgress),
+      ProjectSummaryResponse.fromSummary(
+        summary,
+        includeDocumentAggregates,
+        includeFinancials,
+        includePlanningProgress,
+      ),
     );
   }
 
@@ -120,8 +131,10 @@ export class ProjectsController {
     @Body() dto: UpdateProjectDto,
     @CurrentMember() member: ProjectListMemberAccess,
   ): Promise<ProjectResponse> {
-    if ((dto.planningEnabled !== undefined || dto.checklistTemplateId !== undefined) &&
-      !member.canAccess('planning', 'edit')) {
+    if (
+      (dto.planningEnabled !== undefined || dto.checklistTemplateId !== undefined) &&
+      !member.canAccess('planning', 'edit')
+    ) {
       throw new ForbiddenException();
     }
     const project = await this.updateProjectUseCase.execute({

@@ -3,4 +3,5 @@ export interface CheckDocumentDuplicateQuery {
   issuerTaxId?: string | null;
   invoiceNumber: string;
   amount: number;
+  includePayroll?: boolean;
 }

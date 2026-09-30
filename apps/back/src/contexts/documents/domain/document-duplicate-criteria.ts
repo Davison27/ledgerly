@@ -3,4 +3,5 @@ export interface DocumentDuplicateCriteria {
   issuerTaxId?: string | null;
   invoiceNumber: string;
   amount: number;
+  includePayroll?: boolean;
 }

@@ -44,6 +44,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   let getFileExecute: jest.Mock;
   let recordFeedbackExecute: jest.Mock;
   let supplierViewAccess = true;
+  let staffAccess: 'none' | 'view' | 'edit' = 'edit';
 
   beforeAll(async () => {
     listPageExecute = jest.fn().mockResolvedValue({
@@ -52,7 +53,9 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
       page: 2,
       size: 10,
     });
-    getExecute = jest.fn<Promise<Document>, [string, string?]>();
+    getExecute = jest.fn<Promise<Document>, [string, string?]>((id, projectId) =>
+      Promise.resolve(buildDocument({ id, projectId: projectId ?? 'project-1' })),
+    );
     updateExecute = jest.fn((command: UpdateDocumentCommand) =>
       Promise.resolve(
         buildDocument({
@@ -87,7 +90,11 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
         Object.assign(request, {
           member: {
             getId: () => 'member-1',
-            canAccess: (module: string) => module !== 'suppliers' || supplierViewAccess,
+            canAccess: (module: string, level: string) => {
+              if (module === 'suppliers') return supplierViewAccess;
+              if (module === 'staff') return staffAccess === 'edit' || (staffAccess === 'view' && level === 'view');
+              return true;
+            },
           },
         });
         next();
@@ -107,6 +114,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     getFileExecute.mockClear();
     recordFeedbackExecute.mockClear();
     supplierViewAccess = true;
+    staffAccess = 'edit';
   });
 
   afterAll(async () => {
@@ -135,6 +143,7 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
             dateTo: undefined,
             amountMin: undefined,
             amountMax: undefined,
+            includePayroll: true,
           },
         },
         { page: 2, size: 10 },
@@ -157,6 +166,27 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   });
 
   describe('PATCH /projects/:projectId/documents/:id', () => {
+    it('requires staff edit access for payroll updates', async () => {
+      staffAccess = 'view';
+      getExecute.mockResolvedValueOnce(buildDocument({ type: 'payroll', staffMemberId: 'staff-1' }));
+
+      const response = await request(httpServer)
+        .patch('/projects/p1/documents/doc-1')
+        .send({ name: 'Updated payroll' });
+
+      expect(response.status).toBe(403);
+      expect(updateExecute).not.toHaveBeenCalled();
+    });
+
+    it('keeps payroll type conversion unsupported for staff editors', async () => {
+      const response = await request(httpServer)
+        .patch('/projects/p1/documents/doc-1')
+        .send({ type: 'payroll' });
+
+      expect(response.status).toBe(400);
+      expect(updateExecute).not.toHaveBeenCalled();
+    });
+
     it('requires supplier view access when assigning a supplier', async () => {
       supplierViewAccess = false;
 
@@ -255,6 +285,16 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
   });
 
   describe('DELETE /projects/:projectId/documents/:id', () => {
+    it('requires staff edit access for payroll deletion', async () => {
+      staffAccess = 'view';
+      getExecute.mockResolvedValueOnce(buildDocument({ type: 'payroll', staffMemberId: 'staff-1' }));
+
+      const response = await request(httpServer).delete('/projects/p1/documents/doc-1');
+
+      expect(response.status).toBe(403);
+      expect(deleteExecute).not.toHaveBeenCalled();
+    });
+
     it('returns 204 on successful delete', async () => {
       const response = await request(httpServer).delete('/projects/p1/documents/doc-1');
 
@@ -287,5 +327,24 @@ describe('DocumentsController CRUD (HTTP, no DB)', () => {
     expect(body.status).toBe('overdue');
     expect(body.rawStatus).toBe('pending');
     expect(getExecute).toHaveBeenCalledWith('doc-1', 'p1');
+  });
+
+  it('requires staff view access for payroll reads after checking project ownership', async () => {
+    staffAccess = 'none';
+    getExecute.mockResolvedValueOnce(buildDocument({ type: 'payroll', staffMemberId: 'staff-1' }));
+
+    const response = await request(httpServer).get('/projects/p1/documents/doc-1');
+
+    expect(response.status).toBe(403);
+    expect(getExecute).toHaveBeenCalledWith('doc-1', 'p1');
+  });
+
+  it('preserves not-found for a payroll document requested through another project', async () => {
+    staffAccess = 'none';
+    getExecute.mockRejectedValueOnce(new DocumentNotFoundException('doc-1'));
+
+    const response = await request(httpServer).get('/projects/other-project/documents/doc-1');
+
+    expect(response.status).toBe(404);
   });
 });

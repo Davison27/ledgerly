@@ -6,9 +6,18 @@ import { ProjectSummary } from '../../domain/project-summary';
 import { ProjectDashboardRow, ProjectRepository } from '../../domain/project.repository';
 import { ProjectOrmEntity } from './project.orm-entity';
 import { ProjectMapper } from './project.mapper';
-import { getListLimit, ListLimitExceededException } from '../../../../shared/infrastructure/list-limit';
-import { STORED_FILE_CIPHER, StoredFileCipher } from '../../../../shared/domain/stored-file-cipher.port';
-import { decryptStoredImage, encryptStoredImage } from '../../../../shared/infrastructure/crypto/stored-image-envelope';
+import {
+  getListLimit,
+  ListLimitExceededException,
+} from '../../../../shared/infrastructure/list-limit';
+import {
+  STORED_FILE_CIPHER,
+  StoredFileCipher,
+} from '../../../../shared/domain/stored-file-cipher.port';
+import {
+  decryptStoredImage,
+  encryptStoredImage,
+} from '../../../../shared/infrastructure/crypto/stored-image-envelope';
 
 type ProjectSummaryRow = Omit<ProjectSummary, 'financials' | 'image'> & {
   imageCiphertext: Buffer | null;
@@ -29,9 +38,10 @@ export class TypeOrmProjectRepository implements ProjectRepository {
     @Inject(STORED_FILE_CIPHER) private readonly storedFileCipher: StoredFileCipher,
   ) {}
 
-  async findAllSummaries(clientId?: string): Promise<ProjectSummary[]> {
+  async findAllSummaries(clientId?: string, includePayroll = true): Promise<ProjectSummary[]> {
     const limit = getListLimit('MAX_LIST_ITEMS', 500);
-    const rows: ProjectSummaryRow[] = await this.repository.manager.query(`
+    const rows: ProjectSummaryRow[] = await this.repository.manager.query(
+      `
       SELECT p.id, p.name, p.code, p.currency, p.status, p.planning_enabled AS "planningEnabled",
         COALESCE(checklist.completed_count, 0)::int AS "checklistCompletedCount",
         COALESCE(checklist.total_count, 0)::int AS "checklistTotalCount",
@@ -42,6 +52,7 @@ export class TypeOrmProjectRepository implements ProjectRepository {
         COUNT(d.id) FILTER (WHERE d.status = 'pending')::int AS "pendingCount"
       FROM projects p
       LEFT JOIN documents d ON d.project_id = p.id AND d.deleted_at IS NULL
+        AND ($3::boolean OR d.type <> 'payroll')
       LEFT JOIN (
         SELECT pc.project_id, COUNT(pci.id)::int AS total_count,
           COUNT(pci.id) FILTER (WHERE pci.completed)::int AS completed_count
@@ -55,7 +66,9 @@ export class TypeOrmProjectRepository implements ProjectRepository {
         p.image_key_version, p.image_mime_type, p.image_size, p.color
       ORDER BY p.name ASC
       LIMIT $2
-    `, [clientId ?? null, limit + 1]);
+    `,
+      [clientId ?? null, limit + 1, includePayroll],
+    );
 
     if (rows.length > limit) throw new ListLimitExceededException(limit, 'Projects');
 
@@ -120,7 +133,12 @@ export class TypeOrmProjectRepository implements ProjectRepository {
 
   async save(project: Project): Promise<void> {
     const primitives = project.toPrimitives();
-    const encryptedImage = encryptStoredImage(primitives.image, 'projectImage', primitives.id, this.storedFileCipher);
+    const encryptedImage = encryptStoredImage(
+      primitives.image,
+      'projectImage',
+      primitives.id,
+      this.storedFileCipher,
+    );
     const orm = this.mapper.toOrm(project);
     orm.imageCiphertext = encryptedImage.envelope.ciphertext ?? null;
     orm.imageNonce = encryptedImage.envelope.nonce ?? null;
@@ -161,7 +179,9 @@ export class TypeOrmProjectRepository implements ProjectRepository {
     }));
   }
 
-  private async findOneWithImage(where: { id: string } | { code: string }): Promise<ProjectOrmEntity | null> {
+  private async findOneWithImage(
+    where: { id: string } | { code: string },
+  ): Promise<ProjectOrmEntity | null> {
     return this.repository
       .createQueryBuilder('project')
       .addSelect([
@@ -177,7 +197,15 @@ export class TypeOrmProjectRepository implements ProjectRepository {
   }
 
   private toSummary(row: ProjectSummaryRow): ProjectSummary {
-    const { imageCiphertext, imageKeyVersion, imageMimeType, imageNonce, imageSize, imageTag, ...summary } = row;
+    const {
+      imageCiphertext,
+      imageKeyVersion,
+      imageMimeType,
+      imageNonce,
+      imageSize,
+      imageTag,
+      ...summary
+    } = row;
     return {
       ...summary,
       financials: [],

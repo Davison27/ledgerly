@@ -73,6 +73,7 @@ export class DocumentsController {
   async list(
     @Param('projectId') projectId: string,
     @Query() query: ListDocumentsQueryDto,
+    @CurrentMember() member: WorkspaceMember,
   ): Promise<DocumentResponse[] | DocumentPageResponse> {
     const listQuery = {
       projectId,
@@ -85,6 +86,7 @@ export class DocumentsController {
         dateTo: query.dateTo,
         amountMin: query.amountMin,
         amountMax: query.amountMax,
+        includePayroll: member.canAccess('staff', 'view'),
       },
     };
     const pageRequest = getOptionalPageRequest(query);
@@ -260,8 +262,11 @@ export class DocumentsController {
   async getFile(
     @Param('projectId') projectId: string,
     @Param('documentId') documentId: string,
+    @CurrentMember() member: WorkspaceMember,
     @Res({ passthrough: true }) res: Response,
   ): Promise<StreamableFile> {
+    const document = await this.getDocumentUseCase.execute(documentId, projectId);
+    this.assertPayrollAccess(document, member, 'view');
     const file = await this.getDocumentFileUseCase.execute(documentId, projectId);
 
     if (!file) {
@@ -280,8 +285,10 @@ export class DocumentsController {
   async get(
     @Param('projectId') projectId: string,
     @Param('id') id: string,
+    @CurrentMember() member: WorkspaceMember,
   ): Promise<DocumentResponse> {
     const document = await this.getDocumentUseCase.execute(id, projectId);
+    this.assertPayrollAccess(document, member, 'view');
 
     return DocumentResponse.fromDomain(document);
   }
@@ -295,6 +302,8 @@ export class DocumentsController {
     @Body() dto: UpdateDocumentDto,
     @CurrentMember() member: WorkspaceMember,
   ): Promise<DocumentResponse> {
+    const document = await this.getDocumentUseCase.execute(id, projectId);
+    this.assertPayrollAccess(document, member, 'edit');
     this.assertSupplierView(member, dto.supplierId);
 
     const updated = await this.updateDocumentUseCase.execute({
@@ -326,6 +335,12 @@ export class DocumentsController {
 
   private assertSupplierView(member: WorkspaceMember, supplierId: string | null | undefined): void {
     if (supplierId !== undefined && supplierId !== null && !member.canAccess('suppliers', 'view')) {
+      throw new ForbiddenException();
+    }
+  }
+
+  private assertPayrollAccess(document: Document, member: WorkspaceMember, level: 'view' | 'edit'): void {
+    if (document.getType() === 'payroll' && !member.canAccess('staff', level)) {
       throw new ForbiddenException();
     }
   }
@@ -376,6 +391,8 @@ export class DocumentsController {
     @Param('id') id: string,
     @CurrentMember() member: WorkspaceMember,
   ): Promise<void> {
+    const document = await this.getDocumentUseCase.execute(id, projectId);
+    this.assertPayrollAccess(document, member, 'edit');
     await this.deleteDocumentUseCase.execute({ id, projectId, deletedBy: member.getId() });
   }
 }
