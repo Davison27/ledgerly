@@ -293,17 +293,51 @@ inside the volume. A container stuck in this loop after an upgrade means the
 volume still holds pre-18 data, not that data was lost.
 
 Upgrading an installation that holds data therefore requires a dump taken
-**before** the image is switched:
+**before** the image is switched. Run this from the repository root in Bash:
 
 ```bash
-docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
-  exec postgres pg_dumpall -U ledgerly > ledgerly-pg17.sql
+set -euo pipefail
+umask 077
+backup_dir=$(mktemp -d "${TMPDIR:-/tmp}/ledgerly-pg17.XXXXXX")
+dump_file="$backup_dir/ledgerly-pg17.sql"
+
+if ! (set -C; : > "$dump_file"); then
+  printf 'Refusing to overwrite existing dump: %s\n' "$dump_file" >&2
+  exit 1
+fi
+
+retain_dump=0
+cleanup_dump() {
+  if [ "$retain_dump" -eq 0 ]; then
+    rm -f "$dump_file"
+    rmdir "$backup_dir" 2>/dev/null || true
+  fi
+}
+trap cleanup_dump EXIT
+
+if ! docker compose -f deploy/docker-compose.yml --env-file deploy/.env \
+  exec -T postgres pg_dumpall -U ledgerly > "$dump_file"; then
+  printf 'PostgreSQL dump failed; removed incomplete file: %s\n' "$dump_file" >&2
+  exit 1
+fi
+
+if [ ! -s "$dump_file" ]; then
+  printf 'PostgreSQL dump was empty; removed file: %s\n' "$dump_file" >&2
+  exit 1
+fi
+
+retain_dump=1
+trap - EXIT
+printf 'Retain this dump at: %s\n' "$dump_file"
+printf 'After PostgreSQL 18 starts, restore before running the migrator:\n'
+printf 'docker compose -f deploy/docker-compose.yml --env-file deploy/.env exec -T postgres psql -U ledgerly -d postgres < %q\n' "$dump_file"
 ```
 
-Then stop the stack, remove the `pgdata` volume, start the PostgreSQL 18
-service, and restore the dump with `psql` before running the migrator. If the
-image was already switched and the container will no longer start, temporarily
-pin the service back to `postgres:17-alpine` with the mount at
+The block creates a fresh mode-`0700` directory and a mode-`0600` dump. Keep
+the printed restore command. Then stop the stack, remove the `pgdata` volume,
+start the PostgreSQL 18 service, and run that command before the migrator. If
+the image was already switched and the container will no longer start,
+temporarily pin the service back to `postgres:17-alpine` with the mount at
 `/var/lib/postgresql/data` to take the dump, then proceed as above.
 
 An installation with no data worth keeping — a development machine, or a fresh
