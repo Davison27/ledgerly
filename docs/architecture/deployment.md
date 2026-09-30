@@ -1,15 +1,19 @@
 # Production deployment
 
-Ledgerly supports two production deployment contracts. They are mutually
-exclusive on a shared VPS because each public proxy owns ports `80` and `443`.
+The repository contains two deployment contracts. On `ledgerly-vps`, Pangolin
+is the first Internet ingress; accepted requests continue through Gerbil and
+the Newt tunnel to Coolify and then to Ledgerly. The standalone Compose
+stack binds Caddy directly to host ports and is for local/test use on this VPS.
+Do not use those bindings on `ledgerly-vps`. Use the standalone contract on a
+different host only after a Pangolin-first private-target route is verified.
 The standalone contract is controlled by the repository's Make targets. The
-Coolify contract is controlled entirely through the Coolify application and
-database resources.
+Coolify contract is controlled through the Coolify application and database
+resources.
 
-| Concern | Standalone Docker Compose | Coolify Git Docker Compose |
+| Concern | Standalone Docker Compose (local/test) | Coolify Git Docker Compose on `ledgerly-vps` |
 | --- | --- | --- |
 | Application source | Operator checkout | Private deployment repository, `main` |
-| Public proxy and TLS | Ledgerly Caddy and Let's Encrypt | Coolify integrated proxy and TLS |
+| Internet ingress | Direct Caddy host bindings; not allowed on `ledgerly-vps` | Pangolin proxy, then Gerbil/Newt tunnel and Coolify proxy |
 | Public application endpoint | Configured `LEDGERLY_DOMAIN` | `https://<ledgerly-domain>` |
 | Browser/API routing | Ledgerly Caddy serves `/api/*` and frontend | Coolify forwards to the internal Ledgerly Caddy gateway, which serves `/api/*` and frontend |
 | PostgreSQL | `postgres` Compose service and `pgdata` volume | Separate private Coolify PostgreSQL Database resource |
@@ -24,14 +28,15 @@ The standalone tooling comprises `deploy/docker-compose.yml`,
 `restart`, `logs`, and `migrate`. These commands are not a Coolify bootstrap or
 operations interface.
 
-## Standalone topology and same-origin policy
+## Standalone Compose contract and same-origin policy
 
-In the standalone contract, Caddy is the only public entry point. It terminates
-TLS and routes the API to the backend while a second Caddy instance serves the
-frontend bundle.
+The standalone Compose stack binds its Caddy service to host ports `80` and
+`443`. This diagram describes local/test use only. Those direct bindings must
+not be used on `ledgerly-vps`, where Pangolin/Gerbil must remain the first
+Internet ingress.
 
 ```text
-Internet -> Caddy (TLS, :80/:443)
+Local/test client -> Caddy (:80/:443)
               |- /api/* -> back:3000
               `- all else -> front:8080 (static Caddy process)
 ```
@@ -46,22 +51,37 @@ and another runtime failure mode for no benefit.
 
 ## Coolify topology and setup
 
-Coolify is the only public proxy in this contract. Its GitHub App reads the
-private deployment repository and invokes the repository-owned
-`deploy/docker-compose.coolify.yml` in normal Git Docker Compose mode. The
-Coolify-specific Caddyfile keeps the application gateway and security headers,
-but it listens only on internal HTTP. It does not obtain certificates or bind
-host ports.
+Pangolin is the first public ingress on `ledgerly-vps`. It accepts Internet
+traffic and forwards accepted requests through Gerbil and the Newt tunnel to
+the Coolify proxy. Coolify routes the Ledgerly domain to the internal
+application gateway. Its GitHub App reads the private deployment repository
+and invokes the repository-owned `deploy/docker-compose.coolify.yml` in normal
+Git Docker Compose mode. The Coolify-specific Caddyfile keeps the application
+gateway and security headers, but it listens only on internal HTTP. It does
+not obtain certificates or bind host ports.
 
 ```text
-Internet -> Coolify proxy (TLS, :80/:443)
-              `- internal Ledgerly Caddy (:80)
-                   |- /api/* -> back:3000
-                   `- all else -> front:8080
+Internet -> Pangolin proxy
+              `- Gerbil/Newt tunnel -> Coolify proxy
+                                          `- internal Ledgerly Caddy (:80)
+                                               |- /api/* -> back:3000
+                                               `- all else -> front:8080
 
 back + migrator -> private Coolify PostgreSQL Database
 back            -> private ClamAV scanner
 ```
+
+The inspected VPS has separate Pangolin-managed control paths:
+
+```text
+GitHub webhook -> Pangolin -> webhook-gateway:8080 -> Coolify:8080
+Operator       -> Pangolin private resource -> Coolify proxy:443
+```
+
+The webhook gateway accepts only `POST /webhooks/source/github/events` and
+returns `404` for other paths. The private management route is not a direct
+public Coolify binding. Verify these installed Pangolin resources and targets
+before changing their routing.
 
 Create the database first, then the application, on the same Coolify server and
 destination:
@@ -84,10 +104,10 @@ destination:
    generated Compose definition, and deploy. A successful deployment requires
    a completed migrator and healthy gateway, backend, frontend, and scanner.
 
-Coolify owns certificates and host `80`, `443`, and UDP `443`. The Ledgerly
-Compose resource must not declare host `ports:` mappings. Do not run
-`make MODE=production setup` on a VPS where Coolify is installed as the public
-proxy.
+Pangolin/Gerbil owns the public host listeners on `ledgerly-vps` (TCP `80` and
+`443`, plus the configured tunnel ports). The Ledgerly Compose resource must
+not declare host `ports:` mappings. Do not run `make MODE=production setup` on
+`ledgerly-vps`; its standalone Caddy bindings bypass Pangolin.
 
 ### Coolify environment and persistence contract
 
