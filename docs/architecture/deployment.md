@@ -107,7 +107,16 @@ destination:
 Pangolin/Gerbil owns the public host listeners on `ledgerly-vps` (TCP `80` and
 `443`, plus the configured tunnel ports). The Ledgerly Compose resource must
 not declare host `ports:` mappings. Do not run `make MODE=production setup` on
-`ledgerly-vps`; its standalone Caddy bindings bypass Pangolin.
+`ledgerly-vps`; its standalone Caddy bindings bypass Pangolin. The VPS
+`DOCKER-USER` allowlist is kept in sync for IPv4 and IPv6 and matches the
+original host destination ports: TCP `80`/`443` and UDP `51820`/`21820`.
+Other inbound Docker-forwarded traffic is dropped.
+
+The installed Coolify and realtime services have no host port mappings for
+`8000`, `6001`, or `6002`. They keep their internal ports on the shared
+`coolify` network, where Pangolin's Newt and the Coolify proxy can reach them.
+After a Coolify upgrade, confirm its generated Compose still has no host
+`ports:` entries for the `coolify` and `soketi` services.
 
 ### Coolify environment and persistence contract
 
