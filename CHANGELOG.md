@@ -2,6 +2,15 @@
 
 Review the complete Ledgerly release history.
 
+## 1.4.1 — 2026-10-05
+
+Released on: 2026-10-05
+
+### Security
+
+- **Payroll document access controls** — Restrict payroll documents, related notifications, and project financial summaries to members with staff access.
+- **Safer invoice uploads** — Limit file counts and multipart fields during invoice extraction to reduce exposure to oversized or malformed uploads.
+
 ## 1.4.0 — 2026-09-24
 
 Released on: 2026-09-24

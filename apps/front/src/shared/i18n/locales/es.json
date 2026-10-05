@@ -2431,6 +2431,18 @@
       "security": "Seguridad"
     },
     "releases": {
+      "v1_4_1": {
+        "entries": {
+          "payroll-document-access-controls": {
+            "title": "Controles de acceso a documentos de nóminas",
+            "description": "Restringe los documentos de nóminas, sus notificaciones y los resúmenes financieros de proyectos a los miembros con acceso al personal."
+          },
+          "secure-invoice-intake": {
+            "title": "Cargas de facturas más seguras",
+            "description": "Limita la cantidad de archivos y campos multipart al extraer facturas para reducir la exposición a cargas demasiado grandes o mal formadas."
+          }
+        }
+      },
       "v1_4_0": {
         "entries": {
           "project-planning-checklists": {

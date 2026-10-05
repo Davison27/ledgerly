@@ -1,6 +1,20 @@
 {
-  "currentVersion": "1.4.0",
+  "currentVersion": "1.4.1",
   "releases": [
+    {
+      "version": "1.4.1",
+      "date": "2026-10-05",
+      "entries": [
+        {
+          "id": "payroll-document-access-controls",
+          "category": "security"
+        },
+        {
+          "id": "secure-invoice-intake",
+          "category": "security"
+        }
+      ]
+    },
     {
       "version": "1.4.0",
       "date": "2026-09-24",
