@@ -116,8 +116,8 @@ Ledgerly is built with defense-in-depth security principles:
 
 ### Requirements
 
-- Node.js 20 or newer
-- pnpm 11 or newer
+- Node.js 22.23.4 or 24.22.1, or a later patch in either supported major line
+- pnpm 12.4.2
 - Docker with Docker Compose
 - `make`
 
