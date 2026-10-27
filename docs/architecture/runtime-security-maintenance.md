@@ -31,6 +31,25 @@ temporary manifest context used by `release-audit.sh`, so lockfile resolution
 is consistent across local, image, and audit installs. Recheck the hook when
 updating Better Auth.
 
+## Legacy Better Auth account schema
+
+Better Auth 1.7.0 through 1.7.2 created a required `account.issuer` column.
+From 1.7.3, account identity uses `providerId` and `accountId` again, and the
+library no longer writes `issuer`. A leftover required column makes 1.7.12
+reject the database schema, including the social sign-in endpoint. A fresh
+schema does not reproduce this upgrade failure.
+
+The compatibility migration removes the legacy column after checking account
+identity uniqueness and ensuring a unique index on `(providerId, accountId)`.
+It preserves account rows and does not merge duplicate identities. Rehearse
+upgrades against the previous schema as well as an empty database. See the
+[Better Auth 1.7 upgrade guide](https://github.com/better-auth/better-auth/blob/main/docs/content/docs/guides/1-7-upgrade-guide.mdx).
+
+The migration rollback can recreate the optional column, but it cannot restore
+its historical values. Keep the account-identity index during rollback.
+
+## Runtime verification
+
 The backend Jest commands disable V8's compilation cache with
 `--no-compilation-cache` because Jest VM tests otherwise hit the Node/V8
 teardown failure tracked in [Node.js issue 65866](https://github.com/nodejs/node/issues/65866).
