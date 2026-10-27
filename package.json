@@ -1,10 +1,10 @@
 {
   "name": "ledgerly-erp",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "private": true,
   "packageManager": "pnpm@12.4.2",
   "engines": {
-    "node": ">=20"
+    "node": "^22.23.4 || ^24.22.1"
   },
   "scripts": {
     "dev": "turbo run dev",

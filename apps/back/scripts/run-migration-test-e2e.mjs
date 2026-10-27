@@ -71,6 +71,7 @@ async function ensureMigrationTestDatabase() {
 
 function runJest(config, migrationTestUrl) {
   execFileSync(process.execPath, [
+    '--no-compilation-cache',
     '--experimental-vm-modules',
     'node_modules/jest/bin/jest.js',
     '--config',

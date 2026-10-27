@@ -85,6 +85,7 @@ Use `$arquitectura-hexagonal` before work in `apps/back` and
 
 ## Durable conventions
 
+- Make every repository change on a remote `codex/*` branch and propose it through a pull request to `main`; never push changes directly to `main`.
 - Do not add code comments, including JSDoc. Keep only directives required by
   lint or build, such as `eslint-disable` and `@ts-expect-error`. Express intent
   through names, types, and extraction; record rationale in commits, skills, or

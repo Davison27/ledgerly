@@ -4,7 +4,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/lib.sh"
 
-NODE_AUDIT_IMAGE="node:22-alpine@sha256:16e22a550f3863206a3f701448c45f7912c6896a62de43add43bb9c86130c3e2"
+NODE_AUDIT_IMAGE="node:22.23.4-alpine@sha256:fe4f6d74e20370acb04ad889077d14d0f64a9c8ea6a42bc60cddf1e844699914"
 
 require_installed
 ensure_clamav_defaults
@@ -25,12 +25,12 @@ cleanup() { rm -rf "$audit_directory"; }
 trap cleanup EXIT
 
 mkdir -p "$audit_directory/apps/back" "$audit_directory/apps/front"
-cp "$REPO_ROOT/package.json" "$REPO_ROOT/pnpm-lock.yaml" "$REPO_ROOT/pnpm-workspace.yaml" "$REPO_ROOT/.npmrc" "$audit_directory/"
+cp "$REPO_ROOT/package.json" "$REPO_ROOT/pnpm-lock.yaml" "$REPO_ROOT/pnpm-workspace.yaml" "$REPO_ROOT/.npmrc" "$REPO_ROOT/.pnpmfile.cjs" "$audit_directory/"
 cp "$REPO_ROOT/apps/back/package.json" "$audit_directory/apps/back/"
 cp "$REPO_ROOT/apps/front/package.json" "$audit_directory/apps/front/"
 chmod 755 "$audit_directory" "$audit_directory/apps" "$audit_directory/apps/back" "$audit_directory/apps/front"
 chmod 644 "$audit_directory/package.json" "$audit_directory/pnpm-lock.yaml" \
-  "$audit_directory/pnpm-workspace.yaml" "$audit_directory/.npmrc" \
+  "$audit_directory/pnpm-workspace.yaml" "$audit_directory/.npmrc" "$audit_directory/.pnpmfile.cjs" \
   "$audit_directory/apps/back/package.json" "$audit_directory/apps/front/package.json"
 
 step "Auditing production dependencies"
@@ -64,6 +64,38 @@ fi
 step "Building audited production images"
 compose build --pull back front >/dev/null
 ok "Backend and frontend images built from pinned base images"
+
+step "Checking the production backend runtime inventory"
+backend_image="ledgerly-back:local"
+runtime_version_log="$audit_directory/backend-node-version.log"
+if ! runtime_node_version="$(docker run --rm --network none --entrypoint node "$backend_image" --version 2>"$runtime_version_log")"; then
+  fail "Could not read the Node.js version from the built backend image."
+  tail -n 20 "$runtime_version_log"
+  exit 1
+fi
+if [ "$runtime_node_version" != "v22.23.4" ]; then
+  fail "The built backend image uses ${runtime_node_version}; expected v22.23.4."
+  exit 1
+fi
+ok "Backend image runs Node.js ${runtime_node_version}"
+
+runtime_inventory_log="$audit_directory/backend-runtime-inventory.log"
+if ! docker run --rm \
+  --network none \
+  --read-only \
+  --cap-drop ALL \
+  --security-opt no-new-privileges:true \
+  --user node \
+  -v "$REPO_ROOT/deploy/scripts/verify-ledgerly-runtime.mjs:/tmp/verify-ledgerly-runtime.mjs:ro" \
+  --entrypoint node \
+  "$backend_image" \
+  /tmp/verify-ledgerly-runtime.mjs /app >"$runtime_inventory_log" 2>&1; then
+  fail "The built backend image contains forbidden test tooling or an unexpected Multer resolution."
+  tail -n 30 "$runtime_inventory_log"
+  exit 1
+fi
+cat "$runtime_inventory_log"
+ok "Backend runtime inventory matches the approved production dependencies"
 
 step "Preparing pinned runtime images"
 compose pull --quiet postgres clamav caddy >/dev/null

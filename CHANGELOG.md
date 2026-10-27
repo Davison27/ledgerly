@@ -2,6 +2,15 @@
 
 Review the complete Ledgerly release history.
 
+## 1.4.2 — 2026-10-26
+
+Released on: 2026-10-26
+
+### Security
+
+- **Safer handling of incoming requests** — Limit JSON and form request bodies to 256 KiB and safely handle compressed request data.
+- **Security dependency updates** — Update security-sensitive server dependencies for authentication and file uploads, and run the backend on patched Node.js 22.23.4.
+
 ## 1.4.1 — 2026-10-05
 
 Released on: 2026-10-05
