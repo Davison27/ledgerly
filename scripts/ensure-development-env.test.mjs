@@ -136,7 +136,12 @@ test('prepares development environments before Make starts Compose', () => {
     backScripts['db:up'],
     /^node \.\.\/\.\.\/scripts\/ensure-development-env\.mjs && docker compose up -d$/,
   );
+});
 
+test('uses isolated migration runners without preparing the development environment', () => {
+  const backScripts = JSON.parse(
+    readFileSync(path.join(repositoryRoot, 'apps/back/package.json'), 'utf8'),
+  ).scripts;
   const migrationTestScripts = Object.entries(backScripts).filter(([, command]) =>
     command.includes('run-migration-test-e2e.mjs'),
   );
@@ -144,8 +149,8 @@ test('prepares development environments before Make starts Compose', () => {
   for (const [name, command] of migrationTestScripts) {
     assert.match(
       command,
-      /^node \.\.\/\.\.\/scripts\/ensure-development-env\.mjs && node scripts\/run-migration-test-e2e\.mjs(?: |$)/,
-      `${name} must create the development environment before the migration E2E runner`,
+      /^node scripts\/run-migration-test-e2e\.mjs(?: |$)/,
+      `${name} must use the isolated migration E2E runner without host development settings`,
     );
   }
 });

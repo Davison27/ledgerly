@@ -28,6 +28,11 @@ pnpm-debug.log*
 # Coverage
 coverage/
 
+# Local E2E and push verification artifacts
+apps/front/test-results/
+apps/front/playwright-report/
+.artifacts/verify-push/
+
 # Claude and Codex: track shared configuration, never local downloaded skills
 .claude/*
 !.claude/agents/

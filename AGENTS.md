@@ -113,6 +113,28 @@ pnpm --filter @ledgerly/front lint
 pnpm check:repo
 ```
 
-pnpm 11 uses `allowBuilds:` in `pnpm-workspace.yaml` to approve installation
+pnpm 12 uses `allowBuilds:` in `pnpm-workspace.yaml` to approve installation
 scripts. `onlyBuiltDependencies` is legacy and causes pnpm to rewrite the file
 with placeholders.
+
+## E2E regression policy
+
+- Treat every E2E spec and expected result already present on `main` as an
+  append-only regression baseline. Do not edit, delete, rename, skip, or weaken
+  that baseline without David's explicit approval. Extend coverage in new,
+  focused specs and small composable fixtures that follow SOLID and
+  open-closed design.
+- Once a newly added E2E spec is merged into `main`, the same baseline policy
+  applies. Refine a new spec while its implementation PR is open as needed to
+  correct the test itself, without changing an established behavior contract.
+- Changes to E2E fixtures, server configurations, runners, test databases,
+  scanner fixtures, discovery patterns, package scripts, or local verification
+  hooks must preserve the established assertions and receive the configured
+  CODEOWNERS review. Never use a PR label, body checkbox, or other
+  contributor-controlled flag to authorize a baseline change.
+- The local pre-push hook runs the supported full verification command for
+  each push, including force pushes. Contributors can bypass local hooks with
+  `HUSKY=0` or `git push --no-verify`; GitHub cannot prove the hook ran on a
+  contributor's machine. Keep GitHub Actions and required status checks out of
+  this verification path. Repository owners and administrators retain any
+  bypass allowed by GitHub's branch protection settings.

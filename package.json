@@ -12,7 +12,7 @@
     "lint": "turbo run lint && pnpm check:repo",
     "check:repo": "node scripts/check-repository-hygiene.mjs && pnpm verify:release",
     "test": "turbo run test --concurrency=1",
-    "verify:push": "pnpm test",
+    "verify:push": "node scripts/verify-push.mjs",
     "typecheck": "pnpm --filter @ledgerly/front run typecheck && pnpm --filter @ledgerly/back run typecheck",
     "prepare": "husky",
     "prepare-release": "node scripts/prepare-release.mjs",
