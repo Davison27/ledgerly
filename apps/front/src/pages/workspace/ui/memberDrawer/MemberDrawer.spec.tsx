@@ -1,12 +1,15 @@
 import { App, ConfigProvider } from 'antd';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { ComponentProps } from 'react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { PermissionMatrixDto } from '@/entities/workspace-member';
 import { matrixForRole } from '@/entities/workspace-member';
 import { MemberDrawer } from './MemberDrawer';
 
-function renderInvite(onInvite: ReturnType<typeof vi.fn>) {
+type MemberInviteHandler = ComponentProps<typeof MemberDrawer>['onInvite'];
+
+function renderInvite(onInvite: MemberInviteHandler) {
   return render(
     <ConfigProvider>
       <App>
@@ -35,7 +38,7 @@ describe('MemberDrawer', () => {
 
   it('invites members with the explicit member role and view-only section grants', async () => {
     const user = userEvent.setup();
-    const onInvite = vi.fn().mockResolvedValue(undefined);
+    const onInvite = vi.fn<MemberInviteHandler>().mockResolvedValue(undefined);
     const getComputedStyle = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => getComputedStyle(element));
     renderInvite(onInvite);
@@ -53,7 +56,7 @@ describe('MemberDrawer', () => {
 
   it('invites administrators with full-access defaults and hides the member matrix', async () => {
     const user = userEvent.setup();
-    const onInvite = vi.fn().mockResolvedValue(undefined);
+    const onInvite = vi.fn<MemberInviteHandler>().mockResolvedValue(undefined);
     const getComputedStyle = window.getComputedStyle.bind(window);
     vi.spyOn(window, 'getComputedStyle').mockImplementation((element) => getComputedStyle(element));
     renderInvite(onInvite);
