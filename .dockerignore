@@ -12,3 +12,6 @@ coverage
 deploy/.state
 *.log
 .claude
+apps/front/test-results
+apps/front/playwright-report
+.artifacts/verify-push
